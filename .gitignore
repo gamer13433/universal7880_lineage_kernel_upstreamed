@@ -45,6 +45,7 @@ Module.symvers
 /linux
 /vmlinux
 /vmlinuz
+/build.sh
 /System.map
 /Module.markers
 
