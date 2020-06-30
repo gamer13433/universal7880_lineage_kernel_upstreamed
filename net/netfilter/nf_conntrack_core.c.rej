@@ -1,0 +1,37 @@
+--- net/netfilter/nf_conntrack_core.c
++++ net/netfilter/nf_conntrack_core.c
+@@ -611,16 +611,15 @@ __nf_conntrack_confirm(struct sk_buff *skb)
+ 	 */
+ 	NF_CT_ASSERT(!nf_ct_is_confirmed(ct));
+ 	pr_debug("Confirming conntrack %p\n", ct);
+-	/* We have to check the DYING flag inside the lock to prevent
+-	   a race against nf_ct_get_next_corpse() possibly called from
+-	   user context, else we insert an already 'dead' hash, blocking
+-	   further use of that particular connection -JM */
++	/* We have to check the DYING flag after unlink to prevent
++	 * a race against nf_ct_get_next_corpse() possibly called from
++	 * user context, else we insert an already 'dead' hash, blocking
++	 * further use of that particular connection -JM.
++	 */
++	nf_ct_del_from_dying_or_unconfirmed_list(ct);
+ 
+-	if (unlikely(nf_ct_is_dying(ct))) {
+-		nf_conntrack_double_unlock(hash, reply_hash);
+-		local_bh_enable();
+-		return NF_ACCEPT;
+-	}
++	if (unlikely(nf_ct_is_dying(ct)))
++		goto out;
+ 
+ 	/* See if there's one in the list already, including reverse:
+ 	   NAT could have grabbed it without realizing, since we're
+@@ -1764,7 +1763,8 @@ int nf_conntrack_init_net(struct net *net)
+ 	if (!net->ct.stat)
+ 		goto err_pcpu_lists;
+ 
+-	net->ct.slabname = kasprintf(GFP_KERNEL, "nf_conntrack_%p", net);
++	net->ct.slabname = kasprintf(GFP_KERNEL, "nf_conntrack_%llu",
++				(u64)atomic64_inc_return(&unique_id));
+ 	if (!net->ct.slabname)
+ 		goto err_slabname;
+ 

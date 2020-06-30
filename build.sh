@@ -1,0 +1,9 @@
+export KBUILD_BUILD_USER=Ramen
+export KBUILD_BUILD_HOST=SUSANO
+export PATH=$PATH:/home/anjaro/gcc49/gxx/bin
+export ARCH=arm64
+export SUBARCH=arm64
+export CROSS_COMPILE=/home/anjaro/gcc49/gxx/bin/aarch64-maestro-linux-gnu-
+export PLATFORM_VERSION=9.0.0
+make lineage-a5y17lte_defconfig
+make -j16

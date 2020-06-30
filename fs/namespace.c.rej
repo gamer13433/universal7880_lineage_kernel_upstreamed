@@ -1,0 +1,33 @@
+--- fs/namespace.c
++++ fs/namespace.c
+@@ -1490,13 +1493,14 @@ void __detach_mounts(struct dentry *dentry)
+ 
+ 	namespace_lock();
+ 	mp = lookup_mountpoint(dentry);
+-	if (!mp)
++	if (IS_ERR_OR_NULL(mp))
+ 		goto out_unlock;
+ 
+ 	lock_mount_hash();
++	event++;
+ 	while (!hlist_empty(&mp->m_list)) {
+ 		mnt = hlist_entry(mp->m_list.first, struct mount, mnt_mp_list);
+-		umount_tree(mnt, 2);
++		umount_tree(mnt, 0);
+ 	}
+ 	unlock_mount_hash();
+ 	put_mountpoint(mp);
+@@ -1675,8 +1682,11 @@ struct vfsmount *collect_mounts(struct path *path)
+ {
+ 	struct mount *tree;
+ 	namespace_lock();
+-	tree = copy_tree(real_mount(path->mnt), path->dentry,
+-			 CL_COPY_ALL | CL_PRIVATE);
++	if (!check_mnt(real_mount(path->mnt)))
++		tree = ERR_PTR(-EINVAL);
++	else
++		tree = copy_tree(real_mount(path->mnt), path->dentry,
++				 CL_COPY_ALL | CL_PRIVATE);
+ 	namespace_unlock();
+ 	if (IS_ERR(tree))
+ 		return ERR_CAST(tree);

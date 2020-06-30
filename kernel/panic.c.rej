@@ -1,0 +1,10 @@
+--- kernel/panic.c
++++ kernel/panic.c
+@@ -23,6 +23,7 @@
+ #include <linux/sysrq.h>
+ #include <linux/init.h>
+ #include <linux/nmi.h>
++#include <linux/console.h>
+ 
+ #define PANIC_TIMER_STEP 100
+ #define PANIC_BLINK_SPD 18

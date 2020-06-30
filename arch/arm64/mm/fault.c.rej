@@ -1,0 +1,10 @@
+--- arch/arm64/mm/fault.c
++++ arch/arm64/mm/fault.c
+@@ -282,6 +285,7 @@ retry:
+ 			 * starvation.
+ 			 */
+ 			mm_flags &= ~FAULT_FLAG_ALLOW_RETRY;
++			mm_flags |= FAULT_FLAG_TRIED;
+ 			goto retry;
+ 		}
+ 	}

@@ -1,0 +1,48 @@
+--- drivers/media/usb/dvb-usb/dib0700_core.c
++++ drivers/media/usb/dvb-usb/dib0700_core.c
+@@ -707,30 +697,30 @@ static void dib0700_rc_urb_completion(struct urb *purb)
+ 		toggle = 0;
+ 
+ 		/* NEC protocol sends repeat code as 0 0 0 FF */
+-		if (poll_reply->nec.system     == 0x00 &&
+-		    poll_reply->nec.not_system == 0x00 &&
+-		    poll_reply->nec.data       == 0x00 &&
+-		    poll_reply->nec.not_data   == 0xff) {
++		if (poll_reply->system     == 0x00 &&
++		    poll_reply->not_system == 0x00 &&
++		    poll_reply->data       == 0x00 &&
++		    poll_reply->not_data   == 0xff) {
+ 			poll_reply->data_state = 2;
+ 			break;
+ 		}
+ 
+-		if ((poll_reply->nec.data ^ poll_reply->nec.not_data) != 0xff) {
++		if ((poll_reply->data ^ poll_reply->not_data) != 0xff) {
+ 			deb_data("NEC32 protocol\n");
+-			keycode = RC_SCANCODE_NEC32(poll_reply->nec.system     << 24 |
+-						     poll_reply->nec.not_system << 16 |
+-						     poll_reply->nec.data       << 8  |
+-						     poll_reply->nec.not_data);
+-		} else if ((poll_reply->nec.system ^ poll_reply->nec.not_system) != 0xff) {
++			keycode = RC_SCANCODE_NEC32(poll_reply->system     << 24 |
++						     poll_reply->not_system << 16 |
++						     poll_reply->data       << 8  |
++						     poll_reply->not_data);
++		} else if ((poll_reply->system ^ poll_reply->not_system) != 0xff) {
+ 			deb_data("NEC extended protocol\n");
+-			keycode = RC_SCANCODE_NECX(poll_reply->nec.system << 8 |
+-						    poll_reply->nec.not_system,
+-						    poll_reply->nec.data);
++			keycode = RC_SCANCODE_NECX(poll_reply->system << 8 |
++						    poll_reply->not_system,
++						    poll_reply->data);
+ 
+ 		} else {
+ 			deb_data("NEC normal protocol\n");
+-			keycode = RC_SCANCODE_NEC(poll_reply->nec.system,
+-						   poll_reply->nec.data);
++			keycode = RC_SCANCODE_NEC(poll_reply->system,
++						   poll_reply->data);
+ 		}
+ 
+ 		break;
