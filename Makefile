@@ -412,6 +412,9 @@ KBUILD_CFLAGS   := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
 
 KBUILD_AFLAGS_KERNEL :=
 KBUILD_CFLAGS_KERNEL :=
+AARCH64_CFLAGS	:= -march=armv8.1-a+fp+simd+crypto+crc -mtune=cortex-a53
+KBUILD_CFLAGS_KERNEL += $(AARCH64_CFLAGS)
+KBUILD_CFLAGS_MODULE += $(AARCH64_CFLAGS)
 KBUILD_AFLAGS   := -D__ASSEMBLY__
 KBUILD_AFLAGS_MODULE  := -DMODULE
 KBUILD_CFLAGS_MODULE  := -DMODULE
@@ -645,9 +648,9 @@ KBUILD_CFLAGS	+= $(call cc-option,-fno-PIE)
 KBUILD_AFLAGS	+= $(call cc-option,-fno-PIE)
 
 ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
-KBUILD_CFLAGS	+= -Os $(call cc-disable-warning,maybe-uninitialized,)
+KBUILD_CFLAGS	+= -Os -g0 -pipe
 else
-KBUILD_CFLAGS	+= -O2
+KBUILD_CFLAGS	+= -O3 -g0 -pipe
 endif
 
 # Needed to unbreak GCC 7.x and above
