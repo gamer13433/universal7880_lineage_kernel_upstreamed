@@ -394,7 +394,7 @@ static int raw_send_hdrinc(struct sock *sk, struct flowi4 *fl4,
 		iph->check   = 0;
 		iph->tot_len = htons(length);
 		if (!iph->id)
-			ip_select_ident(net, skb, NULL);
+			ip_select_ident(skb, NULL);
 
 		iph->check = ip_fast_csum((unsigned char *)iph, iph->ihl);
 	}
@@ -530,10 +530,8 @@ static int raw_sendmsg(struct kiocb *iocb, struct sock *sk, struct msghdr *msg,
 
 	if (msg->msg_controllen) {
 		err = ip_cmsg_send(sock_net(sk), msg, &ipc, false);
-		if (unlikely(err)) {
-			kfree(ipc.opt);
+		if (err)
 			goto out;
-		}
 		if (ipc.opt)
 			free = 1;
 	}

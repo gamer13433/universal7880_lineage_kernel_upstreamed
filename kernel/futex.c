@@ -308,9 +308,9 @@ static inline int hb_waiters_pending(struct futex_hash_bucket *hb)
  */
 static struct futex_hash_bucket *hash_futex(union futex_key *key)
 {
-	u32 hash = jhash2((u32 *)key, offsetof(typeof(*key), both.offset) / 4,
+	u32 hash = jhash2((u32*)&key->both.word,
+			  (sizeof(key->both.word)+sizeof(key->both.ptr))/4,
 			  key->both.offset);
-
 	return &futex_queues[hash & (futex_hashsize - 1)];
 }
 
@@ -337,7 +337,7 @@ static void get_futex_key_refs(union futex_key *key)
 
 	switch (key->both.offset & (FUT_OFF_INODE|FUT_OFF_MMSHARED)) {
 	case FUT_OFF_INODE:
-		smp_mb();		/* explicit smp_mb(); (B) */
+		ihold(key->shared.inode); /* implies MB (B) */
 		break;
 	case FUT_OFF_MMSHARED:
 		futex_get_mm(key); /* implies MB (B) */
@@ -368,6 +368,7 @@ static void drop_futex_key_refs(union futex_key *key)
 
 	switch (key->both.offset & (FUT_OFF_INODE|FUT_OFF_MMSHARED)) {
 	case FUT_OFF_INODE:
+		iput(key->shared.inode);
 		break;
 	case FUT_OFF_MMSHARED:
 		mmdrop(key->private.mm);
@@ -387,15 +388,9 @@ static void drop_futex_key_refs(union futex_key *key)
  *
  * The key words are stored in *key on success.
  *
- * For shared mappings (when @fshared), the key is:
- *   ( inode->i_sequence, page->index, offset_within_page )
- * [ also see get_inode_sequence_number() ]
- *
- * For private mappings (or when !@fshared), the key is:
- *   ( current->mm, address, 0 )
- *
- * This allows (cross process, where applicable) identification of the futex
- * without keeping the page pinned for the duration of the FUTEX_WAIT.
+ * For shared mappings, it's (page->index, file_inode(vma->vm_file),
+ * offset_within_page).  For private mappings, it's (uaddr, current->mm).
+ * We can usually work out the index without swapping in the page.
  *
  * lock_page() might sleep, the caller should not hold a spinlock.
  */
@@ -530,10 +525,11 @@ again:
 		key->private.address = address;
 	} else {
 		key->both.offset |= FUT_OFF_INODE; /* inode-based key */
+		key->shared.inode = page_head->mapping->host;
 		key->shared.pgoff = basepage_index(page);
 	}
 
-	get_futex_key_refs(key); /* implies smp_mb(); (B) */
+	get_futex_key_refs(key); /* implies MB (B) */
 
 out:
 	unlock_page(page_head);

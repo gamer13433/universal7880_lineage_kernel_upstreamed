@@ -531,7 +531,7 @@ int mlx4_ib_send_to_slave(struct mlx4_ib_dev *dev, int slave, u8 port,
 		tun_tx_ix = (++tun_qp->tx_ix_head) & (MLX4_NUM_TUNNEL_BUFS - 1);
 	spin_unlock(&tun_qp->tx_lock);
 	if (ret)
-		goto end;
+		goto out;
 
 	tun_mad = (struct mlx4_rcv_tunnel_mad *) (tun_qp->tx_ring[tun_tx_ix].buf.addr);
 	if (tun_qp->tx_ring[tun_tx_ix].ah)
@@ -600,15 +600,9 @@ int mlx4_ib_send_to_slave(struct mlx4_ib_dev *dev, int slave, u8 port,
 	wr.send_flags = IB_SEND_SIGNALED;
 
 	ret = ib_post_send(src_qp, &wr, &bad_wr);
-	if (!ret)
-		return 0;
- out:
-	spin_lock(&tun_qp->tx_lock);
-	tun_qp->tx_ix_tail++;
-	spin_unlock(&tun_qp->tx_lock);
-	tun_qp->tx_ring[tun_tx_ix].ah = NULL;
-end:
-	ib_destroy_ah(ah);
+out:
+	if (ret)
+		ib_destroy_ah(ah);
 	return ret;
 }
 
@@ -1262,15 +1256,9 @@ int mlx4_ib_send_to_wire(struct mlx4_ib_dev *dev, int slave, u8 port,
 
 
 	ret = ib_post_send(send_qp, &wr, &bad_wr);
-	if (!ret)
-		return 0;
-
-	spin_lock(&sqp->tx_lock);
-	sqp->tx_ix_tail++;
-	spin_unlock(&sqp->tx_lock);
-	sqp->tx_ring[wire_tx_ix].ah = NULL;
 out:
-	ib_destroy_ah(ah);
+	if (ret)
+		ib_destroy_ah(ah);
 	return ret;
 }
 

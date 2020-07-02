@@ -1768,7 +1768,7 @@ void inet_netconf_notify_devconf(struct net *net, int type, int ifindex,
 	struct sk_buff *skb;
 	int err = -ENOBUFS;
 
-	skb = nlmsg_new(inet_netconf_msgsize_devconf(type), GFP_KERNEL);
+	skb = nlmsg_new(inet_netconf_msgsize_devconf(type), GFP_ATOMIC);
 	if (skb == NULL)
 		goto errout;
 
@@ -1780,7 +1780,7 @@ void inet_netconf_notify_devconf(struct net *net, int type, int ifindex,
 		kfree_skb(skb);
 		goto errout;
 	}
-	rtnl_notify(skb, net, 0, RTNLGRP_IPV4_NETCONF, NULL, GFP_KERNEL);
+	rtnl_notify(skb, net, 0, RTNLGRP_IPV4_NETCONF, NULL, GFP_ATOMIC);
 	return;
 errout:
 	if (err < 0)
@@ -1812,7 +1812,7 @@ static int inet_netconf_get_devconf(struct sk_buff *in_skb,
 	if (err < 0)
 		goto errout;
 
-	err = -EINVAL;
+	err = EINVAL;
 	if (!tb[NETCONFA_IFINDEX])
 		goto errout;
 
@@ -1836,7 +1836,7 @@ static int inet_netconf_get_devconf(struct sk_buff *in_skb,
 	}
 
 	err = -ENOBUFS;
-	skb = nlmsg_new(inet_netconf_msgsize_devconf(-1), GFP_KERNEL);
+	skb = nlmsg_new(inet_netconf_msgsize_devconf(-1), GFP_ATOMIC);
 	if (skb == NULL)
 		goto errout;
 
@@ -1960,16 +1960,16 @@ static void inet_forward_change(struct net *net)
 
 	for_each_netdev(net, dev) {
 		struct in_device *in_dev;
-
 		if (on)
 			dev_disable_lro(dev);
-
-		in_dev = __in_dev_get_rtnl(dev);
+		rcu_read_lock();
+		in_dev = __in_dev_get_rcu(dev);
 		if (in_dev) {
 			IN_DEV_CONF_SET(in_dev, FORWARDING, on);
 			inet_netconf_notify_devconf(net, NETCONFA_FORWARDING,
 						    dev->ifindex, &in_dev->cnf);
 		}
+		rcu_read_unlock();
 	}
 }
 

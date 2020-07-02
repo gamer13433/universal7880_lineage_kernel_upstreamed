@@ -4691,10 +4691,6 @@ static int is_extent_unchanged(struct send_ctx *sctx,
 			goto out;
 		}
 
-		right_disknr = btrfs_file_extent_disk_bytenr(eb, ei);
-		right_offset = btrfs_file_extent_offset(eb, ei);
-		right_gen = btrfs_file_extent_generation(eb, ei);
-
 		left_offset_fixed = left_offset;
 		if (key.offset < ekey->offset) {
 			/* Fix the right offset for 2a and 7. */

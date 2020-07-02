@@ -203,6 +203,7 @@ struct ov6650 {
 	unsigned long		pclk_max;	/* from resolution and format */
 	struct v4l2_fract	tpf;		/* as requested with s_parm */
 	enum v4l2_mbus_pixelcode code;
+	enum v4l2_colorspace	colorspace;
 };
 
 
@@ -507,7 +508,7 @@ static int ov6650_g_fmt(struct v4l2_subdev *sd,
 	mf->width	= priv->rect.width >> priv->half_scale;
 	mf->height	= priv->rect.height >> priv->half_scale;
 	mf->code	= priv->code;
-	mf->colorspace	= V4L2_COLORSPACE_SRGB;
+	mf->colorspace	= priv->colorspace;
 	mf->field	= V4L2_FIELD_NONE;
 
 	return 0;
@@ -618,6 +619,11 @@ static int ov6650_s_fmt(struct v4l2_subdev *sd, struct v4l2_mbus_framefmt *mf)
 		priv->pclk_max = 8000000;
 	}
 
+	if (code == V4L2_MBUS_FMT_SBGGR8_1X8)
+		priv->colorspace = V4L2_COLORSPACE_SRGB;
+	else if (code != 0)
+		priv->colorspace = V4L2_COLORSPACE_JPEG;
+
 	if (half_scale) {
 		dev_dbg(&client->dev, "max resolution: QCIF\n");
 		coma_set |= COMA_QCIF;
@@ -670,6 +676,7 @@ static int ov6650_s_fmt(struct v4l2_subdev *sd, struct v4l2_mbus_framefmt *mf)
 		ret = ov6650_reg_rmw(client, REG_COML, coml_set, coml_mask);
 
 	if (!ret) {
+		mf->colorspace	= priv->colorspace;
 		mf->width = priv->rect.width >> half_scale;
 		mf->height = priv->rect.height >> half_scale;
 	}
@@ -688,7 +695,6 @@ static int ov6650_try_fmt(struct v4l2_subdev *sd,
 				&mf->height, 2, H_CIF, 1, 0);
 
 	mf->field = V4L2_FIELD_NONE;
-	mf->colorspace = V4L2_COLORSPACE_SRGB;
 
 	switch (mf->code) {
 	case V4L2_MBUS_FMT_Y10_1X10:
@@ -698,10 +704,12 @@ static int ov6650_try_fmt(struct v4l2_subdev *sd,
 	case V4L2_MBUS_FMT_YUYV8_2X8:
 	case V4L2_MBUS_FMT_VYUY8_2X8:
 	case V4L2_MBUS_FMT_UYVY8_2X8:
+		mf->colorspace = V4L2_COLORSPACE_JPEG;
 		break;
 	default:
 		mf->code = V4L2_MBUS_FMT_SBGGR8_1X8;
 	case V4L2_MBUS_FMT_SBGGR8_1X8:
+		mf->colorspace = V4L2_COLORSPACE_SRGB;
 		break;
 	}
 
@@ -1006,6 +1014,7 @@ static int ov6650_probe(struct i2c_client *client,
 	priv->rect.height = H_CIF;
 	priv->half_scale  = false;
 	priv->code	  = V4L2_MBUS_FMT_YUYV8_2X8;
+	priv->colorspace  = V4L2_COLORSPACE_JPEG;
 
 	priv->clk = v4l2_clk_get(&client->dev, NULL);
 	if (IS_ERR(priv->clk)) {

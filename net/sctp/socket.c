@@ -190,13 +190,13 @@ static void sctp_for_each_tx_datachunk(struct sctp_association *asoc,
 		list_for_each_entry(chunk, &t->transmitted, transmitted_list)
 			cb(chunk);
 
-	list_for_each_entry(chunk, &q->retransmit, transmitted_list)
+	list_for_each_entry(chunk, &q->retransmit, list)
 		cb(chunk);
 
-	list_for_each_entry(chunk, &q->sacked, transmitted_list)
+	list_for_each_entry(chunk, &q->sacked, list)
 		cb(chunk);
 
-	list_for_each_entry(chunk, &q->abandoned, transmitted_list)
+	list_for_each_entry(chunk, &q->abandoned, list)
 		cb(chunk);
 
 	list_for_each_entry(chunk, &q->out_chunk_list, list)
@@ -6707,7 +6707,6 @@ static int sctp_msghdr_parse(const struct msghdr *msg, sctp_cmsgs_t *cmsgs)
 
 			if (cmsgs->srinfo->sinfo_flags &
 			    ~(SCTP_UNORDERED | SCTP_ADDR_OVER |
-			      SCTP_SACK_IMMEDIATELY |
 			      SCTP_ABORT | SCTP_EOF))
 				return -EINVAL;
 			break;
@@ -6731,7 +6730,6 @@ static int sctp_msghdr_parse(const struct msghdr *msg, sctp_cmsgs_t *cmsgs)
 
 			if (cmsgs->sinfo->snd_flags &
 			    ~(SCTP_UNORDERED | SCTP_ADDR_OVER |
-			      SCTP_SACK_IMMEDIATELY |
 			      SCTP_ABORT | SCTP_EOF))
 				return -EINVAL;
 			break;

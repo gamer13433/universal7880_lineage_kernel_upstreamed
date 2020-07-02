@@ -763,7 +763,7 @@ int timekeeping_inject_offset(struct timespec *ts)
 	struct timespec64 ts64, tmp;
 	int ret = 0;
 
-	if (!timespec_inject_offset_valid(ts))
+	if ((unsigned long)ts->tv_nsec >= NSEC_PER_SEC)
 		return -EINVAL;
 
 	ts64 = timespec_to_timespec64(*ts);

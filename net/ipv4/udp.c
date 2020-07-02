@@ -952,10 +952,8 @@ int udp_sendmsg(struct kiocb *iocb, struct sock *sk, struct msghdr *msg,
 	if (msg->msg_controllen) {
 		err = ip_cmsg_send(sock_net(sk), msg, &ipc,
 				   sk->sk_family == AF_INET6);
-		if (unlikely(err)) {
-			kfree(ipc.opt);
+		if (err)
 			return err;
-		}
 		if (ipc.opt)
 			free = 1;
 		connected = 0;
@@ -1666,10 +1664,10 @@ static int __udp4_lib_mcast_deliver(struct net *net, struct sk_buff *skb,
 
 	if (use_hash2) {
 		hash2_any = udp4_portaddr_hash(net, htonl(INADDR_ANY), hnum) &
-			    udptable->mask;
-		hash2 = udp4_portaddr_hash(net, daddr, hnum) & udptable->mask;
+			    udp_table.mask;
+		hash2 = udp4_portaddr_hash(net, daddr, hnum) & udp_table.mask;
 start_lookup:
-		hslot = &udptable->hash2[hash2];
+		hslot = &udp_table.hash2[hash2];
 		offset = offsetof(typeof(*sk), __sk_common.skc_portaddr_node);
 	}
 
@@ -1731,11 +1729,8 @@ static inline int udp4_csum_init(struct sk_buff *skb, struct udphdr *uh,
 		}
 	}
 
-	/* Note, we are only interested in != 0 or == 0, thus the
-	 * force to int.
-	 */
-	return (__force int)skb_checksum_init_zero_check(skb, proto, uh->check,
-							 inet_compute_pseudo);
+	return skb_checksum_init_zero_check(skb, proto, uh->check,
+					    inet_compute_pseudo);
 }
 
 /*

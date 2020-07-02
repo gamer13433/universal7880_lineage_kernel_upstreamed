@@ -90,7 +90,7 @@ ENTRY(__copy_from_user)
 
 ENDPROC(__copy_from_user)
 
-	.pushsection .text.fixup,"ax"
+	.pushsection .fixup,"ax"
 	.align 0
 	copy_abort_preamble
 	ldmfd	sp!, {r1, r2}

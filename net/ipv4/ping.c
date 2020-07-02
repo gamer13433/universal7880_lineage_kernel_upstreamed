@@ -748,10 +748,8 @@ static int ping_v4_sendmsg(struct kiocb *iocb, struct sock *sk, struct msghdr *m
 
 	if (msg->msg_controllen) {
 		err = ip_cmsg_send(sock_net(sk), msg, &ipc, false);
-		if (unlikely(err)) {
-			kfree(ipc.opt);
+		if (err)
 			return err;
-		}
 		if (ipc.opt)
 			free = 1;
 	}

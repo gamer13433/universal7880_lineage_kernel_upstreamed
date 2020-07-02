@@ -940,7 +940,6 @@ static void put_ctx(struct perf_event_context *ctx)
  * function.
  *
  * Lock order:
- *    cred_guard_mutex
  *	task_struct::perf_event_mutex
  *	  perf_event_context::mutex
  *	    perf_event_context::lock
@@ -1444,10 +1443,17 @@ static void perf_group_detach(struct perf_event *event)
 	 * If this was a group event with sibling events then
 	 * upgrade the siblings to singleton events by adding them
 	 * to whatever list we are on.
+	 * If this isn't on a list, make sure we still remove the sibling's
+	 * group_entry from this sibling_list; otherwise, when that sibling
+	 * is later deallocated, it will try to remove itself from this
+	 * sibling_list, which may well have been deallocated already,
+	 * resulting in a use-after-free.
 	 */
 	list_for_each_entry_safe(sibling, tmp, &event->sibling_list, group_entry) {
 		if (list)
 			list_move_tail(&sibling->group_entry, list);
+		else
+			list_del_init(&sibling->group_entry);
 		sibling->group_leader = sibling;
 
 		/* Inherit group flags from the previous leader */
@@ -1532,14 +1538,14 @@ event_sched_out(struct perf_event *event,
 
 	perf_pmu_disable(event->pmu);
 
-	event->tstamp_stopped = tstamp;
-	event->pmu->del(event, 0);
-	event->oncpu = -1;
 	event->state = PERF_EVENT_STATE_INACTIVE;
 	if (event->pending_disable) {
 		event->pending_disable = 0;
 		event->state = PERF_EVENT_STATE_OFF;
 	}
+	event->tstamp_stopped = tstamp;
+	event->pmu->del(event, 0);
+	event->oncpu = -1;
 
 	if (!is_software_event(event))
 		cpuctx->active_oncpu--;
@@ -3284,6 +3290,7 @@ static struct task_struct *
 find_lively_task_by_vpid(pid_t vpid)
 {
 	struct task_struct *task;
+	int err;
 
 	rcu_read_lock();
 	if (!vpid)
@@ -3297,7 +3304,16 @@ find_lively_task_by_vpid(pid_t vpid)
 	if (!task)
 		return ERR_PTR(-ESRCH);
 
+	/* Reuse ptrace permission checks for now. */
+	err = -EACCES;
+	if (!ptrace_may_access(task, PTRACE_MODE_READ))
+		goto errout;
+
 	return task;
+errout:
+	put_task_struct(task);
+	return ERR_PTR(err);
+
 }
 
 /*
@@ -4477,15 +4493,7 @@ again:
 	 */
 	user_lock_limit *= num_online_cpus();
 
-	user_locked = atomic_long_read(&user->locked_vm);
-
-	/*
-	 * sysctl_perf_event_mlock may have changed, so that
-	 *     user->locked_vm > user_lock_limit
-	 */
-	if (user_locked > user_lock_limit)
-		user_locked = user_lock_limit;
-	user_locked += user_extra;
+	user_locked = atomic_long_read(&user->locked_vm) + user_extra;
 
 	extra = 0;
 	if (user_locked > user_lock_limit)
@@ -5326,17 +5334,10 @@ static void perf_event_task_output(struct perf_event *event,
 		goto out;
 
 	task_event->event_id.pid = perf_event_pid(event, task);
-	task_event->event_id.tid = perf_event_tid(event, task);
+	task_event->event_id.ppid = perf_event_pid(event, current);
 
-	if (task_event->event_id.header.type == PERF_RECORD_EXIT) {
-		task_event->event_id.ppid = perf_event_pid(event,
-							task->real_parent);
-		task_event->event_id.ptid = perf_event_pid(event,
-							task->real_parent);
-	} else {  /* PERF_RECORD_FORK */
-		task_event->event_id.ppid = perf_event_pid(event, current);
-		task_event->event_id.ptid = perf_event_tid(event, current);
-	}
+	task_event->event_id.tid = perf_event_tid(event, task);
+	task_event->event_id.ptid = perf_event_tid(event, current);
 
 	perf_output_put(&handle, task_event->event_id);
 
@@ -7221,9 +7222,6 @@ perf_event_alloc(struct perf_event_attr *attr, int cpu,
 		}
 	}
 
-	/* symmetric to unaccount_event() in _free_event() */
-	account_event(event);
-
 	return event;
 
 err_pmu:
@@ -7512,29 +7510,11 @@ SYSCALL_DEFINE5(perf_event_open,
 
 	get_online_cpus();
 
-	if (task) {
-		err = mutex_lock_interruptible(&task->signal->cred_guard_mutex);
-		if (err)
-			goto err_cpus;
-
-		/*
-		 * Reuse ptrace permission checks for now.
-		 *
-		 * We must hold cred_guard_mutex across this and any potential
-		 * perf_install_in_context() call for this new event to
-		 * serialize against exec() altering our credentials (and the
-		 * perf_event_exit_task() that could imply).
-		 */
-		err = -EACCES;
-		if (!ptrace_may_access(task, PTRACE_MODE_READ_REALCREDS))
-			goto err_cred;
-	}
-
 	event = perf_event_alloc(&attr, cpu, task, group_leader, NULL,
 				 NULL, NULL);
 	if (IS_ERR(event)) {
 		err = PTR_ERR(event);
-		goto err_cred;
+		goto err_cpus;
 	}
 
 	if (flags & PERF_FLAG_PID_CGROUP) {
@@ -7551,6 +7531,8 @@ SYSCALL_DEFINE5(perf_event_open,
 			goto err_alloc;
 		}
 	}
+
+	account_event(event);
 
 	/*
 	 * Special case software events and allow them to be part of
@@ -7588,6 +7570,11 @@ SYSCALL_DEFINE5(perf_event_open,
 	if (IS_ERR(ctx)) {
 		err = PTR_ERR(ctx);
 		goto err_alloc;
+	}
+
+	if (task) {
+		put_task_struct(task);
+		task = NULL;
 	}
 
 	/*
@@ -7657,11 +7644,6 @@ SYSCALL_DEFINE5(perf_event_open,
 		perf_remove_from_context(group_leader, false);
 
 		/*
-		 * This is the point on no return; we cannot fail hereafter. This is
-		 * where we start modifying current state.
-		 */
-
-		/*
 		 * Removing from the context ends up with disabled
 		 * event. What we want here is event in the initial
 		 * startup state, ready to be add into new context.
@@ -7704,11 +7686,6 @@ SYSCALL_DEFINE5(perf_event_open,
 	}
 	mutex_unlock(&ctx->mutex);
 
-	if (task) {
-		mutex_unlock(&task->signal->cred_guard_mutex);
-		put_task_struct(task);
-	}
-
 	put_online_cpus();
 
 	event->owner = current;
@@ -7737,15 +7714,7 @@ err_context:
 	perf_unpin_context(ctx);
 	put_ctx(ctx);
 err_alloc:
-	/*
-	 * If event_file is set, the fput() above will have called ->release()
-	 * and that will take care of freeing the event.
-	 */
-	if (!event_file)
-		free_event(event);
-err_cred:
-	if (task)
-		mutex_unlock(&task->signal->cred_guard_mutex);
+	free_event(event);
 err_cpus:
 	put_online_cpus();
 err_task:
@@ -7994,9 +7963,6 @@ static void perf_event_exit_task_context(struct task_struct *child, int ctxn)
 
 /*
  * When a child task exits, feed back event values to parent events.
- *
- * Can be called with cred_guard_mutex held when called from
- * install_exec_creds().
  */
 void perf_event_exit_task(struct task_struct *child)
 {
