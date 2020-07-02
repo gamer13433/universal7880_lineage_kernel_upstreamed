@@ -15,6 +15,8 @@
  * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <linux/rculist.h>
+
 #include "main.h"
 #include "distributed-arp-table.h"
 #include "originator.h"
@@ -58,7 +60,7 @@ batadv_orig_node_vlan_get(struct batadv_orig_node *orig_node,
 	struct batadv_orig_node_vlan *vlan = NULL, *tmp;
 
 	rcu_read_lock();
-	list_for_each_entry_rcu(tmp, &orig_node->vlan_list, list) {
+	hlist_for_each_entry_rcu(tmp, &orig_node->vlan_list, list) {
 		if (tmp->vid != vid)
 			continue;
 
@@ -106,7 +108,7 @@ batadv_orig_node_vlan_new(struct batadv_orig_node *orig_node,
 	atomic_set(&vlan->refcount, 2);
 	vlan->vid = vid;
 
-	list_add_rcu(&vlan->list, &orig_node->vlan_list);
+	hlist_add_head_rcu(&vlan->list, &orig_node->vlan_list);
 
 out:
 	spin_unlock_bh(&orig_node->vlan_list_lock);
@@ -544,6 +546,8 @@ static void batadv_orig_node_free_rcu(struct rcu_head *rcu)
 	struct batadv_neigh_node *neigh_node;
 	struct batadv_orig_node *orig_node;
 	struct batadv_orig_ifinfo *orig_ifinfo;
+	struct batadv_orig_node_vlan *vlan;
+	struct batadv_orig_ifinfo *last_candidate;
 
 	orig_node = container_of(rcu, struct batadv_orig_node, rcu);
 
@@ -659,7 +663,7 @@ struct batadv_orig_node *batadv_orig_node_new(struct batadv_priv *bat_priv,
 		return NULL;
 
 	INIT_HLIST_HEAD(&orig_node->neigh_list);
-	INIT_LIST_HEAD(&orig_node->vlan_list);
+	INIT_HLIST_HEAD(&orig_node->vlan_list);
 	INIT_HLIST_HEAD(&orig_node->ifinfo_list);
 	spin_lock_init(&orig_node->bcast_seqno_lock);
 	spin_lock_init(&orig_node->neigh_list_lock);
@@ -1085,7 +1089,7 @@ out:
 }
 
 int batadv_orig_hash_add_if(struct batadv_hard_iface *hard_iface,
-			    int max_if_num)
+			    unsigned int max_if_num)
 {
 	struct batadv_priv *bat_priv = netdev_priv(hard_iface->soft_iface);
 	struct batadv_algo_ops *bao = bat_priv->bat_algo_ops;
@@ -1121,7 +1125,7 @@ err:
 }
 
 int batadv_orig_hash_del_if(struct batadv_hard_iface *hard_iface,
-			    int max_if_num)
+			    unsigned int max_if_num)
 {
 	struct batadv_priv *bat_priv = netdev_priv(hard_iface->soft_iface);
 	struct batadv_hashtable *hash = bat_priv->orig_hash;

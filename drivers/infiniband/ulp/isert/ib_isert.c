@@ -922,10 +922,14 @@ isert_connect_error(struct rdma_cm_id *cma_id)
 static int
 isert_cma_handler(struct rdma_cm_id *cma_id, struct rdma_cm_event *event)
 {
+	struct isert_np *isert_np = cma_id->context;
 	int ret = 0;
 
 	pr_debug("isert_cma_handler: event %d status %d conn %p id %p\n",
 		 event->event, event->status, cma_id->context, cma_id);
+
+	if (isert_np->np_cm_id == cma_id)
+		return isert_np_cma_handler(cma_id->context, event->event);
 
 	switch (event->event) {
 	case RDMA_CM_EVENT_CONNECT_REQUEST:
