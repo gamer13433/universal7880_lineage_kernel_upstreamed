@@ -1,0 +1,9 @@
+export KBUILD_BUILD_USER=Ramen
+export KBUILD_BUILD_HOST=SUSANO
+export PATH=$PATH:/home/bulat/kernel/gxx/bin
+export ARCH=arm64
+export SUBARCH=arm64
+export CROSS_COMPILE=/home/bulat/kernel/gxx/bin/aarch64-maestro-linux-gnu-
+export ANDROID_MAJOR_VERSION=p
+make lineage-a5y17lte_defconfig
+make -j16

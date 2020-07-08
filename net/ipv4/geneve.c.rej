@@ -1,0 +1,13 @@
+--- net/ipv4/geneve.c
++++ net/ipv4/geneve.c
+@@ -131,10 +135,6 @@ int geneve_xmit_skb(struct geneve_sock *gs, struct rtable *rt,
+ 	if (unlikely(!skb))
+ 		return -ENOMEM;
+ 
+-	skb = udp_tunnel_handle_offloads(skb, csum);
+-	if (IS_ERR(skb))
+-		return PTR_ERR(skb);
+-
+ 	gnvh = (struct genevehdr *)__skb_push(skb, sizeof(*gnvh) + opt_len);
+ 	geneve_build_header(gnvh, tun_flags, vni, opt_len, opt);
+ 
