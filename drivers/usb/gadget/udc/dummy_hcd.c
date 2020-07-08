@@ -50,6 +50,10 @@
 #define DRIVER_VERSION	"02 May 2005"
 
 #define POWER_BUDGET	500	/* in mA; use 8 for low-power port testing */
+<<<<<<< HEAD
+=======
+#define POWER_BUDGET_3	900	/* in mA */
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 static const char	driver_name[] = "dummy_hcd";
 static const char	driver_desc[] = "USB Host+Gadget Emulator";
@@ -2331,7 +2335,11 @@ static int dummy_start_ss(struct dummy_hcd *dum_hcd)
 	dum_hcd->rh_state = DUMMY_RH_RUNNING;
 	dum_hcd->stream_en_ep = 0;
 	INIT_LIST_HEAD(&dum_hcd->urbp_list);
+<<<<<<< HEAD
 	dummy_hcd_to_hcd(dum_hcd)->power_budget = POWER_BUDGET;
+=======
+	dummy_hcd_to_hcd(dum_hcd)->power_budget = POWER_BUDGET_3;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	dummy_hcd_to_hcd(dum_hcd)->state = HC_STATE_RUNNING;
 	dummy_hcd_to_hcd(dum_hcd)->uses_new_polling = 1;
 #ifdef CONFIG_USB_OTG

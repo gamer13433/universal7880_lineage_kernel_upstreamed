@@ -30,7 +30,10 @@
 #include <linux/file.h>
 #include <linux/device.h>
 #include <linux/miscdevice.h>
+<<<<<<< HEAD
 #include <linux/compat.h>
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #include <linux/usb.h>
 #include <linux/usb_usual.h>
@@ -39,7 +42,11 @@
 #include <linux/configfs.h>
 #include <linux/usb/composite.h>
 
+<<<<<<< HEAD
 #include "../configfs.h"
+=======
+#include "configfs.h"
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #define MTP_BULK_BUFFER_SIZE       16384
 #define INTR_BUFFER_SIZE           28
@@ -73,17 +80,23 @@
 #define MTP_RESPONSE_OK             0x2001
 #define MTP_RESPONSE_DEVICE_BUSY    0x2019
 #define DRIVER_NAME "mtp"
+<<<<<<< HEAD
 #if IS_ENABLED(CONFIG_USB_CONFIGFS_UEVENT)
 #define DRIVER_NAME_PTP "ptp"
 #endif
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 static const char mtp_shortname[] = DRIVER_NAME "_usb";
 
 struct mtp_dev {
 	struct usb_function function;
+<<<<<<< HEAD
 #if IS_ENABLED(CONFIG_USB_CONFIGFS_UEVENT)
 	struct usb_function function_ptp;
 #endif
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	struct usb_composite_dev *cdev;
 	spinlock_t lock;
 
@@ -142,6 +155,7 @@ static struct usb_interface_descriptor ptp_interface_desc = {
 	.bInterfaceProtocol     = 1,
 };
 
+<<<<<<< HEAD
 static struct usb_endpoint_descriptor mtp_superspeed_in_desc = {
 	.bLength		= USB_DT_ENDPOINT_SIZE,
 	.bDescriptorType	= USB_DT_ENDPOINT,
@@ -163,6 +177,34 @@ static struct usb_ss_ep_comp_descriptor mtp_superspeed_bulk_comp_desc = {
 	.bDescriptorType	= USB_DT_SS_ENDPOINT_COMP,
 	.bMaxBurst		= 0xF,
 	.bmAttributes		= 0,
+=======
+static struct usb_endpoint_descriptor mtp_ss_in_desc = {
+	.bLength                = USB_DT_ENDPOINT_SIZE,
+	.bDescriptorType        = USB_DT_ENDPOINT,
+	.bEndpointAddress       = USB_DIR_IN,
+	.bmAttributes           = USB_ENDPOINT_XFER_BULK,
+	.wMaxPacketSize         = __constant_cpu_to_le16(1024),
+};
+
+static struct usb_ss_ep_comp_descriptor mtp_ss_in_comp_desc = {
+	.bLength                = sizeof(mtp_ss_in_comp_desc),
+	.bDescriptorType        = USB_DT_SS_ENDPOINT_COMP,
+	/* .bMaxBurst           = DYNAMIC, */
+};
+
+static struct usb_endpoint_descriptor mtp_ss_out_desc = {
+	.bLength                = USB_DT_ENDPOINT_SIZE,
+	.bDescriptorType        = USB_DT_ENDPOINT,
+	.bEndpointAddress       = USB_DIR_OUT,
+	.bmAttributes           = USB_ENDPOINT_XFER_BULK,
+	.wMaxPacketSize         = __constant_cpu_to_le16(1024),
+};
+
+static struct usb_ss_ep_comp_descriptor mtp_ss_out_comp_desc = {
+	.bLength                = sizeof(mtp_ss_out_comp_desc),
+	.bDescriptorType        = USB_DT_SS_ENDPOINT_COMP,
+	/* .bMaxBurst           = DYNAMIC, */
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 static struct usb_endpoint_descriptor mtp_highspeed_in_desc = {
@@ -204,6 +246,7 @@ static struct usb_endpoint_descriptor mtp_intr_desc = {
 	.bInterval              = 6,
 };
 
+<<<<<<< HEAD
 static struct usb_ss_ep_comp_descriptor mtp_intr_comp_desc = {
 	.bLength		= USB_DT_SS_EP_COMP_SIZE,
 	.bDescriptorType	= USB_DT_SS_ENDPOINT_COMP,
@@ -212,6 +255,12 @@ static struct usb_ss_ep_comp_descriptor mtp_intr_comp_desc = {
 	/* .bMaxBurst		= 0, */
 	/* .bmAttributes	= 0, */
 	.wBytesPerInterval	= __constant_cpu_to_le16(INTR_BUFFER_SIZE),
+=======
+static struct usb_ss_ep_comp_descriptor mtp_intr_ss_comp_desc = {
+	.bLength                = sizeof(mtp_intr_ss_comp_desc),
+	.bDescriptorType        = USB_DT_SS_ENDPOINT_COMP,
+	.wBytesPerInterval      = cpu_to_le16(INTR_BUFFER_SIZE),
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 static struct usb_descriptor_header *fs_mtp_descs[] = {
@@ -232,12 +281,21 @@ static struct usb_descriptor_header *hs_mtp_descs[] = {
 
 static struct usb_descriptor_header *ss_mtp_descs[] = {
 	(struct usb_descriptor_header *) &mtp_interface_desc,
+<<<<<<< HEAD
 	(struct usb_descriptor_header *) &mtp_superspeed_in_desc,
 	(struct usb_descriptor_header *) &mtp_superspeed_bulk_comp_desc,
 	(struct usb_descriptor_header *) &mtp_superspeed_out_desc,
 	(struct usb_descriptor_header *) &mtp_superspeed_bulk_comp_desc,
 	(struct usb_descriptor_header *) &mtp_intr_desc,
 	(struct usb_descriptor_header *) &mtp_intr_comp_desc,
+=======
+	(struct usb_descriptor_header *) &mtp_ss_in_desc,
+	(struct usb_descriptor_header *) &mtp_ss_in_comp_desc,
+	(struct usb_descriptor_header *) &mtp_ss_out_desc,
+	(struct usb_descriptor_header *) &mtp_ss_out_comp_desc,
+	(struct usb_descriptor_header *) &mtp_intr_desc,
+	(struct usb_descriptor_header *) &mtp_intr_ss_comp_desc,
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	NULL,
 };
 
@@ -259,12 +317,21 @@ static struct usb_descriptor_header *hs_ptp_descs[] = {
 
 static struct usb_descriptor_header *ss_ptp_descs[] = {
 	(struct usb_descriptor_header *) &ptp_interface_desc,
+<<<<<<< HEAD
 	(struct usb_descriptor_header *) &mtp_superspeed_in_desc,
 	(struct usb_descriptor_header *) &mtp_superspeed_bulk_comp_desc,
 	(struct usb_descriptor_header *) &mtp_superspeed_out_desc,
 	(struct usb_descriptor_header *) &mtp_superspeed_bulk_comp_desc,
 	(struct usb_descriptor_header *) &mtp_intr_desc,
 	(struct usb_descriptor_header *) &mtp_intr_comp_desc,
+=======
+	(struct usb_descriptor_header *) &mtp_ss_in_desc,
+	(struct usb_descriptor_header *) &mtp_ss_in_comp_desc,
+	(struct usb_descriptor_header *) &mtp_ss_out_desc,
+	(struct usb_descriptor_header *) &mtp_ss_out_comp_desc,
+	(struct usb_descriptor_header *) &mtp_intr_desc,
+	(struct usb_descriptor_header *) &mtp_intr_ss_comp_desc,
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	NULL,
 };
 
@@ -315,15 +382,28 @@ struct mtp_ext_config_desc_function {
 };
 
 /* MTP Extended Configuration Descriptor */
+<<<<<<< HEAD
 struct {
 	struct mtp_ext_config_desc_header	header;
 	struct mtp_ext_config_desc_function    function;
 } mtp_ext_config_desc = {
+=======
+struct mtp_ext_config_desc {
+	struct mtp_ext_config_desc_header	header;
+	struct mtp_ext_config_desc_function    function;
+};
+
+static struct mtp_ext_config_desc mtp_ext_config_desc = {
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	.header = {
 		.dwLength = __constant_cpu_to_le32(sizeof(mtp_ext_config_desc)),
 		.bcdVersion = __constant_cpu_to_le16(0x0100),
 		.wIndex = __constant_cpu_to_le16(4),
+<<<<<<< HEAD
 		.bCount = __constant_cpu_to_le16(1),
+=======
+		.bCount = 1,
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	},
 	.function = {
 		.bFirstInterfaceNumber = 0,
@@ -352,6 +432,11 @@ struct mtp_instance {
 	struct usb_function_instance func_inst;
 	const char *name;
 	struct mtp_dev *dev;
+<<<<<<< HEAD
+=======
+	char mtp_ext_compat_id[16];
+	struct usb_os_desc mtp_os_desc;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 /* temporary variable used between mtp_open() and mtp_gadget_bind() */
@@ -359,10 +444,13 @@ static struct mtp_dev *_mtp_dev;
 
 static inline struct mtp_dev *func_to_mtp(struct usb_function *f)
 {
+<<<<<<< HEAD
 #if IS_ENABLED(CONFIG_USB_CONFIGFS_UEVENT)
 	if (!strcmp(f->name, DRIVER_NAME_PTP))
 		return container_of(f, struct mtp_dev, function_ptp);
 #endif
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return container_of(f, struct mtp_dev, function);
 }
 
@@ -434,6 +522,7 @@ static struct usb_request
 	return req;
 }
 
+<<<<<<< HEAD
 /* Make bulk-out requests be divisible by the maxpacket size */
 static void set_read_req_length(struct usb_request *req)
 {
@@ -445,6 +534,8 @@ static void set_read_req_length(struct usb_request *req)
 		req->length += dev->ep_out->maxpacket - rem;
 }
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static void mtp_complete_in(struct usb_ep *ep, struct usb_request *req)
 {
 	struct mtp_dev *dev = _mtp_dev;
@@ -587,7 +678,10 @@ requeue_req:
 	req = dev->rx_req[0];
 	req->length = count;
 	dev->rx_done = 0;
+<<<<<<< HEAD
 	set_read_req_length(req);
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	ret = usb_ep_queue(dev->ep_out, req, GFP_KERNEL);
 	if (ret < 0) {
 		r = -EIO;
@@ -740,6 +834,10 @@ static void send_file_work(struct work_struct *data)
 	filp = dev->xfer_file;
 	offset = dev->xfer_file_offset;
 	count = dev->xfer_file_length;
+<<<<<<< HEAD
+=======
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (count < 0) {
 		dev->xfer_result = -EINVAL;
 		return;
@@ -845,6 +943,10 @@ static void receive_file_work(struct work_struct *data)
 	filp = dev->xfer_file;
 	offset = dev->xfer_file_offset;
 	count = dev->xfer_file_length;
+<<<<<<< HEAD
+=======
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (count < 0) {
 		dev->xfer_result = -EINVAL;
 		return;
@@ -861,8 +963,11 @@ static void receive_file_work(struct work_struct *data)
 			read_req->length = (count > MTP_BULK_BUFFER_SIZE
 					? MTP_BULK_BUFFER_SIZE : count);
 			dev->rx_done = 0;
+<<<<<<< HEAD
 
 			set_read_req_length(read_req);
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			ret = usb_ep_queue(dev->ep_out, read_req, GFP_KERNEL);
 			if (ret < 0) {
 				r = -EIO;
@@ -1074,21 +1179,28 @@ static int mtp_release(struct inode *ip, struct file *fp)
 	mtp_unlock(&_mtp_dev->open_excl);
 	return 0;
 }
+<<<<<<< HEAD
 #ifdef CONFIG_COMPAT
 static long mtp_compat_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 {
 	return mtp_ioctl(file, cmd, (unsigned long)compat_ptr(arg));
 }
 #endif
+=======
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /* file operations for /dev/mtp_usb */
 static const struct file_operations mtp_fops = {
 	.owner = THIS_MODULE,
 	.read = mtp_read,
 	.write = mtp_write,
 	.unlocked_ioctl = mtp_ioctl,
+<<<<<<< HEAD
 #ifdef CONFIG_COMPAT
 	.compat_ioctl = mtp_compat_ioctl,
 #endif
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	.open = mtp_open,
 	.release = mtp_release,
 };
@@ -1134,6 +1246,16 @@ static int mtp_ctrlrequest(struct usb_composite_dev *cdev,
 			value = (w_length < sizeof(mtp_ext_config_desc) ?
 					w_length : sizeof(mtp_ext_config_desc));
 			memcpy(cdev->req->buf, &mtp_ext_config_desc, value);
+<<<<<<< HEAD
+=======
+
+			/* update compatibleID if PTP */
+			if (dev->function.fs_descriptors == fs_ptp_descs) {
+				struct mtp_ext_config_desc *d = cdev->req->buf;
+
+				d->function.compatibleID[0] = 'P';
+			}
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		}
 	} else if ((ctrl->bRequestType & USB_TYPE_MASK) == USB_TYPE_CLASS) {
 		DBG(cdev, "class request: %d index: %d value: %d length: %d\n",
@@ -1197,6 +1319,10 @@ mtp_function_bind(struct usb_configuration *c, struct usb_function *f)
 	struct mtp_dev	*dev = func_to_mtp(f);
 	int			id;
 	int			ret;
+<<<<<<< HEAD
+=======
+	struct mtp_instance *fi_mtp;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	dev->cdev = cdev;
 	DBG(cdev, "mtp_function_bind dev: %p\n", dev);
@@ -1214,6 +1340,21 @@ mtp_function_bind(struct usb_configuration *c, struct usb_function *f)
 		mtp_string_defs[INTERFACE_STRING_INDEX].id = ret;
 		mtp_interface_desc.iInterface = ret;
 	}
+<<<<<<< HEAD
+=======
+
+	fi_mtp = container_of(f->fi, struct mtp_instance, func_inst);
+
+	if (cdev->use_os_string) {
+		f->os_desc_table = kzalloc(sizeof(*f->os_desc_table),
+					GFP_KERNEL);
+		if (!f->os_desc_table)
+			return -ENOMEM;
+		f->os_desc_n = 1;
+		f->os_desc_table[0].os_desc = &fi_mtp->mtp_os_desc;
+	}
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/* allocate endpoints */
 	ret = mtp_create_bulk_endpoints(dev, &mtp_fullspeed_in_desc,
 			&mtp_fullspeed_out_desc, &mtp_intr_desc);
@@ -1227,6 +1368,7 @@ mtp_function_bind(struct usb_configuration *c, struct usb_function *f)
 		mtp_highspeed_out_desc.bEndpointAddress =
 			mtp_fullspeed_out_desc.bEndpointAddress;
 	}
+<<<<<<< HEAD
 
 	if (gadget_is_superspeed(c->cdev->gadget)) {
 		mtp_superspeed_in_desc.bEndpointAddress =
@@ -1240,6 +1382,26 @@ mtp_function_bind(struct usb_configuration *c, struct usb_function *f)
 			gadget_is_superspeed(c->cdev->gadget) ? "super" :
 			gadget_is_dualspeed(c->cdev->gadget) ? "dual" : "full",
 			f->name, dev->ep_in->name, dev->ep_out->name);
+=======
+	/* support super speed hardware */
+	if (gadget_is_superspeed(c->cdev->gadget)) {
+		unsigned max_burst;
+
+		/* Calculate bMaxBurst, we know packet size is 1024 */
+		max_burst = min_t(unsigned, MTP_BULK_BUFFER_SIZE / 1024, 15);
+		mtp_ss_in_desc.bEndpointAddress =
+			mtp_fullspeed_in_desc.bEndpointAddress;
+		mtp_ss_in_comp_desc.bMaxBurst = max_burst;
+		mtp_ss_out_desc.bEndpointAddress =
+			mtp_fullspeed_out_desc.bEndpointAddress;
+		mtp_ss_out_comp_desc.bMaxBurst = max_burst;
+	}
+
+	DBG(cdev, "%s speed %s: IN/%s, OUT/%s\n",
+		gadget_is_superspeed(c->cdev->gadget) ? "super" :
+		(gadget_is_dualspeed(c->cdev->gadget) ? "dual" : "full"),
+		f->name, dev->ep_in->name, dev->ep_out->name);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return 0;
 }
 
@@ -1258,6 +1420,11 @@ mtp_function_unbind(struct usb_configuration *c, struct usb_function *f)
 	while ((req = mtp_req_get(dev, &dev->intr_idle)))
 		mtp_request_free(req, dev->ep_intr);
 	dev->state = STATE_OFFLINE;
+<<<<<<< HEAD
+=======
+	kfree(f->os_desc_table);
+	f->os_desc_n = 0;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 static int mtp_function_set_alt(struct usb_function *f,
@@ -1321,8 +1488,13 @@ static void mtp_function_disable(struct usb_function *f)
 	VDBG(cdev, "%s disabled\n", dev->function.name);
 }
 
+<<<<<<< HEAD
 #ifndef CONFIG_USB_CONFIGFS_UEVENT
 static int mtp_bind_config(struct usb_configuration *c, bool ptp_config)
+=======
+static __maybe_unused int mtp_bind_config(struct usb_configuration *c,
+					  bool ptp_config)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	struct mtp_dev *dev = _mtp_dev;
 	int ret = 0;
@@ -1357,7 +1529,10 @@ static int mtp_bind_config(struct usb_configuration *c, bool ptp_config)
 
 	return usb_add_function(c, &dev->function);
 }
+<<<<<<< HEAD
 #endif
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 static int __mtp_setup(struct mtp_instance *fi_mtp)
 {
@@ -1406,12 +1581,19 @@ err1:
 	return ret;
 }
 
+<<<<<<< HEAD
 #ifndef CONFIG_USB_CONFIGFS_UEVENT
 static int mtp_setup(void)
 {
 	return __mtp_setup(NULL);
 }
 #endif
+=======
+static __maybe_unused int mtp_setup(void)
+{
+	return __mtp_setup(NULL);
+}
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 static int mtp_setup_configfs(struct mtp_instance *fi_mtp)
 {
@@ -1486,6 +1668,10 @@ static void mtp_free_inst(struct usb_function_instance *fi)
 	fi_mtp = to_fi_mtp(fi);
 	kfree(fi_mtp->name);
 	mtp_cleanup();
+<<<<<<< HEAD
+=======
+	kfree(fi_mtp->mtp_os_desc.group.default_groups);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	kfree(fi_mtp);
 }
 
@@ -1493,6 +1679,11 @@ struct usb_function_instance *alloc_inst_mtp_ptp(bool mtp_config)
 {
 	struct mtp_instance *fi_mtp;
 	int ret = 0;
+<<<<<<< HEAD
+=======
+	struct usb_os_desc *descs[1];
+	char *names[1];
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	fi_mtp = kzalloc(sizeof(*fi_mtp), GFP_KERNEL);
 	if (!fi_mtp)
@@ -1500,6 +1691,16 @@ struct usb_function_instance *alloc_inst_mtp_ptp(bool mtp_config)
 	fi_mtp->func_inst.set_inst_name = mtp_set_inst_name;
 	fi_mtp->func_inst.free_func_inst = mtp_free_inst;
 
+<<<<<<< HEAD
+=======
+	fi_mtp->mtp_os_desc.ext_compat_id = fi_mtp->mtp_ext_compat_id;
+	INIT_LIST_HEAD(&fi_mtp->mtp_os_desc.ext_prop);
+	descs[0] = &fi_mtp->mtp_os_desc;
+	names[0] = "MTP";
+	usb_os_desc_prepare_interf_dir(&fi_mtp->func_inst.group, 1,
+					descs, names, THIS_MODULE);
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (mtp_config) {
 		ret = mtp_setup_configfs(fi_mtp);
 		if (ret) {
@@ -1537,6 +1738,7 @@ struct usb_function *function_alloc_mtp_ptp(struct usb_function_instance *fi,
 					bool mtp_config)
 {
 	struct mtp_instance *fi_mtp = to_fi_mtp(fi);
+<<<<<<< HEAD
 	struct mtp_dev *dev = fi_mtp->dev;
 #ifdef CONFIG_USB_CONFIGFS_UEVENT
 	struct usb_function *function;
@@ -1565,14 +1767,42 @@ struct usb_function *function_alloc_mtp_ptp(struct usb_function_instance *fi,
 
 	return function;
 #else
+=======
+	struct mtp_dev *dev;
+
+	/*
+	 * PTP piggybacks on MTP function so make sure we have
+	 * created MTP function before we associate this PTP
+	 * function with a gadget configuration.
+	 */
+	if (fi_mtp->dev == NULL) {
+		pr_err("Error: Create MTP function before linking"
+				" PTP function with a gadget configuration\n");
+		pr_err("\t1: Delete existing PTP function if any\n");
+		pr_err("\t2: Create MTP function\n");
+		pr_err("\t3: Create and symlink PTP function"
+				" with a gadget configuration\n");
+		return ERR_PTR(-EINVAL); /* Invalid Configuration */
+	}
+
+	dev = fi_mtp->dev;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	dev->function.name = DRIVER_NAME;
 	dev->function.strings = mtp_strings;
 	if (mtp_config) {
 		dev->function.fs_descriptors = fs_mtp_descs;
 		dev->function.hs_descriptors = hs_mtp_descs;
+<<<<<<< HEAD
 	} else {
 		dev->function.fs_descriptors = fs_ptp_descs;
 		dev->function.hs_descriptors = hs_ptp_descs;
+=======
+		dev->function.ss_descriptors = ss_mtp_descs;
+	} else {
+		dev->function.fs_descriptors = fs_ptp_descs;
+		dev->function.hs_descriptors = hs_ptp_descs;
+		dev->function.ss_descriptors = ss_ptp_descs;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 	dev->function.bind = mtp_function_bind;
 	dev->function.unbind = mtp_function_unbind;
@@ -1582,7 +1812,10 @@ struct usb_function *function_alloc_mtp_ptp(struct usb_function_instance *fi,
 	dev->function.free_func = mtp_free;
 
 	return &dev->function;
+<<<<<<< HEAD
 #endif
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 EXPORT_SYMBOL_GPL(function_alloc_mtp_ptp);
 

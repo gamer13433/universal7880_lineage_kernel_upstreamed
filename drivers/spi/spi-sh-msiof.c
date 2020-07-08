@@ -1152,8 +1152,13 @@ static int sh_msiof_spi_probe(struct platform_device *pdev)
 
 	i = platform_get_irq(pdev, 0);
 	if (i < 0) {
+<<<<<<< HEAD
 		dev_err(&pdev->dev, "cannot get platform IRQ\n");
 		ret = -ENOENT;
+=======
+		dev_err(&pdev->dev, "cannot get IRQ\n");
+		ret = i;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		goto err1;
 	}
 

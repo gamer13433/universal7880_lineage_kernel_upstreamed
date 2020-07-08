@@ -1168,11 +1168,18 @@ static int ipxitf_ioctl(unsigned int cmd, void __user *arg)
 		sipx->sipx_network	= ipxif->if_netnum;
 		memcpy(sipx->sipx_node, ipxif->if_node,
 			sizeof(sipx->sipx_node));
+<<<<<<< HEAD
 		rc = -EFAULT;
 		if (copy_to_user(arg, &ifr, sizeof(ifr)))
 			break;
 		ipxitf_put(ipxif);
 		rc = 0;
+=======
+		rc = 0;
+		if (copy_to_user(arg, &ifr, sizeof(ifr)))
+			rc = -EFAULT;
+		ipxitf_put(ipxif);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		break;
 	}
 	case SIOCAIPXITFCRT:

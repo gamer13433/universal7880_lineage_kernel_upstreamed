@@ -66,6 +66,10 @@
 #define E1000_PBA      0x01000  /* Packet Buffer Allocation - RW */
 #define E1000_PBS      0x01008  /* Packet Buffer Size */
 #define E1000_EEMNGCTL 0x01010  /* MNG EEprom Control */
+<<<<<<< HEAD
+=======
+#define E1000_EEMNGCTL_I210 0x12030  /* MNG EEprom Control */
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #define E1000_EEARBC_I210 0x12024  /* EEPROM Auto Read Bus Control */
 #define E1000_EEWR     0x0102C  /* EEPROM Write Register - RW */
 #define E1000_I2CCMD   0x01028  /* SFPI2C Command Register - RW */

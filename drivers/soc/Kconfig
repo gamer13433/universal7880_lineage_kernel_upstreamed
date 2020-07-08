@@ -3,6 +3,9 @@ menu "SOC (System On Chip) specific Drivers"
 source "drivers/soc/qcom/Kconfig"
 source "drivers/soc/ti/Kconfig"
 source "drivers/soc/versatile/Kconfig"
+<<<<<<< HEAD
 source "drivers/soc/samsung/Kconfig"
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 endmenu

@@ -72,6 +72,11 @@
 #define EDID_QUIRK_FORCE_8BPC			(1 << 8)
 /* Force 12bpc */
 #define EDID_QUIRK_FORCE_12BPC			(1 << 9)
+<<<<<<< HEAD
+=======
+/* Force 6bpc */
+#define EDID_QUIRK_FORCE_6BPC			(1 << 10)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 struct detailed_mode_closure {
 	struct drm_connector *connector;
@@ -98,6 +103,12 @@ static struct edid_quirk {
 	/* Unknown Acer */
 	{ "ACR", 2423, EDID_QUIRK_FIRST_DETAILED_PREFERRED },
 
+<<<<<<< HEAD
+=======
+	/* AEO model 0 reports 8 bpc, but is a 6 bpc panel */
+	{ "AEO", 0, EDID_QUIRK_FORCE_6BPC },
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/* Belinea 10 15 55 */
 	{ "MAX", 1516, EDID_QUIRK_PREFER_LARGE_60 },
 	{ "MAX", 0x77e, EDID_QUIRK_PREFER_LARGE_60 },
@@ -3671,6 +3682,12 @@ int drm_add_edid_modes(struct drm_connector *connector, struct edid *edid)
 
 	drm_add_display_info(edid, &connector->display_info, connector);
 
+<<<<<<< HEAD
+=======
+	if (quirks & EDID_QUIRK_FORCE_6BPC)
+		connector->display_info.bpc = 6;
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (quirks & EDID_QUIRK_FORCE_8BPC)
 		connector->display_info.bpc = 8;
 

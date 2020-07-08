@@ -703,6 +703,10 @@ static u32 qlcnic_read_memory_test_agent(struct qlcnic_adapter *adapter,
 		addr += 16;
 		reg_read -= 16;
 		ret += 16;
+<<<<<<< HEAD
+=======
+		cond_resched();
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 out:
 	mutex_unlock(&adapter->ahw->mem_lock);
@@ -1383,6 +1387,10 @@ int qlcnic_dump_fw(struct qlcnic_adapter *adapter)
 		buf_offset += entry->hdr.cap_size;
 		entry_offset += entry->hdr.offset;
 		buffer = fw_dump->data + buf_offset;
+<<<<<<< HEAD
+=======
+		cond_resched();
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 	fw_dump->clr = 1;
@@ -1402,6 +1410,10 @@ void qlcnic_83xx_get_minidump_template(struct qlcnic_adapter *adapter)
 	struct qlcnic_hardware_context *ahw = adapter->ahw;
 	struct qlcnic_fw_dump *fw_dump = &ahw->fw_dump;
 	struct pci_dev *pdev = adapter->pdev;
+<<<<<<< HEAD
+=======
+	int ret;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	prev_version = adapter->fw_version;
 	current_version = qlcnic_83xx_get_fw_version(adapter);
@@ -1409,7 +1421,15 @@ void qlcnic_83xx_get_minidump_template(struct qlcnic_adapter *adapter)
 	if (fw_dump->tmpl_hdr == NULL || current_version > prev_version) {
 		if (fw_dump->tmpl_hdr)
 			vfree(fw_dump->tmpl_hdr);
+<<<<<<< HEAD
 		if (!qlcnic_fw_cmd_get_minidump_temp(adapter))
 			dev_info(&pdev->dev, "Supports FW dump capability\n");
+=======
+		ret = qlcnic_fw_cmd_get_minidump_temp(adapter);
+		if (ret)
+			return;
+
+		dev_info(&pdev->dev, "Supports FW dump capability\n");
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 }

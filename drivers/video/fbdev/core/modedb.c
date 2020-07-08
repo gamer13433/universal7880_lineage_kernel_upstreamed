@@ -822,6 +822,12 @@ void fb_var_to_videomode(struct fb_videomode *mode,
 	if (var->vmode & FB_VMODE_DOUBLE)
 		vtotal *= 2;
 
+<<<<<<< HEAD
+=======
+	if (!htotal || !vtotal)
+		return;
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	hfreq = pixclock/htotal;
 	mode->refresh = hfreq/vtotal;
 }

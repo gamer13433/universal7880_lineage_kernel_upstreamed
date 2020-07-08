@@ -24,6 +24,10 @@
 #include <linux/topology.h>
 #include <linux/notifier.h>
 #include <linux/property.h>
+<<<<<<< HEAD
+=======
+#include <linux/list.h>
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #include <asm/byteorder.h>
 #include <asm/errno.h>
@@ -937,4 +941,37 @@ static inline int of_changeset_update_property(struct of_changeset *ocs,
 /* CONFIG_OF_RESOLVE api */
 extern int of_resolve_phandles(struct device_node *tree);
 
+<<<<<<< HEAD
+=======
+/**
+ * Overlay support
+ */
+
+#ifdef CONFIG_OF_OVERLAY
+
+/* ID based overlays; the API for external users */
+int of_overlay_create(struct device_node *tree);
+int of_overlay_destroy(int id);
+int of_overlay_destroy_all(void);
+
+#else
+
+static inline int of_overlay_create(struct device_node *tree)
+{
+	return -ENOTSUPP;
+}
+
+static inline int of_overlay_destroy(int id)
+{
+	return -ENOTSUPP;
+}
+
+static inline int of_overlay_destroy_all(void)
+{
+	return -ENOTSUPP;
+}
+
+#endif
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #endif /* _LINUX_OF_H */

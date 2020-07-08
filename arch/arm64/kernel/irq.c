@@ -33,9 +33,13 @@ unsigned long irq_err_count;
 
 int arch_show_interrupts(struct seq_file *p, int prec)
 {
+<<<<<<< HEAD
 #ifdef CONFIG_SMP
 	show_ipi_list(p, prec);
 #endif
+=======
+	show_ipi_list(p, prec);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	seq_printf(p, "%*s: %10lu\n", prec, "Err", irq_err_count);
 	return 0;
 }
@@ -75,8 +79,11 @@ static bool migrate_one_irq(struct irq_desc *desc)
 	if (cpumask_any_and(affinity, cpu_online_mask) >= nr_cpu_ids) {
 		affinity = cpu_online_mask;
 		ret = true;
+<<<<<<< HEAD
 	} else if (unlikely(d->state_use_accessors & IRQD_GIC_MULTI_TARGET)) {
 		return false;
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 	c = irq_data_get_irq_chip(d);

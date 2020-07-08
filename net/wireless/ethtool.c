@@ -6,9 +6,19 @@
 void cfg80211_get_drvinfo(struct net_device *dev, struct ethtool_drvinfo *info)
 {
 	struct wireless_dev *wdev = dev->ieee80211_ptr;
+<<<<<<< HEAD
 
 	strlcpy(info->driver, wiphy_dev(wdev->wiphy)->driver->name,
 		sizeof(info->driver));
+=======
+	struct device *pdev = wiphy_dev(wdev->wiphy);
+
+	if (pdev->driver)
+		strlcpy(info->driver, pdev->driver->name,
+			sizeof(info->driver));
+	else
+		strlcpy(info->driver, "N/A", sizeof(info->driver));
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	strlcpy(info->version, init_utsname()->release, sizeof(info->version));
 

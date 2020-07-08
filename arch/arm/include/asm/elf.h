@@ -1,7 +1,13 @@
 #ifndef __ASMARM_ELF_H
 #define __ASMARM_ELF_H
 
+<<<<<<< HEAD
 #include <asm/hwcap.h>
+=======
+#include <asm/auxvec.h>
+#include <asm/hwcap.h>
+#include <asm/vdso_datapage.h>
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /*
  * ELF register definitions..
@@ -130,6 +136,16 @@ extern unsigned long arch_randomize_brk(struct mm_struct *mm);
 #define arch_randomize_brk arch_randomize_brk
 
 #ifdef CONFIG_MMU
+<<<<<<< HEAD
+=======
+#ifdef CONFIG_VDSO
+#define ARCH_DLINFO						\
+do {								\
+	NEW_AUX_ENT(AT_SYSINFO_EHDR,				\
+		    (elf_addr_t)current->mm->context.vdso);	\
+} while (0)
+#endif
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #define ARCH_HAS_SETUP_ADDITIONAL_PAGES 1
 struct linux_binprm;
 int arch_setup_additional_pages(struct linux_binprm *, int);

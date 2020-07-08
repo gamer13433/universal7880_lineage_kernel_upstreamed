@@ -579,6 +579,7 @@ static int check_reset_complete (
 			return port_status;
 		}
 
+<<<<<<< HEAD
 		/* W/A for Synopsys HC HSIC port.
 		 * Return at this point to prevent port owner change
 		 * and retry port reset.
@@ -592,6 +593,8 @@ static int check_reset_complete (
 			}
 		}
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		ehci_dbg (ehci, "port %d full speed --> companion\n",
 			index + 1);
 
@@ -1222,6 +1225,7 @@ int ehci_hub_control(
 					wIndex + 1);
 				temp |= PORT_OWNER;
 			} else {
+<<<<<<< HEAD
 				ehci_vdbg (ehci, "port %d reset\n", wIndex + 1);
 
 				/* W/A for Synopsys HC HSIC port.
@@ -1236,6 +1240,8 @@ int ehci_hub_control(
 					}
 				}
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 				temp |= PORT_RESET;
 				temp &= ~PORT_PE;
 

@@ -20,6 +20,7 @@
 #define VALID_FLAGS (SYNC_FILE_RANGE_WAIT_BEFORE|SYNC_FILE_RANGE_WRITE| \
 			SYNC_FILE_RANGE_WAIT_AFTER)
 
+<<<<<<< HEAD
 /* Interruptible sync for Samsung Mobile Device */
 #ifdef CONFIG_INTERRUPTIBLE_SYNC
 
@@ -270,6 +271,8 @@ int intr_sync(int *sync_ret)
 }
 #endif /* CONFIG_INTERRUPTIBLE_SYNC */
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /*
  * Do the filesystem syncing work. For simple filesystems
  * writeback_inodes_sb(sb) just dirties buffers with inodes so we have to
@@ -427,8 +430,21 @@ SYSCALL_DEFINE1(syncfs, int, fd)
  */
 int vfs_fsync_range(struct file *file, loff_t start, loff_t end, int datasync)
 {
+<<<<<<< HEAD
 	if (!file->f_op->fsync)
 		return -EINVAL;
+=======
+	struct inode *inode = file->f_mapping->host;
+
+	if (!file->f_op->fsync)
+		return -EINVAL;
+	if (!datasync && (inode->i_state & I_DIRTY_TIME)) {
+		spin_lock(&inode->i_lock);
+		inode->i_state &= ~I_DIRTY_TIME;
+		spin_unlock(&inode->i_lock);
+		mark_inode_dirty_sync(inode);
+	}
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return file->f_op->fsync(file, start, end, datasync);
 }
 EXPORT_SYMBOL(vfs_fsync_range);

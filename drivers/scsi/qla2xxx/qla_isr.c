@@ -927,8 +927,11 @@ skip_rio:
 			ql_dbg(ql_dbg_async, vha, 0x5011,
 			    "Asynchronous PORT UPDATE ignored %04x/%04x/%04x.\n",
 			    mb[1], mb[2], mb[3]);
+<<<<<<< HEAD
 
 			qlt_async_event(mb[0], vha, mb);
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			break;
 		}
 
@@ -948,8 +951,11 @@ skip_rio:
 
 		set_bit(LOOP_RESYNC_NEEDED, &vha->dpc_flags);
 		set_bit(LOCAL_LOOP_UPDATE, &vha->dpc_flags);
+<<<<<<< HEAD
 
 		qlt_async_event(mb[0], vha, mb);
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		break;
 
 	case MBA_RSCN_UPDATE:		/* State Change Registration */

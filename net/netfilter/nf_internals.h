@@ -24,6 +24,10 @@ int nf_queue(struct sk_buff *skb, struct nf_hook_ops *elem, u_int8_t pf,
 	     unsigned int hook, struct net_device *indev,
 	     struct net_device *outdev, int (*okfn)(struct sk_buff *),
 	     unsigned int queuenum);
+<<<<<<< HEAD
+=======
+void nf_queue_nf_hook_drop(struct nf_hook_ops *ops);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 int __init netfilter_queue_init(void);
 
 /* nf_log.c */

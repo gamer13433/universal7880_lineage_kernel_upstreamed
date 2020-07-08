@@ -164,6 +164,10 @@ void machine_kexec(struct kimage *image)
 	reboot_code_buffer = page_address(image->control_code_page);
 
 	/* Prepare parameters for reboot_code_buffer*/
+<<<<<<< HEAD
+=======
+	set_kernel_text_rw();
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	kexec_start_address = image->start;
 	kexec_indirection_page = page_list;
 	kexec_mach_type = machine_arch_type;

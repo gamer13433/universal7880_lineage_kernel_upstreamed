@@ -183,7 +183,10 @@ static int ed_schedule (struct ohci_hcd *ohci, struct ed *ed)
 {
 	int	branch;
 
+<<<<<<< HEAD
 	ed->state = ED_OPER;
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	ed->ed_prev = NULL;
 	ed->ed_next = NULL;
 	ed->hwNextED = 0;
@@ -259,6 +262,11 @@ static int ed_schedule (struct ohci_hcd *ohci, struct ed *ed)
 	/* the HC may not see the schedule updates yet, but if it does
 	 * then they'll be properly ordered.
 	 */
+<<<<<<< HEAD
+=======
+
+	ed->state = ED_OPER;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return 0;
 }
 

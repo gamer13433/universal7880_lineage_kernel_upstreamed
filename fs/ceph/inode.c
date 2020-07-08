@@ -722,7 +722,16 @@ static int fill_inode(struct inode *inode,
 	ci->i_version = le64_to_cpu(info->version);
 	inode->i_version++;
 	inode->i_rdev = le32_to_cpu(info->rdev);
+<<<<<<< HEAD
 	inode->i_blkbits = fls(le32_to_cpu(info->layout.fl_stripe_unit)) - 1;
+=======
+	/* directories have fl_stripe_unit set to zero */
+	if (le32_to_cpu(info->layout.fl_stripe_unit))
+		inode->i_blkbits =
+			fls(le32_to_cpu(info->layout.fl_stripe_unit)) - 1;
+	else
+		inode->i_blkbits = CEPH_BLOCK_SHIFT;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if ((new_version || (new_issued & CEPH_CAP_AUTH_SHARED)) &&
 	    (issued & CEPH_CAP_AUTH_EXCL) == 0) {
@@ -1432,7 +1441,10 @@ retry_lookup:
 			dn = splice_dentry(dn, in, NULL);
 			if (IS_ERR(dn)) {
 				err = PTR_ERR(dn);
+<<<<<<< HEAD
 				dn = NULL;
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 				goto next_item;
 			}
 		}

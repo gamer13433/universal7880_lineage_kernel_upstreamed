@@ -250,6 +250,10 @@ int rtnl_unregister(int protocol, int msgtype)
 
 	rtnl_msg_handlers[protocol][msgindex].doit = NULL;
 	rtnl_msg_handlers[protocol][msgindex].dumpit = NULL;
+<<<<<<< HEAD
+=======
+	rtnl_msg_handlers[protocol][msgindex].calcit = NULL;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	return 0;
 }
@@ -1374,6 +1378,11 @@ static int do_setvfinfo(struct net_device *dev, struct nlattr **tb)
 	if (tb[IFLA_VF_MAC]) {
 		struct ifla_vf_mac *ivm = nla_data(tb[IFLA_VF_MAC]);
 
+<<<<<<< HEAD
+=======
+		if (ivm->vf >= INT_MAX)
+			return -EINVAL;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		err = -EOPNOTSUPP;
 		if (ops->ndo_set_vf_mac)
 			err = ops->ndo_set_vf_mac(dev, ivm->vf,
@@ -1385,6 +1394,11 @@ static int do_setvfinfo(struct net_device *dev, struct nlattr **tb)
 	if (tb[IFLA_VF_VLAN]) {
 		struct ifla_vf_vlan *ivv = nla_data(tb[IFLA_VF_VLAN]);
 
+<<<<<<< HEAD
+=======
+		if (ivv->vf >= INT_MAX)
+			return -EINVAL;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		err = -EOPNOTSUPP;
 		if (ops->ndo_set_vf_vlan)
 			err = ops->ndo_set_vf_vlan(dev, ivv->vf, ivv->vlan,
@@ -1397,6 +1411,11 @@ static int do_setvfinfo(struct net_device *dev, struct nlattr **tb)
 		struct ifla_vf_tx_rate *ivt = nla_data(tb[IFLA_VF_TX_RATE]);
 		struct ifla_vf_info ivf;
 
+<<<<<<< HEAD
+=======
+		if (ivt->vf >= INT_MAX)
+			return -EINVAL;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		err = -EOPNOTSUPP;
 		if (ops->ndo_get_vf_config)
 			err = ops->ndo_get_vf_config(dev, ivt->vf, &ivf);
@@ -1415,6 +1434,11 @@ static int do_setvfinfo(struct net_device *dev, struct nlattr **tb)
 	if (tb[IFLA_VF_RATE]) {
 		struct ifla_vf_rate *ivt = nla_data(tb[IFLA_VF_RATE]);
 
+<<<<<<< HEAD
+=======
+		if (ivt->vf >= INT_MAX)
+			return -EINVAL;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		err = -EOPNOTSUPP;
 		if (ops->ndo_set_vf_rate)
 			err = ops->ndo_set_vf_rate(dev, ivt->vf,
@@ -1427,6 +1451,11 @@ static int do_setvfinfo(struct net_device *dev, struct nlattr **tb)
 	if (tb[IFLA_VF_SPOOFCHK]) {
 		struct ifla_vf_spoofchk *ivs = nla_data(tb[IFLA_VF_SPOOFCHK]);
 
+<<<<<<< HEAD
+=======
+		if (ivs->vf >= INT_MAX)
+			return -EINVAL;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		err = -EOPNOTSUPP;
 		if (ops->ndo_set_vf_spoofchk)
 			err = ops->ndo_set_vf_spoofchk(dev, ivs->vf,
@@ -1438,6 +1467,11 @@ static int do_setvfinfo(struct net_device *dev, struct nlattr **tb)
 	if (tb[IFLA_VF_LINK_STATE]) {
 		struct ifla_vf_link_state *ivl = nla_data(tb[IFLA_VF_LINK_STATE]);
 
+<<<<<<< HEAD
+=======
+		if (ivl->vf >= INT_MAX)
+			return -EINVAL;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		err = -EOPNOTSUPP;
 		if (ops->ndo_set_vf_link_state)
 			err = ops->ndo_set_vf_link_state(dev, ivl->vf,
@@ -1451,6 +1485,11 @@ static int do_setvfinfo(struct net_device *dev, struct nlattr **tb)
 
 		err = -EOPNOTSUPP;
 		ivrssq_en = nla_data(tb[IFLA_VF_RSS_QUERY_EN]);
+<<<<<<< HEAD
+=======
+		if (ivrssq_en->vf >= INT_MAX)
+			return -EINVAL;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		if (ops->ndo_set_vf_rss_query_en)
 			err = ops->ndo_set_vf_rss_query_en(dev, ivrssq_en->vf,
 							   ivrssq_en->setting);
@@ -1846,7 +1885,11 @@ int rtnl_configure_link(struct net_device *dev, const struct ifinfomsg *ifm)
 	}
 
 	if (dev->rtnl_link_state == RTNL_LINK_INITIALIZED) {
+<<<<<<< HEAD
 		__dev_notify_flags(dev, old_flags, 0U);
+=======
+		__dev_notify_flags(dev, old_flags, (old_flags ^ dev->flags));
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	} else {
 		dev->rtnl_link_state = RTNL_LINK_INITIALIZED;
 		__dev_notify_flags(dev, old_flags, ~0U);

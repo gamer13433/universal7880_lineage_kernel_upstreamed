@@ -22,7 +22,10 @@
  */
 
 #include <linux/slab.h>
+<<<<<<< HEAD
 #include <linux/wl12xx.h>
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #include <linux/export.h>
 
 #include "debug.h"

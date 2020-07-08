@@ -20,7 +20,10 @@ config SHARP_SCOOP
 
 config TI_PRIV_EDMA
 	bool
+<<<<<<< HEAD
 
 config FIQ_GLUE
 	bool
 	select FIQ
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012

@@ -1690,8 +1690,13 @@ static void wait_for_migrations(struct cache *cache)
 
 static void stop_worker(struct cache *cache)
 {
+<<<<<<< HEAD
 	cancel_delayed_work(&cache->waker);
 	flush_workqueue(cache->wq);
+=======
+	cancel_delayed_work_sync(&cache->waker);
+	drain_workqueue(cache->wq);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 static void requeue_deferred_io(struct cache *cache)

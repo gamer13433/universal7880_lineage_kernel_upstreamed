@@ -1877,7 +1877,10 @@ void d_instantiate_new(struct dentry *entry, struct inode *inode)
 	BUG_ON(!hlist_unhashed(&entry->d_u.d_alias));
 	BUG_ON(!inode);
 	lockdep_annotate_inode_mutex_key(inode);
+<<<<<<< HEAD
 	security_d_instantiate(entry, inode);
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	spin_lock(&inode->i_lock);
 	__d_instantiate(entry, inode);
 	WARN_ON(!(inode->i_state & I_NEW));
@@ -1885,6 +1888,10 @@ void d_instantiate_new(struct dentry *entry, struct inode *inode)
 	smp_mb();
 	wake_up_bit(&inode->i_state, __I_NEW);
 	spin_unlock(&inode->i_lock);
+<<<<<<< HEAD
+=======
+	security_d_instantiate(entry, inode);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 EXPORT_SYMBOL(d_instantiate_new);
 
@@ -2755,11 +2762,19 @@ struct dentry *d_ancestor(struct dentry *p1, struct dentry *p2)
  * Note: If ever the locking in lock_rename() changes, then please
  * remember to update this too...
  */
+<<<<<<< HEAD
 static struct dentry *__d_unalias(struct inode *inode,
 		struct dentry *dentry, struct dentry *alias)
 {
 	struct mutex *m1 = NULL, *m2 = NULL;
 	struct dentry *ret = ERR_PTR(-EBUSY);
+=======
+static int __d_unalias(struct inode *inode,
+		struct dentry *dentry, struct dentry *alias)
+{
+	struct mutex *m1 = NULL, *m2 = NULL;
+	int ret = -EBUSY;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	/* If alias and dentry share a parent, then no extra locks required */
 	if (alias->d_parent == dentry->d_parent)
@@ -2774,7 +2789,11 @@ static struct dentry *__d_unalias(struct inode *inode,
 	m2 = &alias->d_parent->d_inode->i_mutex;
 out_unalias:
 	__d_move(alias, dentry, false);
+<<<<<<< HEAD
 	ret = alias;
+=======
+	ret = 0;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 out_err:
 	spin_unlock(&inode->i_lock);
 	if (m2)
@@ -2809,6 +2828,7 @@ out_err:
  */
 struct dentry *d_splice_alias(struct inode *inode, struct dentry *dentry)
 {
+<<<<<<< HEAD
 	struct dentry *new = NULL;
 
 	if (IS_ERR(inode))
@@ -2933,6 +2953,59 @@ out_nolock:
 	return actual;
 }
 EXPORT_SYMBOL_GPL(d_materialise_unique);
+=======
+	if (IS_ERR(inode))
+		return ERR_CAST(inode);
+
+	BUG_ON(!d_unhashed(dentry));
+
+	if (!inode) {
+		__d_instantiate(dentry, NULL);
+		goto out;
+	}
+	spin_lock(&inode->i_lock);
+	if (S_ISDIR(inode->i_mode)) {
+		struct dentry *new = __d_find_any_alias(inode);
+		if (unlikely(new)) {
+			write_seqlock(&rename_lock);
+			if (unlikely(d_ancestor(new, dentry))) {
+				write_sequnlock(&rename_lock);
+				spin_unlock(&inode->i_lock);
+				dput(new);
+				new = ERR_PTR(-ELOOP);
+				pr_warn_ratelimited(
+					"VFS: Lookup of '%s' in %s %s"
+					" would have caused loop\n",
+					dentry->d_name.name,
+					inode->i_sb->s_type->name,
+					inode->i_sb->s_id);
+			} else if (!IS_ROOT(new)) {
+				int err = __d_unalias(inode, dentry, new);
+				write_sequnlock(&rename_lock);
+				if (err) {
+					dput(new);
+					new = ERR_PTR(err);
+				}
+			} else {
+				__d_move(new, dentry, false);
+				write_sequnlock(&rename_lock);
+				spin_unlock(&inode->i_lock);
+				security_d_instantiate(new, inode);
+			}
+			iput(inode);
+			return new;
+		}
+	}
+	/* already taking inode->i_lock, so d_add() by hand */
+	__d_instantiate(dentry, inode);
+	spin_unlock(&inode->i_lock);
+out:
+	security_d_instantiate(dentry, inode);
+	d_rehash(dentry);
+	return NULL;
+}
+EXPORT_SYMBOL(d_splice_alias);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 static int prepend(char **buffer, int *buflen, const char *str, int namelen)
 {

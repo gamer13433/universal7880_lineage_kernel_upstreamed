@@ -125,6 +125,7 @@ extern void cpu_resume(void);
 		ttbr;						\
 	})
 
+<<<<<<< HEAD
 #define cpu_set_ttbr(nr, val)					\
 	do {							\
 		u64 ttbr = val;					\
@@ -132,6 +133,8 @@ extern void cpu_resume(void);
 			: : "r" (ttbr));			\
 	} while (0)
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #define cpu_get_pgd()	\
 	({						\
 		u64 pg = cpu_get_ttbr(0);		\

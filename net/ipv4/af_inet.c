@@ -105,9 +105,12 @@
 #include <net/ip_fib.h>
 #include <net/inet_connection_sock.h>
 #include <net/tcp.h>
+<<<<<<< HEAD
 #ifdef CONFIG_MPTCP
 #include <net/mptcp.h>
 #endif
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #include <net/udp.h>
 #include <net/udplite.h>
 #include <net/ping.h>
@@ -126,6 +129,7 @@
 #ifdef CONFIG_ANDROID_PARANOID_NETWORK
 #include <linux/android_aid.h>
 
+<<<<<<< HEAD
 /* START_OF_KNOX_NPA */
 #include <net/ncm.h>
 #include <linux/kfifo.h>
@@ -133,6 +137,8 @@
 #include <linux/pid.h>
 /* END_OF_KNOX_NPA */
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static inline int current_has_network(void)
 {
 	return in_egroup_p(AID_INET) || capable(CAP_NET_RAW);
@@ -171,11 +177,14 @@ void inet_sock_destruct(struct sock *sk)
 		return;
 	}
 
+<<<<<<< HEAD
 #ifdef CONFIG_MPTCP
 	if (sock_flag(sk, SOCK_MPTCP))
 		mptcp_disable_static_key();
 #endif
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	WARN_ON(atomic_read(&sk->sk_rmem_alloc));
 	WARN_ON(atomic_read(&sk->sk_wmem_alloc));
 	WARN_ON(sk->sk_wmem_queued);
@@ -257,6 +266,11 @@ int inet_listen(struct socket *sock, int backlog)
 				err = 0;
 			if (err)
 				goto out;
+<<<<<<< HEAD
+=======
+
+			tcp_fastopen_init_key_once(true);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		}
 		err = inet_csk_listen_start(sk, backlog);
 		if (err)
@@ -275,12 +289,17 @@ EXPORT_SYMBOL(inet_listen);
  *	Create an inet socket.
  */
 
+<<<<<<< HEAD
 #ifdef CONFIG_MPTCP
 int inet_create(struct net *net, struct socket *sock, int protocol, int kern)
 #else
 static int inet_create(struct net *net, struct socket *sock, int protocol,
 		       int kern)
 #endif
+=======
+static int inet_create(struct net *net, struct socket *sock, int protocol,
+		       int kern)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	struct sock *sk;
 	struct inet_protosw *answer;
@@ -290,9 +309,12 @@ static int inet_create(struct net *net, struct socket *sock, int protocol,
 	int try_loading_module = 0;
 	int err;
 
+<<<<<<< HEAD
 	if (protocol < 0 || protocol >= IPPROTO_MAX)
 		return -EINVAL;
 	
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (!current_has_network())
 		return -EACCES;
 
@@ -423,6 +445,7 @@ out_rcu_unlock:
 	goto out;
 }
 
+<<<<<<< HEAD
 /* START_OF_KNOX_NPA */
 /** The function is used to check if the ncm feature is enabled or not;
  * if enabled then collect the socket meta-data information;
@@ -434,6 +457,8 @@ static void knox_collect_metadata(struct socket *sock)
 	}
 }
 /* END_OF_KNOX_NPA */
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /*
  *	The peer socket should always be NULL (or else). When we call this
@@ -466,9 +491,12 @@ int inet_release(struct socket *sock)
 		if (sock_flag(sk, SOCK_LINGER) &&
 		    !(current->flags & PF_EXITING))
 			timeout = sk->sk_lingertime;
+<<<<<<< HEAD
 		/* START_OF_KNOX_NPA */
 		knox_collect_metadata(sock);
 		/* END_OF_KNOX_NPA */
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		sock->sk = NULL;
 		sk->sk_prot->close(sk, timeout);
 	}
@@ -730,6 +758,7 @@ int inet_accept(struct socket *sock, struct socket *newsock, int flags)
 	lock_sock(sk2);
 
 	sock_rps_record_flow(sk2);
+<<<<<<< HEAD
 
 #ifdef CONFIG_MPTCP
 	if (sk2->sk_protocol == IPPROTO_TCP && mptcp(tcp_sk(sk2))) {
@@ -749,6 +778,8 @@ int inet_accept(struct socket *sock, struct socket *newsock, int flags)
 	}
 #endif
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	WARN_ON(!((1 << sk2->sk_state) &
 		  (TCPF_ESTABLISHED | TCPF_SYN_RECV |
 		  TCPF_CLOSE_WAIT | TCPF_CLOSE)));
@@ -799,7 +830,10 @@ int inet_sendmsg(struct kiocb *iocb, struct socket *sock, struct msghdr *msg,
 		 size_t size)
 {
 	struct sock *sk = sock->sk;
+<<<<<<< HEAD
 	int err;
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	sock_rps_record_flow(sk);
 
@@ -808,6 +842,7 @@ int inet_sendmsg(struct kiocb *iocb, struct socket *sock, struct msghdr *msg,
 	    inet_autobind(sk))
 		return -EAGAIN;
 
+<<<<<<< HEAD
     err = sk->sk_prot->sendmsg(iocb, sk, msg, size);
 
     if (err >= 0) {
@@ -818,6 +853,9 @@ int inet_sendmsg(struct kiocb *iocb, struct socket *sock, struct msghdr *msg,
         }
     }
     return err;
+=======
+	return sk->sk_prot->sendmsg(iocb, sk, msg, size);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 EXPORT_SYMBOL(inet_sendmsg);
 
@@ -850,6 +888,7 @@ int inet_recvmsg(struct kiocb *iocb, struct socket *sock, struct msghdr *msg,
 
 	err = sk->sk_prot->recvmsg(iocb, sk, msg, size, flags & MSG_DONTWAIT,
 				   flags & ~MSG_DONTWAIT, &addr_len);
+<<<<<<< HEAD
 	if (err >= 0) {
 		msg->msg_namelen = addr_len;
         if(sock->knox_recv + err > ULLONG_MAX) {
@@ -858,6 +897,10 @@ int inet_recvmsg(struct kiocb *iocb, struct socket *sock, struct msghdr *msg,
             sock->knox_recv = sock->knox_recv + err;
         }
     }
+=======
+	if (err >= 0)
+		msg->msg_namelen = addr_len;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return err;
 }
 EXPORT_SYMBOL(inet_recvmsg);
@@ -961,7 +1004,10 @@ int inet_ioctl(struct socket *sock, unsigned int cmd, unsigned long arg)
 	case SIOCSIFPFLAGS:
 	case SIOCGIFPFLAGS:
 	case SIOCSIFFLAGS:
+<<<<<<< HEAD
 	case SIOCKILLADDR:
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		err = devinet_ioctl(net, cmd, (void __user *)arg);
 		break;
 	default:
@@ -1786,7 +1832,11 @@ static const struct net_offload ipip_offload = {
 	.callbacks = {
 		.gso_segment	= inet_gso_segment,
 		.gro_receive	= ipip_gro_receive,
+<<<<<<< HEAD
 		.gro_complete	= inet_gro_complete,
+=======
+		.gro_complete	= ipip_gro_complete,
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	},
 };
 
@@ -1880,11 +1930,14 @@ static int __init inet_init(void)
 
 	ip_init();
 
+<<<<<<< HEAD
 #ifdef CONFIG_MPTCP
 	/* We must initialize MPTCP before TCP. */
 	mptcp_init();
 #endif
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	tcp_v4_init();
 
 	/* Setup TCP slab cache for open requests. */
@@ -1983,4 +2036,7 @@ static int __init ipv4_proc_init(void)
 
 MODULE_ALIAS_NETPROTO(PF_INET);
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012

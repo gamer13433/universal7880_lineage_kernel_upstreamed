@@ -1500,7 +1500,11 @@ void ndisc_send_redirect(struct sk_buff *skb, const struct in6_addr *target)
 			  "Redirect: destination is not a neighbour\n");
 		goto release;
 	}
+<<<<<<< HEAD
 	peer = inet_getpeer_v6(net->ipv6.peers, &rt->rt6i_dst.addr, 1);
+=======
+	peer = inet_getpeer_v6(net->ipv6.peers, &ipv6_hdr(skb)->saddr, 1);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	ret = inet_peer_xrlim_allow(peer, 1*HZ);
 	if (peer)
 		inet_putpeer(peer);
@@ -1650,6 +1654,11 @@ static int ndisc_netdev_event(struct notifier_block *this, unsigned long event, 
 	case NETDEV_CHANGEADDR:
 		neigh_changeaddr(&nd_tbl, dev);
 		fib6_run_gc(0, net, false);
+<<<<<<< HEAD
+=======
+		/* fallthrough */
+	case NETDEV_UP:
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		idev = in6_dev_get(dev);
 		if (!idev)
 			break;

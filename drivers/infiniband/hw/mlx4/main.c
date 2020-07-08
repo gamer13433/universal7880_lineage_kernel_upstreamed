@@ -982,8 +982,14 @@ static int __mlx4_ib_create_default_rules(
 	int i;
 
 	for (i = 0; i < ARRAY_SIZE(pdefault_rules->rules_create_list); i++) {
+<<<<<<< HEAD
 		int ret;
 		union ib_flow_spec ib_spec;
+=======
+		union ib_flow_spec ib_spec = {};
+		int ret;
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		switch (pdefault_rules->rules_create_list[i]) {
 		case 0:
 			/* no rule */

@@ -107,7 +107,11 @@ static __inline__ struct elapaarp *aarp_hdr(struct sk_buff *skb)
 #define AARP_RESOLVE_TIME	(10 * HZ)
 
 extern struct datalink_proto *ddp_dl, *aarp_dl;
+<<<<<<< HEAD
 extern void aarp_proto_init(void);
+=======
+extern int aarp_proto_init(void);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /* Inter module exports */
 

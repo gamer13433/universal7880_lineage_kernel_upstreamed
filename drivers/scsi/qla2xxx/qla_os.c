@@ -431,6 +431,15 @@ static int qla25xx_setup_mode(struct scsi_qla_host *vha)
 		goto fail;
 	}
 	if (ql2xmultique_tag) {
+<<<<<<< HEAD
+=======
+		ha->wq = alloc_workqueue("qla2xxx_wq", WQ_MEM_RECLAIM, 1);
+		if (unlikely(!ha->wq)) {
+			ql_log(ql_log_warn, vha, 0x01e0,
+			    "Failed to alloc workqueue.\n");
+			goto fail;
+		}
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		/* create a request queue for IO */
 		options |= BIT_7;
 		req = qla25xx_create_req_que(ha, options, 0, 0, -1,
@@ -438,9 +447,14 @@ static int qla25xx_setup_mode(struct scsi_qla_host *vha)
 		if (!req) {
 			ql_log(ql_log_warn, vha, 0x00e0,
 			    "Failed to create request queue.\n");
+<<<<<<< HEAD
 			goto fail;
 		}
 		ha->wq = alloc_workqueue("qla2xxx_wq", WQ_MEM_RECLAIM, 1);
+=======
+			goto fail2;
+		}
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		vha->req = ha->req_q_map[req];
 		options |= BIT_1;
 		for (ques = 1; ques < ha->max_rsp_queues; ques++) {
@@ -448,7 +462,11 @@ static int qla25xx_setup_mode(struct scsi_qla_host *vha)
 			if (!ret) {
 				ql_log(ql_log_warn, vha, 0x00e8,
 				    "Failed to create response queue.\n");
+<<<<<<< HEAD
 				goto fail2;
+=======
+				goto fail3;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			}
 		}
 		ha->flags.cpu_affinity_enabled = 1;
@@ -462,11 +480,21 @@ static int qla25xx_setup_mode(struct scsi_qla_host *vha)
 		    ha->max_rsp_queues, ha->max_req_queues);
 	}
 	return 0;
+<<<<<<< HEAD
 fail2:
 	qla25xx_delete_queues(vha);
 	destroy_workqueue(ha->wq);
 	ha->wq = NULL;
 	vha->req = ha->req_q_map[0];
+=======
+
+fail3:
+	qla25xx_delete_queues(vha);
+	vha->req = ha->req_q_map[0];
+fail2:
+        destroy_workqueue(ha->wq);
+        ha->wq = NULL;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 fail:
 	ha->mqenable = 0;
 	kfree(ha->req_q_map);
@@ -3037,6 +3065,13 @@ qla2x00_shutdown(struct pci_dev *pdev)
 	/* Stop currently executing firmware. */
 	qla2x00_try_to_stop_firmware(vha);
 
+<<<<<<< HEAD
+=======
+	/* Disable timer */
+	if (vha->timer_active)
+		qla2x00_stop_timer(vha);
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/* Turn adapter off line */
 	vha->flags.online = 0;
 
@@ -5837,8 +5872,12 @@ qla2x00_module_init(void)
 	/* Initialize target kmem_cache and mem_pools */
 	ret = qlt_init();
 	if (ret < 0) {
+<<<<<<< HEAD
 		kmem_cache_destroy(srb_cachep);
 		return ret;
+=======
+		goto destroy_cache;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	} else if (ret > 0) {
 		/*
 		 * If initiator mode is explictly disabled by qlt_init(),
@@ -5857,11 +5896,18 @@ qla2x00_module_init(void)
 	qla2xxx_transport_template =
 	    fc_attach_transport(&qla2xxx_transport_functions);
 	if (!qla2xxx_transport_template) {
+<<<<<<< HEAD
 		kmem_cache_destroy(srb_cachep);
 		ql_log(ql_log_fatal, NULL, 0x0002,
 		    "fc_attach_transport failed...Failing load!.\n");
 		qlt_exit();
 		return -ENODEV;
+=======
+		ql_log(ql_log_fatal, NULL, 0x0002,
+		    "fc_attach_transport failed...Failing load!.\n");
+		ret = -ENODEV;
+		goto qlt_exit;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 	apidev_major = register_chrdev(0, QLA2XXX_APIDEV, &apidev_fops);
@@ -5873,18 +5919,26 @@ qla2x00_module_init(void)
 	qla2xxx_transport_vport_template =
 	    fc_attach_transport(&qla2xxx_transport_vport_functions);
 	if (!qla2xxx_transport_vport_template) {
+<<<<<<< HEAD
 		kmem_cache_destroy(srb_cachep);
 		qlt_exit();
 		fc_release_transport(qla2xxx_transport_template);
 		ql_log(ql_log_fatal, NULL, 0x0004,
 		    "fc_attach_transport vport failed...Failing load!.\n");
 		return -ENODEV;
+=======
+		ql_log(ql_log_fatal, NULL, 0x0004,
+		    "fc_attach_transport vport failed...Failing load!.\n");
+		ret = -ENODEV;
+		goto unreg_chrdev;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 	ql_log(ql_log_info, NULL, 0x0005,
 	    "QLogic Fibre Channel HBA Driver: %s.\n",
 	    qla2x00_version_str);
 	ret = pci_register_driver(&qla2xxx_pci_driver);
 	if (ret) {
+<<<<<<< HEAD
 		kmem_cache_destroy(srb_cachep);
 		qlt_exit();
 		fc_release_transport(qla2xxx_transport_template);
@@ -5894,6 +5948,29 @@ qla2x00_module_init(void)
 		    ret);
 	}
 	return ret;
+=======
+		ql_log(ql_log_fatal, NULL, 0x0006,
+		    "pci_register_driver failed...ret=%d Failing load!.\n",
+		    ret);
+		goto release_vport_transport;
+	}
+	return ret;
+
+release_vport_transport:
+	fc_release_transport(qla2xxx_transport_vport_template);
+
+unreg_chrdev:
+	if (apidev_major >= 0)
+		unregister_chrdev(apidev_major, QLA2XXX_APIDEV);
+	fc_release_transport(qla2xxx_transport_template);
+
+qlt_exit:
+	qlt_exit();
+
+destroy_cache:
+	kmem_cache_destroy(srb_cachep);
+	return ret;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 /**

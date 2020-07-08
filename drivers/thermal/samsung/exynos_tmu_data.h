@@ -25,15 +25,20 @@
 
 /* Exynos generic registers */
 #define EXYNOS_TMU_REG_TRIMINFO		0x0
+<<<<<<< HEAD
 #define EXYNOS_TMU_REG_TRIMINFO1	0x4
 #define EXYNOS_TMU_REG_CONTROL		0x20
 #define EXYNOS_TMU_REG_CONTROL1		0x24
+=======
+#define EXYNOS_TMU_REG_CONTROL		0x20
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #define EXYNOS_TMU_REG_STATUS		0x28
 #define EXYNOS_TMU_REG_CURRENT_TEMP	0x40
 #define EXYNOS_TMU_REG_INTEN		0x70
 #define EXYNOS_TMU_REG_INTSTAT		0x74
 #define EXYNOS_TMU_REG_INTCLEAR		0x78
 
+<<<<<<< HEAD
 #define EXYNOS_TMU_REF_VOLTAGE_OTP_SHIFT	18
 #define EXYNOS_TMU_REF_VOLTAGE_OTP_MASK		0x1F
 #define EXYNOS_TMU_REF_VOLTAGE_OTP_MASK_3BIT	0x7
@@ -51,6 +56,14 @@
 #define EXYNOS_TMU_PTAT_CON_MASK		0x7
 #define EXYNOS_TMU_BUF_CONT_SHIFT		12
 #define EXYNOS_TMU_BUF_CONT_MASK		0xf
+=======
+#define EXYNOS_TMU_TEMP_MASK		0xff
+#define EXYNOS_TMU_REF_VOLTAGE_SHIFT	24
+#define EXYNOS_TMU_REF_VOLTAGE_MASK	0x1f
+#define EXYNOS_TMU_BUF_SLOPE_SEL_MASK	0xf
+#define EXYNOS_TMU_BUF_SLOPE_SEL_SHIFT	8
+#define EXYNOS_TMU_CORE_EN_SHIFT	0
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /* Exynos3250 specific registers */
 #define EXYNOS_TMU_TRIMINFO_CON1	0x10
@@ -65,6 +78,10 @@
 #define EXYNOS_THD_TEMP_FALL		0x54
 #define EXYNOS_EMUL_CON		0x80
 
+<<<<<<< HEAD
+=======
+#define EXYNOS_TRIMINFO_RELOAD_ENABLE	1
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #define EXYNOS_TRIMINFO_25_SHIFT	0
 #define EXYNOS_TRIMINFO_85_SHIFT	8
 #define EXYNOS_TMU_TRIP_MODE_SHIFT	13
@@ -77,14 +94,22 @@
 #define EXYNOS_TMU_INTEN_RISE3_SHIFT	12
 #define EXYNOS_TMU_INTEN_FALL0_SHIFT	16
 
+<<<<<<< HEAD
 #define EXYNOS_EMUL_TIME	0x1
+=======
+#define EXYNOS_EMUL_TIME	0x57F0
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #define EXYNOS_EMUL_TIME_MASK	0xffff
 #define EXYNOS_EMUL_TIME_SHIFT	16
 #define EXYNOS_EMUL_DATA_SHIFT	8
 #define EXYNOS_EMUL_DATA_MASK	0xFF
 #define EXYNOS_EMUL_ENABLE	0x1
 
+<<<<<<< HEAD
 #define EXYNOS_MAX_TRIGGER_PER_REG	8
+=======
+#define EXYNOS_MAX_TRIGGER_PER_REG	4
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /* Exynos5260 specific */
 #define EXYNOS5260_TMU_REG_INTEN		0xC0
@@ -126,6 +151,7 @@ extern struct exynos_tmu_init_data const exynos3250_default_tmu_data;
 #define EXYNOS3250_TMU_DRV_DATA (NULL)
 #endif
 
+<<<<<<< HEAD
 /*exynos7580 specific registers*/
 #define EXYNOS7580_TMU_RISE3_0                 0x50
 #define EXYNOS7580_TMU_RISE7_4                 0x54
@@ -289,6 +315,8 @@ extern struct exynos_tmu_init_data const exynos3250_default_tmu_data;
 #define		EXYNOS_COLD_TEMP	15
 
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #if defined(CONFIG_CPU_EXYNOS4210)
 extern struct exynos_tmu_init_data const exynos4210_default_tmu_data;
 #define EXYNOS4210_TMU_DRV_DATA (&exynos4210_default_tmu_data)
@@ -331,6 +359,7 @@ extern struct exynos_tmu_init_data const exynos5440_default_tmu_data;
 #define EXYNOS5440_TMU_DRV_DATA (NULL)
 #endif
 
+<<<<<<< HEAD
 #if defined(CONFIG_SOC_EXYNOS7580)
 extern struct exynos_tmu_init_data const exynos7580_default_tmu_data;
 #define EXYNOS7580_TMU_DRV_DATA (&exynos7580_default_tmu_data)
@@ -358,4 +387,6 @@ extern struct exynos_tmu_init_data exynos7880_default_tmu_data;
 #else
 #define EXYNOS7880_TMU_DRV_DATA (NULL)
 #endif
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #endif /*_EXYNOS_TMU_DATA_H*/

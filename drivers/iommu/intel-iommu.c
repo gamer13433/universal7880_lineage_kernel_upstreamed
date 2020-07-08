@@ -2844,9 +2844,18 @@ static int __init init_dmars(void)
 		iommu_identity_mapping |= IDENTMAP_ALL;
 
 #ifdef CONFIG_INTEL_IOMMU_BROKEN_GFX_WA
+<<<<<<< HEAD
 	iommu_identity_mapping |= IDENTMAP_GFX;
 #endif
 
+=======
+	dmar_map_gfx = 0;
+#endif
+
+	if (!dmar_map_gfx)
+		iommu_identity_mapping |= IDENTMAP_GFX;
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	check_tylersburg_isoch();
 
 	/*
@@ -3520,10 +3529,18 @@ static void quirk_ioat_snb_local_iommu(struct pci_dev *pdev)
 
 	/* we know that the this iommu should be at offset 0xa000 from vtbar */
 	drhd = dmar_find_matched_drhd_unit(pdev);
+<<<<<<< HEAD
 	if (WARN_TAINT_ONCE(!drhd || drhd->reg_base_addr - vtbar != 0xa000,
 			    TAINT_FIRMWARE_WORKAROUND,
 			    "BIOS assigned incorrect VT-d unit for Intel(R) QuickData Technology device\n"))
 		pdev->dev.archdata.iommu = DUMMY_DEVICE_DOMAIN_INFO;
+=======
+	if (!drhd || drhd->reg_base_addr - vtbar != 0xa000) {
+		pr_warn_once(FW_BUG "BIOS assigned incorrect VT-d unit for Intel(R) QuickData Technology device\n");
+		add_taint(TAINT_FIRMWARE_WORKAROUND, LOCKDEP_STILL_OK);
+		pdev->dev.archdata.iommu = DUMMY_DEVICE_DOMAIN_INFO;
+	}
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 DECLARE_PCI_FIXUP_ENABLE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_IOAT_SNB, quirk_ioat_snb_local_iommu);
 
@@ -3557,9 +3574,13 @@ static void __init init_no_remapping_devices(void)
 
 		/* This IOMMU has *only* gfx devices. Either bypass it or
 		   set the gfx_mapped flag, as appropriate */
+<<<<<<< HEAD
 		if (dmar_map_gfx) {
 			intel_iommu_gfx_mapped = 1;
 		} else {
+=======
+		if (!dmar_map_gfx) {
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			drhd->ignored = 1;
 			for_each_active_dev_scope(drhd->devices,
 						  drhd->devices_cnt, i, dev)
@@ -3843,7 +3864,11 @@ int dmar_iommu_notify_scope_dev(struct dmar_pci_notify_info *info)
 				rmrru->devices_cnt);
 			if(ret < 0)
 				return ret;
+<<<<<<< HEAD
 		} else if (info->event == BUS_NOTIFY_DEL_DEVICE) {
+=======
+		} else if (info->event == BUS_NOTIFY_REMOVED_DEVICE) {
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			dmar_remove_dev_scope(info, rmrr->segment,
 				rmrru->devices, rmrru->devices_cnt);
 		}
@@ -3863,7 +3888,11 @@ int dmar_iommu_notify_scope_dev(struct dmar_pci_notify_info *info)
 				break;
 			else if(ret < 0)
 				return ret;
+<<<<<<< HEAD
 		} else if (info->event == BUS_NOTIFY_DEL_DEVICE) {
+=======
+		} else if (info->event == BUS_NOTIFY_REMOVED_DEVICE) {
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			if (dmar_remove_dev_scope(info, atsr->segment,
 					atsru->devices, atsru->devices_cnt))
 				break;
@@ -4091,6 +4120,12 @@ int __init intel_iommu_init(void)
 		goto out_free_reserved_range;
 	}
 
+<<<<<<< HEAD
+=======
+	if (dmar_map_gfx)
+		intel_iommu_gfx_mapped = 1;
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	init_no_remapping_devices();
 
 	ret = init_dmars();
@@ -4435,8 +4470,15 @@ static phys_addr_t intel_iommu_iova_to_phys(struct iommu_domain *domain,
 	u64 phys = 0;
 
 	pte = pfn_to_dma_pte(dmar_domain, iova >> VTD_PAGE_SHIFT, &level);
+<<<<<<< HEAD
 	if (pte)
 		phys = dma_pte_addr(pte);
+=======
+	if (pte && dma_pte_present(pte))
+		phys = dma_pte_addr(pte) +
+			(iova & (BIT_MASK(level_to_offset_bits(level) +
+						VTD_PAGE_SHIFT) - 1));
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	return phys;
 }

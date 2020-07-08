@@ -1135,12 +1135,26 @@ static int sgtl5000_set_power_regs(struct snd_soc_codec *codec)
 					SGTL5000_INT_OSC_EN);
 		/* Enable VDDC charge pump */
 		ana_pwr |= SGTL5000_VDDC_CHRGPMP_POWERUP;
+<<<<<<< HEAD
 	} else if (vddio >= 3100 && vdda >= 3100) {
 		ana_pwr &= ~SGTL5000_VDDC_CHRGPMP_POWERUP;
 		/* VDDC use VDDIO rail */
 		lreg_ctrl |= SGTL5000_VDDC_ASSN_OVRD;
 		lreg_ctrl |= SGTL5000_VDDC_MAN_ASSN_VDDIO <<
 			    SGTL5000_VDDC_MAN_ASSN_SHIFT;
+=======
+	} else {
+		ana_pwr &= ~SGTL5000_VDDC_CHRGPMP_POWERUP;
+		/*
+		 * if vddio == vdda the source of charge pump should be
+		 * assigned manually to VDDIO
+		 */
+		if (vddio == vdda) {
+			lreg_ctrl |= SGTL5000_VDDC_ASSN_OVRD;
+			lreg_ctrl |= SGTL5000_VDDC_MAN_ASSN_VDDIO <<
+				    SGTL5000_VDDC_MAN_ASSN_SHIFT;
+		}
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 	snd_soc_write(codec, SGTL5000_CHIP_LINREG_CTRL, lreg_ctrl);

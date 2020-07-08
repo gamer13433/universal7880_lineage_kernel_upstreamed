@@ -23,6 +23,11 @@ bool is_world_regdom(const char *alpha2);
 bool reg_supported_dfs_region(enum nl80211_dfs_regions dfs_region);
 enum nl80211_dfs_regions reg_get_dfs_region(struct wiphy *wiphy);
 
+<<<<<<< HEAD
+=======
+int regulatory_hint_user(const char *alpha2,
+			 enum nl80211_user_reg_hint_type user_reg_hint_type);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 int regulatory_hint_indoor_user(void);
 
 void wiphy_regulatory_register(struct wiphy *wiphy);

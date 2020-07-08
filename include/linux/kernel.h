@@ -338,6 +338,10 @@ int __must_check kstrtou16(const char *s, unsigned int base, u16 *res);
 int __must_check kstrtos16(const char *s, unsigned int base, s16 *res);
 int __must_check kstrtou8(const char *s, unsigned int base, u8 *res);
 int __must_check kstrtos8(const char *s, unsigned int base, s8 *res);
+<<<<<<< HEAD
+=======
+int __must_check kstrtobool(const char *s, bool *res);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 int __must_check kstrtoull_from_user(const char __user *s, size_t count, unsigned int base, unsigned long long *res);
 int __must_check kstrtoll_from_user(const char __user *s, size_t count, unsigned int base, long long *res);
@@ -349,6 +353,10 @@ int __must_check kstrtou16_from_user(const char __user *s, size_t count, unsigne
 int __must_check kstrtos16_from_user(const char __user *s, size_t count, unsigned int base, s16 *res);
 int __must_check kstrtou8_from_user(const char __user *s, size_t count, unsigned int base, u8 *res);
 int __must_check kstrtos8_from_user(const char __user *s, size_t count, unsigned int base, s8 *res);
+<<<<<<< HEAD
+=======
+int __must_check kstrtobool_from_user(const char __user *s, size_t count, bool *res);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 static inline int __must_check kstrtou64_from_user(const char __user *s, size_t count, unsigned int base, u64 *res)
 {
@@ -376,10 +384,13 @@ extern unsigned long simple_strtoul(const char *,char **,unsigned int);
 extern long simple_strtol(const char *,char **,unsigned int);
 extern unsigned long long simple_strtoull(const char *,char **,unsigned int);
 extern long long simple_strtoll(const char *,char **,unsigned int);
+<<<<<<< HEAD
 #define strict_strtoul	kstrtoul
 #define strict_strtol	kstrtol
 #define strict_strtoull	kstrtoull
 #define strict_strtoll	kstrtoll
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 extern int num_to_str(char *buf, int size, unsigned long long num);
 
@@ -583,6 +594,7 @@ do {									\
  * let gcc optimize the rest.
  */
 
+<<<<<<< HEAD
 #define trace_printk(fmt, ...)					\
 do {								\
 	char _______STR[] = __stringify((__VA_ARGS__));		\
@@ -590,6 +602,15 @@ do {								\
 		do_trace_printk(fmt, ##__VA_ARGS__);		\
 	else							\
 		trace_puts(fmt);				\
+=======
+#define trace_printk(fmt, ...)				\
+do {							\
+	char _______STR[] = __stringify((__VA_ARGS__));	\
+	if (sizeof(_______STR) > 3)			\
+		do_trace_printk(fmt, ##__VA_ARGS__);	\
+	else						\
+		trace_puts(fmt);			\
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 } while (0)
 
 #define do_trace_printk(fmt, args...)					\
@@ -818,8 +839,11 @@ static inline void ftrace_dump(enum ftrace_dump_mode oops_dump_mode) { }
 	 /* Other writable?  Generally considered a bad idea. */	\
 	 BUILD_BUG_ON_ZERO((perms) & 2) +				\
 	 (perms))
+<<<<<<< HEAD
 
 /* To identify board information in panic logs, set this */
 extern char *mach_panic_string;
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #endif

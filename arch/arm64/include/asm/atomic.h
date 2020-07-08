@@ -22,7 +22,10 @@
 
 #include <linux/compiler.h>
 #include <linux/types.h>
+<<<<<<< HEAD
 #include <linux/irqflags.h>
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #include <asm/barrier.h>
 #include <asm/cmpxchg.h>
@@ -112,6 +115,7 @@ static inline int atomic_cmpxchg(atomic_t *ptr, int old, int new)
 	return oldval;
 }
 
+<<<<<<< HEAD
 static inline void atomic_push(atomic_t *v, int value, int width)
 {
 	unsigned long flags;
@@ -134,6 +138,8 @@ static inline int atomic_pop(atomic_t *v, int width)
 	return result & ((1 << width) - 1);
 }
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #define atomic_xchg(v, new) (xchg(&((v)->counter), new))
 
 static inline int __atomic_add_unless(atomic_t *v, int a, int u)

@@ -20,9 +20,12 @@ KBUILD_CFLAGS			:= $(cflags-y) \
 
 GCOV_PROFILE			:= n
 
+<<<<<<< HEAD
 # Prevents link failures: __sanitizer_cov_trace_pc() is not linked in.
 KCOV_INSTRUMENT			:= n
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 lib-y				:= efi-stub-helper.o
 lib-$(CONFIG_EFI_ARMSTUB)	+= arm-stub.o fdt.o
 

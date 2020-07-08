@@ -579,7 +579,11 @@ static const struct iio_info ad7797_info = {
 	.read_raw = &ad7793_read_raw,
 	.write_raw = &ad7793_write_raw,
 	.write_raw_get_fmt = &ad7793_write_raw_get_fmt,
+<<<<<<< HEAD
 	.attrs = &ad7793_attribute_group,
+=======
+	.attrs = &ad7797_attribute_group,
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	.validate_trigger = ad_sd_validate_trigger,
 	.driver_module = THIS_MODULE,
 };

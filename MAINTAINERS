@@ -5170,6 +5170,7 @@ F:	include/linux/isdn/
 F:	include/uapi/linux/isdn.h
 F:	include/uapi/linux/isdn/
 
+<<<<<<< HEAD
 ISDN SUBSYSTEM (Eicon active card driver)
 M:	Armin Schindler <mac@melware.de>
 L:	isdn4linux@listserv.isdn4linux.de (subscribers-only)
@@ -5177,6 +5178,8 @@ W:	http://www.melware.de
 S:	Maintained
 F:	drivers/isdn/hardware/eicon/
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 IT87 HARDWARE MONITORING DRIVER
 M:	Jean Delvare <jdelvare@suse.de>
 L:	lm-sensors@lm-sensors.org
@@ -8532,6 +8535,16 @@ F:	arch/arm/mach-s3c24xx/mach-bast.c
 F:	arch/arm/mach-s3c24xx/bast-ide.c
 F:	arch/arm/mach-s3c24xx/bast-irq.c
 
+<<<<<<< HEAD
+=======
+SIPHASH PRF ROUTINES
+M:	Jason A. Donenfeld <Jason@zx2c4.com>
+S:	Maintained
+F:	lib/siphash.c
+F:	lib/test_siphash.c
+F:	include/linux/siphash.h
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 TI DAVINCI MACHINE SUPPORT
 M:	Sekhar Nori <nsekhar@ti.com>
 M:	Kevin Hilman <khilman@deeprootsystems.com>
@@ -9729,6 +9742,7 @@ W:	http://www.linux-usb.org/usbnet
 S:	Maintained
 F:	drivers/net/usb/dm9601.c
 
+<<<<<<< HEAD
 USB DIAMOND RIO500 DRIVER
 M:	Cesar Miquel <miquel@df.uba.ar>
 L:	rio500-users@lists.sourceforge.net
@@ -9736,6 +9750,8 @@ W:	http://rio500.sourceforge.net
 S:	Maintained
 F:	drivers/usb/misc/rio500*
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 USB EHCI DRIVER
 M:	Alan Stern <stern@rowland.harvard.edu>
 L:	linux-usb@vger.kernel.org
@@ -10494,6 +10510,10 @@ L:	linux-mm@kvack.org
 S:	Maintained
 F:	mm/zsmalloc.c
 F:	include/linux/zsmalloc.h
+<<<<<<< HEAD
+=======
+F:	Documentation/vm/zsmalloc.txt
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 ZSWAP COMPRESSED SWAP CACHING
 M:	Seth Jennings <sjennings@variantweb.net>

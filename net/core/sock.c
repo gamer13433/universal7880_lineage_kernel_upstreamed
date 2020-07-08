@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 /* Copyright (c) 2015 Samsung Electronics Co., Ltd. */
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /*
  * INET		An implementation of the TCP/IP protocol suite for the LINUX
  *		operating system.  INET is implemented using the  BSD Socket
@@ -89,6 +92,7 @@
  *		as published by the Free Software Foundation; either version
  *		2 of the License, or (at your option) any later version.
  */
+<<<<<<< HEAD
 /*
  *  Changes:
  *  KwnagHyun Kim <kh0304.kim@samsung.com> 2015/07/08
@@ -97,6 +101,8 @@
  *    Add codes to share UID/PID information
  *
  */
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 
@@ -145,11 +151,14 @@
 
 #include <trace/events/sock.h>
 
+<<<<<<< HEAD
 #ifdef CONFIG_MPTCP
 #include <net/mptcp.h>
 #include <net/inet_common.h>
 #endif
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #ifdef CONFIG_INET
 #include <net/tcp.h>
 #endif
@@ -294,11 +303,15 @@ static const char *const af_family_slock_key_strings[AF_MAX+1] = {
   "slock-AF_IEEE802154", "slock-AF_CAIF" , "slock-AF_ALG"      ,
   "slock-AF_NFC"   , "slock-AF_VSOCK"    ,"slock-AF_MAX"
 };
+<<<<<<< HEAD
 
 #ifndef CONFIG_MPTCP
 static const
 #endif
 char *const af_family_clock_key_strings[AF_MAX+1] = {
+=======
+static const char *const af_family_clock_key_strings[AF_MAX+1] = {
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
   "clock-AF_UNSPEC", "clock-AF_UNIX"     , "clock-AF_INET"     ,
   "clock-AF_AX25"  , "clock-AF_IPX"      , "clock-AF_APPLETALK",
   "clock-AF_NETROM", "clock-AF_BRIDGE"   , "clock-AF_ATMPVC"   ,
@@ -319,10 +332,14 @@ char *const af_family_clock_key_strings[AF_MAX+1] = {
  * sk_callback_lock locking rules are per-address-family,
  * so split the lock classes by using a per-AF key:
  */
+<<<<<<< HEAD
 #ifndef CONFIG_MPTCP
 static
 #endif
 struct lock_class_key af_callback_keys[AF_MAX];
+=======
+static struct lock_class_key af_callback_keys[AF_MAX];
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /* Take into consideration the size of the struct sk_buff overhead in the
  * determination of these values, since that is non-constant across
@@ -443,12 +460,15 @@ static void sock_warn_obsolete_bsdism(const char *name)
 	}
 }
 
+<<<<<<< HEAD
 #ifndef CONFIG_MPTCP
 #define SK_FLAGS_TIMESTAMP ((1UL << SOCK_TIMESTAMP) | (1UL << SOCK_TIMESTAMPING_RX_SOFTWARE))
 #endif
 
 #define SK_FLAGS_TIMESTAMP ((1UL << SOCK_TIMESTAMP) | (1UL << SOCK_TIMESTAMPING_RX_SOFTWARE))
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static void sock_disable_timestamp(struct sock *sk, unsigned long flags)
 {
 	if (sk->sk_flags & flags) {
@@ -668,6 +688,7 @@ out:
 	return ret;
 }
 
+<<<<<<< HEAD
 /* START_OF_KNOX_NPA */
 /** The function sets the domain name associated with the socket. **/
 static int sock_set_domain_name(struct sock *sk, char __user *optval,
@@ -719,6 +740,8 @@ out:
 
 /* END_OF_KNOX_NPA */
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static inline void sock_valbool_flag(struct sock *sk, int bit, int valbool)
 {
 	if (valbool)
@@ -733,8 +756,13 @@ bool sk_mc_loop(struct sock *sk)
 		return false;
 	if (!sk)
 		return true;
+<<<<<<< HEAD
 	switch (sk->sk_family) {	
         case AF_INET:
+=======
+	switch (sk->sk_family) {
+	case AF_INET:
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		return inet_sk(sk)->mc_loop;
 #if IS_ENABLED(CONFIG_IPV6)
 	case AF_INET6:
@@ -767,6 +795,7 @@ int sock_setsockopt(struct socket *sock, int level, int optname,
 	if (optname == SO_BINDTODEVICE)
 		return sock_setbindtodevice(sk, optval, optlen);
 
+<<<<<<< HEAD
 	/* START_OF_KNOX_NPA */
 	if (optname == SO_SET_DOMAIN_NAME)
 		return sock_set_domain_name(sk, optval, optlen);
@@ -774,6 +803,8 @@ int sock_setsockopt(struct socket *sock, int level, int optname,
 		return sock_set_dns_uid(sk, optval, optlen);
 	/* END_OF_KNOX_NPA */
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (optlen < sizeof(int))
 		return -EINVAL;
 
@@ -819,7 +850,11 @@ int sock_setsockopt(struct socket *sock, int level, int optname,
 		val = min_t(u32, val, sysctl_wmem_max);
 set_sndbuf:
 		sk->sk_userlocks |= SOCK_SNDBUF_LOCK;
+<<<<<<< HEAD
 		sk->sk_sndbuf = max_t(u32, val * 2, SOCK_MIN_SNDBUF);
+=======
+		sk->sk_sndbuf = max_t(int, val * 2, SOCK_MIN_SNDBUF);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		/* Wake up sending tasks if we upped the value. */
 		sk->sk_write_space(sk);
 		break;
@@ -855,7 +890,11 @@ set_rcvbuf:
 		 * returning the value we actually used in getsockopt
 		 * is the most desirable behavior.
 		 */
+<<<<<<< HEAD
 		sk->sk_rcvbuf = max_t(u32, val * 2, SOCK_MIN_RCVBUF);
+=======
+		sk->sk_rcvbuf = max_t(int, val * 2, SOCK_MIN_RCVBUF);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		break;
 
 	case SO_RCVBUFFORCE:
@@ -945,7 +984,12 @@ set_rcvbuf:
 		}
 		if (val & SOF_TIMESTAMPING_OPT_ID &&
 		    !(sk->sk_tsflags & SOF_TIMESTAMPING_OPT_ID)) {
+<<<<<<< HEAD
 			if (sk->sk_protocol == IPPROTO_TCP) {
+=======
+			if (sk->sk_protocol == IPPROTO_TCP &&
+			    sk->sk_type == SOCK_STREAM) {
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 				if (sk->sk_state != TCP_ESTABLISHED) {
 					ret = -EINVAL;
 					break;
@@ -1335,10 +1379,14 @@ lenout:
  *
  * (We also register the sk_lock with the lock validator.)
  */
+<<<<<<< HEAD
 #ifndef CONFIG_MPTCP
 static inline 
 #endif
 void sock_lock_init(struct sock *sk)
+=======
+static inline void sock_lock_init(struct sock *sk)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	sock_lock_init_class_and_name(sk,
 			af_family_slock_key_strings[sk->sk_family],
@@ -1386,10 +1434,14 @@ void sk_prot_clear_portaddr_nulls(struct sock *sk, int size)
 }
 EXPORT_SYMBOL(sk_prot_clear_portaddr_nulls);
 
+<<<<<<< HEAD
 #ifndef CONFIG_MPTCP
 static
 #endif
 struct sock *sk_prot_alloc(struct proto *prot, gfp_t priority,
+=======
+static struct sock *sk_prot_alloc(struct proto *prot, gfp_t priority,
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		int family)
 {
 	struct sock *sk;
@@ -1400,7 +1452,10 @@ struct sock *sk_prot_alloc(struct proto *prot, gfp_t priority,
 		sk = kmem_cache_alloc(slab, priority & ~__GFP_ZERO);
 		if (!sk)
 			return sk;
+<<<<<<< HEAD
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		if (priority & __GFP_ZERO) {
 			if (prot->clear_sk)
 				prot->clear_sk(sk, prot->obj_size);
@@ -1486,10 +1541,13 @@ struct sock *sk_alloc(struct net *net, int family, gfp_t priority,
 
 		sock_update_classid(sk);
 		sock_update_netprioidx(sk);
+<<<<<<< HEAD
 		/* START_OF_KNOX_NPA */
 		sk->knox_uid = current->cred->uid.val;
 		sk->knox_pid = current->tgid;
 		/* END_OF_KNOX_NPA */
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 	return sk;
@@ -1516,6 +1574,14 @@ static void __sk_free(struct sock *sk)
 		pr_debug("%s: optmem leakage (%d bytes) detected\n",
 			 __func__, atomic_read(&sk->sk_omem_alloc));
 
+<<<<<<< HEAD
+=======
+	if (sk->sk_frag.page) {
+		put_page(sk->sk_frag.page);
+		sk->sk_frag.page = NULL;
+	}
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (sk->sk_peer_cred)
 		put_cred(sk->sk_peer_cred);
 	put_pid(sk->sk_peer_pid);
@@ -1579,6 +1645,11 @@ struct sock *sk_clone_lock(const struct sock *sk, const gfp_t priority)
 
 		sock_copy(newsk, sk);
 
+<<<<<<< HEAD
+=======
+		newsk->sk_prot_creator = sk->sk_prot;
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		/* SANITY */
 		get_net(sock_net(newsk));
 		sk_node_init(&newsk->sk_node);
@@ -1609,9 +1680,12 @@ struct sock *sk_clone_lock(const struct sock *sk, const gfp_t priority)
 		newsk->sk_userlocks	= sk->sk_userlocks & ~SOCK_BINDPORT_LOCK;
 
 		sock_reset_flag(newsk, SOCK_DONE);
+<<<<<<< HEAD
 #ifdef CONFIG_MPTCP
 		sock_reset_flag(newsk, SOCK_MPTCP);
 #endif
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		skb_queue_head_init(&newsk->sk_error_queue);
 
 		filter = rcu_dereference_protected(newsk->sk_filter, 1);
@@ -1623,6 +1697,15 @@ struct sock *sk_clone_lock(const struct sock *sk, const gfp_t priority)
 			is_charged = sk_filter_charge(newsk, filter);
 
 		if (unlikely(!is_charged || xfrm_sk_clone_policy(newsk))) {
+<<<<<<< HEAD
+=======
+			/* We need to make sure that we don't uncharge the new
+			 * socket if we couldn't charge it in the first place
+			 * as otherwise we uncharge the parent's filter.
+			 */
+			if (!is_charged)
+				RCU_INIT_POINTER(newsk->sk_filter, NULL);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			/* It is still raw copy of parent, so invalidate
 			 * destructor and make plain sk_free() */
 			newsk->sk_destruct = NULL;
@@ -1721,17 +1804,29 @@ EXPORT_SYMBOL(sock_wfree);
 
 void skb_orphan_partial(struct sk_buff *skb)
 {
+<<<<<<< HEAD
 	/* TCP stack sets skb->ooo_okay based on sk_wmem_alloc,
 	 * so we do not completely orphan skb, but transfert all
 	 * accounted bytes but one, to avoid unexpected reorders.
 	 */
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (skb->destructor == sock_wfree
 #ifdef CONFIG_INET
 	    || skb->destructor == tcp_wfree
 #endif
 		) {
+<<<<<<< HEAD
 		atomic_sub(skb->truesize - 1, &skb->sk->sk_wmem_alloc);
 		skb->truesize = 1;
+=======
+		struct sock *sk = skb->sk;
+
+		if (atomic_inc_not_zero(&sk->sk_refcnt)) {
+			atomic_sub(skb->truesize, &sk->sk_wmem_alloc);
+			skb->destructor = sock_efree;
+		}
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	} else {
 		skb_orphan(skb);
 	}
@@ -1952,7 +2047,11 @@ bool skb_page_frag_refill(unsigned int sz, struct page_frag *pfrag, gfp_t gfp)
 
 	pfrag->offset = 0;
 	if (SKB_FRAG_PAGE_ORDER) {
+<<<<<<< HEAD
 		pfrag->page = alloc_pages(gfp | __GFP_COMP |
+=======
+		pfrag->page = alloc_pages((gfp & ~__GFP_WAIT) | __GFP_COMP |
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 					  __GFP_NOWARN | __GFP_NORETRY,
 					  SKB_FRAG_PAGE_ORDER);
 		if (likely(pfrag->page)) {
@@ -2114,7 +2213,11 @@ int __sk_mem_schedule(struct sock *sk, int size, int kind)
 	}
 
 	if (sk_has_memory_pressure(sk)) {
+<<<<<<< HEAD
 		int alloc;
+=======
+		u64 alloc;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 		if (!sk_under_memory_pressure(sk))
 			return 1;
@@ -2703,6 +2806,7 @@ void sk_common_release(struct sock *sk)
 
 	sk_refcnt_debug_release(sk);
 
+<<<<<<< HEAD
 	if (sk->sk_frag.page) {
 		put_page(sk->sk_frag.page);
 		sk->sk_frag.page = NULL;
@@ -2713,6 +2817,8 @@ void sk_common_release(struct sock *sk)
 		sk->sk_frag.page = NULL;
 	}
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	sock_put(sk);
 }
 EXPORT_SYMBOL(sk_common_release);
@@ -3049,4 +3155,7 @@ static int __init proto_init(void)
 subsys_initcall(proto_init);
 
 #endif /* PROC_FS */
+<<<<<<< HEAD
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012

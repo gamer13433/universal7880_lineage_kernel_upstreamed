@@ -190,7 +190,11 @@ again:
 		mutex_lock(&iommu_group_mutex);
 		ida_remove(&iommu_group_ida, group->id);
 		mutex_unlock(&iommu_group_mutex);
+<<<<<<< HEAD
 		kfree(group);
+=======
+		kobject_put(&group->kobj);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		return ERR_PTR(ret);
 	}
 

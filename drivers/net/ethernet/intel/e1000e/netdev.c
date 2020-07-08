@@ -135,14 +135,21 @@ static const struct e1000_reg_info e1000_reg_info_tbl[] = {
  * has bit 24 set while ME is accessing MAC CSR registers, wait if it is set
  * and try again a number of times.
  **/
+<<<<<<< HEAD
 s32 __ew32_prepare(struct e1000_hw *hw)
+=======
+static void __ew32_prepare(struct e1000_hw *hw)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	s32 i = E1000_ICH_FWSM_PCIM2PCI_COUNT;
 
 	while ((er32(FWSM) & E1000_ICH_FWSM_PCIM2PCI) && --i)
 		udelay(50);
+<<<<<<< HEAD
 
 	return i;
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 void __ew32(struct e1000_hw *hw, unsigned long reg, u32 val)
@@ -623,11 +630,19 @@ static void e1000e_update_rdt_wa(struct e1000_ring *rx_ring, unsigned int i)
 {
 	struct e1000_adapter *adapter = rx_ring->adapter;
 	struct e1000_hw *hw = &adapter->hw;
+<<<<<<< HEAD
 	s32 ret_val = __ew32_prepare(hw);
 
 	writel(i, rx_ring->tail);
 
 	if (unlikely(!ret_val && (i != readl(rx_ring->tail)))) {
+=======
+
+	__ew32_prepare(hw);
+	writel(i, rx_ring->tail);
+
+	if (unlikely(i != readl(rx_ring->tail))) {
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		u32 rctl = er32(RCTL);
 
 		ew32(RCTL, rctl & ~E1000_RCTL_EN);
@@ -640,11 +655,19 @@ static void e1000e_update_tdt_wa(struct e1000_ring *tx_ring, unsigned int i)
 {
 	struct e1000_adapter *adapter = tx_ring->adapter;
 	struct e1000_hw *hw = &adapter->hw;
+<<<<<<< HEAD
 	s32 ret_val = __ew32_prepare(hw);
 
 	writel(i, tx_ring->tail);
 
 	if (unlikely(!ret_val && (i != readl(tx_ring->tail)))) {
+=======
+
+	__ew32_prepare(hw);
+	writel(i, tx_ring->tail);
+
+	if (unlikely(i != readl(tx_ring->tail))) {
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		u32 tctl = er32(TCTL);
 
 		ew32(TCTL, tctl & ~E1000_TCTL_EN);
@@ -1968,8 +1991,15 @@ static irqreturn_t e1000_intr_msix_rx(int __always_unused irq, void *data)
 	 * previous interrupt.
 	 */
 	if (rx_ring->set_itr) {
+<<<<<<< HEAD
 		writel(1000000000 / (rx_ring->itr_val * 256),
 		       rx_ring->itr_register);
+=======
+		u32 itr = rx_ring->itr_val ?
+			  1000000000 / (rx_ring->itr_val * 256) : 0;
+
+		writel(itr, rx_ring->itr_register);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		rx_ring->set_itr = 0;
 	}
 
@@ -3513,6 +3543,15 @@ s32 e1000e_get_base_timinca(struct e1000_adapter *adapter, u32 *timinca)
 
 	switch (hw->mac.type) {
 	case e1000_pch2lan:
+<<<<<<< HEAD
+=======
+		/* Stable 96MHz frequency */
+		incperiod = INCPERIOD_96MHz;
+		incvalue = INCVALUE_96MHz;
+		shift = INCVALUE_SHIFT_96MHz;
+		adapter->cc.shift = shift + INCPERIOD_SHIFT_96MHz;
+		break;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	case e1000_pch_lpt:
 		/* On I217, the clock frequency is 25MHz or 96MHz as
 		 * indicated by the System Clock Frequency Indication
@@ -4016,7 +4055,11 @@ int e1000e_up(struct e1000_adapter *adapter)
 		e1000_configure_msix(adapter);
 	e1000_irq_enable(adapter);
 
+<<<<<<< HEAD
 	netif_start_queue(adapter->netdev);
+=======
+	/* Tx queue started by watchdog timer when link is up */
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	/* fire a link change interrupt to start the watchdog */
 	if (adapter->msix_entries)
@@ -4198,7 +4241,11 @@ static int e1000_sw_init(struct e1000_adapter *adapter)
 	/* Setup hardware time stamping cyclecounter */
 	if (adapter->flags & FLAG_HAS_HW_TIMESTAMP) {
 		adapter->cc.read = e1000e_cyclecounter_read;
+<<<<<<< HEAD
 		adapter->cc.mask = CLOCKSOURCE_MASK(64);
+=======
+		adapter->cc.mask = CYCLECOUNTER_MASK(64);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		adapter->cc.mult = 1;
 		/* cc.shift set in e1000e_get_base_tininca() */
 
@@ -4362,6 +4409,10 @@ static int e1000_open(struct net_device *netdev)
 	pm_runtime_get_sync(&pdev->dev);
 
 	netif_carrier_off(netdev);
+<<<<<<< HEAD
+=======
+	netif_stop_queue(netdev);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	/* allocate transmit descriptors */
 	err = e1000e_setup_tx_resources(adapter->tx_ring);
@@ -4422,7 +4473,10 @@ static int e1000_open(struct net_device *netdev)
 	e1000_irq_enable(adapter);
 
 	adapter->tx_hang_recheck = false;
+<<<<<<< HEAD
 	netif_start_queue(netdev);
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	hw->mac.get_link_status = true;
 	pm_runtime_put(&pdev->dev);
@@ -5047,6 +5101,10 @@ static void e1000_watchdog_task(struct work_struct *work)
 			if (phy->ops.cfg_on_link_up)
 				phy->ops.cfg_on_link_up(hw);
 
+<<<<<<< HEAD
+=======
+			netif_wake_queue(netdev);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			netif_carrier_on(netdev);
 
 			if (!test_bit(__E1000_DOWN, &adapter->state))
@@ -5060,6 +5118,10 @@ static void e1000_watchdog_task(struct work_struct *work)
 			/* Link status message must follow this format */
 			pr_info("%s NIC Link is Down\n", adapter->netdev->name);
 			netif_carrier_off(netdev);
+<<<<<<< HEAD
+=======
+			netif_stop_queue(netdev);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			if (!test_bit(__E1000_DOWN, &adapter->state))
 				mod_timer(&adapter->phy_info_timer,
 					  round_jiffies(jiffies + 2 * HZ));

@@ -63,6 +63,7 @@
 #include <uapi/linux/module.h>
 #include "module-internal.h"
 
+<<<<<<< HEAD
 #ifdef	CONFIG_TIMA_LKMAUTH_CODE_PROT
 #include <asm/tlbflush.h>
 #endif/*CONFIG_TIMA_LKMAUTH_CODE_PROT*/
@@ -72,11 +73,16 @@
 #define TIMA_SET_PTE_RO 1
 #define TIMA_SET_PTE_NX 2
 #endif/*CONFIG_TIMA_LKMAUTH_CODE_PROT*/
+=======
+#define CREATE_TRACE_POINTS
+#include <trace/events/module.h>
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #ifndef ARCH_SHF_SMALL
 #define ARCH_SHF_SMALL 0
 #endif
 
+<<<<<<< HEAD
 #ifdef TIMA_LKM_AUTH_ENABLED
 #define TIMA_ON_MC20
 
@@ -213,11 +219,14 @@ typedef struct {
 #endif /* End TIMA_LKM_AUTH_ENABLED */
 
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /*
  * Modules' sections will be aligned on page boundaries
  * to ensure complete separation of code and data, but
  * only when CONFIG_DEBUG_SET_MODULE_RONX=y
  */
+<<<<<<< HEAD
  
 #ifdef	CONFIG_TIMA_LKMAUTH_CODE_PROT
 # define debug_align(X) ALIGN(X, PAGE_SIZE)
@@ -225,13 +234,18 @@ typedef struct {
 #ifdef	TIMA_LKM_SET_PAGE_ATTRIB
 #define debug_align(X) ALIGN(X, PAGE_SIZE)
 #else
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #ifdef CONFIG_DEBUG_SET_MODULE_RONX
 # define debug_align(X) ALIGN(X, PAGE_SIZE)
 #else
 # define debug_align(X) (X)
 #endif
+<<<<<<< HEAD
 #endif
 #endif
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /*
  * Given BASE and SIZE this macro calculates the number of pages the
@@ -1019,6 +1033,11 @@ SYSCALL_DEFINE2(delete_module, const char __user *, name_user,
 	strlcpy(last_unloaded_module, mod->name, sizeof(last_unloaded_module));
 
 	free_module(mod);
+<<<<<<< HEAD
+=======
+	/* someone could wait for the module in add_unformed_module() */
+	wake_up_all(&module_wq);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return 0;
 out:
 	mutex_unlock(&module_mutex);
@@ -2540,6 +2559,7 @@ static void add_kallsyms(struct module *mod, const struct load_info *info)
 }
 #endif /* CONFIG_KALLSYMS */
 
+<<<<<<< HEAD
 #ifdef	TIMA_LKM_AUTH_ENABLED
 
 #ifdef TIMA_ON_QSEE		/* lkmauth for QSEE */
@@ -3023,6 +3043,8 @@ lkmauth_ret:
 
 #endif /* End TIMA_LKM_AUTH_ENABLED */
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static void dynamic_debug_setup(struct _ddebug *debug, unsigned int num)
 {
 	if (!debug)
@@ -3142,6 +3164,7 @@ static int elf_header_check(struct load_info *info)
 		info->len - info->hdr->e_shoff))
 		return -ENOEXEC;
 
+<<<<<<< HEAD
 #ifdef TIMA_LKM_AUTH_ENABLED
 	if (lkmauth(info->hdr, info->len) != RET_LKMAUTH_SUCCESS) {
 		pr_err
@@ -3151,6 +3174,8 @@ static int elf_header_check(struct load_info *info)
 	}
 #endif
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return 0;
 }
 
@@ -3662,8 +3687,12 @@ static bool finished_loading(const char *name)
 
 	mutex_lock(&module_mutex);
 	mod = find_module_all(name, strlen(name), true);
+<<<<<<< HEAD
 	ret = !mod || mod->state == MODULE_STATE_LIVE
 		|| mod->state == MODULE_STATE_GOING;
+=======
+	ret = !mod || mod->state == MODULE_STATE_LIVE;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	mutex_unlock(&module_mutex);
 
 	return ret;
@@ -3680,6 +3709,7 @@ static void do_mod_ctors(struct module *mod)
 #endif
 }
 
+<<<<<<< HEAD
 #ifdef	CONFIG_TIMA_LKMAUTH_CODE_PROT
 
 #ifndef TIMA_KERNEL_L1_MANAGE
@@ -3843,6 +3873,8 @@ void tima_mod_page_change_access(struct module *mod)
 
 #endif
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /* This is where the real work happens */
 static int do_init_module(struct module *mod)
 {
@@ -3883,10 +3915,13 @@ static int do_init_module(struct module *mod)
 	blocking_notifier_call_chain(&module_notify_list,
 				     MODULE_STATE_LIVE, mod);
 
+<<<<<<< HEAD
 #ifdef	TIMA_LKM_SET_PAGE_ATTRIB
 	tima_mod_page_change_access(mod);
 #endif
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/*
 	 * We need to finish all async code before the module init sequence
 	 * is done.  This has potential to deadlock.  For example, a newly
@@ -3951,8 +3986,12 @@ again:
 	mutex_lock(&module_mutex);
 	old = find_module_all(mod->name, strlen(mod->name), true);
 	if (old != NULL) {
+<<<<<<< HEAD
 		if (old->state == MODULE_STATE_COMING
 		    || old->state == MODULE_STATE_UNFORMED) {
+=======
+		if (old->state != MODULE_STATE_LIVE) {
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			/* Wait in case it fails to load. */
 			mutex_unlock(&module_mutex);
 			err = wait_event_interruptible(module_wq,
@@ -3987,10 +4026,13 @@ static int complete_formation(struct module *mod, struct load_info *info)
 	/* This relies on module_mutex for list integrity. */
 	module_bug_finalize(info->hdr, info->sechdrs, mod);
 
+<<<<<<< HEAD
 #ifdef	CONFIG_TIMA_LKMAUTH_CODE_PROT
 	tima_mod_page_change_access(mod);
 #endif/*CONFIG_TIMA_LKMAUTH_CODE_PROT*/
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/* Set RO and NX regions for core */
 	set_section_ro_nx(mod->module_core,
 				mod->core_text_size,
@@ -4035,10 +4077,13 @@ static int load_module(struct load_info *info, const char __user *uargs,
 	long err;
 	char *after_dashes;
 
+<<<<<<< HEAD
 	//FIXME
 	flags |= MODULE_INIT_IGNORE_MODVERSIONS;
 	flags |= MODULE_INIT_IGNORE_VERMAGIC;
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	err = module_sig_check(info, flags);
 	if (err)
 		goto free_copy;

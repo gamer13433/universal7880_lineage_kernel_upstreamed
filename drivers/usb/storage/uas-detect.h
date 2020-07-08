@@ -9,8 +9,13 @@ static int uas_is_interface(struct usb_host_interface *intf)
 		intf->desc.bInterfaceProtocol == USB_PR_UAS);
 }
 
+<<<<<<< HEAD
 static struct usb_host_interface *uas_find_uas_alt_setting(  
 		struct usb_interface *intf)  
+=======
+static struct usb_host_interface *uas_find_uas_alt_setting(
+		struct usb_interface *intf)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	int i;
 
@@ -52,14 +57,24 @@ static int uas_find_endpoints(struct usb_host_interface *alt,
 }
 
 static int uas_use_uas_driver(struct usb_interface *intf,
+<<<<<<< HEAD
 			      const struct usb_device_id *id)
+=======
+			      const struct usb_device_id *id,
+			      unsigned long *flags_ret)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	struct usb_host_endpoint *eps[4] = { };
 	struct usb_device *udev = interface_to_usbdev(intf);
 	struct usb_hcd *hcd = bus_to_hcd(udev->bus);
 	unsigned long flags = id->driver_info;
+<<<<<<< HEAD
 	struct usb_host_interface *alt; 
 	int r; 
+=======
+	struct usb_host_interface *alt;
+	int r;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	alt = uas_find_uas_alt_setting(intf);
 	if (!alt)

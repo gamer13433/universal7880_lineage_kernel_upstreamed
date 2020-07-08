@@ -545,7 +545,11 @@ static void port100_tx_update_payload_len(void *_frame, int len)
 {
 	struct port100_frame *frame = _frame;
 
+<<<<<<< HEAD
 	frame->datalen = cpu_to_le16(le16_to_cpu(frame->datalen) + len);
+=======
+	le16_add_cpu(&frame->datalen, len);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 static bool port100_rx_frame_is_valid(void *_frame)

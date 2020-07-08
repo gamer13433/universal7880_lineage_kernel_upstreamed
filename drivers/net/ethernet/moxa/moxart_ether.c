@@ -461,9 +461,15 @@ static int moxart_mac_probe(struct platform_device *pdev)
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	ndev->base_addr = res->start;
 	priv->base = devm_ioremap_resource(p_dev, res);
+<<<<<<< HEAD
 	ret = IS_ERR(priv->base);
 	if (ret) {
 		dev_err(p_dev, "devm_ioremap_resource failed\n");
+=======
+	if (IS_ERR(priv->base)) {
+		dev_err(p_dev, "devm_ioremap_resource failed\n");
+		ret = PTR_ERR(priv->base);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		goto init_fail;
 	}
 
@@ -542,7 +548,11 @@ static int moxart_remove(struct platform_device *pdev)
 	struct net_device *ndev = platform_get_drvdata(pdev);
 
 	unregister_netdev(ndev);
+<<<<<<< HEAD
 	free_irq(ndev->irq, ndev);
+=======
+	devm_free_irq(&pdev->dev, ndev->irq, ndev);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	moxart_mac_free_memory(ndev);
 	free_netdev(ndev);
 

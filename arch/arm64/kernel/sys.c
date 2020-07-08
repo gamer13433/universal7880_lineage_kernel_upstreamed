@@ -50,7 +50,11 @@ asmlinkage long sys_mmap(unsigned long addr, unsigned long len,
  * The sys_call_table array must be 4K aligned to be accessible from
  * kernel/entry.S.
  */
+<<<<<<< HEAD
 void *sys_call_table[__NR_syscalls] __aligned(4096) = {
+=======
+void * const sys_call_table[__NR_syscalls] __aligned(4096) = {
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	[0 ... __NR_syscalls - 1] = sys_ni_syscall,
 #include <asm/unistd.h>
 };

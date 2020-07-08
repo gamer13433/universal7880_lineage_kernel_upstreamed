@@ -365,7 +365,12 @@ struct nft_expr_ops {
  */
 struct nft_expr {
 	const struct nft_expr_ops	*ops;
+<<<<<<< HEAD
 	unsigned char			data[];
+=======
+	unsigned char			data[]
+		__attribute__((aligned(__alignof__(u64))));
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 static inline void *nft_expr_priv(const struct nft_expr *expr)

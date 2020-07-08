@@ -1,6 +1,10 @@
 config SECURITY_SELINUX
 	bool "NSA SELinux Support"
+<<<<<<< HEAD
 	depends on SECURITY_NETWORK && NET && INET
+=======
+	depends on SECURITY_NETWORK && AUDIT && NET && INET
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	select NETWORK_SECMARK
 	default n
 	help
@@ -65,6 +69,7 @@ config SECURITY_SELINUX_DEVELOP
 	  can interactively toggle the kernel between enforcing mode and
 	  permissive mode (if permitted by the policy) via /selinux/enforce.
 
+<<<<<<< HEAD
 config SECURITY_SELINUX_FAKE_ENFORCE
 	bool "NSA SELinux Fake Enforcing"
 	depends on SECURITY_SELINUX_DEVELOP
@@ -86,6 +91,8 @@ config SECURITY_SELINUX_NEVER_ENFORCE
 	help
 	  This option will prevent anything from setting SELinux to enforcing.	
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 config SECURITY_SELINUX_AVC_STATS
 	bool "NSA SELinux AVC Statistics"
 	depends on SECURITY_SELINUX

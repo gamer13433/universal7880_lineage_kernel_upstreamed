@@ -53,10 +53,22 @@ module_param_named(disable_hugepages,
 MODULE_PARM_DESC(disable_hugepages,
 		 "Disable VFIO IOMMU support for IOMMU hugepages.");
 
+<<<<<<< HEAD
+=======
+static unsigned int dma_entry_limit __read_mostly = U16_MAX;
+module_param_named(dma_entry_limit, dma_entry_limit, uint, 0644);
+MODULE_PARM_DESC(dma_entry_limit,
+		 "Maximum number of user DMA mappings per container (65535).");
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 struct vfio_iommu {
 	struct list_head	domain_list;
 	struct mutex		lock;
 	struct rb_root		dma_list;
+<<<<<<< HEAD
+=======
+	unsigned int		dma_avail;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	bool			v2;
 	bool			nesting;
 };
@@ -243,8 +255,13 @@ static int vaddr_get_pfn(unsigned long vaddr, int prot, unsigned long *pfn)
 	vma = find_vma_intersection(current->mm, vaddr, vaddr + 1);
 
 	if (vma && vma->vm_flags & VM_PFNMAP) {
+<<<<<<< HEAD
 		*pfn = ((vaddr - vma->vm_start) >> PAGE_SHIFT) + vma->vm_pgoff;
 		if (is_invalid_reserved_pfn(*pfn))
+=======
+		if (!follow_pfn(vma, vaddr, pfn) &&
+		    is_invalid_reserved_pfn(*pfn))
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			ret = 0;
 	}
 
@@ -377,6 +394,10 @@ static void vfio_remove_dma(struct vfio_iommu *iommu, struct vfio_dma *dma)
 	vfio_unmap_unpin(iommu, dma);
 	vfio_unlink_dma(iommu, dma);
 	kfree(dma);
+<<<<<<< HEAD
+=======
+	iommu->dma_avail++;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 static unsigned long vfio_pgsize_bitmap(struct vfio_iommu *iommu)
@@ -562,12 +583,24 @@ static int vfio_dma_do_map(struct vfio_iommu *iommu,
 		return -EEXIST;
 	}
 
+<<<<<<< HEAD
+=======
+	if (!iommu->dma_avail) {
+		mutex_unlock(&iommu->lock);
+		return -ENOSPC;
+	}
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	dma = kzalloc(sizeof(*dma), GFP_KERNEL);
 	if (!dma) {
 		mutex_unlock(&iommu->lock);
 		return -ENOMEM;
 	}
 
+<<<<<<< HEAD
+=======
+	iommu->dma_avail--;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	dma->iova = iova;
 	dma->vaddr = vaddr;
 	dma->prot = prot;
@@ -848,6 +881,10 @@ static void *vfio_iommu_type1_open(unsigned long arg)
 
 	INIT_LIST_HEAD(&iommu->domain_list);
 	iommu->dma_list = RB_ROOT;
+<<<<<<< HEAD
+=======
+	iommu->dma_avail = dma_entry_limit;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	mutex_init(&iommu->lock);
 
 	return iommu;

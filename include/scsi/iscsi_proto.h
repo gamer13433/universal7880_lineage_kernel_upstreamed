@@ -638,6 +638,10 @@ struct iscsi_reject {
 #define ISCSI_REASON_BOOKMARK_INVALID	9
 #define ISCSI_REASON_BOOKMARK_NO_RESOURCES	10
 #define ISCSI_REASON_NEGOTIATION_RESET	11
+<<<<<<< HEAD
+=======
+#define ISCSI_REASON_WAITING_FOR_LOGOUT	12
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /* Max. number of Key=Value pairs in a text message */
 #define MAX_KEY_VALUE_PAIRS	8192

@@ -126,6 +126,10 @@
 #define HP_LM920_PRODUCT_ID	0x026b
 #define HP_TD620_PRODUCT_ID	0x0956
 #define HP_LD960_PRODUCT_ID	0x0b39
+<<<<<<< HEAD
+=======
+#define HP_LD381_PRODUCT_ID	0x0f7f
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #define HP_LCM220_PRODUCT_ID	0x3139
 #define HP_LCM960_PRODUCT_ID	0x3239
 #define HP_LD220_PRODUCT_ID	0x3524
@@ -157,3 +161,9 @@
 #define SMART_VENDOR_ID	0x0b8c
 #define SMART_PRODUCT_ID	0x2303
 
+<<<<<<< HEAD
+=======
+/* Allied Telesis VT-Kit3 */
+#define AT_VENDOR_ID		0x0caa
+#define AT_VTKIT3_PRODUCT_ID	0x3001
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012

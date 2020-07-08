@@ -295,6 +295,12 @@ enum {
 	 AZX_DCAPS_PM_RUNTIME | AZX_DCAPS_I915_POWERWELL |\
 	 AZX_DCAPS_SNOOP_TYPE(SCH))
 
+<<<<<<< HEAD
+=======
+#define AZX_DCAPS_INTEL_SKYLAKE \
+	(AZX_DCAPS_INTEL_PCH | AZX_DCAPS_SEPARATE_STREAM_TAG)
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /* quirks for ATI SB / AMD Hudson */
 #define AZX_DCAPS_PRESET_ATI_SB \
 	(AZX_DCAPS_NO_TCSEL | AZX_DCAPS_SYNC_WRITE | AZX_DCAPS_POSFIX_LPIB |\
@@ -328,6 +334,10 @@ enum {
 #define use_vga_switcheroo(chip)	0
 #endif
 
+<<<<<<< HEAD
+=======
+#define IS_KBL_H(pci) ((pci)->vendor == 0x8086 && (pci)->device == 0xa2f0)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static char *driver_short_names[] = {
 	[AZX_DRIVER_ICH] = "HDA Intel",
 	[AZX_DRIVER_PCH] = "HDA Intel PCH",
@@ -1126,10 +1136,17 @@ static int azx_free(struct azx *chip)
 	}
 
 	if (chip->initialized) {
+<<<<<<< HEAD
 		azx_clear_irq_pending(chip);
 		for (i = 0; i < chip->num_streams; i++)
 			azx_stream_stop(chip, &chip->azx_dev[i]);
 		azx_stop_chip(chip);
+=======
+		azx_stop_chip(chip);
+		azx_clear_irq_pending(chip);
+		for (i = 0; i < chip->num_streams; i++)
+			azx_stream_stop(chip, &chip->azx_dev[i]);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 	if (chip->irq >= 0)
@@ -1527,9 +1544,12 @@ static int azx_first_init(struct azx *chip)
 			chip->msi = 0;
 	}
 
+<<<<<<< HEAD
 	if (azx_acquire_irq(chip, 0) < 0)
 		return -EBUSY;
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	pci_set_master(pci);
 	synchronize_irq(chip->irq);
 
@@ -1638,6 +1658,12 @@ static int azx_first_init(struct azx *chip)
 		return -ENODEV;
 	}
 
+<<<<<<< HEAD
+=======
+	if (azx_acquire_irq(chip, 0) < 0)
+		return -EBUSY;
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	strcpy(card->driver, "HDA-Intel");
 	strlcpy(card->shortname, driver_short_names[chip->driver_type],
 		sizeof(card->shortname));
@@ -1667,6 +1693,7 @@ static void azx_firmware_cb(const struct firmware *fw, void *context)
 {
 	struct snd_card *card = context;
 	struct azx *chip = card->private_data;
+<<<<<<< HEAD
 	struct pci_dev *pci = chip->pci;
 
 	if (!fw) {
@@ -1685,6 +1712,17 @@ static void azx_firmware_cb(const struct firmware *fw, void *context)
  error:
 	snd_card_free(card);
 	pci_set_drvdata(pci, NULL);
+=======
+
+	if (fw)
+		chip->fw = fw;
+	else
+		dev_err(card->dev, "Cannot load firmware, continue without patching\n");
+	if (!chip->disabled) {
+		/* continue probing */
+		azx_probe_continue(chip);
+	}
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 #endif
 
@@ -1814,6 +1852,20 @@ static const struct hda_controller_ops pci_hda_ops = {
 	.position_check = azx_position_check,
 };
 
+<<<<<<< HEAD
+=======
+/* Blacklist for skipping the whole probe:
+ * some HD-audio PCI entries are exposed without any codecs, and such devices
+ * should be ignored from the beginning.
+ */
+static const struct pci_device_id driver_blacklist[] = {
+	{ PCI_DEVICE_SUB(0x1022, 0x1487, 0x1043, 0x874f) }, /* ASUS ROG Zenith II / Strix */
+	{ PCI_DEVICE_SUB(0x1022, 0x1487, 0x1462, 0xcb59) }, /* MSI TRX40 Creator */
+	{ PCI_DEVICE_SUB(0x1022, 0x1487, 0x1462, 0xcb60) }, /* MSI TRX40 */
+	{}
+};
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static int azx_probe(struct pci_dev *pci,
 		     const struct pci_device_id *pci_id)
 {
@@ -1824,6 +1876,14 @@ static int azx_probe(struct pci_dev *pci,
 	bool schedule_probe;
 	int err;
 
+<<<<<<< HEAD
+=======
+	if (pci_match_id(driver_blacklist, pci)) {
+		dev_info(&pci->dev, "Skipping the blacklisted device\n");
+		return -ENODEV;
+	}
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (dev >= SNDRV_CARDS)
 		return -ENODEV;
 	if (!enable[dev]) {
@@ -1987,9 +2047,23 @@ out_free:
 static void azx_remove(struct pci_dev *pci)
 {
 	struct snd_card *card = pci_get_drvdata(pci);
+<<<<<<< HEAD
 
 	if (card)
 		snd_card_free(card);
+=======
+	struct azx *chip;
+	struct hda_intel *hda;
+
+	if (card) {
+		/* cancel the pending probing work */
+		chip = card->private_data;
+		hda = container_of(chip, struct hda_intel, chip);
+		cancel_work_sync(&hda->probe_work);
+
+		snd_card_free(card);
+	}
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 /* PCI IDs */
@@ -2028,7 +2102,14 @@ static const struct pci_device_id azx_ids[] = {
 	  .driver_data = AZX_DRIVER_PCH | AZX_DCAPS_INTEL_PCH },
 	/* Sunrise Point-LP */
 	{ PCI_DEVICE(0x8086, 0x9d70),
+<<<<<<< HEAD
 	  .driver_data = AZX_DRIVER_PCH | AZX_DCAPS_INTEL_PCH },
+=======
+	  .driver_data = AZX_DRIVER_PCH | AZX_DCAPS_INTEL_SKYLAKE },
+	/* Kabylake-H */
+	{ PCI_DEVICE(0x8086, 0xa2f0),
+	  .driver_data = AZX_DRIVER_PCH | AZX_DCAPS_INTEL_SKYLAKE },
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/* Haswell */
 	{ PCI_DEVICE(0x8086, 0x0a0c),
 	  .driver_data = AZX_DRIVER_HDMI | AZX_DCAPS_INTEL_HASWELL },
@@ -2117,6 +2198,11 @@ static const struct pci_device_id azx_ids[] = {
 	  .driver_data = AZX_DRIVER_ATIHDMI | AZX_DCAPS_PRESET_ATI_HDMI },
 	{ PCI_DEVICE(0x1002, 0x970f),
 	  .driver_data = AZX_DRIVER_ATIHDMI | AZX_DCAPS_PRESET_ATI_HDMI },
+<<<<<<< HEAD
+=======
+	{ PCI_DEVICE(0x1002, 0x9840),
+	  .driver_data = AZX_DRIVER_ATIHDMI_NS | AZX_DCAPS_PRESET_ATI_HDMI_NS },
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	{ PCI_DEVICE(0x1002, 0xaa00),
 	  .driver_data = AZX_DRIVER_ATIHDMI | AZX_DCAPS_PRESET_ATI_HDMI },
 	{ PCI_DEVICE(0x1002, 0xaa08),
@@ -2169,6 +2255,13 @@ static const struct pci_device_id azx_ids[] = {
 	  .driver_data = AZX_DRIVER_ATIHDMI_NS | AZX_DCAPS_PRESET_ATI_HDMI_NS },
 	{ PCI_DEVICE(0x1002, 0xaae8),
 	  .driver_data = AZX_DRIVER_ATIHDMI_NS | AZX_DCAPS_PRESET_ATI_HDMI_NS },
+<<<<<<< HEAD
+=======
+	{ PCI_DEVICE(0x1002, 0xaae0),
+	  .driver_data = AZX_DRIVER_ATIHDMI_NS | AZX_DCAPS_PRESET_ATI_HDMI_NS },
+	{ PCI_DEVICE(0x1002, 0xaaf0),
+	  .driver_data = AZX_DRIVER_ATIHDMI_NS | AZX_DCAPS_PRESET_ATI_HDMI_NS },
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/* VIA VT8251/VT8237A */
 	{ PCI_DEVICE(0x1106, 0x3288),
 	  .driver_data = AZX_DRIVER_VIA | AZX_DCAPS_POSFIX_VIA },

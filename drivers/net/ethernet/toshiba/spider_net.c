@@ -882,9 +882,15 @@ out:
  * @skb: packet to send out
  * @netdev: interface device structure
  *
+<<<<<<< HEAD
  * returns 0 on success, !0 on failure
  */
 static int
+=======
+ * returns NETDEV_TX_OK on success, NETDEV_TX_BUSY on failure
+ */
+static netdev_tx_t
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 spider_net_xmit(struct sk_buff *skb, struct net_device *netdev)
 {
 	int cnt;

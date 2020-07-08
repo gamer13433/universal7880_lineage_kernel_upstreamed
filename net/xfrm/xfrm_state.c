@@ -332,6 +332,10 @@ static void xfrm_state_gc_destroy(struct xfrm_state *x)
 {
 	tasklet_hrtimer_cancel(&x->mtimer);
 	del_timer_sync(&x->rtimer);
+<<<<<<< HEAD
+=======
+	kfree(x->aead);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	kfree(x->aalg);
 	kfree(x->ealg);
 	kfree(x->calg);
@@ -1356,6 +1360,18 @@ out:
 		if (x1->curlft.use_time)
 			xfrm_state_check_expire(x1);
 
+<<<<<<< HEAD
+=======
+		if (x->props.output_mark) {
+			spin_lock_bh(&net->xfrm.xfrm_state_lock);
+
+			x1->props.output_mark = x->props.output_mark;
+
+			__xfrm_state_bump_genids(x1);
+			spin_unlock_bh(&net->xfrm.xfrm_state_lock);
+		}
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		err = 0;
 		x->km.state = XFRM_STATE_DEAD;
 		__xfrm_state_put(x);
@@ -1847,11 +1863,14 @@ int xfrm_user_policy(struct sock *sk, int optname, u8 __user *optval, int optlen
 	struct xfrm_mgr *km;
 	struct xfrm_policy *pol = NULL;
 
+<<<<<<< HEAD
 #ifdef CONFIG_COMPAT
 	if (is_compat_task())
 		return -EOPNOTSUPP;
 #endif
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (!optval && !optlen) {
 		xfrm_sk_policy_insert(sk, XFRM_POLICY_IN, NULL);
 		xfrm_sk_policy_insert(sk, XFRM_POLICY_OUT, NULL);
@@ -1883,6 +1902,10 @@ int xfrm_user_policy(struct sock *sk, int optname, u8 __user *optval, int optlen
 	if (err >= 0) {
 		xfrm_sk_policy_insert(sk, err, pol);
 		xfrm_pol_put(pol);
+<<<<<<< HEAD
+=======
+		__sk_dst_reset(sk);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		err = 0;
 	}
 
@@ -2131,7 +2154,11 @@ void xfrm_state_fini(struct net *net)
 	unsigned int sz;
 
 	flush_work(&net->xfrm.state_hash_work);
+<<<<<<< HEAD
 	xfrm_state_flush(net, IPSEC_PROTO_ANY, false);
+=======
+	xfrm_state_flush(net, 0, false);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	flush_work(&net->xfrm.state_gc_work);
 
 	WARN_ON(!list_empty(&net->xfrm.state_all));

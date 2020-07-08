@@ -78,7 +78,11 @@ static void pixcir_ts_parse(struct pixcir_i2c_ts_data *tsdata,
 	}
 
 	ret = i2c_master_recv(tsdata->client, rdbuf, readsize);
+<<<<<<< HEAD
 	if (ret != sizeof(rdbuf)) {
+=======
+	if (ret != readsize) {
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		dev_err(&tsdata->client->dev,
 			"%s: i2c_master_recv failed(), ret=%d\n",
 			__func__, ret);

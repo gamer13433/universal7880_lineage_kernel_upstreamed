@@ -295,6 +295,20 @@ static int notrace ramoops_pstore_write_buf(enum pstore_type_id type,
 
 	prz = cxt->przs[cxt->dump_write_cnt];
 
+<<<<<<< HEAD
+=======
+	/*
+	 * Since this is a new crash dump, we need to reset the buffer in
+	 * case it still has an old dump present. Without this, the new dump
+	 * will get appended, which would seriously confuse anything trying
+	 * to check dump file contents. Specifically, ramoops_read_kmsg_hdr()
+	 * expects to find a dump header in the beginning of buffer data, so
+	 * we must to reset the buffer values, in order to ensure that the
+	 * header will be written to the beginning of the buffer.
+	 */
+	persistent_ram_zap(prz);
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	hlen = ramoops_write_kmsg_hdr(prz, compressed);
 	if (size + hlen > prz->buffer_size)
 		size = prz->buffer_size - hlen;
@@ -305,6 +319,27 @@ static int notrace ramoops_pstore_write_buf(enum pstore_type_id type,
 	return 0;
 }
 
+<<<<<<< HEAD
+=======
+static int notrace ramoops_pstore_write_buf_user(enum pstore_type_id type,
+						 enum kmsg_dump_reason reason,
+						 u64 *id, unsigned int part,
+						 const char __user *buf,
+						 bool compressed, size_t size,
+						 struct pstore_info *psi)
+{
+	if (type == PSTORE_TYPE_PMSG) {
+		struct ramoops_context *cxt = psi->data;
+
+		if (!cxt->mprz)
+			return -ENOMEM;
+		return persistent_ram_write_user(cxt->mprz, buf, size);
+	}
+
+	return -EINVAL;
+}
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static int ramoops_pstore_erase(enum pstore_type_id type, u64 id, int count,
 				struct timespec time, struct pstore_info *psi)
 {
@@ -343,6 +378,10 @@ static struct ramoops_context oops_cxt = {
 		.open	= ramoops_pstore_open,
 		.read	= ramoops_pstore_read,
 		.write_buf	= ramoops_pstore_write_buf,
+<<<<<<< HEAD
+=======
+		.write_buf_user	= ramoops_pstore_write_buf_user,
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		.erase	= ramoops_pstore_erase,
 	},
 };
@@ -351,6 +390,7 @@ static void ramoops_free_przs(struct ramoops_context *cxt)
 {
 	int i;
 
+<<<<<<< HEAD
 	cxt->max_dump_cnt = 0;
 	if (!cxt->przs)
 		return;
@@ -358,6 +398,16 @@ static void ramoops_free_przs(struct ramoops_context *cxt)
 	for (i = 0; !IS_ERR_OR_NULL(cxt->przs[i]); i++)
 		persistent_ram_free(cxt->przs[i]);
 	kfree(cxt->przs);
+=======
+	if (!cxt->przs)
+		return;
+
+	for (i = 0; i < cxt->max_dump_cnt; i++)
+		persistent_ram_free(cxt->przs[i]);
+
+	kfree(cxt->przs);
+	cxt->max_dump_cnt = 0;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 static int ramoops_init_przs(struct device *dev, struct ramoops_context *cxt,
@@ -382,7 +432,11 @@ static int ramoops_init_przs(struct device *dev, struct ramoops_context *cxt,
 			     GFP_KERNEL);
 	if (!cxt->przs) {
 		dev_err(dev, "failed to initialize a prz array for dumps\n");
+<<<<<<< HEAD
 		goto fail_prz;
+=======
+		goto fail_mem;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 	for (i = 0; i < cxt->max_dump_cnt; i++) {
@@ -395,6 +449,14 @@ static int ramoops_init_przs(struct device *dev, struct ramoops_context *cxt,
 			err = PTR_ERR(cxt->przs[i]);
 			dev_err(dev, "failed to request mem region (0x%zx@0x%llx): %d\n",
 				sz, (unsigned long long)*paddr, err);
+<<<<<<< HEAD
+=======
+
+			while (i > 0) {
+				i--;
+				persistent_ram_free(cxt->przs[i]);
+			}
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			goto fail_prz;
 		}
 		*paddr += sz;
@@ -402,7 +464,13 @@ static int ramoops_init_przs(struct device *dev, struct ramoops_context *cxt,
 
 	return 0;
 fail_prz:
+<<<<<<< HEAD
 	ramoops_free_przs(cxt);
+=======
+	kfree(cxt->przs);
+fail_mem:
+	cxt->max_dump_cnt = 0;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return err;
 }
 
@@ -571,7 +639,10 @@ static int __exit ramoops_remove(struct platform_device *pdev)
 
 	iounmap(cxt->virt_addr);
 	release_mem_region(cxt->phys_addr, cxt->size);
+<<<<<<< HEAD
 	cxt->max_dump_cnt = 0;
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	/* TODO(kees): When pstore supports unregistering, call it here. */
 	kfree(cxt->pstore.buf);

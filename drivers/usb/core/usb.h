@@ -43,7 +43,11 @@ static inline unsigned usb_get_max_power(struct usb_device *udev,
 		struct usb_host_config *c)
 {
 	/* SuperSpeed power is in 8 mA units; others are in 2 mA units */
+<<<<<<< HEAD
 	unsigned mul = (udev->speed == USB_SPEED_SUPER ? 8 : 2);
+=======
+	unsigned mul = (udev->speed >= USB_SPEED_SUPER ? 8 : 2);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	return c->desc.bMaxPower * mul;
 }

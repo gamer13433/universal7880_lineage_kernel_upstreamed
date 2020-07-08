@@ -927,10 +927,22 @@ static int
 tcf_action_add(struct net *net, struct nlattr *nla, struct nlmsghdr *n,
 	       u32 portid, int ovr)
 {
+<<<<<<< HEAD
 	int ret = 0;
 	LIST_HEAD(actions);
 
 	ret = tcf_action_init(net, nla, NULL, NULL, ovr, 0, &actions);
+=======
+	int loop, ret;
+	LIST_HEAD(actions);
+
+	for (loop = 0; loop < 10; loop++) {
+		ret = tcf_action_init(net, nla, NULL, NULL, ovr, 0, &actions);
+		if (ret != -EAGAIN)
+			break;
+	}
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (ret)
 		goto done;
 
@@ -973,10 +985,14 @@ static int tc_ctl_action(struct sk_buff *skb, struct nlmsghdr *n)
 		 */
 		if (n->nlmsg_flags & NLM_F_REPLACE)
 			ovr = 1;
+<<<<<<< HEAD
 replay:
 		ret = tcf_action_add(net, tca[TCA_ACT_TAB], n, portid, ovr);
 		if (ret == -EAGAIN)
 			goto replay;
+=======
+		ret = tcf_action_add(net, tca[TCA_ACT_TAB], n, portid, ovr);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		break;
 	case RTM_DELACTION:
 		ret = tca_action_gd(net, tca[TCA_ACT_TAB], n,

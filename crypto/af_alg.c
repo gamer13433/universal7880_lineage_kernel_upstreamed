@@ -136,11 +136,21 @@ void af_alg_release_parent(struct sock *sk)
 	sk = ask->parent;
 	ask = alg_sk(sk);
 
+<<<<<<< HEAD
 	lock_sock(sk);
 	ask->nokey_refcnt -= nokey;
 	if (!last)
 		last = !--ask->refcnt;
 	release_sock(sk);
+=======
+	local_bh_disable();
+	bh_lock_sock(sk);
+	ask->nokey_refcnt -= nokey;
+	if (!last)
+		last = !--ask->refcnt;
+	bh_unlock_sock(sk);
+	local_bh_enable();
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if (last)
 		sock_put(sk);

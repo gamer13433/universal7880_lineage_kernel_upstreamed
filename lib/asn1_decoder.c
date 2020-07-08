@@ -69,7 +69,11 @@ next_tag:
 
 	/* Extract a tag from the data */
 	tag = data[dp++];
+<<<<<<< HEAD
 	if (tag == 0) {
+=======
+	if (tag == ASN1_EOC) {
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		/* It appears to be an EOC. */
 		if (data[dp++] != 0)
 			goto invalid_eoc;
@@ -91,10 +95,15 @@ next_tag:
 
 	/* Extract the length */
 	len = data[dp++];
+<<<<<<< HEAD
 	if (len <= 0x7f) {
 		dp += len;
 		goto next_tag;
 	}
+=======
+	if (len <= 0x7f)
+		goto check_length;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if (unlikely(len == ASN1_INDEFINITE_LENGTH)) {
 		/* Indefinite length */
@@ -105,6 +114,7 @@ next_tag:
 	}
 
 	n = len - 0x80;
+<<<<<<< HEAD
 	if (unlikely(n > sizeof(size_t) - 1))
 		goto length_too_long;
 	if (unlikely(n > datalen - dp))
@@ -113,6 +123,20 @@ next_tag:
 		len <<= 8;
 		len |= data[dp++];
 	}
+=======
+	if (unlikely(n > sizeof(len) - 1))
+		goto length_too_long;
+	if (unlikely(n > datalen - dp))
+		goto data_overrun_error;
+	len = 0;
+	for (; n > 0; n--) {
+		len <<= 8;
+		len |= data[dp++];
+	}
+check_length:
+	if (len > datalen - dp)
+		goto data_overrun_error;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	dp += len;
 	goto next_tag;
 
@@ -208,9 +232,14 @@ next_op:
 		unsigned char tmp;
 
 		/* Skip conditional matches if possible */
+<<<<<<< HEAD
 		if ((op & ASN1_OP_MATCH__COND &&
 		     flags & FLAG_MATCHED) ||
 		    dp == datalen) {
+=======
+		if ((op & ASN1_OP_MATCH__COND && flags & FLAG_MATCHED) ||
+		    (op & ASN1_OP_MATCH__SKIP && dp == datalen)) {
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			pc += asn1_op_lengths[op];
 			goto next_op;
 		}
@@ -219,7 +248,11 @@ next_op:
 		hdr = 2;
 
 		/* Extract a tag from the data */
+<<<<<<< HEAD
 		if (unlikely(dp >= datalen - 1))
+=======
+		if (unlikely(datalen - dp < 2))
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			goto data_overrun_error;
 		tag = data[dp++];
 		if (unlikely((tag & 0x1f) == ASN1_LONG_TAG))
@@ -265,7 +298,11 @@ next_op:
 				int n = len - 0x80;
 				if (unlikely(n > 2))
 					goto length_too_long;
+<<<<<<< HEAD
 				if (unlikely(dp >= datalen - n))
+=======
+				if (unlikely(n > datalen - dp))
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 					goto data_overrun_error;
 				hdr += n;
 				for (len = 0; n > 0; n--) {
@@ -275,6 +312,12 @@ next_op:
 				if (unlikely(len > datalen - dp))
 					goto data_overrun_error;
 			}
+<<<<<<< HEAD
+=======
+		} else {
+			if (unlikely(len > datalen - dp))
+				goto data_overrun_error;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		}
 
 		if (flags & FLAG_CONS) {
@@ -301,6 +344,7 @@ next_op:
 
 	/* Decide how to handle the operation */
 	switch (op) {
+<<<<<<< HEAD
 	case ASN1_OP_MATCH_ANY_ACT:
 	case ASN1_OP_COND_MATCH_ANY_ACT:
 		ret = actions[machine[pc + 1]](context, hdr, tag, data + dp, len);
@@ -333,6 +377,45 @@ next_op:
 			}
 			pr_debug("- LEAF: %zu\n", len);
 		}
+=======
+	case ASN1_OP_MATCH:
+	case ASN1_OP_MATCH_OR_SKIP:
+	case ASN1_OP_MATCH_ACT:
+	case ASN1_OP_MATCH_ACT_OR_SKIP:
+	case ASN1_OP_MATCH_ANY:
+	case ASN1_OP_MATCH_ANY_ACT:
+	case ASN1_OP_COND_MATCH_OR_SKIP:
+	case ASN1_OP_COND_MATCH_ACT_OR_SKIP:
+	case ASN1_OP_COND_MATCH_ANY:
+	case ASN1_OP_COND_MATCH_ANY_ACT:
+
+		if (!(flags & FLAG_CONS)) {
+			if (flags & FLAG_INDEFINITE_LENGTH) {
+				size_t tmp = dp;
+
+				ret = asn1_find_indefinite_length(
+					data, datalen, &tmp, &len, &errmsg);
+				if (ret < 0)
+					goto error;
+			}
+			pr_debug("- LEAF: %zu\n", len);
+		}
+
+		if (op & ASN1_OP_MATCH__ACT) {
+			unsigned char act;
+
+			if (op & ASN1_OP_MATCH__ANY)
+				act = machine[pc + 1];
+			else
+				act = machine[pc + 2];
+			ret = actions[act](context, hdr, tag, data + dp, len);
+			if (ret < 0)
+				return ret;
+		}
+
+		if (!(flags & FLAG_CONS))
+			dp += len;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		pc += asn1_op_lengths[op];
 		goto next_op;
 
@@ -418,6 +501,11 @@ next_op:
 			else
 				act = machine[pc + 1];
 			ret = actions[act](context, hdr, 0, data + tdp, len);
+<<<<<<< HEAD
+=======
+			if (ret < 0)
+				return ret;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		}
 		pc += asn1_op_lengths[op];
 		goto next_op;

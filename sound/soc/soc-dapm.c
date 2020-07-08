@@ -530,7 +530,17 @@ static void dapm_set_mixer_path_status(struct snd_soc_dapm_widget *w,
 			val = max - val;
 		p->connect = !!val;
 	} else {
+<<<<<<< HEAD
 		p->connect = 0;
+=======
+		/* since a virtual mixer has no backing registers to
+		 * decide which path to connect, it will try to match
+		 * with initial state.  This is to ensure
+		 * that the default mixer choice will be
+		 * correctly powered up during initialization.
+		 */
+		p->connect = invert;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 }
 
@@ -3902,7 +3912,11 @@ static void soc_dapm_shutdown_dapm(struct snd_soc_dapm_context *dapm)
 			continue;
 		if (w->power) {
 			dapm_seq_insert(w, &down_list, false);
+<<<<<<< HEAD
 			w->power = 0;
+=======
+			w->new_power = 0;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			powerdown = 1;
 		}
 	}

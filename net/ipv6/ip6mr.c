@@ -1078,6 +1078,10 @@ static struct mfc6_cache *ip6mr_cache_alloc(void)
 	struct mfc6_cache *c = kmem_cache_zalloc(mrt_cachep, GFP_KERNEL);
 	if (c == NULL)
 		return NULL;
+<<<<<<< HEAD
+=======
+	c->mfc_un.res.last_assert = jiffies - MFC_ASSERT_THRESH - 1;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	c->mfc_un.res.minvif = MAXMIFS;
 	return c;
 }
@@ -1593,6 +1597,7 @@ static int ip6mr_sk_init(struct mr6_table *mrt, struct sock *sk)
 	if (likely(mrt->mroute6_sk == NULL)) {
 		mrt->mroute6_sk = sk;
 		net->ipv6.devconf_all->mc_forwarding++;
+<<<<<<< HEAD
 		inet6_netconf_notify_devconf(net, NETCONFA_MC_FORWARDING,
 					     NETCONFA_IFINDEX_ALL,
 					     net->ipv6.devconf_all);
@@ -1601,6 +1606,17 @@ static int ip6mr_sk_init(struct mr6_table *mrt, struct sock *sk)
 		err = -EADDRINUSE;
 	write_unlock_bh(&mrt_lock);
 
+=======
+	} else {
+		err = -EADDRINUSE;
+	}
+	write_unlock_bh(&mrt_lock);
+
+	if (!err)
+		inet6_netconf_notify_devconf(net, NETCONFA_MC_FORWARDING,
+					     NETCONFA_IFINDEX_ALL,
+					     net->ipv6.devconf_all);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	rtnl_unlock();
 
 	return err;
@@ -1618,11 +1634,18 @@ int ip6mr_sk_done(struct sock *sk)
 			write_lock_bh(&mrt_lock);
 			mrt->mroute6_sk = NULL;
 			net->ipv6.devconf_all->mc_forwarding--;
+<<<<<<< HEAD
+=======
+			write_unlock_bh(&mrt_lock);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			inet6_netconf_notify_devconf(net,
 						     NETCONFA_MC_FORWARDING,
 						     NETCONFA_IFINDEX_ALL,
 						     net->ipv6.devconf_all);
+<<<<<<< HEAD
 			write_unlock_bh(&mrt_lock);
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 			mroute_clean_tables(mrt, false);
 			err = 0;
@@ -1665,6 +1688,13 @@ int ip6_mroute_setsockopt(struct sock *sk, int optname, char __user *optval, uns
 	struct net *net = sock_net(sk);
 	struct mr6_table *mrt;
 
+<<<<<<< HEAD
+=======
+	if (sk->sk_type != SOCK_RAW ||
+	    inet_sk(sk)->inet_num != IPPROTO_ICMPV6)
+		return -EOPNOTSUPP;
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	mrt = ip6mr_get_table(net, raw6_sk(sk)->ip6mr_table ? : RT6_TABLE_DFLT);
 	if (mrt == NULL)
 		return -ENOENT;
@@ -1676,9 +1706,12 @@ int ip6_mroute_setsockopt(struct sock *sk, int optname, char __user *optval, uns
 
 	switch (optname) {
 	case MRT6_INIT:
+<<<<<<< HEAD
 		if (sk->sk_type != SOCK_RAW ||
 		    inet_sk(sk)->inet_num != IPPROTO_ICMPV6)
 			return -EOPNOTSUPP;
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		if (optlen < sizeof(int))
 			return -EINVAL;
 
@@ -1815,6 +1848,13 @@ int ip6_mroute_getsockopt(struct sock *sk, int optname, char __user *optval,
 	struct net *net = sock_net(sk);
 	struct mr6_table *mrt;
 
+<<<<<<< HEAD
+=======
+	if (sk->sk_type != SOCK_RAW ||
+	    inet_sk(sk)->inet_num != IPPROTO_ICMPV6)
+		return -EOPNOTSUPP;
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	mrt = ip6mr_get_table(net, raw6_sk(sk)->ip6mr_table ? : RT6_TABLE_DFLT);
 	if (mrt == NULL)
 		return -ENOENT;

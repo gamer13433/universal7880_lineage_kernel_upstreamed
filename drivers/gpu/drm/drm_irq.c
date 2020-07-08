@@ -1224,8 +1224,12 @@ void drm_vblank_on(struct drm_device *dev, int crtc)
 	 * re-enable interrupts if there are users left, or the
 	 * user wishes vblank interrupts to be enabled all the time.
 	 */
+<<<<<<< HEAD
 	if (atomic_read(&vblank->refcount) != 0 ||
 	    (!dev->vblank_disable_immediate && drm_vblank_offdelay == 0))
+=======
+	if (atomic_read(&vblank->refcount) != 0 || drm_vblank_offdelay == 0)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		WARN_ON(drm_vblank_enable(dev, crtc));
 	spin_unlock_irqrestore(&dev->vbl_lock, irqflags);
 }

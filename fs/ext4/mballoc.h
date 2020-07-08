@@ -91,8 +91,15 @@ extern ushort ext4_mballoc_debug;
 
 
 struct ext4_free_data {
+<<<<<<< HEAD
 	/* this links the free block information from sb_info */
 	struct list_head		efd_list;
+=======
+	/* MUST be the first member */
+	struct ext4_journal_cb_entry	efd_jce;
+
+	/* ext4_free_data private data starts from here */
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	/* this links the free block information from group_info */
 	struct rb_node			efd_node;

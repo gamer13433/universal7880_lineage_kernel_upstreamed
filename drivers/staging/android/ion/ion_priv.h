@@ -26,6 +26,7 @@
 #include <linux/sched.h>
 #include <linux/shrinker.h>
 #include <linux/types.h>
+<<<<<<< HEAD
 #include <linux/semaphore.h>
 #include <linux/vmalloc.h>
 #include <linux/dma-direction.h>
@@ -59,6 +60,16 @@ struct ion_iovm_map {
 	dma_addr_t iova;
 };
 
+=======
+#ifdef CONFIG_ION_POOL_CACHE_POLICY
+#include <asm/cacheflush.h>
+#endif
+
+#include "ion.h"
+
+struct ion_buffer *ion_handle_buffer(struct ion_handle *handle);
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /**
  * struct ion_buffer - metadata for a particular buffer
  * @ref:		refernce count
@@ -108,11 +119,15 @@ struct ion_buffer {
 	struct sg_table *sg_table;
 	struct page **pages;
 	struct list_head vmas;
+<<<<<<< HEAD
 	struct list_head iovas;
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/* used to track orphaned buffers */
 	int handle_count;
 	char task_comm[TASK_COMM_LEN];
 	pid_t pid;
+<<<<<<< HEAD
 
 #ifdef CONFIG_ION_EXYNOS_STAT_LOG
 	struct list_head master_list;
@@ -129,6 +144,9 @@ struct ion_task {
 };
 #endif
 
+=======
+};
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 void ion_buffer_destroy(struct ion_buffer *buffer);
 
 /**
@@ -165,6 +183,7 @@ struct ion_heap_ops {
 	int (*map_user)(struct ion_heap *mapper, struct ion_buffer *buffer,
 			struct vm_area_struct *vma);
 	int (*shrink)(struct ion_heap *heap, gfp_t gfp_mask, int nr_to_scan);
+<<<<<<< HEAD
 	void (*preload) (struct ion_heap *heap, unsigned int count,
 			 unsigned int flags, struct ion_preload_object obj[]);
 };
@@ -172,6 +191,10 @@ struct ion_heap_ops {
 /* [INTERNAL USE ONLY] threshold value for whole cache flush */
 #define ION_FLUSH_ALL_HIGHLIMIT SZ_8M
 
+=======
+};
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /**
  * heap flags - flags between the heaps and core ion code
  */
@@ -188,6 +211,7 @@ struct ion_heap_ops {
  */
 #define ION_PRIV_FLAG_SHRINKER_FREE (1 << 0)
 
+<<<<<<< HEAD
 /*
  * Following private flags are used for deferred init to boost up
  * allocation performance.
@@ -195,6 +219,8 @@ struct ion_heap_ops {
  */
 #define ION_PRIV_FLAG_READY_TO_USE (1 << 15)
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /**
  * struct ion_heap - represents a heap in the system
  * @node:		rb node to put the heap on the device's tree of heaps
@@ -212,10 +238,13 @@ struct ion_heap_ops {
  * @lock:		protects the free list
  * @waitqueue:		queue to wait on from deferred free thread
  * @task:		task struct of deferred free thread
+<<<<<<< HEAD
  * @vm_sem:		semaphore for reserved_vm_area
  * @page_idx:		index of reserved_vm_area slots
  * @reserved_vm_area:	reserved vm area
  * @pte:		pte lists for reserved_vm_area
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
  * @debug_show:		called when heap debug file is read to add any
  *			heap specific debug info to output
  *
@@ -243,6 +272,7 @@ struct ion_heap {
 };
 
 /**
+<<<<<<< HEAD
  * ion_buffer_sync_force - check if ION_FLAG_SYNC_FORCE is set
  * @buffer:		buffer
  *
@@ -254,15 +284,21 @@ static inline bool ion_buffer_sync_force(struct ion_buffer *buffer)
 }
 
 /**
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
  * ion_buffer_cached - this ion buffer is cached
  * @buffer:		buffer
  *
  * indicates whether this ion buffer is cached
  */
+<<<<<<< HEAD
 static inline bool ion_buffer_cached(struct ion_buffer *buffer)
 {
 	return !!(buffer->flags & ION_FLAG_CACHED);
 }
+=======
+bool ion_buffer_cached(struct ion_buffer *buffer);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /**
  * ion_buffer_fault_user_mappings - fault in user mappings of this buffer
@@ -271,6 +307,7 @@ static inline bool ion_buffer_cached(struct ion_buffer *buffer)
  * indicates whether userspace mappings of this buffer will be faulted
  * in, this can affect how buffers are allocated from the heap.
  */
+<<<<<<< HEAD
 static inline bool ion_buffer_fault_user_mappings(struct ion_buffer *buffer)
 {
 	return (buffer->flags & ION_FLAG_CACHED) &&
@@ -281,6 +318,9 @@ static inline bool ion_buffer_need_flush_all(struct ion_buffer *buffer)
 {
 	return buffer->size >= ION_FLUSH_ALL_HIGHLIMIT;
 }
+=======
+bool ion_buffer_fault_user_mappings(struct ion_buffer *buffer);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /**
  * ion_device_create - allocates and returns an ion device
@@ -405,12 +445,16 @@ void ion_system_contig_heap_destroy(struct ion_heap *);
 struct ion_heap *ion_carveout_heap_create(struct ion_platform_heap *);
 void ion_carveout_heap_destroy(struct ion_heap *);
 
+<<<<<<< HEAD
 void ion_debug_heap_usage_show(struct ion_heap *heap);
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 struct ion_heap *ion_chunk_heap_create(struct ion_platform_heap *);
 void ion_chunk_heap_destroy(struct ion_heap *);
 struct ion_heap *ion_cma_heap_create(struct ion_platform_heap *);
 void ion_cma_heap_destroy(struct ion_heap *);
 
+<<<<<<< HEAD
 typedef void (*ion_device_sync_func)(const void *, size_t, int);
 void ion_device_sync(struct ion_device *dev, struct scatterlist *sgl,
 			int nents, enum dma_data_direction dir,
@@ -453,6 +497,8 @@ static inline void ion_buffer_make_ready_lock(struct ion_buffer *buffer)
 #define ion_buffer_make_ready_lock(buffer) do { } while (0)
 #endif
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /**
  * kernel api to allocate/free from carveout -- used when carveout is
  * used to back an architecture specific custom heap
@@ -475,6 +521,7 @@ void ion_carveout_free(struct ion_heap *heap, ion_phys_addr_t addr,
  * many systems */
 
 /**
+<<<<<<< HEAD
  * There are 2 separated page pools, i.e. cached and noncached.
  * All pages in the noncached pool have the page flag 'PG_ion_frompool' by
  * ion_page_pool_add() because only noncached pages should be sorted out at
@@ -486,6 +533,8 @@ void ion_carveout_free(struct ion_heap *heap, ion_phys_addr_t addr,
 #define ion_clear_page_clean(page)	clear_bit(PG_dcache_clean, &(page)->flags)
 
 /**
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
  * struct ion_page_pool - pagepool struct
  * @high_count:		number of highmem items in the pool
  * @low_count:		number of lowmem items in the pool
@@ -507,18 +556,60 @@ struct ion_page_pool {
 	int low_count;
 	struct list_head high_items;
 	struct list_head low_items;
+<<<<<<< HEAD
 	spinlock_t lock;
 	gfp_t gfp_mask;
 	unsigned int order;
 	bool cached;
+=======
+	struct mutex mutex;
+	gfp_t gfp_mask;
+	unsigned int order;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	struct plist_node list;
 };
 
 struct ion_page_pool *ion_page_pool_create(gfp_t gfp_mask, unsigned int order);
 void ion_page_pool_destroy(struct ion_page_pool *);
+<<<<<<< HEAD
 void *ion_page_pool_alloc_pages(struct ion_page_pool *pool);
 struct page *ion_page_pool_alloc(struct ion_page_pool *);
 void ion_page_pool_free(struct ion_page_pool *, struct page *);
+=======
+struct page *ion_page_pool_alloc(struct ion_page_pool *);
+void ion_page_pool_free(struct ion_page_pool *, struct page *);
+void ion_page_pool_free_immediate(struct ion_page_pool *, struct page *);
+
+#ifdef CONFIG_ION_POOL_CACHE_POLICY
+static inline void ion_page_pool_alloc_set_cache_policy
+				(struct ion_page_pool *pool,
+				struct page *page){
+	void *va = page_address(page);
+
+	if (va)
+		set_memory_wc((unsigned long)va, 1 << pool->order);
+}
+
+static inline void ion_page_pool_free_set_cache_policy
+				(struct ion_page_pool *pool,
+				struct page *page){
+	void *va = page_address(page);
+
+	if (va)
+		set_memory_wb((unsigned long)va, 1 << pool->order);
+
+}
+#else
+static inline void ion_page_pool_alloc_set_cache_policy
+				(struct ion_page_pool *pool,
+				struct page *page){ }
+
+static inline void ion_page_pool_free_set_cache_policy
+				(struct ion_page_pool *pool,
+				struct page *page){ }
+#endif
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /** ion_page_pool_shrink - shrinks the size of the memory cached in the pool
  * @pool:		the pool
@@ -541,6 +632,7 @@ int ion_page_pool_shrink(struct ion_page_pool *pool, gfp_t gfp_mask,
 void ion_pages_sync_for_device(struct device *dev, struct page *page,
 		size_t size, enum dma_data_direction dir);
 
+<<<<<<< HEAD
 void ion_page_pool_preload_prepare(struct ion_page_pool *pool, long num_pages);
 long ion_page_pool_preload(struct ion_page_pool *pool,
 			   struct ion_page_pool *alt_pool,
@@ -612,4 +704,6 @@ void ION_EVENT_CLEAR(struct ion_buffer *buffer, ktime_t begin);
 #define ION_EVENT_CLEAR(buffer, begin)	do { } while (0)
 #endif
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #endif /* _ION_PRIV_H */

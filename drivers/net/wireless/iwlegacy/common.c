@@ -717,7 +717,11 @@ il_eeprom_init(struct il_priv *il)
 	u32 gp = _il_rd(il, CSR_EEPROM_GP);
 	int sz;
 	int ret;
+<<<<<<< HEAD
 	u16 addr;
+=======
+	int addr;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	/* allocate eeprom */
 	sz = il->cfg->eeprom_size;

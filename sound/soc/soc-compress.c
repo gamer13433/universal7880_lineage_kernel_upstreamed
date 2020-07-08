@@ -210,11 +210,14 @@ static int soc_compr_free(struct snd_compr_stream *cstream)
 		platform->driver->compr_ops->free(cstream);
 
 	if (cstream->direction == SND_COMPRESS_PLAYBACK) {
+<<<<<<< HEAD
 #ifdef CONFIG_SND_SAMSUNG_SEIREN_OFFLOAD
 		if (codec_dai->playback_active)
 			goto out;
 #endif
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		if (snd_soc_runtime_ignore_pmdown_time(rtd)) {
 			snd_soc_dapm_stream_event(rtd,
 					SNDRV_PCM_STREAM_PLAYBACK,
@@ -226,20 +229,26 @@ static int soc_compr_free(struct snd_compr_stream *cstream)
 					   msecs_to_jiffies(rtd->pmdown_time));
 		}
 	} else {
+<<<<<<< HEAD
 #ifdef CONFIG_SND_SAMSUNG_SEIREN_OFFLOAD
 		if (codec_dai->capture_active)
 			goto out;
 #endif
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		/* capture streams can be powered down now */
 		snd_soc_dapm_stream_event(rtd,
 			SNDRV_PCM_STREAM_CAPTURE,
 			SND_SOC_DAPM_STREAM_STOP);
 	}
 
+<<<<<<< HEAD
 #ifdef CONFIG_SND_SAMSUNG_SEIREN_OFFLOAD
 out:
 #endif
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	mutex_unlock(&rtd->pcm_mutex);
 	return 0;
 }
@@ -302,6 +311,7 @@ static int soc_compr_trigger(struct snd_compr_stream *cstream, int cmd)
 	struct snd_soc_dai *codec_dai = rtd->codec_dai;
 	int ret = 0;
 
+<<<<<<< HEAD
 #ifdef CONFIG_SND_SAMSUNG_SEIREN_OFFLOAD
 	/* for partial drain and drain cmd, don't acquire lock while invoking FW.
 	 * These calls will be blocked till these operation can complete which
@@ -315,6 +325,8 @@ static int soc_compr_trigger(struct snd_compr_stream *cstream, int cmd)
 	}
 #endif
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	mutex_lock_nested(&rtd->pcm_mutex, rtd->pcm_subclass);
 
 	if (platform->driver->compr_ops && platform->driver->compr_ops->trigger) {
@@ -658,6 +670,10 @@ int soc_new_compress(struct snd_soc_pcm_runtime *rtd, int num)
 	struct snd_pcm *be_pcm;
 	char new_name[64];
 	int ret = 0, direction = 0;
+<<<<<<< HEAD
+=======
+	int playback = 0, capture = 0;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if (rtd->num_codecs > 1) {
 		dev_err(rtd->card->dev, "Multicodec not supported for compressed stream\n");
@@ -669,11 +685,35 @@ int soc_new_compress(struct snd_soc_pcm_runtime *rtd, int num)
 			rtd->dai_link->stream_name, codec_dai->name, num);
 
 	if (codec_dai->driver->playback.channels_min)
+<<<<<<< HEAD
 		direction = SND_COMPRESS_PLAYBACK;
 	else if (codec_dai->driver->capture.channels_min)
 		direction = SND_COMPRESS_CAPTURE;
 	else
 		return -EINVAL;
+=======
+		playback = 1;
+	if (codec_dai->driver->capture.channels_min)
+		capture = 1;
+
+	capture = capture && cpu_dai->driver->capture.channels_min;
+	playback = playback && cpu_dai->driver->playback.channels_min;
+
+	/*
+	 * Compress devices are unidirectional so only one of the directions
+	 * should be set, check for that (xor)
+	 */
+	if (playback + capture != 1) {
+		dev_err(rtd->card->dev, "Invalid direction for compress P %d, C %d\n",
+				playback, capture);
+		return -EINVAL;
+	}
+
+	if(playback)
+		direction = SND_COMPRESS_PLAYBACK;
+	else
+		direction = SND_COMPRESS_CAPTURE;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	compr = kzalloc(sizeof(*compr), GFP_KERNEL);
 	if (compr == NULL) {

@@ -3,7 +3,11 @@
 #include <linux/lguest.h>
 #include "../../../drivers/lguest/lg.h"
 
+<<<<<<< HEAD
 #define __SYSCALL_I386(nr, sym, compat) [nr] = 1,
+=======
+#define __SYSCALL_I386(nr, sym, qual) [nr] = 1,
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static char syscalls[] = {
 #include <asm/syscalls_32.h>
 };
@@ -27,7 +31,11 @@ void foo(void)
 	OFFSET(CPUINFO_x86, cpuinfo_x86, x86);
 	OFFSET(CPUINFO_x86_vendor, cpuinfo_x86, x86_vendor);
 	OFFSET(CPUINFO_x86_model, cpuinfo_x86, x86_model);
+<<<<<<< HEAD
 	OFFSET(CPUINFO_x86_mask, cpuinfo_x86, x86_mask);
+=======
+	OFFSET(CPUINFO_x86_stepping, cpuinfo_x86, x86_stepping);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	OFFSET(CPUINFO_cpuid_level, cpuinfo_x86, cpuid_level);
 	OFFSET(CPUINFO_x86_capability, cpuinfo_x86, x86_capability);
 	OFFSET(CPUINFO_x86_vendor_id, cpuinfo_x86, x86_vendor_id);

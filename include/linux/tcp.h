@@ -57,11 +57,15 @@ static inline unsigned int tcp_optlen(const struct sk_buff *skb)
 /* TCP Fast Open */
 #define TCP_FASTOPEN_COOKIE_MIN	4	/* Min Fast Open Cookie size in bytes */
 #define TCP_FASTOPEN_COOKIE_MAX	16	/* Max Fast Open Cookie size in bytes */
+<<<<<<< HEAD
 #ifdef CONFIG_MPTCP
 #define TCP_FASTOPEN_COOKIE_SIZE 4	/* the size employed by this impl for MPTCP. */
 #else
 #define TCP_FASTOPEN_COOKIE_SIZE 8	/* the size employed by this impl. */
 #endif
+=======
+#define TCP_FASTOPEN_COOKIE_SIZE 8	/* the size employed by this impl. */
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /* TCP Fast Open Cookie as stored in memory */
 struct tcp_fastopen_cookie {
@@ -80,6 +84,7 @@ struct tcp_sack_block {
 	u32	end_seq;
 };
 
+<<<<<<< HEAD
 #ifdef CONFIG_MPTCP
 struct tcp_out_options {
 	u16	options;	/* bit field of OPTION_* */
@@ -127,6 +132,8 @@ struct tcp_out_options {
 };
 #endif
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /*These are used to set the sack_ok field in struct tcp_options_received */
 #define TCP_SACK_SEEN     (1 << 0)   /*1 = peer is SACK capable, */
 #define TCP_FACK_ENABLED  (1 << 1)   /*1 = FACK is enabled locally*/
@@ -150,11 +157,14 @@ struct tcp_options_received {
 	u16	mss_clamp;	/* Maximal mss, negotiated at connection setup */
 };
 
+<<<<<<< HEAD
 #ifdef CONFIG_MPTCP
 struct mptcp_cb;
 struct mptcp_tcp_sock;
 #endif
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static inline void tcp_clear_options(struct tcp_options_received *rx_opt)
 {
 	rx_opt->tstamp_ok = rx_opt->sack_ok = 0;
@@ -187,10 +197,13 @@ static inline struct tcp_request_sock *tcp_rsk(const struct request_sock *req)
 	return (struct tcp_request_sock *)req;
 }
 
+<<<<<<< HEAD
 #ifdef CONFIG_MPTCP
 struct tcp_md5sig_key;
 #endif
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 struct tcp_sock {
 	/* inet_connection_sock has to be the first member of tcp_sock */
 	struct inet_connection_sock	inet_conn;
@@ -380,6 +393,7 @@ struct tcp_sock {
 	 * socket. Used to retransmit SYNACKs etc.
 	 */
 	struct request_sock *fastopen_rsk;
+<<<<<<< HEAD
 
 #ifdef CONFIG_MPTCP
 	/* MPTCP/TCP-specific callbacks */
@@ -412,6 +426,8 @@ struct tcp_sock {
 	u64		mptcp_loc_key;
 //#endif /* CONFIG_MPTCP */
 #endif
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 enum tsq_flags {
@@ -423,10 +439,13 @@ enum tsq_flags {
 	TCP_MTU_REDUCED_DEFERRED,  /* tcp_v{4|6}_err() could not call
 				    * tcp_v{4|6}_mtu_reduced()
 				    */
+<<<<<<< HEAD
 #ifdef CONFIG_MPTCP
 	MPTCP_PATH_MANAGER, /* MPTCP deferred creation of new subflows */
 	MPTCP_SUB_DEFERRED, /* A subflow got deferred - process them */
 #endif
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 static inline struct tcp_sock *tcp_sk(const struct sock *sk)
@@ -445,9 +464,12 @@ struct tcp_timewait_sock {
 #ifdef CONFIG_TCP_MD5SIG
 	struct tcp_md5sig_key	  *tw_md5_key;
 #endif
+<<<<<<< HEAD
 #ifdef CONFIG_MPTCP
 	struct mptcp_tw		  *mptcp_tw;
 #endif
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 static inline struct tcp_timewait_sock *tcp_twsk(const struct sock *sk)
@@ -482,4 +504,10 @@ static inline int fastopen_init_queue(struct sock *sk, int backlog)
 	return 0;
 }
 
+<<<<<<< HEAD
+=======
+int tcp_skb_shift(struct sk_buff *to, struct sk_buff *from, int pcount,
+		  int shiftlen);
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #endif	/* _LINUX_TCP_H */

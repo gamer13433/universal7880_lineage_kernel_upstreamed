@@ -176,7 +176,11 @@ static int cpufreq_p4_cpu_init(struct cpufreq_policy *policy)
 #endif
 
 	/* Errata workaround */
+<<<<<<< HEAD
 	cpuid = (c->x86 << 8) | (c->x86_model << 4) | c->x86_mask;
+=======
+	cpuid = (c->x86 << 8) | (c->x86_model << 4) | c->x86_stepping;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	switch (cpuid) {
 	case 0x0f07:
 	case 0x0f0a:

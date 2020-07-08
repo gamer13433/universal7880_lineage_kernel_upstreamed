@@ -40,19 +40,31 @@ struct xt_sctp_info {
 #define SCTP_CHUNKMAP_SET(chunkmap, type) 		\
 	do { 						\
 		(chunkmap)[type / bytes(__u32)] |= 	\
+<<<<<<< HEAD
 			1 << (type % bytes(__u32));	\
+=======
+			1u << (type % bytes(__u32));	\
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	} while (0)
 
 #define SCTP_CHUNKMAP_CLEAR(chunkmap, type)		 	\
 	do {							\
 		(chunkmap)[type / bytes(__u32)] &= 		\
+<<<<<<< HEAD
 			~(1 << (type % bytes(__u32)));	\
+=======
+			~(1u << (type % bytes(__u32)));	\
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	} while (0)
 
 #define SCTP_CHUNKMAP_IS_SET(chunkmap, type) 			\
 ({								\
 	((chunkmap)[type / bytes (__u32)] & 		\
+<<<<<<< HEAD
 		(1 << (type % bytes (__u32)))) ? 1: 0;	\
+=======
+		(1u << (type % bytes (__u32)))) ? 1: 0;	\
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 })
 
 #define SCTP_CHUNKMAP_RESET(chunkmap) \

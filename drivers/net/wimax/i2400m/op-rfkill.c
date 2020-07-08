@@ -147,6 +147,10 @@ error_msg_to_dev:
 error_alloc:
 	d_fnend(4, dev, "(wimax_dev %p state %d) = %d\n",
 		wimax_dev, state, result);
+<<<<<<< HEAD
+=======
+	kfree(cmd);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return result;
 }
 

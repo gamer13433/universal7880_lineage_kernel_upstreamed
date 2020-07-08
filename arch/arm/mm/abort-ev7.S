@@ -15,6 +15,10 @@
 ENTRY(v7_early_abort)
 	mrc	p15, 0, r1, c5, c0, 0		@ get FSR
 	mrc	p15, 0, r0, c6, c0, 0		@ get FAR
+<<<<<<< HEAD
+=======
+	uaccess_disable ip			@ disable userspace access
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	/*
 	 * V6 code adjusts the returned DFSR.

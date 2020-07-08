@@ -351,6 +351,10 @@ static int smsusb_init_device(struct usb_interface *intf, int board_id)
 	struct smsdevice_params_t params;
 	struct smsusb_device_t *dev;
 	int i, rc;
+<<<<<<< HEAD
+=======
+	int align = 0;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	/* create device object */
 	dev = kzalloc(sizeof(struct smsusb_device_t), GFP_KERNEL);
@@ -364,6 +368,26 @@ static int smsusb_init_device(struct usb_interface *intf, int board_id)
 	dev->udev = interface_to_usbdev(intf);
 	dev->state = SMSUSB_DISCONNECTED;
 
+<<<<<<< HEAD
+=======
+	for (i = 0; i < intf->cur_altsetting->desc.bNumEndpoints; i++) {
+		struct usb_endpoint_descriptor *desc =
+				&intf->cur_altsetting->endpoint[i].desc;
+
+		if (desc->bEndpointAddress & USB_DIR_IN) {
+			dev->in_ep = desc->bEndpointAddress;
+			align = usb_endpoint_maxp(desc) - sizeof(struct sms_msg_hdr);
+		} else {
+			dev->out_ep = desc->bEndpointAddress;
+		}
+	}
+
+	if (!dev->in_ep || !dev->out_ep || align < 0) {	/* Missing endpoints? */
+		smsusb_term_device(intf);
+		return -ENODEV;
+	}
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	params.device_type = sms_get_board(board_id)->type;
 
 	switch (params.device_type) {
@@ -378,14 +402,19 @@ static int smsusb_init_device(struct usb_interface *intf, int board_id)
 		/* fall-thru */
 	default:
 		dev->buffer_size = USB2_BUFFER_SIZE;
+<<<<<<< HEAD
 		dev->response_alignment =
 		    le16_to_cpu(dev->udev->ep_in[1]->desc.wMaxPacketSize) -
 		    sizeof(struct sms_msg_hdr);
+=======
+		dev->response_alignment = align;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 		params.flags |= SMS_DEVICE_FAMILY2;
 		break;
 	}
 
+<<<<<<< HEAD
 	for (i = 0; i < intf->cur_altsetting->desc.bNumEndpoints; i++) {
 		if (intf->cur_altsetting->endpoint[i].desc. bEndpointAddress & USB_DIR_IN)
 			dev->in_ep = intf->cur_altsetting->endpoint[i].desc.bEndpointAddress;
@@ -396,6 +425,8 @@ static int smsusb_init_device(struct usb_interface *intf, int board_id)
 	sms_info("in_ep = %02x, out_ep = %02x",
 		dev->in_ep, dev->out_ep);
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	params.device = &dev->udev->dev;
 	params.buffer_size = dev->buffer_size;
 	params.num_buffers = MAX_BUFFERS;

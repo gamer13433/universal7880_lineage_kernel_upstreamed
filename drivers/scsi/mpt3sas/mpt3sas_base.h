@@ -454,6 +454,10 @@ struct chain_tracker {
  * @scmd: scsi request pointer
  * @cb_idx: callback index
  * @tracker_list: list of free request (ioc->free_list)
+<<<<<<< HEAD
+=======
+ * @msix_io: IO's msix
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
  */
 struct scsiio_tracker {
 	u16	smid;
@@ -461,6 +465,10 @@ struct scsiio_tracker {
 	u8	cb_idx;
 	struct list_head chain_list;
 	struct list_head tracker_list;
+<<<<<<< HEAD
+=======
+	u16     msix_io;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 /**
@@ -986,7 +994,12 @@ void mpt3sas_base_put_smid_scsi_io(struct MPT3SAS_ADAPTER *ioc, u16 smid,
 	u16 handle);
 void mpt3sas_base_put_smid_fast_path(struct MPT3SAS_ADAPTER *ioc, u16 smid,
 	u16 handle);
+<<<<<<< HEAD
 void mpt3sas_base_put_smid_hi_priority(struct MPT3SAS_ADAPTER *ioc, u16 smid);
+=======
+void mpt3sas_base_put_smid_hi_priority(struct MPT3SAS_ADAPTER *ioc,
+	u16 smid, u16 msix_task);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 void mpt3sas_base_put_smid_default(struct MPT3SAS_ADAPTER *ioc, u16 smid);
 void mpt3sas_base_initialize_callback_handler(void);
 u8 mpt3sas_base_register_callback_handler(MPT_CALLBACK cb_func);

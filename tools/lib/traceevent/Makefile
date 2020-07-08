@@ -47,6 +47,7 @@ set_plugin_dir := 1
 
 # Set plugin_dir to preffered global plugin location
 # If we install under $HOME directory we go under
+<<<<<<< HEAD
 # $(HOME)/.traceevent/plugins
 #
 # We dont set PLUGIN_DIR in case we install under $HOME
@@ -56,6 +57,17 @@ set_plugin_dir := 1
 ifeq ($(plugin_dir),)
 ifeq ($(prefix),$(HOME))
 override plugin_dir = $(HOME)/.traceevent/plugins
+=======
+# $(HOME)/.local/lib/traceevent/plugins
+#
+# We dont set PLUGIN_DIR in case we install under $HOME
+# directory, because by default the code looks under:
+# $(HOME)/.local/lib/traceevent/plugins by default.
+#
+ifeq ($(plugin_dir),)
+ifeq ($(prefix),$(HOME))
+override plugin_dir = $(HOME)/.local/lib/traceevent/plugins
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 set_plugin_dir := 0
 else
 override plugin_dir = $(prefix)/lib/traceevent/plugins

@@ -859,7 +859,11 @@ static inline void rcu_preempt_sleep_check(void)
  * read-side critical sections may be preempted and they may also block, but
  * only when acquiring spinlocks that are subject to priority inheritance.
  */
+<<<<<<< HEAD
 static inline void rcu_read_lock(void)
+=======
+static __always_inline void rcu_read_lock(void)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	__rcu_read_lock();
 	__acquire(RCU);

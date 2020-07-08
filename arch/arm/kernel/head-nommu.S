@@ -118,7 +118,11 @@ ENTRY(secondary_startup)
  THUMB(	add	r12, r10, #PROCINFO_INITFUNC	)
  THUMB(	ret	r12				)
 1:	bl	__after_proc_init
+<<<<<<< HEAD
 	ldr	sp, [r7, #8]			@ set up the stack pointer
+=======
+	ldr	sp, [r7, #12]			@ set up the stack pointer
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	mov	fp, #0
 	b	secondary_start_kernel
 ENDPROC(secondary_startup)

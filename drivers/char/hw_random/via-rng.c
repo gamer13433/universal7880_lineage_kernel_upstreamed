@@ -166,7 +166,11 @@ static int via_rng_init(struct hwrng *rng)
 	/* Enable secondary noise source on CPUs where it is present. */
 
 	/* Nehemiah stepping 8 and higher */
+<<<<<<< HEAD
 	if ((c->x86_model == 9) && (c->x86_mask > 7))
+=======
+	if ((c->x86_model == 9) && (c->x86_stepping > 7))
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		lo |= VIA_NOISESRC2;
 
 	/* Esther */

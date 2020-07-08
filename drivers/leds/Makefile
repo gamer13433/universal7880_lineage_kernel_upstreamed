@@ -56,9 +56,12 @@ obj-$(CONFIG_LEDS_BLINKM)		+= leds-blinkm.o
 obj-$(CONFIG_LEDS_SYSCON)		+= leds-syscon.o
 obj-$(CONFIG_LEDS_VERSATILE)		+= leds-versatile.o
 obj-$(CONFIG_LEDS_MENF21BMC)		+= leds-menf21bmc.o
+<<<<<<< HEAD
 obj-$(CONFIG_LEDS_S2MU003)		+= leds-s2mu003.o
 obj-$(CONFIG_LEDS_S2MPB02)		+= leds-s2mpb02.o
 obj-$(CONFIG_LEDS_KTD2692)		+= leds-ktd2692.o
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 # LED SPI Drivers
 obj-$(CONFIG_LEDS_DAC124S085)		+= leds-dac124s085.o

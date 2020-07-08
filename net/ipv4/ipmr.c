@@ -883,8 +883,15 @@ static struct mfc_cache *ipmr_cache_alloc(void)
 {
 	struct mfc_cache *c = kmem_cache_zalloc(mrt_cachep, GFP_KERNEL);
 
+<<<<<<< HEAD
 	if (c)
 		c->mfc_un.res.minvif = MAXVIFS;
+=======
+	if (c) {
+		c->mfc_un.res.last_assert = jiffies - MFC_ASSERT_THRESH - 1;
+		c->mfc_un.res.minvif = MAXVIFS;
+	}
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return c;
 }
 
@@ -1645,7 +1652,12 @@ static struct notifier_block ip_mr_notifier = {
  *	important for multicast video.
  */
 
+<<<<<<< HEAD
 static void ip_encap(struct sk_buff *skb, __be32 saddr, __be32 daddr)
+=======
+static void ip_encap(struct net *net, struct sk_buff *skb,
+		     __be32 saddr, __be32 daddr)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	struct iphdr *iph;
 	const struct iphdr *old_iph = ip_hdr(skb);
@@ -1664,7 +1676,11 @@ static void ip_encap(struct sk_buff *skb, __be32 saddr, __be32 daddr)
 	iph->protocol	=	IPPROTO_IPIP;
 	iph->ihl	=	5;
 	iph->tot_len	=	htons(skb->len);
+<<<<<<< HEAD
 	ip_select_ident(skb, NULL);
+=======
+	ip_select_ident(net, skb, NULL);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	ip_send_check(iph);
 
 	memset(&(IPCB(skb)->opt), 0, sizeof(IPCB(skb)->opt));
@@ -1761,7 +1777,11 @@ static void ipmr_queue_xmit(struct net *net, struct mr_table *mrt,
 	 * What do we do with netfilter? -- RR
 	 */
 	if (vif->flags & VIFF_TUNNEL) {
+<<<<<<< HEAD
 		ip_encap(skb, vif->local, vif->remote);
+=======
+		ip_encap(net, skb, vif->local, vif->remote);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		/* FIXME: extra output firewall step used to be here. --RR */
 		vif->dev->stats.tx_packets++;
 		vif->dev->stats.tx_bytes += skb->len;

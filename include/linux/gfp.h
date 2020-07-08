@@ -34,7 +34,10 @@ struct vm_area_struct;
 #define ___GFP_NO_KSWAPD	0x400000u
 #define ___GFP_OTHER_NODE	0x800000u
 #define ___GFP_WRITE		0x1000000u
+<<<<<<< HEAD
 #define ___GFP_CMA		0x2000000u
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /* If the above are modified, __GFP_BITS_SHIFT may need updating */
 
 /*
@@ -50,9 +53,13 @@ struct vm_area_struct;
 #define __GFP_HIGHMEM	((__force gfp_t)___GFP_HIGHMEM)
 #define __GFP_DMA32	((__force gfp_t)___GFP_DMA32)
 #define __GFP_MOVABLE	((__force gfp_t)___GFP_MOVABLE)  /* Page is movable */
+<<<<<<< HEAD
 #define __GFP_CMA	((__force gfp_t)___GFP_CMA)
 #define GFP_ZONEMASK	(__GFP_DMA|__GFP_HIGHMEM|__GFP_DMA32|__GFP_MOVABLE| \
 			__GFP_CMA)
+=======
+#define GFP_ZONEMASK	(__GFP_DMA|__GFP_HIGHMEM|__GFP_DMA32|__GFP_MOVABLE)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /*
  * Action modifiers - doesn't change the zoning
  *
@@ -100,7 +107,11 @@ struct vm_area_struct;
  */
 #define __GFP_NOTRACK_FALSE_POSITIVE (__GFP_NOTRACK)
 
+<<<<<<< HEAD
 #define __GFP_BITS_SHIFT 26	/* Room for N __GFP_FOO bits */
+=======
+#define __GFP_BITS_SHIFT 25	/* Room for N __GFP_FOO bits */
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #define __GFP_BITS_MASK ((__force gfp_t)((1 << __GFP_BITS_SHIFT) - 1))
 
 /* This equals 0, but use constants in case they ever change */
@@ -134,7 +145,11 @@ struct vm_area_struct;
 #endif
 
 /* This mask makes up all the page movable related flags */
+<<<<<<< HEAD
 #define GFP_MOVABLE_MASK (__GFP_RECLAIMABLE|__GFP_MOVABLE|__GFP_CMA)
+=======
+#define GFP_MOVABLE_MASK (__GFP_RECLAIMABLE|__GFP_MOVABLE)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /* Control page allocator reclaim behavior */
 #define GFP_RECLAIM_MASK (__GFP_WAIT|__GFP_HIGH|__GFP_IO|__GFP_FS|\
@@ -167,6 +182,7 @@ static inline int gfpflags_to_migratetype(const gfp_t gfp_flags)
 		return MIGRATE_UNMOVABLE;
 
 	/* Group based on mobility */
+<<<<<<< HEAD
 #ifndef CONFIG_CMA
 	return (((gfp_flags & __GFP_MOVABLE) != 0) << 1) |
 		((gfp_flags & __GFP_RECLAIMABLE) != 0);
@@ -175,6 +191,10 @@ static inline int gfpflags_to_migratetype(const gfp_t gfp_flags)
 		(((gfp_flags & __GFP_CMA) != 0) << 1) |
 		((gfp_flags & __GFP_RECLAIMABLE) != 0);
 #endif
+=======
+	return (((gfp_flags & __GFP_MOVABLE) != 0) << 1) |
+		((gfp_flags & __GFP_RECLAIMABLE) != 0);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 #ifdef CONFIG_HIGHMEM

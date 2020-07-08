@@ -100,7 +100,11 @@ static void __usbhsf_pkt_del(struct usbhs_pkt *pkt)
 	list_del_init(&pkt->node);
 }
 
+<<<<<<< HEAD
 static struct usbhs_pkt *__usbhsf_pkt_get(struct usbhs_pipe *pipe)
+=======
+struct usbhs_pkt *__usbhsf_pkt_get(struct usbhs_pipe *pipe)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	if (list_empty(&pipe->list))
 		return NULL;

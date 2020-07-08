@@ -63,6 +63,7 @@ enum ion_heap_type {
 #define ION_FLAG_CACHED_NEEDS_SYNC 2	/* mappings of this buffer will created
 					   at mmap time, if this is set
 					   caches must be managed manually */
+<<<<<<< HEAD
 #define ION_FLAG_NOZEROED 8		/* Allocated buffer is not initialized
 					   with zero value and userspace is not
 					   able to access the buffer
@@ -72,6 +73,9 @@ enum ion_heap_type {
 					   are prohibited.
 					 */
 #define ION_FLAG_SYNC_FORCE 32		/* cache sync forcely at allocation */
+=======
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /**
  * DOC: Ion Userspace API
  *
@@ -114,6 +118,7 @@ struct ion_fd_data {
 	int fd;
 };
 
+<<<<<<< HEAD
 struct ion_fd_partial_data {
 	ion_user_handle_t handle;
 	int fd;
@@ -121,6 +126,8 @@ struct ion_fd_partial_data {
 	size_t len;
 };
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /**
  * struct ion_handle_data - a handle passed to/from the kernel
  * @handle:	a handle
@@ -142,6 +149,7 @@ struct ion_custom_data {
 	unsigned long arg;
 };
 
+<<<<<<< HEAD
 /**
  * struct ion_preload_data - metadata for preload buffers
  * @heap_id_mask:	mask of heap ids to allocate from
@@ -163,6 +171,8 @@ struct ion_preload_data {
 	struct ion_preload_object *obj;
 };
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #define ION_IOC_MAGIC		'I'
 
 /**
@@ -220,12 +230,15 @@ struct ion_preload_data {
  * this will make the buffer in memory coherent.
  */
 #define ION_IOC_SYNC		_IOWR(ION_IOC_MAGIC, 7, struct ion_fd_data)
+<<<<<<< HEAD
 #define ION_IOC_SYNC_PARTIAL	_IOWR(ION_IOC_MAGIC, 9, struct ion_fd_partial_data)
 
 /**
  * DOC: ION_IOC_PRELOAD_ALLOC - prefetches pages to page pool
  */
 #define ION_IOC_PRELOAD_ALLOC	_IOW(ION_IOC_MAGIC, 8, struct ion_preload_data)
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /**
  * DOC: ION_IOC_CUSTOM - call architecture specific ion ioctl

@@ -145,6 +145,7 @@ static int regmap_i2c_read(void *context,
 	struct i2c_msg xfer[2];
 	int ret;
 
+<<<<<<< HEAD
 	if (i2c->flags & I2C_CLIENT_TEN) {
 		xfer[0].flags = I2C_M_RD|I2C_CLIENT_TEN;
 		xfer[0].len = val_size;
@@ -180,6 +181,25 @@ static int regmap_i2c_read(void *context,
 		else
 			return -EIO;
 	}
+=======
+	xfer[0].addr = i2c->addr;
+	xfer[0].flags = 0;
+	xfer[0].len = reg_size;
+	xfer[0].buf = (void *)reg;
+
+	xfer[1].addr = i2c->addr;
+	xfer[1].flags = I2C_M_RD;
+	xfer[1].len = val_size;
+	xfer[1].buf = val;
+
+	ret = i2c_transfer(i2c->adapter, xfer, 2);
+	if (ret == 2)
+		return 0;
+	else if (ret < 0)
+		return ret;
+	else
+		return -EIO;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 static struct regmap_bus regmap_i2c = {

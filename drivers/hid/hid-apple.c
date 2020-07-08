@@ -55,7 +55,10 @@ MODULE_PARM_DESC(swap_opt_cmd, "Swap the Option (\"Alt\") and Command (\"Flag\")
 struct apple_sc {
 	unsigned long quirks;
 	unsigned int fn_on;
+<<<<<<< HEAD
 	DECLARE_BITMAP(pressed_fn, KEY_CNT);
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	DECLARE_BITMAP(pressed_numlock, KEY_CNT);
 };
 
@@ -182,6 +185,11 @@ static int hidinput_apple_event(struct hid_device *hid, struct input_dev *input,
 {
 	struct apple_sc *asc = hid_get_drvdata(hid);
 	const struct apple_key_translation *trans, *table;
+<<<<<<< HEAD
+=======
+	bool do_translate;
+	u16 code = 0;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if (usage->code == KEY_FN) {
 		asc->fn_on = !!value;
@@ -190,8 +198,11 @@ static int hidinput_apple_event(struct hid_device *hid, struct input_dev *input,
 	}
 
 	if (fnmode) {
+<<<<<<< HEAD
 		int do_translate;
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		if (hid->product >= USB_DEVICE_ID_APPLE_WELLSPRING4_ANSI &&
 				hid->product <= USB_DEVICE_ID_APPLE_WELLSPRING4A_JIS)
 			table = macbookair_fn_keys;
@@ -203,6 +214,7 @@ static int hidinput_apple_event(struct hid_device *hid, struct input_dev *input,
 		trans = apple_find_translation (table, usage->code);
 
 		if (trans) {
+<<<<<<< HEAD
 			if (test_bit(usage->code, asc->pressed_fn))
 				do_translate = 1;
 			else if (trans->flags & APPLE_FLAG_FKEY)
@@ -222,6 +234,35 @@ static int hidinput_apple_event(struct hid_device *hid, struct input_dev *input,
 
 				return 1;
 			}
+=======
+			if (test_bit(trans->from, input->key))
+				code = trans->from;
+			else if (test_bit(trans->to, input->key))
+				code = trans->to;
+
+			if (!code) {
+				if (trans->flags & APPLE_FLAG_FKEY) {
+					switch (fnmode) {
+					case 1:
+						do_translate = !asc->fn_on;
+						break;
+					case 2:
+						do_translate = asc->fn_on;
+						break;
+					default:
+						/* should never happen */
+						do_translate = false;
+					}
+				} else {
+					do_translate = asc->fn_on;
+				}
+
+				code = do_translate ? trans->to : trans->from;
+			}
+
+			input_event(input, usage->type, code, value);
+			return 1;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		}
 
 		if (asc->quirks & APPLE_NUMLOCK_EMULATION &&

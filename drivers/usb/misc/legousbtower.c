@@ -185,7 +185,10 @@ static const struct usb_device_id tower_table[] = {
 };
 
 MODULE_DEVICE_TABLE (usb, tower_table);
+<<<<<<< HEAD
 static DEFINE_MUTEX(open_disc_mutex);
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #define LEGO_USB_TOWER_MINOR_BASE	160
 
@@ -197,6 +200,10 @@ struct lego_usb_tower {
 	unsigned char		minor;		/* the starting minor number for this device */
 
 	int			open_count;	/* number of times this port has been opened */
+<<<<<<< HEAD
+=======
+	unsigned long		disconnected:1;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	char*			read_buffer;
 	size_t			read_buffer_length; /* this much came in */
@@ -296,14 +303,21 @@ static inline void lego_usb_tower_debug_data(struct device *dev,
  */
 static inline void tower_delete (struct lego_usb_tower *dev)
 {
+<<<<<<< HEAD
 	tower_abort_transfers (dev);
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/* free data structures */
 	usb_free_urb(dev->interrupt_in_urb);
 	usb_free_urb(dev->interrupt_out_urb);
 	kfree (dev->read_buffer);
 	kfree (dev->interrupt_in_buffer);
 	kfree (dev->interrupt_out_buffer);
+<<<<<<< HEAD
+=======
+	usb_put_dev(dev->udev);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	kfree (dev);
 }
 
@@ -338,18 +352,26 @@ static int tower_open (struct inode *inode, struct file *file)
 		goto exit;
 	}
 
+<<<<<<< HEAD
 	mutex_lock(&open_disc_mutex);
 	dev = usb_get_intfdata(interface);
 
 	if (!dev) {
 		mutex_unlock(&open_disc_mutex);
+=======
+	dev = usb_get_intfdata(interface);
+	if (!dev) {
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		retval = -ENODEV;
 		goto exit;
 	}
 
 	/* lock this device */
 	if (mutex_lock_interruptible(&dev->lock)) {
+<<<<<<< HEAD
 		mutex_unlock(&open_disc_mutex);
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	        retval = -ERESTARTSYS;
 		goto exit;
 	}
@@ -357,12 +379,18 @@ static int tower_open (struct inode *inode, struct file *file)
 
 	/* allow opening only once */
 	if (dev->open_count) {
+<<<<<<< HEAD
 		mutex_unlock(&open_disc_mutex);
 		retval = -EBUSY;
 		goto unlock_exit;
 	}
 	dev->open_count = 1;
 	mutex_unlock(&open_disc_mutex);
+=======
+		retval = -EBUSY;
+		goto unlock_exit;
+	}
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	/* reset the tower */
 	result = usb_control_msg (dev->udev,
@@ -402,13 +430,21 @@ static int tower_open (struct inode *inode, struct file *file)
 		dev_err(&dev->udev->dev,
 			"Couldn't submit interrupt_in_urb %d\n", retval);
 		dev->interrupt_in_running = 0;
+<<<<<<< HEAD
 		dev->open_count = 0;
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		goto unlock_exit;
 	}
 
 	/* save device in the file's private structure */
 	file->private_data = dev;
 
+<<<<<<< HEAD
+=======
+	dev->open_count = 1;
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 unlock_exit:
 	mutex_unlock(&dev->lock);
 
@@ -429,6 +465,7 @@ static int tower_release (struct inode *inode, struct file *file)
 
 	if (dev == NULL) {
 		retval = -ENODEV;
+<<<<<<< HEAD
 		goto exit_nolock;
 	}
 
@@ -438,13 +475,25 @@ static int tower_release (struct inode *inode, struct file *file)
 		goto exit;
 	}
 
+=======
+		goto exit;
+	}
+
+	mutex_lock(&dev->lock);
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (dev->open_count != 1) {
 		dev_dbg(&dev->udev->dev, "%s: device not opened exactly once\n",
 			__func__);
 		retval = -ENODEV;
 		goto unlock_exit;
 	}
+<<<<<<< HEAD
 	if (dev->udev == NULL) {
+=======
+
+	if (dev->disconnected) {
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		/* the device was unplugged before the file was released */
 
 		/* unlock here as tower_delete frees dev */
@@ -462,10 +511,14 @@ static int tower_release (struct inode *inode, struct file *file)
 
 unlock_exit:
 	mutex_unlock(&dev->lock);
+<<<<<<< HEAD
 
 exit:
 	mutex_unlock(&open_disc_mutex);
 exit_nolock:
+=======
+exit:
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return retval;
 }
 
@@ -483,10 +536,16 @@ static void tower_abort_transfers (struct lego_usb_tower *dev)
 	if (dev->interrupt_in_running) {
 		dev->interrupt_in_running = 0;
 		mb();
+<<<<<<< HEAD
 		if (dev->udev)
 			usb_kill_urb (dev->interrupt_in_urb);
 	}
 	if (dev->interrupt_out_busy && dev->udev)
+=======
+		usb_kill_urb(dev->interrupt_in_urb);
+	}
+	if (dev->interrupt_out_busy)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		usb_kill_urb(dev->interrupt_out_urb);
 }
 
@@ -522,7 +581,11 @@ static unsigned int tower_poll (struct file *file, poll_table *wait)
 
 	dev = file->private_data;
 
+<<<<<<< HEAD
 	if (!dev->udev)
+=======
+	if (dev->disconnected)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		return POLLERR | POLLHUP;
 
 	poll_wait(file, &dev->read_wait, wait);
@@ -569,7 +632,11 @@ static ssize_t tower_read (struct file *file, char __user *buffer, size_t count,
 	}
 
 	/* verify that the device wasn't unplugged */
+<<<<<<< HEAD
 	if (dev->udev == NULL) {
+=======
+	if (dev->disconnected) {
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		retval = -ENODEV;
 		pr_err("No device or device unplugged %d\n", retval);
 		goto unlock_exit;
@@ -655,7 +722,11 @@ static ssize_t tower_write (struct file *file, const char __user *buffer, size_t
 	}
 
 	/* verify that the device wasn't unplugged */
+<<<<<<< HEAD
 	if (dev->udev == NULL) {
+=======
+	if (dev->disconnected) {
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		retval = -ENODEV;
 		pr_err("No device or device unplugged %d\n", retval);
 		goto unlock_exit;
@@ -764,7 +835,11 @@ static void tower_interrupt_in_callback (struct urb *urb)
 
 resubmit:
 	/* resubmit if we're still running */
+<<<<<<< HEAD
 	if (dev->interrupt_in_running && dev->udev) {
+=======
+	if (dev->interrupt_in_running) {
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		retval = usb_submit_urb (dev->interrupt_in_urb, GFP_ATOMIC);
 		if (retval)
 			dev_err(&dev->udev->dev,
@@ -832,8 +907,14 @@ static int tower_probe (struct usb_interface *interface, const struct usb_device
 
 	mutex_init(&dev->lock);
 
+<<<<<<< HEAD
 	dev->udev = udev;
 	dev->open_count = 0;
+=======
+	dev->udev = usb_get_dev(udev);
+	dev->open_count = 0;
+	dev->disconnected = 0;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	dev->read_buffer = NULL;
 	dev->read_buffer_length = 0;
@@ -906,6 +987,7 @@ static int tower_probe (struct usb_interface *interface, const struct usb_device
 	dev->interrupt_in_interval = interrupt_in_interval ? interrupt_in_interval : dev->interrupt_in_endpoint->bInterval;
 	dev->interrupt_out_interval = interrupt_out_interval ? interrupt_out_interval : dev->interrupt_out_endpoint->bInterval;
 
+<<<<<<< HEAD
 	/* we can register the device now, as it is ready */
 	usb_set_intfdata (interface, dev);
 
@@ -924,6 +1006,8 @@ static int tower_probe (struct usb_interface *interface, const struct usb_device
 		 "%d minor %d\n", (dev->minor - LEGO_USB_TOWER_MINOR_BASE),
 		 USB_MAJOR, dev->minor);
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	get_version_reply = kmalloc(sizeof(*get_version_reply), GFP_KERNEL);
 
 	if (!get_version_reply) {
@@ -941,8 +1025,15 @@ static int tower_probe (struct usb_interface *interface, const struct usb_device
 				  get_version_reply,
 				  sizeof(*get_version_reply),
 				  1000);
+<<<<<<< HEAD
 	if (result < 0) {
 		dev_err(idev, "LEGO USB Tower get version control request failed\n");
+=======
+	if (result != sizeof(*get_version_reply)) {
+		if (result >= 0)
+			result = -EIO;
+		dev_err(idev, "get version request failed: %d\n", result);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		retval = result;
 		goto error;
 	}
@@ -952,6 +1043,25 @@ static int tower_probe (struct usb_interface *interface, const struct usb_device
 		 get_version_reply->minor,
 		 le16_to_cpu(get_version_reply->build_no));
 
+<<<<<<< HEAD
+=======
+	/* we can register the device now, as it is ready */
+	usb_set_intfdata (interface, dev);
+
+	retval = usb_register_dev (interface, &tower_class);
+
+	if (retval) {
+		/* something prevented us from registering this driver */
+		dev_err(idev, "Not able to get a minor for this device.\n");
+		goto error;
+	}
+	dev->minor = interface->minor;
+
+	/* let the user know what node this device is now attached to */
+	dev_info(&interface->dev, "LEGO USB Tower #%d now attached to major "
+		 "%d minor %d\n", (dev->minor - LEGO_USB_TOWER_MINOR_BASE),
+		 USB_MAJOR, dev->minor);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 exit:
 	kfree(get_version_reply);
@@ -975,6 +1085,7 @@ static void tower_disconnect (struct usb_interface *interface)
 	int minor;
 
 	dev = usb_get_intfdata (interface);
+<<<<<<< HEAD
 	mutex_lock(&open_disc_mutex);
 	usb_set_intfdata (interface, NULL);
 
@@ -985,13 +1096,30 @@ static void tower_disconnect (struct usb_interface *interface)
 
 	mutex_lock(&dev->lock);
 	mutex_unlock(&open_disc_mutex);
+=======
+
+	minor = dev->minor;
+
+	/* give back our minor and prevent further open() */
+	usb_deregister_dev (interface, &tower_class);
+
+	/* stop I/O */
+	usb_poison_urb(dev->interrupt_in_urb);
+	usb_poison_urb(dev->interrupt_out_urb);
+
+	mutex_lock(&dev->lock);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	/* if the device is not opened, then we clean up right now */
 	if (!dev->open_count) {
 		mutex_unlock(&dev->lock);
 		tower_delete (dev);
 	} else {
+<<<<<<< HEAD
 		dev->udev = NULL;
+=======
+		dev->disconnected = 1;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		/* wake up pollers */
 		wake_up_interruptible_all(&dev->read_wait);
 		wake_up_interruptible_all(&dev->write_wait);

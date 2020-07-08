@@ -93,6 +93,7 @@ config VIDEOBUF2_DMA_SG
 	select VIDEOBUF2_CORE
 	select VIDEOBUF2_MEMOPS
 
+<<<<<<< HEAD
 config  VIDEOBUF2_ION
 	bool "Video buffer 2 by Android ION"
 	depends on ION_EXYNOS
@@ -101,6 +102,8 @@ config  VIDEOBUF2_ION
 	help
 	  Internal memory management for Video Buffer 2 by ION
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 config VIDEOBUF2_DVB
 	tristate
 	select VIDEOBUF2_CORE

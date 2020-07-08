@@ -535,7 +535,11 @@ free_prog:
 
 SYSCALL_DEFINE3(bpf, int, cmd, union bpf_attr __user *, uattr, unsigned int, size)
 {
+<<<<<<< HEAD
 	union bpf_attr attr = {};
+=======
+	union bpf_attr attr;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	int err;
 
 	/* the syscall is limited to root temporarily. This restriction will be
@@ -575,6 +579,10 @@ SYSCALL_DEFINE3(bpf, int, cmd, union bpf_attr __user *, uattr, unsigned int, siz
 	}
 
 	/* copy attributes from user space, may be less than sizeof(bpf_attr) */
+<<<<<<< HEAD
+=======
+	memset(&attr, 0, sizeof(attr));
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (copy_from_user(&attr, uattr, size) != 0)
 		return -EFAULT;
 

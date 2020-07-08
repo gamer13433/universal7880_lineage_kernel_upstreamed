@@ -34,7 +34,10 @@ struct kiocb {
 	struct kioctx		*ki_ctx;	/* NULL for sync ops */
 	kiocb_cancel_fn		*ki_cancel;
 	void			*private;
+<<<<<<< HEAD
 	int ki_flags;
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	union {
 		void __user		*user;

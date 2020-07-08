@@ -24,20 +24,26 @@ struct kern_ipc_perm;
  * selinux_is_enabled - is SELinux enabled?
  */
 bool selinux_is_enabled(void);
+<<<<<<< HEAD
 /**
  * selinux_is_enforcing - is SELinux Enforcing?
  */
 bool selinux_is_enforcing(void);
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #else
 
 static inline bool selinux_is_enabled(void)
 {
 	return false;
 }
+<<<<<<< HEAD
 static inline bool selinux_is_enforcing(void)
 {
 	return false;
 }
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #endif	/* CONFIG_SECURITY_SELINUX */
 
 #endif /* _LINUX_SELINUX_H */

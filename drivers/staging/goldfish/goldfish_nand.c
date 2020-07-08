@@ -87,7 +87,11 @@ static u32 goldfish_nand_cmd(struct mtd_info *mtd, enum nand_cmd cmd,
 		writel((u32)(addr >> 32), base + NAND_ADDR_HIGH);
 		writel((u32)addr, base + NAND_ADDR_LOW);
 		writel(len, base + NAND_TRANSFER_SIZE);
+<<<<<<< HEAD
 		gf_write64((u64)ptr, base + NAND_DATA, base + NAND_DATA_HIGH);
+=======
+		gf_write_ptr(ptr, base + NAND_DATA, base + NAND_DATA_HIGH);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		writel(cmd, base + NAND_COMMAND);
 		rv = readl(base + NAND_RESULT);
 	}

@@ -95,7 +95,11 @@ struct elevator_type
 	struct module *elevator_owner;
 
 	/* managed by elevator core */
+<<<<<<< HEAD
 	char icq_cache_name[ELV_NAME_MAX + 5];	/* elvname + "_io_cq" */
+=======
+	char icq_cache_name[ELV_NAME_MAX + 6];	/* elvname + "_io_cq" */
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	struct list_head list;
 };
 

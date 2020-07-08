@@ -29,6 +29,11 @@ struct cpuidle_monitor *all_monitors[] = {
 0
 };
 
+<<<<<<< HEAD
+=======
+int cpu_count;
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static struct cpuidle_monitor *monitors[MONITORS_MAX];
 static unsigned int avail_monitors;
 

@@ -2626,6 +2626,10 @@ megasas_fw_crash_buffer_show(struct device *cdev,
 	u32 size;
 	unsigned long buff_addr;
 	unsigned long dmachunk = CRASH_DMA_BUF_SIZE;
+<<<<<<< HEAD
+=======
+	unsigned long chunk_left_bytes;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	unsigned long src_addr;
 	unsigned long flags;
 	u32 buff_offset;
@@ -2652,6 +2656,11 @@ megasas_fw_crash_buffer_show(struct device *cdev,
 	}
 
 	size = (instance->fw_crash_buffer_size * dmachunk) - buff_offset;
+<<<<<<< HEAD
+=======
+	chunk_left_bytes = dmachunk - (buff_offset % dmachunk);
+	size = (size > chunk_left_bytes) ? chunk_left_bytes : size;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	size = (size >= PAGE_SIZE) ? (PAGE_SIZE - 1) : size;
 
 	src_addr = (unsigned long)instance->crash_buf[buff_offset / dmachunk] +
@@ -3473,12 +3482,20 @@ megasas_transition_to_ready(struct megasas_instance *instance, int ocr)
 		/*
 		 * The cur_state should not last for more than max_wait secs
 		 */
+<<<<<<< HEAD
 		for (i = 0; i < (max_wait * 1000); i++) {
+=======
+		for (i = 0; i < max_wait * 50; i++) {
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			curr_abs_state = instance->instancet->
 				read_fw_status_reg(instance->reg_set);
 
 			if (abs_state == curr_abs_state) {
+<<<<<<< HEAD
 				msleep(1);
+=======
+				msleep(20);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			} else
 				break;
 		}
@@ -4338,7 +4355,11 @@ static int megasas_init_fw(struct megasas_instance *instance)
 	/* Find first memory bar */
 	bar_list = pci_select_bars(instance->pdev, IORESOURCE_MEM);
 	instance->bar = find_first_bit(&bar_list, sizeof(unsigned long));
+<<<<<<< HEAD
 	if (pci_request_selected_regions(instance->pdev, instance->bar,
+=======
+	if (pci_request_selected_regions(instance->pdev, 1<<instance->bar,
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 					 "megasas: LSI")) {
 		printk(KERN_DEBUG "megasas: IO memory region busy!\n");
 		return -EBUSY;
@@ -4629,7 +4650,11 @@ fail_ready_state:
 	iounmap(instance->reg_set);
 
       fail_ioremap:
+<<<<<<< HEAD
 	pci_release_selected_regions(instance->pdev, instance->bar);
+=======
+	pci_release_selected_regions(instance->pdev, 1<<instance->bar);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	return -EINVAL;
 }
@@ -4650,7 +4675,11 @@ static void megasas_release_mfi(struct megasas_instance *instance)
 
 	iounmap(instance->reg_set);
 
+<<<<<<< HEAD
 	pci_release_selected_regions(instance->pdev, instance->bar);
+=======
+	pci_release_selected_regions(instance->pdev, 1<<instance->bar);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 /**

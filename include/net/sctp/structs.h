@@ -223,6 +223,13 @@ struct sctp_sock {
 	atomic_t pd_mode;
 	/* Receive to here while partial delivery is in effect. */
 	struct sk_buff_head pd_lobby;
+<<<<<<< HEAD
+=======
+
+	/* These must be the last fields, as they will skipped on copies,
+	 * like on accept and peeloff operations
+	 */
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	struct list_head auto_asconf_list;
 	int do_auto_asconf;
 };

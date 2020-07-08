@@ -26,10 +26,15 @@
 #ifdef VERBOSE
 #define VDBG(fmt, args...) pr_debug("[%s]  " fmt , \
 				 __func__, ## args)
+<<<<<<< HEAD
 /*
 #else
 #define VDBG(stuff...)	do {} while (0)
 */
+=======
+#else
+#define VDBG(stuff...)	do {} while (0)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #endif
 
 #ifdef VERBOSE
@@ -61,8 +66,11 @@ enum otg_fsm_timer {
 
 /* OTG state machine according to the OTG spec */
 struct otg_fsm {
+<<<<<<< HEAD
 	int reset;
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/* Input */
 	int id;
 	int adp_change;
@@ -246,4 +254,7 @@ static inline int otg_start_gadget(struct otg_fsm *fsm, int on)
 int otg_statemachine(struct otg_fsm *fsm);
 
 #endif /* __LINUX_USB_OTG_FSM_H */
+<<<<<<< HEAD
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012

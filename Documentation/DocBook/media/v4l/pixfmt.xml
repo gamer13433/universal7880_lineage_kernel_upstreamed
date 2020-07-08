@@ -713,6 +713,10 @@ access the palette, this must be done with ioctls of the Linux framebuffer API.<
     &sub-srggb8;
     &sub-sbggr16;
     &sub-srggb10;
+<<<<<<< HEAD
+=======
+    &sub-srggb10p;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
     &sub-srggb10alaw8;
     &sub-srggb10dpcm8;
     &sub-srggb12;

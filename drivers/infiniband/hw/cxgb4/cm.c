@@ -349,6 +349,11 @@ static struct sk_buff *get_skb(struct sk_buff *skb, int len, gfp_t gfp)
 		skb_reset_transport_header(skb);
 	} else {
 		skb = alloc_skb(len, gfp);
+<<<<<<< HEAD
+=======
+		if (!skb)
+			return NULL;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 	t4_set_arp_err_handler(skb, NULL, NULL);
 	return skb;
@@ -3491,11 +3496,15 @@ static void build_cpl_pass_accept_req(struct sk_buff *skb, int stid , u8 tos)
 	 */
 	memset(&tmp_opt, 0, sizeof(tmp_opt));
 	tcp_clear_options(&tmp_opt);
+<<<<<<< HEAD
 #ifdef CONFIG_MPTCP
 	tcp_parse_options(skb, &tmp_opt, NULL, 0, NULL);
 #else
 	tcp_parse_options(skb, &tmp_opt, 0, NULL);
 #endif
+=======
+	tcp_parse_options(skb, &tmp_opt, 0, NULL);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	req = (struct cpl_pass_accept_req *)__skb_push(skb, sizeof(*req));
 	memset(req, 0, sizeof(*req));

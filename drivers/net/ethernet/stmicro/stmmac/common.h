@@ -270,8 +270,13 @@ struct dma_features {
 	unsigned int enh_desc;
 };
 
+<<<<<<< HEAD
 /* GMAC TX FIFO is 8K, Rx FIFO is 16K */
 #define BUF_SIZE_16KiB 16384
+=======
+/* RX Buffer size must be multiple of 4/8/16 bytes */
+#define BUF_SIZE_16KiB 16368
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #define BUF_SIZE_8KiB 8192
 #define BUF_SIZE_4KiB 4096
 #define BUF_SIZE_2KiB 2048
@@ -297,7 +302,11 @@ struct dma_features {
 struct stmmac_desc_ops {
 	/* DMA RX descriptor ring initialization */
 	void (*init_rx_desc) (struct dma_desc *p, int disable_rx_ic, int mode,
+<<<<<<< HEAD
 			      int end);
+=======
+			      int end, int bfsize);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/* DMA TX descriptor ring initialization */
 	void (*init_tx_desc) (struct dma_desc *p, int mode, int end);
 

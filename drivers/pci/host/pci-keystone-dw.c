@@ -460,7 +460,11 @@ void ks_dw_pcie_initiate_link_train(struct keystone_pcie *ks_pcie)
 	/* Disable Link training */
 	val = readl(ks_pcie->va_app_base + CMD_STATUS);
 	val &= ~LTSSM_EN_VAL;
+<<<<<<< HEAD
 	writel(LTSSM_EN_VAL | val,  ks_pcie->va_app_base + CMD_STATUS);
+=======
+	writel(val,  ks_pcie->va_app_base + CMD_STATUS);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	/* Initiate Link Training */
 	val = readl(ks_pcie->va_app_base + CMD_STATUS);

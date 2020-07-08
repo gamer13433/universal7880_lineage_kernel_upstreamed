@@ -55,10 +55,15 @@ void down(struct semaphore *sem)
 	unsigned long flags;
 
 	raw_spin_lock_irqsave(&sem->lock, flags);
+<<<<<<< HEAD
 	if (likely(sem->count > 0)) {
 		sem->count--;
 		sem->b_sem_owner = current;
 	}
+=======
+	if (likely(sem->count > 0))
+		sem->count--;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	else
 		__down(sem);
 	raw_spin_unlock_irqrestore(&sem->lock, flags);
@@ -80,10 +85,15 @@ int down_interruptible(struct semaphore *sem)
 	int result = 0;
 
 	raw_spin_lock_irqsave(&sem->lock, flags);
+<<<<<<< HEAD
 	if (likely(sem->count > 0)) {
 		sem->count--;
 		sem->b_sem_owner = current;
 	}
+=======
+	if (likely(sem->count > 0))
+		sem->count--;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	else
 		result = __down_interruptible(sem);
 	raw_spin_unlock_irqrestore(&sem->lock, flags);
@@ -108,10 +118,15 @@ int down_killable(struct semaphore *sem)
 	int result = 0;
 
 	raw_spin_lock_irqsave(&sem->lock, flags);
+<<<<<<< HEAD
 	if (likely(sem->count > 0)) {
 		sem->count--;
 		sem->b_sem_owner = current;
 	}
+=======
+	if (likely(sem->count > 0))
+		sem->count--;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	else
 		result = __down_killable(sem);
 	raw_spin_unlock_irqrestore(&sem->lock, flags);
@@ -140,10 +155,15 @@ int down_trylock(struct semaphore *sem)
 
 	raw_spin_lock_irqsave(&sem->lock, flags);
 	count = sem->count - 1;
+<<<<<<< HEAD
 	if (likely(count >= 0)) {
 		sem->count = count;
 		sem->b_sem_owner = current;
 	}
+=======
+	if (likely(count >= 0))
+		sem->count = count;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	raw_spin_unlock_irqrestore(&sem->lock, flags);
 
 	return (count < 0);
@@ -166,10 +186,15 @@ int down_timeout(struct semaphore *sem, long timeout)
 	int result = 0;
 
 	raw_spin_lock_irqsave(&sem->lock, flags);
+<<<<<<< HEAD
 	if (likely(sem->count > 0)) {
 		sem->count--;
 		sem->b_sem_owner = current;
 	}
+=======
+	if (likely(sem->count > 0))
+		sem->count--;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	else
 		result = __down_timeout(sem, timeout);
 	raw_spin_unlock_irqrestore(&sem->lock, flags);
@@ -194,8 +219,11 @@ void up(struct semaphore *sem)
 		sem->count++;
 	else
 		__up(sem);
+<<<<<<< HEAD
 
 	sem->b_sem_owner = NON_POSSESSIVE;
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	raw_spin_unlock_irqrestore(&sem->lock, flags);
 }
 EXPORT_SYMBOL(up);
@@ -232,10 +260,15 @@ static inline int __sched __down_common(struct semaphore *sem, long state,
 		raw_spin_unlock_irq(&sem->lock);
 		timeout = schedule_timeout(timeout);
 		raw_spin_lock_irq(&sem->lock);
+<<<<<<< HEAD
 		if (waiter.up) {
 			sem->b_sem_owner = task;
 			return 0;
 		}
+=======
+		if (waiter.up)
+			return 0;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
  timed_out:

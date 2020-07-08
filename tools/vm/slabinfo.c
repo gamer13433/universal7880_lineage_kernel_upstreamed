@@ -493,10 +493,18 @@ static void slab_stats(struct slabinfo *s)
 			s->alloc_node_mismatch, (s->alloc_node_mismatch * 100) / total);
 	}
 
+<<<<<<< HEAD
 	if (s->cmpxchg_double_fail || s->cmpxchg_double_cpu_fail)
 		printf("\nCmpxchg_double Looping\n------------------------\n");
 		printf("Locked Cmpxchg Double redos   %lu\nUnlocked Cmpxchg Double redos %lu\n",
 			s->cmpxchg_double_fail, s->cmpxchg_double_cpu_fail);
+=======
+	if (s->cmpxchg_double_fail || s->cmpxchg_double_cpu_fail) {
+		printf("\nCmpxchg_double Looping\n------------------------\n");
+		printf("Locked Cmpxchg Double redos   %lu\nUnlocked Cmpxchg Double redos %lu\n",
+			s->cmpxchg_double_fail, s->cmpxchg_double_cpu_fail);
+	}
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 static void report(struct slabinfo *s)

@@ -957,6 +957,10 @@ EXPORT_SYMBOL_GPL(acpi_subsys_prepare);
  */
 void acpi_subsys_complete(struct device *dev)
 {
+<<<<<<< HEAD
+=======
+	pm_generic_complete(dev);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/*
 	 * If the device had been runtime-suspended before the system went into
 	 * the sleep state it is going out of and it has never been resumed till
@@ -1101,9 +1105,25 @@ static void acpi_dev_pm_detach(struct device *dev, bool power_off)
  */
 int acpi_dev_pm_attach(struct device *dev, bool power_on)
 {
+<<<<<<< HEAD
 	struct acpi_device *adev = ACPI_COMPANION(dev);
 
 	if (!adev)
+=======
+	/*
+	 * Skip devices whose ACPI companions match the device IDs below,
+	 * because they require special power management handling incompatible
+	 * with the generic ACPI PM domain.
+	 */
+	static const struct acpi_device_id special_pm_ids[] = {
+		{"PNP0C0B", }, /* Generic ACPI fan */
+		{"INT3404", }, /* Fan */
+		{}
+	};
+	struct acpi_device *adev = ACPI_COMPANION(dev);
+
+	if (!adev || !acpi_match_device_ids(adev, special_pm_ids))
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		return -ENODEV;
 
 	if (dev->pm_domain)

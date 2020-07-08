@@ -467,10 +467,17 @@ static void bmips_wr_vec(unsigned long dst, char *start, char *end)
 
 static inline void bmips_nmi_handler_setup(void)
 {
+<<<<<<< HEAD
 	bmips_wr_vec(BMIPS_NMI_RESET_VEC, &bmips_reset_nmi_vec,
 		&bmips_reset_nmi_vec_end);
 	bmips_wr_vec(BMIPS_WARM_RESTART_VEC, &bmips_smp_int_vec,
 		&bmips_smp_int_vec_end);
+=======
+	bmips_wr_vec(BMIPS_NMI_RESET_VEC, bmips_reset_nmi_vec,
+		bmips_reset_nmi_vec_end);
+	bmips_wr_vec(BMIPS_WARM_RESTART_VEC, bmips_smp_int_vec,
+		bmips_smp_int_vec_end);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 void bmips_ebase_setup(void)

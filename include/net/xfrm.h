@@ -161,6 +161,10 @@ struct xfrm_state {
 		int		header_len;
 		int		trailer_len;
 		u32		extra_flags;
+<<<<<<< HEAD
+=======
+		u32		output_mark;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	} props;
 
 	struct xfrm_lifetime_cfg lft;
@@ -288,8 +292,17 @@ struct xfrm_policy_afinfo {
 	void			(*garbage_collect)(struct net *net);
 	struct dst_entry	*(*dst_lookup)(struct net *net, int tos,
 					       const xfrm_address_t *saddr,
+<<<<<<< HEAD
 					       const xfrm_address_t *daddr);
 	int			(*get_saddr)(struct net *net, xfrm_address_t *saddr, xfrm_address_t *daddr);
+=======
+					       const xfrm_address_t *daddr,
+					       u32 mark);
+	int			(*get_saddr)(struct net *net,
+					     xfrm_address_t *saddr,
+					     xfrm_address_t *daddr,
+					     u32 mark);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	void			(*decode_session)(struct sk_buff *skb,
 						  struct flowi *fl,
 						  int reverse);
@@ -1296,6 +1309,26 @@ static inline int xfrm_state_kern(const struct xfrm_state *x)
 	return atomic_read(&x->tunnel_users);
 }
 
+<<<<<<< HEAD
+=======
+static inline bool xfrm_id_proto_valid(u8 proto)
+{
+	switch (proto) {
+	case IPPROTO_AH:
+	case IPPROTO_ESP:
+	case IPPROTO_COMP:
+#if IS_ENABLED(CONFIG_IPV6)
+	case IPPROTO_ROUTING:
+	case IPPROTO_DSTOPTS:
+#endif
+		return true;
+	default:
+		return false;
+	}
+}
+
+/* IPSEC_PROTO_ANY only matches 3 IPsec protocols, 0 could match all. */
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static inline int xfrm_id_proto_match(u8 proto, u8 userproto)
 {
 	return (!userproto || proto == userproto ||
@@ -1527,8 +1560,15 @@ int xfrm4_tunnel_deregister(struct xfrm_tunnel *handler, unsigned short family);
 void xfrm4_local_error(struct sk_buff *skb, u32 mtu);
 int xfrm6_extract_header(struct sk_buff *skb);
 int xfrm6_extract_input(struct xfrm_state *x, struct sk_buff *skb);
+<<<<<<< HEAD
 int xfrm6_rcv_spi(struct sk_buff *skb, int nexthdr, __be32 spi);
 int xfrm6_transport_finish(struct sk_buff *skb, int async);
+=======
+int xfrm6_rcv_spi(struct sk_buff *skb, int nexthdr, __be32 spi,
+		  struct ip6_tnl *t);
+int xfrm6_transport_finish(struct sk_buff *skb, int async);
+int xfrm6_rcv_tnl(struct sk_buff *skb, struct ip6_tnl *t);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 int xfrm6_rcv(struct sk_buff *skb);
 int xfrm6_input_addr(struct sk_buff *skb, xfrm_address_t *daddr,
 		     xfrm_address_t *saddr, u8 proto);

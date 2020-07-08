@@ -16,6 +16,10 @@
 #include <linux/clocksource.h>
 #include <linux/net_tstamp.h>
 #include <linux/ptp_clock_kernel.h>
+<<<<<<< HEAD
+=======
+#include <linux/timecounter.h>
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #if defined(CONFIG_M523x) || defined(CONFIG_M527x) || defined(CONFIG_M528x) || \
     defined(CONFIG_M520x) || defined(CONFIG_M532x) || \

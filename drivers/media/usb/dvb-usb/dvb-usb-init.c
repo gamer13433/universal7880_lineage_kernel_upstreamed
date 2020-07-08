@@ -286,12 +286,24 @@ EXPORT_SYMBOL(dvb_usb_device_init);
 void dvb_usb_device_exit(struct usb_interface *intf)
 {
 	struct dvb_usb_device *d = usb_get_intfdata(intf);
+<<<<<<< HEAD
 	const char *name = "generic DVB-USB module";
 
 	usb_set_intfdata(intf, NULL);
 	if (d != NULL && d->desc != NULL) {
 		name = d->desc->name;
 		dvb_usb_exit(d);
+=======
+	const char *default_name = "generic DVB-USB module";
+	char name[40];
+
+	usb_set_intfdata(intf, NULL);
+	if (d != NULL && d->desc != NULL) {
+		strscpy(name, d->desc->name, sizeof(name));
+		dvb_usb_exit(d);
+	} else {
+		strscpy(name, default_name, sizeof(name));
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 	info("%s successfully deinitialized and disconnected.", name);
 

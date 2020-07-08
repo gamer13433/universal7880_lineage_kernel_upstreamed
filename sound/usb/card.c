@@ -220,6 +220,10 @@ static int snd_usb_create_streams(struct snd_usb_audio *chip, int ctrlif)
 	struct usb_interface_descriptor *altsd;
 	void *control_header;
 	int i, protocol;
+<<<<<<< HEAD
+=======
+	int rest_bytes;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	/* find audiocontrol interface */
 	host_iface = &usb_ifnum_to_if(dev, ctrlif)->altsetting[0];
@@ -234,6 +238,18 @@ static int snd_usb_create_streams(struct snd_usb_audio *chip, int ctrlif)
 		return -EINVAL;
 	}
 
+<<<<<<< HEAD
+=======
+	rest_bytes = (void *)(host_iface->extra + host_iface->extralen) -
+		control_header;
+
+	/* just to be sure -- this shouldn't hit at all */
+	if (rest_bytes <= 0) {
+		dev_err(&dev->dev, "invalid control header\n");
+		return -EINVAL;
+	}
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	switch (protocol) {
 	default:
 		dev_warn(&dev->dev,
@@ -244,11 +260,27 @@ static int snd_usb_create_streams(struct snd_usb_audio *chip, int ctrlif)
 	case UAC_VERSION_1: {
 		struct uac1_ac_header_descriptor *h1 = control_header;
 
+<<<<<<< HEAD
+=======
+		if (rest_bytes < sizeof(*h1)) {
+			dev_err(&dev->dev, "too short v1 buffer descriptor\n");
+			return -EINVAL;
+		}
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		if (!h1->bInCollection) {
 			dev_info(&dev->dev, "skipping empty audio interface (v1)\n");
 			return -EINVAL;
 		}
 
+<<<<<<< HEAD
+=======
+		if (rest_bytes < h1->bLength) {
+			dev_err(&dev->dev, "invalid buffer length (v1)\n");
+			return -EINVAL;
+		}
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		if (h1->bLength < sizeof(*h1) + h1->bInCollection) {
 			dev_err(&dev->dev, "invalid UAC_HEADER (v1)\n");
 			return -EINVAL;
@@ -573,9 +605,18 @@ snd_usb_audio_probe(struct usb_device *dev,
 
  __error:
 	if (chip) {
+<<<<<<< HEAD
 		if (!chip->num_interfaces)
 			snd_card_free(chip->card);
 		chip->probing = 0;
+=======
+		/* chip->probing is inside the chip->card object,
+		 * reset before memory is possibly returned.
+		 */
+		chip->probing = 0;
+		if (!chip->num_interfaces)
+			snd_card_free(chip->card);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 	mutex_unlock(&register_mutex);
  __err_val:

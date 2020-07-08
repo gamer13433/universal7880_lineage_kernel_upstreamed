@@ -70,7 +70,11 @@ xattr_permission(struct inode *inode, const char *name, int mask)
 			return -EPERM;
 	}
 
+<<<<<<< HEAD
 	return inode_permission(inode, mask);
+=======
+	return inode_permission2(ERR_PTR(-EOPNOTSUPP), inode, mask);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 /**

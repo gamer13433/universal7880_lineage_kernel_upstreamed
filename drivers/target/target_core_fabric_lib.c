@@ -170,7 +170,11 @@ u32 fc_get_pr_transport_id(
 	 */
 	ptr = &se_nacl->initiatorname[0];
 
+<<<<<<< HEAD
 	for (i = 0; i < 24; ) {
+=======
+	for (i = 0; i < 23; ) {
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		if (!strncmp(&ptr[i], ":", 1)) {
 			i++;
 			continue;

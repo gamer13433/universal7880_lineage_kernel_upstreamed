@@ -1053,9 +1053,12 @@ static void ieee80211_chswitch_work(struct work_struct *work)
 		goto out;
 	}
 
+<<<<<<< HEAD
 	/* XXX: shouldn't really modify cfg80211-owned data! */
 	ifmgd->associated->channel = sdata->csa_chandef.chan;
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	sdata->vif.csa_active = false;
 
 	/* XXX: wait for a beacon first? */
@@ -2195,7 +2198,12 @@ struct sk_buff *ieee80211_ap_probereq_get(struct ieee80211_hw *hw,
 
 	rcu_read_lock();
 	ssid = ieee80211_bss_get_ie(cbss, WLAN_EID_SSID);
+<<<<<<< HEAD
 	if (WARN_ON_ONCE(ssid == NULL))
+=======
+	if (WARN_ONCE(!ssid || ssid[1] > IEEE80211_MAX_SSID_LEN,
+		      "invalid SSID element (len=%d)", ssid ? ssid[1] : -1))
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		ssid_len = 0;
 	else
 		ssid_len = ssid[1];
@@ -4359,7 +4367,11 @@ int ieee80211_mgd_assoc(struct ieee80211_sub_if_data *sdata,
 
 	rcu_read_lock();
 	ssidie = ieee80211_bss_get_ie(req->bss, WLAN_EID_SSID);
+<<<<<<< HEAD
 	if (!ssidie) {
+=======
+	if (!ssidie || ssidie[1] > sizeof(assoc_data->ssid)) {
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		rcu_read_unlock();
 		kfree(assoc_data);
 		return -EINVAL;

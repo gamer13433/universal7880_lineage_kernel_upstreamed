@@ -291,7 +291,16 @@ static int dmm_txn_commit(struct dmm_txn *txn, bool wait)
 				msecs_to_jiffies(1)) <= 0) {
 			dev_err(dmm->dev, "timed out waiting for done\n");
 			ret = -ETIMEDOUT;
+<<<<<<< HEAD
 		}
+=======
+			goto cleanup;
+		}
+
+		/* Check the engine status before continue */
+		ret = wait_status(engine, DMM_PATSTATUS_READY |
+				  DMM_PATSTATUS_VALID | DMM_PATSTATUS_DONE);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 cleanup:

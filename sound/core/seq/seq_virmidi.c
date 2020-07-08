@@ -95,6 +95,10 @@ static int snd_virmidi_dev_receive_event(struct snd_virmidi_dev *rdev,
 			if ((ev->flags & SNDRV_SEQ_EVENT_LENGTH_MASK) != SNDRV_SEQ_EVENT_LENGTH_VARIABLE)
 				continue;
 			snd_seq_dump_var_event(ev, (snd_seq_dump_func_t)snd_rawmidi_receive, vmidi->substream);
+<<<<<<< HEAD
+=======
+			snd_midi_event_reset_decode(vmidi->parser);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		} else {
 			len = snd_midi_event_decode(vmidi->parser, msg, sizeof(msg), ev);
 			if (len > 0)

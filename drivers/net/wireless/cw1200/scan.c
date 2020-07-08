@@ -80,8 +80,16 @@ int cw1200_hw_scan(struct ieee80211_hw *hw,
 
 	frame.skb = ieee80211_probereq_get(hw, priv->vif, NULL, 0,
 		req->ie_len);
+<<<<<<< HEAD
 	if (!frame.skb)
 		return -ENOMEM;
+=======
+	if (!frame.skb) {
+		mutex_unlock(&priv->conf_mutex);
+		up(&priv->scan.lock);
+		return -ENOMEM;
+	}
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if (req->ie_len)
 		memcpy(skb_put(frame.skb, req->ie_len), req->ie, req->ie_len);

@@ -226,15 +226,31 @@ static inline void superio_select(int sio_cip, int ldn)
 	outb(ldn, sio_cip + 1);
 }
 
+<<<<<<< HEAD
 static inline void superio_enter(int sio_cip)
 {
 	outb(0x87, sio_cip);
 	outb(0x87, sio_cip);
+=======
+static inline int superio_enter(int sio_cip)
+{
+	if (!request_muxed_region(sio_cip, 2, DRVNAME))
+		return -EBUSY;
+
+	outb(0x87, sio_cip);
+	outb(0x87, sio_cip);
+
+	return 0;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 static inline void superio_exit(int sio_cip)
 {
 	outb(0xaa, sio_cip);
+<<<<<<< HEAD
+=======
+	release_region(sio_cip, 2);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 /* ---------------------------------------------------------------------
@@ -1283,11 +1299,22 @@ EXIT:
 
 static int __init vt1211_find(int sio_cip, unsigned short *address)
 {
+<<<<<<< HEAD
 	int err = -ENODEV;
 	int devid;
 
 	superio_enter(sio_cip);
 
+=======
+	int err;
+	int devid;
+
+	err = superio_enter(sio_cip);
+	if (err)
+		return err;
+
+	err = -ENODEV;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	devid = force_id ? force_id : superio_inb(sio_cip, SIO_VT1211_DEVID);
 	if (devid != SIO_VT1211_ID)
 		goto EXIT;

@@ -93,7 +93,10 @@ static bool match_index(struct hid_usage *usage,
 
 typedef bool (*hid_usage_cmp_t)(struct hid_usage *usage,
 				unsigned int cur_idx, unsigned int val);
+<<<<<<< HEAD
 extern bool lcd_is_on;
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 static struct hid_usage *hidinput_find_key(struct hid_device *hid,
 					   hid_usage_cmp_t match,
@@ -880,6 +883,11 @@ static void hidinput_configure_usage(struct hid_input *hidinput, struct hid_fiel
 		case 0x2cb: map_key_clear(KEY_KBDINPUTASSIST_ACCEPT);	break;
 		case 0x2cc: map_key_clear(KEY_KBDINPUTASSIST_CANCEL);	break;
 
+<<<<<<< HEAD
+=======
+		case 0x29f: map_key_clear(KEY_SCALE);		break;
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		default:    goto ignore;
 		}
 		break;
@@ -936,6 +944,7 @@ static void hidinput_configure_usage(struct hid_input *hidinput, struct hid_fiel
 		}
 		break;
 
+<<<<<<< HEAD
 #ifdef CONFIG_USB_HMT_SAMSUNG_INPUT
 	case HID_UP_HMTVENDOR:
 		switch (usage->hid & HID_USAGE) {
@@ -947,6 +956,8 @@ static void hidinput_configure_usage(struct hid_input *hidinput, struct hid_fiel
 		break;
 #endif
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	default:
 	unknown:
 		if (field->report_size == 1) {
@@ -966,9 +977,21 @@ static void hidinput_configure_usage(struct hid_input *hidinput, struct hid_fiel
 	}
 
 mapped:
+<<<<<<< HEAD
 	if (device->driver->input_mapped && device->driver->input_mapped(device,
 				hidinput, field, usage, &bit, &max) < 0)
 		goto ignore;
+=======
+	if (device->driver->input_mapped &&
+	    device->driver->input_mapped(device, hidinput, field, usage,
+					 &bit, &max) < 0) {
+		/*
+		 * The driver indicated that no further generic handling
+		 * of the usage is desired.
+		 */
+		return;
+	}
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	set_bit(usage->type, input->evbit);
 
@@ -1027,9 +1050,17 @@ mapped:
 		set_bit(MSC_SCAN, input->mscbit);
 	}
 
+<<<<<<< HEAD
 ignore:
 	return;
 
+=======
+	return;
+
+ignore:
+	usage->type = 0;
+	usage->code = 0;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 void hidinput_hid_event(struct hid_device *hid, struct hid_field *field, struct hid_usage *usage, __s32 value)
@@ -1263,11 +1294,14 @@ static void hidinput_led_worker(struct work_struct *work)
 	buf = hid_alloc_report_buf(report, GFP_KERNEL);
 	if (!buf)
 		return;
+<<<<<<< HEAD
 	if(!lcd_is_on){
 		dbg_hid("lcd is off, don't report LED event\n");
 		kfree(buf);
 		return;
 	}
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	hid_output_report(report, buf);
 	/* synchronous output report */

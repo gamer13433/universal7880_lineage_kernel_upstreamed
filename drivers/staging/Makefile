@@ -46,5 +46,8 @@ obj-$(CONFIG_MTD_SPINAND_MT29F)	+= mt29f_spinand/
 obj-$(CONFIG_GS_FPGABOOT)	+= gs_fpgaboot/
 obj-$(CONFIG_CRYPTO_SKEIN)	+= skein/
 obj-$(CONFIG_UNISYSSPAR)	+= unisys/
+<<<<<<< HEAD
 obj-$(CONFIG_SEC_EXT)       += samsung/
 obj-$(CONFIG_VNSWAP)		+= vnswap/
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012

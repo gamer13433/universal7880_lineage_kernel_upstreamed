@@ -119,6 +119,7 @@ _c_flags += $(if $(patsubst n%,, \
 		$(CFLAGS_GCOV))
 endif
 
+<<<<<<< HEAD
 #
 # Enable address sanitizer flags for kernel except some files or directories
 # we don't want to check (depends on variables KASAN_SANITIZE_obj.o, KASAN_SANITIZE)
@@ -141,6 +142,8 @@ _c_flags += $(if $(patsubst n%,, \
 	$(CFLAGS_KCOV))
 endif
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 # If building the kernel in a separate objtree expand all occurrences
 # of -Idir to -I$(srctree)/dir except for absolute paths (starting with '/').
 
@@ -174,11 +177,16 @@ ld_flags       = $(LDFLAGS) $(ldflags-y)
 dtc_cpp_flags  = -Wp,-MD,$(depfile).pre.tmp -nostdinc                    \
 		 -I$(srctree)/arch/$(SRCARCH)/boot/dts                   \
 		 -I$(srctree)/arch/$(SRCARCH)/boot/dts/include           \
+<<<<<<< HEAD
 		 -I$(srctree)/include                                    \
 		 -I$(srctree)/drivers/of/testcase-data                   \
 		 -undef -D__DTS__                                        \
 		 -DANDROID_VERSION=$(ANDROID_VERSION)                    \
 		 -DANDROID_MAJOR_VERSION=$(ANDROID_MAJOR_VERSION)
+=======
+		 -I$(srctree)/drivers/of/testcase-data                   \
+		 -undef -D__DTS__
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 # Finds the multi-part object the current object will be linked into
 modname-multi = $(sort $(foreach m,$(multi-used),\
@@ -320,6 +328,7 @@ _dtbinst_pre_:
 %.dtb_dtbinst_: $(obj)/%.dtb _dtbinst_pre_
 	$(call cmd,dtb_install,$(INSTALL_DTBS_PATH))
 
+<<<<<<< HEAD
 # dtbtool (Exynos)
 # ---------------------------------------------------------------------------
 
@@ -330,6 +339,8 @@ cmd_dtbtool_exynos = $(objtree)/scripts/dtbtool_exynos/dtbtool \
 		--subtype $(CONFIG_EXYNOS_DTBH_SUBTYPE_CODE) \
 		-o $@ $(sort $(filter-out FORCE,$^))
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 # cat
 # ---------------------------------------------------------------------------
 # Concatentate multiple files together

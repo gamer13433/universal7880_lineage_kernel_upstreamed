@@ -952,8 +952,15 @@ int udp_sendmsg(struct kiocb *iocb, struct sock *sk, struct msghdr *msg,
 	if (msg->msg_controllen) {
 		err = ip_cmsg_send(sock_net(sk), msg, &ipc,
 				   sk->sk_family == AF_INET6);
+<<<<<<< HEAD
 		if (err)
 			return err;
+=======
+		if (unlikely(err)) {
+			kfree(ipc.opt);
+			return err;
+		}
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		if (ipc.opt)
 			free = 1;
 		connected = 0;
@@ -1293,7 +1300,11 @@ try_again:
 	else {
 		err = skb_copy_and_csum_datagram_iovec(skb,
 						       sizeof(struct udphdr),
+<<<<<<< HEAD
 						       msg->msg_iov, copied);
+=======
+						       msg->msg_iov);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 		if (err == -EINVAL)
 			goto csum_copy_err;
@@ -1664,10 +1675,17 @@ static int __udp4_lib_mcast_deliver(struct net *net, struct sk_buff *skb,
 
 	if (use_hash2) {
 		hash2_any = udp4_portaddr_hash(net, htonl(INADDR_ANY), hnum) &
+<<<<<<< HEAD
 			    udp_table.mask;
 		hash2 = udp4_portaddr_hash(net, daddr, hnum) & udp_table.mask;
 start_lookup:
 		hslot = &udp_table.hash2[hash2];
+=======
+			    udptable->mask;
+		hash2 = udp4_portaddr_hash(net, daddr, hnum) & udptable->mask;
+start_lookup:
+		hslot = &udptable->hash2[hash2];
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		offset = offsetof(typeof(*sk), __sk_common.skc_portaddr_node);
 	}
 
@@ -1729,8 +1747,16 @@ static inline int udp4_csum_init(struct sk_buff *skb, struct udphdr *uh,
 		}
 	}
 
+<<<<<<< HEAD
 	return skb_checksum_init_zero_check(skb, proto, uh->check,
 					    inet_compute_pseudo);
+=======
+	/* Note, we are only interested in != 0 or == 0, thus the
+	 * force to int.
+	 */
+	return (__force int)skb_checksum_init_zero_check(skb, proto, uh->check,
+							 inet_compute_pseudo);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 /*
@@ -2248,6 +2274,23 @@ unsigned int udp_poll(struct file *file, struct socket *sock, poll_table *wait)
 }
 EXPORT_SYMBOL(udp_poll);
 
+<<<<<<< HEAD
+=======
+int udp_abort(struct sock *sk, int err)
+{
+	lock_sock(sk);
+
+	sk->sk_err = err;
+	sk->sk_error_report(sk);
+	udp_disconnect(sk, 0);
+
+	release_sock(sk);
+
+	return 0;
+}
+EXPORT_SYMBOL_GPL(udp_abort);
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 struct proto udp_prot = {
 	.name		   = "UDP",
 	.owner		   = THIS_MODULE,
@@ -2279,6 +2322,10 @@ struct proto udp_prot = {
 	.compat_getsockopt = compat_udp_getsockopt,
 #endif
 	.clear_sk	   = sk_prot_clear_portaddr_nulls,
+<<<<<<< HEAD
+=======
+	.diag_destroy	   = udp_abort,
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 EXPORT_SYMBOL(udp_prot);
 

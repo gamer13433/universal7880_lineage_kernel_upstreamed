@@ -150,7 +150,13 @@ static int snd_pcm_control_ioctl(struct snd_card *card,
 				err = -ENXIO;
 				goto _error;
 			}
+<<<<<<< HEAD
 			err = snd_pcm_info_user(substream, info);
+=======
+			mutex_lock(&pcm->open_mutex);
+			err = snd_pcm_info_user(substream, info);
+			mutex_unlock(&pcm->open_mutex);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		_error:
 			mutex_unlock(&register_mutex);
 			return err;
@@ -220,6 +226,13 @@ static char *snd_pcm_format_names[] = {
 	FORMAT(DSD_U32_BE),
 };
 
+<<<<<<< HEAD
+=======
+/**
+ * snd_pcm_format_name - Return a name string for the given PCM format
+ * @format: PCM format
+ */
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 const char *snd_pcm_format_name(snd_pcm_format_t format)
 {
 	if ((__force unsigned int)format >= ARRAY_SIZE(snd_pcm_format_names))
@@ -709,7 +722,10 @@ int snd_pcm_new_stream(struct snd_pcm *pcm, int stream, int substream_count)
 	}
 	return 0;
 }				
+<<<<<<< HEAD
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 EXPORT_SYMBOL(snd_pcm_new_stream);
 
 static int _snd_pcm_new(struct snd_card *card, const char *id, int device,
@@ -810,6 +826,17 @@ int snd_pcm_new_internal(struct snd_card *card, const char *id, int device,
 }
 EXPORT_SYMBOL(snd_pcm_new_internal);
 
+<<<<<<< HEAD
+=======
+static void free_chmap(struct snd_pcm_str *pstr)
+{
+	if (pstr->chmap_kctl) {
+		snd_ctl_remove(pstr->pcm->card, pstr->chmap_kctl);
+		pstr->chmap_kctl = NULL;
+	}
+}
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static void snd_pcm_free_stream(struct snd_pcm_str * pstr)
 {
 	struct snd_pcm_substream *substream, *substream_next;
@@ -832,6 +859,10 @@ static void snd_pcm_free_stream(struct snd_pcm_str * pstr)
 		kfree(setup);
 	}
 #endif
+<<<<<<< HEAD
+=======
+	free_chmap(pstr);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 static int snd_pcm_free(struct snd_pcm *pcm)
@@ -1146,10 +1177,14 @@ static int snd_pcm_dev_disconnect(struct snd_device *device)
 			break;
 		}
 		snd_unregister_device(devtype, pcm->card, pcm->device);
+<<<<<<< HEAD
 		if (pcm->streams[cidx].chmap_kctl) {
 			snd_ctl_remove(pcm->card, pcm->streams[cidx].chmap_kctl);
 			pcm->streams[cidx].chmap_kctl = NULL;
 		}
+=======
+		free_chmap(&pcm->streams[cidx]);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 	mutex_unlock(&pcm->open_mutex);
  unlock:
@@ -1157,6 +1192,18 @@ static int snd_pcm_dev_disconnect(struct snd_device *device)
 	return 0;
 }
 
+<<<<<<< HEAD
+=======
+/**
+ * snd_pcm_notify - Add/remove the notify list
+ * @notify: PCM notify list
+ * @nfree: 0 = register, 1 = unregister
+ *
+ * This adds the given notifier to the global list so that the callback is
+ * called for each registered PCM devices.  This exists only for PCM OSS
+ * emulation, so far.
+ */
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 int snd_pcm_notify(struct snd_pcm_notify *notify, int nfree)
 {
 	struct snd_pcm *pcm;
@@ -1179,7 +1226,10 @@ int snd_pcm_notify(struct snd_pcm_notify *notify, int nfree)
 	mutex_unlock(&register_mutex);
 	return 0;
 }
+<<<<<<< HEAD
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 EXPORT_SYMBOL(snd_pcm_notify);
 
 #ifdef CONFIG_PROC_FS

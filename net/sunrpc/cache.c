@@ -55,6 +55,7 @@ static void cache_fresh_locked(struct cache_head *head, time_t expiry);
 static void cache_fresh_unlocked(struct cache_head *head,
 				struct cache_detail *detail);
 
+<<<<<<< HEAD
 static void cache_fresh_locked(struct cache_head *head, time_t expiry);
 static void cache_fresh_unlocked(struct cache_head *head,
 				struct cache_detail *detail);
@@ -63,6 +64,8 @@ static void cache_fresh_locked(struct cache_head *head, time_t expiry);
 static void cache_fresh_unlocked(struct cache_head *head,
 				struct cache_detail *detail);
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 struct cache_head *sunrpc_cache_lookup(struct cache_detail *detail,
 				       struct cache_head *key, int hash)
 {

@@ -69,10 +69,16 @@ void snd_soc_jack_report(struct snd_soc_jack *jack, int status, int mask)
 	unsigned int sync = 0;
 	int enable;
 
+<<<<<<< HEAD
 	trace_snd_soc_jack_report(jack, mask, status);
 
 	if (!jack)
 		return;
+=======
+	if (!jack)
+		return;
+	trace_snd_soc_jack_report(jack, mask, status);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	codec = jack->codec;
 	dapm =  &codec->dapm;

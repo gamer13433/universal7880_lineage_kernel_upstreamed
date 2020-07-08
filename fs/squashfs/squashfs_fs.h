@@ -246,6 +246,10 @@ struct meta_index {
 #define LZMA_COMPRESSION	2
 #define LZO_COMPRESSION		3
 #define XZ_COMPRESSION		4
+<<<<<<< HEAD
+=======
+#define LZ4_COMPRESSION		5
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 struct squashfs_super_block {
 	__le32			s_magic;

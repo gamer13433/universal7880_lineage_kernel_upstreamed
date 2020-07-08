@@ -31,7 +31,11 @@
 #include <net/route.h>
 #include <net/snmp.h>
 #include <net/flow.h>
+<<<<<<< HEAD
 #include <net/flow_keys.h>
+=======
+#include <net/flow_dissector.h>
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #define IPV4_MIN_MTU		68			/* RFC 791 */
 
@@ -324,9 +328,16 @@ static inline unsigned int ip_skb_dst_mtu(const struct sk_buff *skb)
 }
 
 u32 ip_idents_reserve(u32 hash, int segs);
+<<<<<<< HEAD
 void __ip_select_ident(struct iphdr *iph, int segs);
 
 static inline void ip_select_ident_segs(struct sk_buff *skb, struct sock *sk, int segs)
+=======
+void __ip_select_ident(struct net *net, struct iphdr *iph, int segs);
+
+static inline void ip_select_ident_segs(struct net *net, struct sk_buff *skb,
+					struct sock *sk, int segs)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	struct iphdr *iph = ip_hdr(skb);
 
@@ -343,6 +354,7 @@ static inline void ip_select_ident_segs(struct sk_buff *skb, struct sock *sk, in
 			iph->id = 0;
 		}
 	} else {
+<<<<<<< HEAD
 		__ip_select_ident(iph, segs);
 	}
 }
@@ -350,6 +362,16 @@ static inline void ip_select_ident_segs(struct sk_buff *skb, struct sock *sk, in
 static inline void ip_select_ident(struct sk_buff *skb, struct sock *sk)
 {
 	ip_select_ident_segs(skb, sk, 1);
+=======
+		__ip_select_ident(net, iph, segs);
+	}
+}
+
+static inline void ip_select_ident(struct net *net, struct sk_buff *skb,
+				   struct sock *sk)
+{
+	ip_select_ident_segs(net, skb, sk, 1);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 static inline __wsum inet_compute_pseudo(struct sk_buff *skb, int proto)
@@ -363,10 +385,19 @@ static inline void inet_set_txhash(struct sock *sk)
 	struct inet_sock *inet = inet_sk(sk);
 	struct flow_keys keys;
 
+<<<<<<< HEAD
 	keys.src = inet->inet_saddr;
 	keys.dst = inet->inet_daddr;
 	keys.port16[0] = inet->inet_sport;
 	keys.port16[1] = inet->inet_dport;
+=======
+	memset(&keys, 0, sizeof(keys));
+
+	keys.addrs.src = inet->inet_saddr;
+	keys.addrs.dst = inet->inet_daddr;
+	keys.ports.port16[0] = inet->inet_sport;
+	keys.ports.port16[1] = inet->inet_dport;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	sk->sk_txhash = flow_hash_from_keys(&keys);
 }
@@ -558,4 +589,12 @@ extern int sysctl_icmp_msgs_burst;
 int ip_misc_proc_init(void);
 #endif
 
+<<<<<<< HEAD
+=======
+static inline bool inetdev_valid_mtu(unsigned int mtu)
+{
+	return likely(mtu >= IPV4_MIN_MTU);
+}
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #endif	/* _IP_H */

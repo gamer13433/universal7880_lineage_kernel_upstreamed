@@ -20,7 +20,10 @@ obj-$(CONFIG_INET)		+= ipv4/
 obj-$(CONFIG_XFRM)		+= xfrm/
 obj-$(CONFIG_UNIX)		+= unix/
 obj-$(CONFIG_NET)		+= ipv6/
+<<<<<<< HEAD
 obj-$(CONFIG_MPTCP)		+= mptcp/
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 obj-$(CONFIG_PACKET)		+= packet/
 obj-$(CONFIG_NET_KEY)		+= key/
 obj-$(CONFIG_BRIDGE)		+= bridge/
@@ -75,4 +78,7 @@ obj-$(CONFIG_VSOCKETS)	+= vmw_vsock/
 obj-$(CONFIG_NET_MPLS_GSO)	+= mpls/
 obj-$(CONFIG_HSR)		+= hsr/
 obj-$(CONFIG_NET_ACTIVITY_STATS)		+= activity_stats.o
+<<<<<<< HEAD
 obj-$(CONFIG_KNOX_NCM)	+= ncm/
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012

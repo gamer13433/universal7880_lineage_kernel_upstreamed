@@ -147,6 +147,18 @@ static int zfcp_scsi_slave_alloc(struct scsi_device *sdev)
 
 	zfcp_sdev->erp_action.port = port;
 
+<<<<<<< HEAD
+=======
+	mutex_lock(&zfcp_sysfs_port_units_mutex);
+	if (zfcp_sysfs_port_is_removing(port)) {
+		/* port is already gone */
+		mutex_unlock(&zfcp_sysfs_port_units_mutex);
+		put_device(&port->dev); /* undo zfcp_get_port_by_wwpn() */
+		return -ENXIO;
+	}
+	mutex_unlock(&zfcp_sysfs_port_units_mutex);
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	unit = zfcp_unit_find(port, zfcp_scsi_dev_lun(sdev));
 	if (unit)
 		put_device(&unit->dev);
@@ -294,6 +306,13 @@ static int zfcp_scsi_eh_host_reset_handler(struct scsi_cmnd *scpnt)
 	struct zfcp_adapter *adapter = zfcp_sdev->port->adapter;
 	int ret;
 
+<<<<<<< HEAD
+=======
+	if (!(adapter->connection_features & FSF_FEATURE_NPIV_MODE)) {
+		zfcp_erp_port_forced_reopen_all(adapter, 0, "schrh_p");
+		zfcp_erp_wait(adapter);
+	}
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	zfcp_erp_adapter_reopen(adapter, 0, "schrh_1");
 	zfcp_erp_wait(adapter);
 	ret = fc_block_scsi_eh(scpnt);

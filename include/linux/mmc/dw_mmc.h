@@ -16,7 +16,10 @@
 
 #include <linux/scatterlist.h>
 #include <linux/mmc/core.h>
+<<<<<<< HEAD
 #include <linux/pm_qos.h>
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #define MAX_MCI_SLOTS	2
 
@@ -55,7 +58,10 @@ struct mmc_data;
  *	transfer is in progress.
  * @use_dma: Whether DMA channel is initialized or not.
  * @using_dma: Whether DMA is in use for the current transfer.
+<<<<<<< HEAD
  * @dma_64bit_address: Whether DMA supports 64-bit address mode or not.
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
  * @sg_dma: Bus address of DMA buffer.
  * @sg_cpu: Virtual address of DMA buffer.
  * @dma_ops: Pointer to platform-specific DMA callbacks.
@@ -126,7 +132,10 @@ struct mmc_data;
 struct dw_mci {
 	spinlock_t		lock;
 	void __iomem		*regs;
+<<<<<<< HEAD
 	unsigned int		channel;
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	struct scatterlist	*sg;
 	struct sg_mapping_iter	sg_miter;
@@ -143,26 +152,40 @@ struct dw_mci {
 	/* DMA interface members*/
 	int			use_dma;
 	int			using_dma;
+<<<<<<< HEAD
 	int			dma_64bit_address;
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	dma_addr_t		sg_dma;
 	void			*sg_cpu;
 	const struct dw_mci_dma_ops	*dma_ops;
 #ifdef CONFIG_MMC_DW_IDMAC
+<<<<<<< HEAD
 	unsigned short		ring_size;
 #else
 	struct dw_mci_dma_data	*dma_data;
 #endif
 	unsigned short          desc_sz;
 	struct pm_qos_request	pm_qos_int;
+=======
+	unsigned int		ring_size;
+#else
+	struct dw_mci_dma_data	*dma_data;
+#endif
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	u32			cmd_status;
 	u32			data_status;
 	u32			stop_cmdr;
 	u32			dir_status;
 	struct tasklet_struct	tasklet;
+<<<<<<< HEAD
 	u32			tasklet_state;
 	struct work_struct	card_work;
 	u32			card_detect_cnt;
+=======
+	struct work_struct	card_work;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	unsigned long		pending_events;
 	unsigned long		completed_events;
 	enum dw_mci_state	state;
@@ -172,7 +195,10 @@ struct dw_mci {
 	u32			current_speed;
 	u32			num_slots;
 	u32			fifoth_val;
+<<<<<<< HEAD
 	u32			cd_rd_thr;
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	u16			verid;
 	u16			data_offset;
 	struct device		*dev;
@@ -181,11 +207,14 @@ struct dw_mci {
 	void			*priv;
 	struct clk		*biu_clk;
 	struct clk		*ciu_clk;
+<<<<<<< HEAD
 	struct clk		*ciu_gate;
 	atomic_t		biu_clk_cnt;
 	atomic_t		ciu_clk_cnt;
 	atomic_t		biu_en_win;
 	atomic_t		ciu_en_win;
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	struct dw_mci_slot	*slot[MAX_MCI_SLOTS];
 
 	/* FIFO push and pull */
@@ -204,6 +233,7 @@ struct dw_mci {
 	/* Workaround flags */
 	u32			quirks;
 
+<<<<<<< HEAD
 	/* S/W reset timer */
 	struct timer_list       timer;
 
@@ -233,6 +263,11 @@ struct dw_mci {
 	u32			cclk_in;
 	struct regulator	*vemmc;
 	struct regulator	*vqemmc;
+=======
+	bool			vqmmc_enabled;
+	unsigned long		irq_flags; /* IRQ flags */
+	int			irq;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 /* DMA ops for Internal/External DMAC interface */
@@ -242,7 +277,10 @@ struct dw_mci_dma_ops {
 	void (*start)(struct dw_mci *host, unsigned int sg_len);
 	void (*complete)(struct dw_mci *host);
 	void (*stop)(struct dw_mci *host);
+<<<<<<< HEAD
 	void (*reset)(struct dw_mci *host);
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	void (*cleanup)(struct dw_mci *host);
 	void (*exit)(struct dw_mci *host);
 };
@@ -258,6 +296,7 @@ struct dw_mci_dma_ops {
 #define DW_MCI_QUIRK_BROKEN_CARD_DETECTION	BIT(3)
 /* No write protect */
 #define DW_MCI_QUIRK_NO_WRITE_PROTECT		BIT(4)
+<<<<<<< HEAD
 /* No detect end bit during read */
 #define DW_MCI_QUIRK_NO_DETECT_EBIT		BIT(5)
 /* Bypass the security management unit */
@@ -272,10 +311,13 @@ struct dw_mci_dma_ops {
 #define DW_MCI_QUIRK_USE_SMU			BIT(10)
 /* Switching transfer */
 #define DW_MCI_SW_TRANS				BIT(11)
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /* Slot level quirks */
 /* This slot has no write protect */
 #define DW_MCI_SLOT_QUIRK_NO_WRITE_PROTECT	BIT(0)
+<<<<<<< HEAD
 enum dw_mci_cd_types {
 	DW_MCI_CD_INTERNAL = 1, /* use mmc internal CD line */
 	DW_MCI_CD_EXTERNAL,     /* use external callback */
@@ -283,6 +325,9 @@ enum dw_mci_cd_types {
 	DW_MCI_CD_NONE,         /* no CD line, use polling to detect card */
 	DW_MCI_CD_PERMANENT,    /* no CD line, card permanently wired to host */
 };
+=======
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 struct dma_pdata;
 
 struct block_settings {
@@ -313,6 +358,7 @@ struct dw_mci_board {
 	/* delay in mS before detecting cards after interrupt */
 	u32 detect_delay_ms;
 
+<<<<<<< HEAD
 	u8 clk_smpl;
 	bool is_fine_tuned;
 	bool tuned;
@@ -476,4 +522,11 @@ do {	\
 #define AES_CBC		1
 #define AES_XTS		2
 
+=======
+	struct dw_mci_dma_ops *dma_ops;
+	struct dma_pdata *data;
+	struct block_settings *blk_settings;
+};
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #endif /* LINUX_MMC_DW_MMC_H */

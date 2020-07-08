@@ -1094,7 +1094,11 @@ int mlx4_qp_attach_common(struct mlx4_dev *dev, struct mlx4_qp *qp, u8 gid[16],
 	struct mlx4_cmd_mailbox *mailbox;
 	struct mlx4_mgm *mgm;
 	u32 members_count;
+<<<<<<< HEAD
 	int index, prev;
+=======
+	int index = -1, prev;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	int link = 0;
 	int i;
 	int err;
@@ -1173,7 +1177,11 @@ int mlx4_qp_attach_common(struct mlx4_dev *dev, struct mlx4_qp *qp, u8 gid[16],
 		goto out;
 
 out:
+<<<<<<< HEAD
 	if (prot == MLX4_PROT_ETH) {
+=======
+	if (prot == MLX4_PROT_ETH && index != -1) {
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		/* manage the steering entry for promisc mode */
 		if (new_entry)
 			new_steering_entry(dev, port, steer, index, qp->qpn);
@@ -1442,7 +1450,16 @@ EXPORT_SYMBOL_GPL(mlx4_multicast_detach);
 int mlx4_flow_steer_promisc_add(struct mlx4_dev *dev, u8 port,
 				u32 qpn, enum mlx4_net_trans_promisc_mode mode)
 {
+<<<<<<< HEAD
 	struct mlx4_net_trans_rule rule;
+=======
+	struct mlx4_net_trans_rule rule = {
+		.queue_mode = MLX4_NET_TRANS_Q_FIFO,
+		.exclusive = 0,
+		.allow_loopback = 1,
+	};
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	u64 *regid_p;
 
 	switch (mode) {
@@ -1463,7 +1480,11 @@ int mlx4_flow_steer_promisc_add(struct mlx4_dev *dev, u8 port,
 	rule.port = port;
 	rule.qpn = qpn;
 	INIT_LIST_HEAD(&rule.list);
+<<<<<<< HEAD
 	mlx4_err(dev, "going promisc on %x\n", port);
+=======
+	mlx4_info(dev, "going promisc on %x\n", port);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	return  mlx4_flow_attach(dev, &rule, regid_p);
 }

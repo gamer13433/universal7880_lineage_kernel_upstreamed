@@ -870,7 +870,11 @@ int nr_rx_frame(struct sk_buff *skb, struct net_device *dev)
 	unsigned short frametype, flags, window, timeout;
 	int ret;
 
+<<<<<<< HEAD
 	skb->sk = NULL;		/* Initially we don't know who it's for */
+=======
+	skb_orphan(skb);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	/*
 	 *	skb->data points to the netrom frame start
@@ -968,7 +972,13 @@ int nr_rx_frame(struct sk_buff *skb, struct net_device *dev)
 
 	window = skb->data[20];
 
+<<<<<<< HEAD
 	skb->sk             = make;
+=======
+	sock_hold(make);
+	skb->sk             = make;
+	skb->destructor     = sock_efree;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	make->sk_state	    = TCP_ESTABLISHED;
 
 	/* Fill in his circuit details */

@@ -234,7 +234,11 @@ static int goldfish_fb_probe(struct platform_device *pdev)
 	fb->fb.var.activate	= FB_ACTIVATE_NOW;
 	fb->fb.var.height	= readl(fb->reg_base + FB_GET_PHYS_HEIGHT);
 	fb->fb.var.width	= readl(fb->reg_base + FB_GET_PHYS_WIDTH);
+<<<<<<< HEAD
 	fb->fb.var.pixclock	= 10000;
+=======
+	fb->fb.var.pixclock	= 0;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	fb->fb.var.red.offset = 11;
 	fb->fb.var.red.length = 5;

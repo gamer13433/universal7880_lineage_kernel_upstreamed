@@ -1465,6 +1465,11 @@ struct cfg80211_match_set {
  * @channels: channels to scan
  * @min_rssi_thold: for drivers only supporting a single threshold, this
  *	contains the minimum over all matchsets
+<<<<<<< HEAD
+=======
+ * @owner_nlportid: netlink portid of owner (if this should is a request
+ *	owned by a particular socket)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
  */
 struct cfg80211_sched_scan_request {
 	struct cfg80211_ssid *ssids;
@@ -1483,6 +1488,10 @@ struct cfg80211_sched_scan_request {
 	struct wiphy *wiphy;
 	struct net_device *dev;
 	unsigned long scan_start;
+<<<<<<< HEAD
+=======
+	u32 owner_nlportid;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	/* keep last */
 	struct ieee80211_channel *channels[0];
@@ -2627,7 +2636,10 @@ struct cfg80211_ops {
  *	TSPEC sessions (TID aka TSID 0-7) with the NL80211_CMD_ADD_TX_TS
  *	command. Standard IEEE 802.11 TSPEC setup is not yet supported, it
  *	needs to be able to handle Block-Ack agreements and other things.
+<<<<<<< HEAD
  * @WIPHY_FLAG_DFS_OFFLOAD: The driver handles all the DFS related operations.
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
  */
 enum wiphy_flags {
 	WIPHY_FLAG_SUPPORTS_WMM_ADMISSION	= BIT(0),
@@ -2653,7 +2665,10 @@ enum wiphy_flags {
 	WIPHY_FLAG_HAS_REMAIN_ON_CHANNEL	= BIT(21),
 	WIPHY_FLAG_SUPPORTS_5_10_MHZ		= BIT(22),
 	WIPHY_FLAG_HAS_CHANNEL_SWITCH		= BIT(23),
+<<<<<<< HEAD
 	WIPHY_FLAG_DFS_OFFLOAD                  = BIT(24)
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 /**
@@ -3168,6 +3183,26 @@ static inline const char *wiphy_name(const struct wiphy *wiphy)
 }
 
 /**
+<<<<<<< HEAD
+=======
+ * wiphy_new_nm - create a new wiphy for use with cfg80211
+ *
+ * @ops: The configuration operations for this device
+ * @sizeof_priv: The size of the private area to allocate
+ * @requested_name: Request a particular name.
+ *	NULL is valid value, and means use the default phy%d naming.
+ *
+ * Create a new wiphy and associate the given operations with it.
+ * @sizeof_priv bytes are allocated for private use.
+ *
+ * Return: A pointer to the new wiphy. This pointer must be
+ * assigned to each netdev's ieee80211_ptr for proper operation.
+ */
+struct wiphy *wiphy_new_nm(const struct cfg80211_ops *ops, int sizeof_priv,
+			   const char *requested_name);
+
+/**
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
  * wiphy_new - create a new wiphy for use with cfg80211
  *
  * @ops: The configuration operations for this device
@@ -3179,7 +3214,15 @@ static inline const char *wiphy_name(const struct wiphy *wiphy)
  * Return: A pointer to the new wiphy. This pointer must be
  * assigned to each netdev's ieee80211_ptr for proper operation.
  */
+<<<<<<< HEAD
 struct wiphy *wiphy_new(const struct cfg80211_ops *ops, int sizeof_priv);
+=======
+static inline struct wiphy *wiphy_new(const struct cfg80211_ops *ops,
+				      int sizeof_priv)
+{
+	return wiphy_new_nm(ops, sizeof_priv, NULL);
+}
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /**
  * wiphy_register - register a wiphy with cfg80211
@@ -3635,6 +3678,20 @@ const u8 *cfg80211_find_vendor_ie(unsigned int oui, u8 oui_type,
 				  const u8 *ies, int len);
 
 /**
+<<<<<<< HEAD
+=======
+ * cfg80211_send_layer2_update - send layer 2 update frame
+ *
+ * @dev: network device
+ * @addr: STA MAC address
+ *
+ * Wireless drivers can use this function to update forwarding tables in bridge
+ * devices upon STA association.
+ */
+void cfg80211_send_layer2_update(struct net_device *dev, const u8 *addr);
+
+/**
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
  * DOC: Regulatory enforcement infrastructure
  *
  * TODO
@@ -3668,6 +3725,7 @@ const u8 *cfg80211_find_vendor_ie(unsigned int oui, u8 oui_type,
 int regulatory_hint(struct wiphy *wiphy, const char *alpha2);
 
 /**
+<<<<<<< HEAD
  * regulatory_hint_user - hint to the wireless core a regulatory domain
  * which the driver has received from an application
  * @alpha2: the ISO/IEC 3166 alpha2 the driver claims its regulatory domain
@@ -3694,6 +3752,8 @@ int regulatory_hint_user(const char *alpha2,
 			 enum nl80211_user_reg_hint_type user_reg_hint_type);
 
 /**
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
  * wiphy_apply_custom_regulatory - apply a custom driver regulatory domain
  * @wiphy: the wireless device we want to process the regulatory domain on
  * @regd: the custom regulatory domain to use for this wiphy
@@ -4900,6 +4960,7 @@ void cfg80211_shutdown_all_interfaces(struct wiphy *wiphy);
 /* ethtool helper */
 void cfg80211_get_drvinfo(struct net_device *dev, struct ethtool_drvinfo *info);
 
+<<<<<<< HEAD
 /**
  * cfg80211_is_gratuitous_arp_unsolicited_na - packet is grat. ARP/unsol. NA
  * @skb: the input packet, must be an ethernet frame already
@@ -4910,6 +4971,8 @@ void cfg80211_get_drvinfo(struct net_device *dev, struct ethtool_drvinfo *info);
  */
 bool cfg80211_is_gratuitous_arp_unsolicited_na(struct sk_buff *skb);
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /* Logging, debugging and troubleshooting/diagnostic helpers. */
 
 /* wiphy_printk helpers, similar to dev_printk */

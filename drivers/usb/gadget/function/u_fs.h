@@ -19,7 +19,10 @@
 #include <linux/usb/composite.h>
 #include <linux/list.h>
 #include <linux/mutex.h>
+<<<<<<< HEAD
 #include <linux/workqueue.h>
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #ifdef VERBOSE_DEBUG
 #ifndef pr_vdebug
@@ -94,6 +97,7 @@ enum ffs_state {
 	FFS_ACTIVE,
 
 	/*
+<<<<<<< HEAD
 	 * Function is visible to host, but it's not functional. All
 	 * setup requests are stalled and transfers on another endpoints
 	 * are refused. All epfiles, except ep0, are deleted so there
@@ -114,6 +118,8 @@ enum ffs_state {
 	FFS_DEACTIVATED,
 
 	/*
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	 * All endpoints have been closed.  This state is also set if
 	 * we encounter an unrecoverable error.  The only
 	 * unrecoverable error is situation when after reading strings
@@ -272,10 +278,13 @@ struct ffs_data {
 		kgid_t				gid;
 	}				file_perms;
 
+<<<<<<< HEAD
 	struct eventfd_ctx *ffs_eventfd;
 	bool no_disconnect;
 	struct work_struct reset_work;
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/*
 	 * The endpoint files, filled by ffs_epfiles_create(),
 	 * destroyed by ffs_epfiles_destroy().

@@ -25,8 +25,14 @@
 #include <linux/init.h>
 #include <linux/module.h>
 #include <linux/mm.h>
+<<<<<<< HEAD
 #include <asm/byteorder.h>
 #include <linux/types.h>
+=======
+#include <linux/types.h>
+#include <asm/byteorder.h>
+#include <asm/unaligned.h>
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #define TGR192_DIGEST_SIZE 24
 #define TGR160_DIGEST_SIZE 20
@@ -468,10 +474,16 @@ static void tgr192_transform(struct tgr192_ctx *tctx, const u8 * data)
 	u64 a, b, c, aa, bb, cc;
 	u64 x[8];
 	int i;
+<<<<<<< HEAD
 	const __le64 *ptr = (const __le64 *)data;
 
 	for (i = 0; i < 8; i++)
 		x[i] = le64_to_cpu(ptr[i]);
+=======
+
+	for (i = 0; i < 8; i++)
+		x[i] = get_unaligned_le64(data + i * sizeof(__le64));
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	/* save */
 	a = aa = tctx->a;

@@ -1370,8 +1370,13 @@ static inline int e100_load_ucode_wait(struct nic *nic)
 
 	fw = e100_request_firmware(nic);
 	/* If it's NULL, then no ucode is required */
+<<<<<<< HEAD
 	if (!fw || IS_ERR(fw))
 		return PTR_ERR(fw);
+=======
+	if (IS_ERR_OR_NULL(fw))
+		return PTR_ERR_OR_ZERO(fw);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if ((err = e100_exec_cb(nic, (void *)fw, e100_setup_ucode)))
 		netif_err(nic, probe, nic->netdev,

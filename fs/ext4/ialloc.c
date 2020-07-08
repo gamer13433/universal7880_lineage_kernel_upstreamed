@@ -23,8 +23,11 @@
 #include <linux/bitops.h>
 #include <linux/blkdev.h>
 #include <asm/byteorder.h>
+<<<<<<< HEAD
 #include <linux/ratelimit.h>
 #include <linux/android_aid.h>
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #include "ext4.h"
 #include "ext4_jbd2.h"
@@ -302,11 +305,21 @@ void ext4_free_inode(handle_t *handle, struct inode *inode)
 
 	percpu_counter_inc(&sbi->s_freeinodes_counter);
 	if (sbi->s_log_groups_per_flex) {
+<<<<<<< HEAD
 		ext4_group_t f = ext4_flex_group(sbi, block_group);
 
 		atomic_inc(&sbi->s_flex_groups[f].free_inodes);
 		if (is_directory)
 			atomic_dec(&sbi->s_flex_groups[f].used_dirs);
+=======
+		struct flex_groups *fg;
+
+		fg = sbi_array_rcu_deref(sbi, s_flex_groups,
+					 ext4_flex_group(sbi, block_group));
+		atomic_inc(&fg->free_inodes);
+		if (is_directory)
+			atomic_dec(&fg->used_dirs);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 	BUFFER_TRACE(bh2, "call ext4_handle_dirty_metadata");
 	fatal = ext4_handle_dirty_metadata(handle, NULL, bh2);
@@ -317,9 +330,12 @@ out:
 		if (!fatal)
 			fatal = err;
 	} else {
+<<<<<<< HEAD
 		/* for debugging, sangwoo2.lee */
 		print_bh(sb, bitmap_bh, 0, EXT4_BLOCK_SIZE(sb));
 		/* for debugging */
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		ext4_error(sb, "bit already cleared for inode %lu", ino);
 		if (gdp && !EXT4_MB_GRP_IBITMAP_CORRUPT(grp)) {
 			int count;
@@ -350,12 +366,22 @@ static void get_orlov_stats(struct super_block *sb, ext4_group_t g,
 			    int flex_size, struct orlov_stats *stats)
 {
 	struct ext4_group_desc *desc;
+<<<<<<< HEAD
 	struct flex_groups *flex_group = EXT4_SB(sb)->s_flex_groups;
 
 	if (flex_size > 1) {
 		stats->free_inodes = atomic_read(&flex_group[g].free_inodes);
 		stats->free_clusters = atomic64_read(&flex_group[g].free_clusters);
 		stats->used_dirs = atomic_read(&flex_group[g].used_dirs);
+=======
+
+	if (flex_size > 1) {
+		struct flex_groups *fg = sbi_array_rcu_deref(EXT4_SB(sb),
+							     s_flex_groups, g);
+		stats->free_inodes = atomic_read(&fg->free_inodes);
+		stats->free_clusters = atomic64_read(&fg->free_clusters);
+		stats->used_dirs = atomic_read(&fg->used_dirs);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		return;
 	}
 
@@ -681,6 +707,7 @@ out:
 	return ret;
 }
 
+<<<<<<< HEAD
 /**
  * ext4_has_free_inodes()
  * @sbi: in-core super block structure.
@@ -707,6 +734,8 @@ static inline int ext4_has_free_inodes(struct ext4_sb_info *sbi)
 	return 0;
 }
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /*
  * There are two policies for allocating an inode.  If the new inode is
  * a directory, then a forward search is made for a block group with both
@@ -781,11 +810,14 @@ struct inode *__ext4_new_inode(handle_t *handle, struct inode *dir,
 		inode_init_owner(inode, dir, mode);
 	dquot_initialize(inode);
 
+<<<<<<< HEAD
 	if (!ext4_has_free_inodes(sbi)) {
 		err = -ENOSPC;
 		goto out;
 	}
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (!goal)
 		goal = sbi->s_inode_goal;
 
@@ -982,7 +1014,12 @@ got:
 		if (sbi->s_log_groups_per_flex) {
 			ext4_group_t f = ext4_flex_group(sbi, group);
 
+<<<<<<< HEAD
 			atomic_inc(&sbi->s_flex_groups[f].used_dirs);
+=======
+			atomic_inc(&sbi_array_rcu_deref(sbi, s_flex_groups,
+							f)->used_dirs);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		}
 	}
 	if (ext4_has_group_desc_csum(sb)) {
@@ -1005,7 +1042,12 @@ got:
 
 	if (sbi->s_log_groups_per_flex) {
 		flex_group = ext4_flex_group(sbi, group);
+<<<<<<< HEAD
 		atomic_dec(&sbi->s_flex_groups[flex_group].free_inodes);
+=======
+		atomic_dec(&sbi_array_rcu_deref(sbi, s_flex_groups,
+						flex_group)->free_inodes);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 	inode->i_ino = ino + group * EXT4_INODES_PER_GROUP(sb);
@@ -1110,11 +1152,14 @@ fail_drop:
 	clear_nlink(inode);
 	unlock_new_inode(inode);
 out:
+<<<<<<< HEAD
 	if (err == -ENOSPC) {
 		printk_ratelimited(KERN_INFO "Return ENOSPC : No free inode (%d/%u)\n",
 			(int) percpu_counter_read_positive(&sbi->s_freeinodes_counter),
 			le32_to_cpu(sbi->s_es->s_inodes_count));
 	}
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	dquot_drop(inode);
 	inode->i_flags |= S_NOQUOTA;
 	iput(inode);

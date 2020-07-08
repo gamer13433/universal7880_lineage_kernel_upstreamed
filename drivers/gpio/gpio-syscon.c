@@ -127,7 +127,11 @@ static int syscon_gpio_dir_out(struct gpio_chip *chip, unsigned offset, int val)
 				   BIT(offs % SYSCON_REG_BITS));
 	}
 
+<<<<<<< HEAD
 	priv->data->set(chip, offset, val);
+=======
+	chip->set(chip, offset, val);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	return 0;
 }

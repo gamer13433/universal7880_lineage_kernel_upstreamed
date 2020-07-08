@@ -42,7 +42,11 @@ static pgprot_t __get_dma_pgprot(struct dma_attrs *attrs, pgprot_t prot,
 static struct gen_pool *atomic_pool;
 
 #define DEFAULT_DMA_COHERENT_POOL_SIZE  SZ_256K
+<<<<<<< HEAD
 static size_t atomic_pool_size = DEFAULT_DMA_COHERENT_POOL_SIZE;
+=======
+static size_t atomic_pool_size __initdata = DEFAULT_DMA_COHERENT_POOL_SIZE;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 static int __init early_coherent_pool(char *p)
 {
@@ -170,7 +174,11 @@ static void *__dma_alloc_noncoherent(struct device *dev, size_t size,
 	coherent_ptr = dma_common_contiguous_remap(page, size, VM_USERMAP,
 				__get_dma_pgprot(attrs,
 					__pgprot(PROT_NORMAL_NC), false),
+<<<<<<< HEAD
 					NULL);
+=======
+					__builtin_return_address(0));
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (!coherent_ptr)
 		goto no_map;
 
@@ -364,6 +372,7 @@ struct dma_map_ops coherent_swiotlb_dma_ops = {
 };
 EXPORT_SYMBOL(coherent_swiotlb_dma_ops);
 
+<<<<<<< HEAD
 static void *arm_exynos_dma_mcode_alloc(struct device *dev, size_t size,
 	dma_addr_t *handle, gfp_t gfp, struct dma_attrs *attrs);
 static void arm_exynos_dma_mcode_free(struct device *dev, size_t size, void *cpu_addr,
@@ -394,6 +403,8 @@ static void arm_exynos_dma_mcode_free(struct device *dev, size_t size, void *cpu
 	iounmap(cpu_addr);
 }
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 extern int swiotlb_late_init_with_default_size(size_t default_size);
 
 static int __init atomic_pool_init(void)

@@ -31,6 +31,10 @@
 #define PCI_DEVICE_ID_INTEL_BYT		0x0f37
 #define PCI_DEVICE_ID_INTEL_MRFLD	0x119e
 #define PCI_DEVICE_ID_INTEL_BSW		0x22B7
+<<<<<<< HEAD
+=======
+#define PCI_DEVICE_ID_INTEL_KBP		0xa2b0
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 struct dwc3_pci {
 	struct device		*dev;
@@ -185,6 +189,10 @@ static const struct pci_device_id dwc3_pci_id_table[] = {
 	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_BSW), },
 	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_BYT), },
 	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_MRFLD), },
+<<<<<<< HEAD
+=======
+	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_KBP), },
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	{  }	/* Terminating Entry */
 };
 MODULE_DEVICE_TABLE(pci, dwc3_pci_id_table);

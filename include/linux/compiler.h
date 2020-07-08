@@ -50,6 +50,25 @@ extern void __chk_io_ptr(const volatile void __iomem *);
 
 #ifdef __KERNEL__
 
+<<<<<<< HEAD
+=======
+/*
+ * Minimal backport of compiler_attributes.h to add support for __copy
+ * to v4.9.y so that we can use it in init/exit_module to avoid
+ * -Werror=missing-attributes errors on GCC 9.
+ */
+#ifndef __has_attribute
+# define __has_attribute(x) __GCC4_has_attribute_##x
+# define __GCC4_has_attribute___copy__                0
+#endif
+
+#if __has_attribute(__copy__)
+# define __copy(symbol)                 __attribute__((__copy__(symbol)))
+#else
+# define __copy(symbol)
+#endif
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #ifdef __GNUC__
 #include <linux/compiler-gcc.h>
 #endif
@@ -169,6 +188,14 @@ void ftrace_likely_update(struct ftrace_branch_data *f, int val, int expect);
 # define barrier_data(ptr) barrier()
 #endif
 
+<<<<<<< HEAD
+=======
+/* workaround for GCC PR82365 if needed */
+#ifndef barrier_before_unreachable
+# define barrier_before_unreachable() do { } while (0)
+#endif
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /* Unreachable code */
 #ifndef unreachable
 # define unreachable() do { } while (1)
@@ -438,7 +465,11 @@ static __always_inline void __write_once_size(volatile void *p, void *res, int s
  * compiler has support to do so.
  */
 #define compiletime_assert(condition, msg) \
+<<<<<<< HEAD
 	_compiletime_assert(condition, msg, __compiletime_assert_, __LINE__)
+=======
+	_compiletime_assert(condition, msg, __compiletime_assert_, __COUNTER__)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #define compiletime_assert_atomic_type(t)				\
 	compiletime_assert(__native_word(t),				\
@@ -481,4 +512,14 @@ static __always_inline void __write_once_size(volatile void *p, void *res, int s
 # define __kprobes
 # define nokprobe_inline	inline
 #endif
+<<<<<<< HEAD
+=======
+
+/*
+ * This is needed in functions which generate the stack canary, see
+ * arch/x86/kernel/smpboot.c::start_secondary() for an example.
+ */
+#define prevent_tail_call_optimization()	mb()
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #endif /* __LINUX_COMPILER_H */

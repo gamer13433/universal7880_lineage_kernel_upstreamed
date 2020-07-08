@@ -885,9 +885,16 @@ int jbd2_journal_get_log_tail(journal_t *journal, tid_t *tid,
  *
  * Requires j_checkpoint_mutex
  */
+<<<<<<< HEAD
 void __jbd2_update_log_tail(journal_t *journal, tid_t tid, unsigned long block)
 {
 	unsigned long freed;
+=======
+int __jbd2_update_log_tail(journal_t *journal, tid_t tid, unsigned long block)
+{
+	unsigned long freed;
+	int ret;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	BUG_ON(!mutex_is_locked(&journal->j_checkpoint_mutex));
 
@@ -897,7 +904,14 @@ void __jbd2_update_log_tail(journal_t *journal, tid_t tid, unsigned long block)
 	 * space and if we lose sb update during power failure we'd replay
 	 * old transaction with possibly newly overwritten data.
 	 */
+<<<<<<< HEAD
 	jbd2_journal_update_sb_log_tail(journal, tid, block, WRITE_FUA);
+=======
+	ret = jbd2_journal_update_sb_log_tail(journal, tid, block, WRITE_FUA);
+	if (ret)
+		goto out;
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	write_lock(&journal->j_state_lock);
 	freed = block - journal->j_tail;
 	if (block < journal->j_tail)
@@ -913,6 +927,12 @@ void __jbd2_update_log_tail(journal_t *journal, tid_t tid, unsigned long block)
 	journal->j_tail_sequence = tid;
 	journal->j_tail = block;
 	write_unlock(&journal->j_state_lock);
+<<<<<<< HEAD
+=======
+
+out:
+	return ret;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 /*
@@ -1331,7 +1351,11 @@ static int journal_reset(journal_t *journal)
 	return jbd2_journal_start_thread(journal);
 }
 
+<<<<<<< HEAD
 static void jbd2_write_superblock(journal_t *journal, int write_op)
+=======
+static int jbd2_write_superblock(journal_t *journal, int write_op)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	struct buffer_head *bh = journal->j_sb_buffer;
 	journal_superblock_t *sb = journal->j_superblock;
@@ -1370,7 +1394,14 @@ static void jbd2_write_superblock(journal_t *journal, int write_op)
 		printk(KERN_ERR "JBD2: Error %d detected when updating "
 		       "journal superblock for %s.\n", ret,
 		       journal->j_devname);
+<<<<<<< HEAD
 	}
+=======
+		jbd2_journal_abort(journal, ret);
+	}
+
+	return ret;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 /**
@@ -1383,10 +1414,18 @@ static void jbd2_write_superblock(journal_t *journal, int write_op)
  * Update a journal's superblock information about log tail and write it to
  * disk, waiting for the IO to complete.
  */
+<<<<<<< HEAD
 void jbd2_journal_update_sb_log_tail(journal_t *journal, tid_t tail_tid,
 				     unsigned long tail_block, int write_op)
 {
 	journal_superblock_t *sb = journal->j_superblock;
+=======
+int jbd2_journal_update_sb_log_tail(journal_t *journal, tid_t tail_tid,
+				     unsigned long tail_block, int write_op)
+{
+	journal_superblock_t *sb = journal->j_superblock;
+	int ret;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if (is_journal_aborted(journal))
 		return -EIO;
@@ -1398,13 +1437,25 @@ void jbd2_journal_update_sb_log_tail(journal_t *journal, tid_t tail_tid,
 	sb->s_sequence = cpu_to_be32(tail_tid);
 	sb->s_start    = cpu_to_be32(tail_block);
 
+<<<<<<< HEAD
 	jbd2_write_superblock(journal, write_op);
+=======
+	ret = jbd2_write_superblock(journal, write_op);
+	if (ret)
+		goto out;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	/* Log is no longer empty */
 	write_lock(&journal->j_state_lock);
 	WARN_ON(!sb->s_sequence);
 	journal->j_flags &= ~JBD2_FLUSHED;
 	write_unlock(&journal->j_state_lock);
+<<<<<<< HEAD
+=======
+
+out:
+	return ret;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 /**
@@ -1459,7 +1510,11 @@ void jbd2_journal_update_sb_errno(journal_t *journal)
 	sb->s_errno    = cpu_to_be32(journal->j_errno);
 	read_unlock(&journal->j_state_lock);
 
+<<<<<<< HEAD
 	jbd2_write_superblock(journal, WRITE_FUA);
+=======
+	jbd2_write_superblock(journal, WRITE_SYNC);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 EXPORT_SYMBOL(jbd2_journal_update_sb_errno);
 
@@ -1654,6 +1709,14 @@ int jbd2_journal_load(journal_t *journal)
 		       journal->j_devname);
 		return -EIO;
 	}
+<<<<<<< HEAD
+=======
+	/*
+	 * clear JBD2_ABORT flag initialized in journal_init_common
+	 * here to update log tail information with the newest seq.
+	 */
+	journal->j_flags &= ~JBD2_ABORT;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	/* OK, we've finished with the dynamic journal bits:
 	 * reinitialise the dynamic contents of the superblock in memory
@@ -1661,7 +1724,10 @@ int jbd2_journal_load(journal_t *journal)
 	if (journal_reset(journal))
 		goto recovery_error;
 
+<<<<<<< HEAD
 	journal->j_flags &= ~JBD2_ABORT;
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	journal->j_flags |= JBD2_LOADED;
 	return 0;
 
@@ -1970,7 +2036,18 @@ int jbd2_journal_flush(journal_t *journal)
 		return -EIO;
 
 	mutex_lock(&journal->j_checkpoint_mutex);
+<<<<<<< HEAD
 	jbd2_cleanup_journal_tail(journal);
+=======
+	if (!err) {
+		err = jbd2_cleanup_journal_tail(journal);
+		if (err < 0) {
+			mutex_unlock(&journal->j_checkpoint_mutex);
+			goto out;
+		}
+		err = 0;
+	}
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	/* Finally, mark the journal as really needing no recovery.
 	 * This sets s_start==0 in the underlying superblock, which is
@@ -1986,7 +2063,12 @@ int jbd2_journal_flush(journal_t *journal)
 	J_ASSERT(journal->j_head == journal->j_tail);
 	J_ASSERT(journal->j_tail_sequence == journal->j_transaction_sequence);
 	write_unlock(&journal->j_state_lock);
+<<<<<<< HEAD
 	return 0;
+=======
+out:
+	return err;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 /**
@@ -2073,12 +2155,19 @@ static void __journal_abort_soft (journal_t *journal, int errno)
 
 	__jbd2_journal_abort_hard(journal);
 
+<<<<<<< HEAD
 	if (errno) {
 		jbd2_journal_update_sb_errno(journal);
 		write_lock(&journal->j_state_lock);
 		journal->j_flags |= JBD2_REC_ERR;
 		write_unlock(&journal->j_state_lock);
 	}
+=======
+	jbd2_journal_update_sb_errno(journal);
+	write_lock(&journal->j_state_lock);
+	journal->j_flags |= JBD2_REC_ERR;
+	write_unlock(&journal->j_state_lock);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 /**
@@ -2120,11 +2209,14 @@ static void __journal_abort_soft (journal_t *journal, int errno)
  * failure to disk.  ext3_error, for example, now uses this
  * functionality.
  *
+<<<<<<< HEAD
  * Errors which originate from within the journaling layer will NOT
  * supply an errno; a null errno implies that absolutely no further
  * writes are done to the journal (unless there are any already in
  * progress).
  *
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
  */
 
 void jbd2_journal_abort(journal_t *journal, int errno)

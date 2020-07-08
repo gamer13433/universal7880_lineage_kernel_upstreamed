@@ -279,7 +279,11 @@ void rproc_free_vring(struct rproc_vring *rvring)
 {
 	int size = PAGE_ALIGN(vring_size(rvring->len, rvring->align));
 	struct rproc *rproc = rvring->rvdev->rproc;
+<<<<<<< HEAD
 	int idx = rvring->rvdev->vring - rvring;
+=======
+	int idx = rvring - rvring->rvdev->vring;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	struct fw_rsc_vdev *rsc;
 
 	dma_free_coherent(rproc->dev.parent, size, rvring->va, rvring->dma);
@@ -1418,7 +1422,11 @@ static int __init remoteproc_init(void)
 
 	return 0;
 }
+<<<<<<< HEAD
 module_init(remoteproc_init);
+=======
+subsys_initcall(remoteproc_init);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 static void __exit remoteproc_exit(void)
 {

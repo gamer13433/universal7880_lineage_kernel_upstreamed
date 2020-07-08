@@ -27,7 +27,10 @@
 #if defined(CONFIG_CPU_EXYNOS4210)
 static const struct exynos_tmu_registers exynos4210_tmu_registers = {
 	.triminfo_data = EXYNOS_TMU_REG_TRIMINFO,
+<<<<<<< HEAD
 	.triminfo_85_shift = EXYNOS_TRIMINFO_85_SHIFT,
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	.tmu_ctrl = EXYNOS_TMU_REG_CONTROL,
 	.tmu_status = EXYNOS_TMU_REG_STATUS,
 	.tmu_cur_temp = EXYNOS_TMU_REG_CURRENT_TEMP,
@@ -49,19 +52,25 @@ struct exynos_tmu_init_data const exynos4210_default_tmu_data = {
 		.trigger_levels[0] = 5,
 		.trigger_levels[1] = 20,
 		.trigger_levels[2] = 30,
+<<<<<<< HEAD
 		.trigger_levels[3] = 30,
 		.trigger_levels[4] = 30,
 		.trigger_levels[5] = 30,
 		.trigger_levels[6] = 30,
 		.trigger_levels[7] = 30,
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		.trigger_enable[0] = true,
 		.trigger_enable[1] = true,
 		.trigger_enable[2] = true,
 		.trigger_enable[3] = false,
+<<<<<<< HEAD
 		.trigger_enable[4] = false,
 		.trigger_enable[5] = false,
 		.trigger_enable[6] = false,
 		.trigger_enable[7] = false,
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		.trigger_type[0] = THROTTLE_ACTIVE,
 		.trigger_type[1] = THROTTLE_ACTIVE,
 		.trigger_type[2] = SW_TRIP,
@@ -96,7 +105,10 @@ struct exynos_tmu_init_data const exynos4210_default_tmu_data = {
 #if defined(CONFIG_SOC_EXYNOS3250)
 static const struct exynos_tmu_registers exynos3250_tmu_registers = {
 	.triminfo_data = EXYNOS_TMU_REG_TRIMINFO,
+<<<<<<< HEAD
 	.triminfo_85_shift = EXYNOS_TRIMINFO_85_SHIFT,
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	.triminfo_ctrl[0] = EXYNOS_TMU_TRIMINFO_CON1,
 	.triminfo_ctrl[1] = EXYNOS_TMU_TRIMINFO_CON2,
 	.triminfo_ctrl_count = 2,
@@ -180,7 +192,10 @@ struct exynos_tmu_init_data const exynos3250_default_tmu_data = {
 #if defined(CONFIG_SOC_EXYNOS4412) || defined(CONFIG_SOC_EXYNOS5250)
 static const struct exynos_tmu_registers exynos4412_tmu_registers = {
 	.triminfo_data = EXYNOS_TMU_REG_TRIMINFO,
+<<<<<<< HEAD
 	.triminfo_85_shift = EXYNOS_TRIMINFO_85_SHIFT,
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	.triminfo_ctrl[0] = EXYNOS_TMU_TRIMINFO_CON2,
 	.triminfo_ctrl_count = 1,
 	.tmu_ctrl = EXYNOS_TMU_REG_CONTROL,
@@ -211,18 +226,24 @@ static const struct exynos_tmu_registers exynos4412_tmu_registers = {
 	.trigger_levels[1] = 95, \
 	.trigger_levels[2] = 110, \
 	.trigger_levels[3] = 120, \
+<<<<<<< HEAD
 	.trigger_levels[4] = 120, \
 	.trigger_levels[5] = 120, \
 	.trigger_levels[6] = 120, \
 	.trigger_levels[7] = 120, \
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	.trigger_enable[0] = true, \
 	.trigger_enable[1] = true, \
 	.trigger_enable[2] = true, \
 	.trigger_enable[3] = false, \
+<<<<<<< HEAD
 	.trigger_enable[4] = false, \
 	.trigger_enable[5] = false, \
 	.trigger_enable[6] = false, \
 	.trigger_enable[7] = false, \
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	.trigger_type[0] = THROTTLE_ACTIVE, \
 	.trigger_type[1] = THROTTLE_ACTIVE, \
 	.trigger_type[2] = SW_TRIP, \
@@ -283,7 +304,10 @@ struct exynos_tmu_init_data const exynos5250_default_tmu_data = {
 #if defined(CONFIG_SOC_EXYNOS5260)
 static const struct exynos_tmu_registers exynos5260_tmu_registers = {
 	.triminfo_data = EXYNOS_TMU_REG_TRIMINFO,
+<<<<<<< HEAD
 	.triminfo_85_shift = EXYNOS_TRIMINFO_85_SHIFT,
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	.tmu_ctrl = EXYNOS_TMU_REG_CONTROL,
 	.therm_trip_mode_shift = EXYNOS_TMU_TRIP_MODE_SHIFT,
 	.therm_trip_mode_mask = EXYNOS_TMU_TRIP_MODE_MASK,
@@ -311,18 +335,24 @@ static const struct exynos_tmu_registers exynos5260_tmu_registers = {
 	.trigger_levels[1] = 103, \
 	.trigger_levels[2] = 110, \
 	.trigger_levels[3] = 120, \
+<<<<<<< HEAD
 	.trigger_levels[4] = 120, \
 	.trigger_levels[5] = 120, \
 	.trigger_levels[6] = 120, \
 	.trigger_levels[7] = 120, \
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	.trigger_enable[0] = true, \
 	.trigger_enable[1] = true, \
 	.trigger_enable[2] = true, \
 	.trigger_enable[3] = false, \
+<<<<<<< HEAD
 	.trigger_enable[4] = false, \
 	.trigger_enable[5] = false, \
 	.trigger_enable[6] = false, \
 	.trigger_enable[7] = false, \
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	.trigger_type[0] = THROTTLE_ACTIVE, \
 	.trigger_type[1] = THROTTLE_ACTIVE, \
 	.trigger_type[2] = SW_TRIP, \
@@ -371,7 +401,10 @@ struct exynos_tmu_init_data const exynos5260_default_tmu_data = {
 #if defined(CONFIG_SOC_EXYNOS5420)
 static const struct exynos_tmu_registers exynos5420_tmu_registers = {
 	.triminfo_data = EXYNOS_TMU_REG_TRIMINFO,
+<<<<<<< HEAD
 	.triminfo_85_shift = EXYNOS_TRIMINFO_85_SHIFT,
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	.tmu_ctrl = EXYNOS_TMU_REG_CONTROL,
 	.therm_trip_mode_shift = EXYNOS_TMU_TRIP_MODE_SHIFT,
 	.therm_trip_mode_mask = EXYNOS_TMU_TRIP_MODE_MASK,
@@ -400,18 +433,24 @@ static const struct exynos_tmu_registers exynos5420_tmu_registers = {
 	.trigger_levels[1] = 103, \
 	.trigger_levels[2] = 110, \
 	.trigger_levels[3] = 120, \
+<<<<<<< HEAD
 	.trigger_levels[4] = 120, \
 	.trigger_levels[5] = 120, \
 	.trigger_levels[6] = 120, \
 	.trigger_levels[7] = 120, \
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	.trigger_enable[0] = true, \
 	.trigger_enable[1] = true, \
 	.trigger_enable[2] = true, \
 	.trigger_enable[3] = false, \
+<<<<<<< HEAD
 	.trigger_enable[4] = false, \
 	.trigger_enable[5] = false, \
 	.trigger_enable[6] = false, \
 	.trigger_enable[7] = false, \
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	.trigger_type[0] = THROTTLE_ACTIVE, \
 	.trigger_type[1] = THROTTLE_ACTIVE, \
 	.trigger_type[2] = SW_TRIP, \
@@ -467,7 +506,10 @@ struct exynos_tmu_init_data const exynos5420_default_tmu_data = {
 #if defined(CONFIG_SOC_EXYNOS5440)
 static const struct exynos_tmu_registers exynos5440_tmu_registers = {
 	.triminfo_data = EXYNOS5440_TMU_S0_7_TRIM,
+<<<<<<< HEAD
 	.triminfo_85_shift = EXYNOS_TRIMINFO_85_SHIFT,
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	.tmu_ctrl = EXYNOS5440_TMU_S0_7_CTRL,
 	.therm_trip_mode_shift = EXYNOS_TMU_TRIP_MODE_SHIFT,
 	.therm_trip_mode_mask = EXYNOS_TMU_TRIP_MODE_MASK,
@@ -494,6 +536,7 @@ static const struct exynos_tmu_registers exynos5440_tmu_registers = {
 
 #define EXYNOS5440_TMU_DATA \
 	.trigger_levels[0] = 100, \
+<<<<<<< HEAD
 	.trigger_levels[1] = 100, \
 	.trigger_levels[2] = 100, \
 	.trigger_levels[3] = 100, \
@@ -509,6 +552,10 @@ static const struct exynos_tmu_registers exynos5440_tmu_registers = {
 	.trigger_enable[5] = false, \
 	.trigger_enable[6] = false, \
 	.trigger_enable[7] = false, \
+=======
+	.trigger_levels[4] = 105, \
+	.trigger_enable[0] = 1, \
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	.trigger_type[0] = SW_TRIP, \
 	.trigger_type[4] = HW_TRIP, \
 	.max_trigger_level = 5, \
@@ -537,6 +584,7 @@ struct exynos_tmu_init_data const exynos5440_default_tmu_data = {
 	.tmu_count = 3,
 };
 #endif
+<<<<<<< HEAD
 
 #if defined(CONFIG_SOC_EXYNOS7580)
 static const struct exynos_tmu_registers exynos7580_tmu_registers = {
@@ -1059,3 +1107,5 @@ struct exynos_tmu_init_data exynos7880_default_tmu_data = {
 	.tmu_count = 3,
 };
 #endif
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012

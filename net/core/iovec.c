@@ -88,10 +88,13 @@ int csum_partial_copy_fromiovecend(unsigned char *kdata, struct iovec *iov,
 	__wsum csum = *csump;
 	int partial_cnt = 0, err = 0;
 
+<<<<<<< HEAD
 	/* No data? Done! */
 	if (len == 0)
 		return 0;
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/* Skip over the finished iovecs */
 	while (offset >= iov->iov_len) {
 		offset -= iov->iov_len;

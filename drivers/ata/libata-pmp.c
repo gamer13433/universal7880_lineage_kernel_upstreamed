@@ -764,6 +764,10 @@ static int sata_pmp_eh_recover_pmp(struct ata_port *ap,
 
 	if (dev->flags & ATA_DFLAG_DETACH) {
 		detach = 1;
+<<<<<<< HEAD
+=======
+		rc = -ENODEV;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		goto fail;
 	}
 

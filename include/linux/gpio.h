@@ -235,6 +235,7 @@ static inline int irq_to_gpio(unsigned irq)
 	return -EINVAL;
 }
 
+<<<<<<< HEAD
 static inline int
 gpiochip_add_pin_range(struct gpio_chip *chip, const char *pinctl_name,
 		       unsigned int gpio_offset, unsigned int pin_offset,
@@ -259,6 +260,8 @@ gpiochip_remove_pin_ranges(struct gpio_chip *chip)
 	WARN_ON(1);
 }
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static inline int devm_gpio_request(struct device *dev, unsigned gpio,
 				    const char *label)
 {

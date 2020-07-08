@@ -164,11 +164,15 @@ struct request_sock_queue {
 };
 
 int reqsk_queue_alloc(struct request_sock_queue *queue,
+<<<<<<< HEAD
 #ifdef CONFIG_MPTCP
 		      unsigned int nr_table_entries, gfp_t flags);
 #else
 		      unsigned int nr_table_entries);
 #endif
+=======
+		      unsigned int nr_table_entries);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 void __reqsk_queue_destroy(struct request_sock_queue *queue);
 void reqsk_queue_destroy(struct request_sock_queue *queue);

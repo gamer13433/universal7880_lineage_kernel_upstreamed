@@ -10,8 +10,11 @@ menuconfig RADIO_ADAPTERS
 	---help---
 	  Say Y here to enable selecting AM/FM radio adapters.
 
+<<<<<<< HEAD
 source "drivers/media/radio/si47xx/Kconfig"
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 if RADIO_ADAPTERS && VIDEO_V4L2
 
 config RADIO_TEA575X

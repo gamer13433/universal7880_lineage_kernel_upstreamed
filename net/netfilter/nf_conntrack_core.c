@@ -610,7 +610,11 @@ __nf_conntrack_confirm(struct sk_buff *skb)
 	 * confirmed us.
 	 */
 	NF_CT_ASSERT(!nf_ct_is_confirmed(ct));
+<<<<<<< HEAD
 	pr_debug("Confirming conntrack %pK\n", ct);
+=======
+	pr_debug("Confirming conntrack %p\n", ct);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/* We have to check the DYING flag after unlink to prevent
 	 * a race against nf_ct_get_next_corpse() possibly called from
 	 * user context, else we insert an already 'dead' hash, blocking
@@ -1770,7 +1774,12 @@ int nf_conntrack_init_net(struct net *net)
 	if (!net->ct.stat)
 		goto err_pcpu_lists;
 
+<<<<<<< HEAD
 	net->ct.slabname = kasprintf(GFP_KERNEL, "nf_conntrack_%pK", net);
+=======
+	net->ct.slabname = kasprintf(GFP_KERNEL, "nf_conntrack_%llu",
+				(u64)atomic64_inc_return(&unique_id));
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (!net->ct.slabname)
 		goto err_slabname;
 

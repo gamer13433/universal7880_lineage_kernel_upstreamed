@@ -216,6 +216,17 @@ static int mmc_decode_scr(struct mmc_card *card)
 
 	if (scr->sda_spec3)
 		scr->cmds = UNSTUFF_BITS(resp, 32, 2);
+<<<<<<< HEAD
+=======
+
+	/* SD Spec says: any SD Card shall set at least bits 0 and 2 */
+	if (!(scr->bus_widths & SD_SCR_BUS_WIDTH_1) ||
+	    !(scr->bus_widths & SD_SCR_BUS_WIDTH_4)) {
+		pr_err("%s: invalid bus width\n", mmc_hostname(card->host));
+		return -EINVAL;
+	}
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return 0;
 }
 
@@ -329,6 +340,10 @@ static int mmc_read_switch(struct mmc_card *card)
 		card->sw_caps.sd3_bus_mode = status[13];
 		/* Driver Strengths supported by the card */
 		card->sw_caps.sd3_drv_type = status[9];
+<<<<<<< HEAD
+=======
+		card->sw_caps.sd3_curr_limit = status[7] | status[6] << 8;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 out:
@@ -580,6 +595,7 @@ static int sd_set_current_limit(struct mmc_card *card, u8 *status)
 	 * when we set current limit to 200ma, the card will draw 200ma, and
 	 * when we set current limit to 400/600/800ma, the card will draw its
 	 * maximum 300ma from the host.
+<<<<<<< HEAD
 	 */
 	if (max_current >= 800)
 		current_limit = SD_SET_CURRENT_LIMIT_800;
@@ -588,6 +604,27 @@ static int sd_set_current_limit(struct mmc_card *card, u8 *status)
 	else if (max_current >= 400)
 		current_limit = SD_SET_CURRENT_LIMIT_400;
 	else if (max_current >= 200)
+=======
+	 *
+	 * The above is incorrect: if we try to set a current limit that is
+	 * not supported by the card, the card can rightfully error out the
+	 * attempt, and remain at the default current limit.  This results
+	 * in a 300mA card being limited to 200mA even though the host
+	 * supports 800mA. Failures seen with SanDisk 8GB UHS cards with
+	 * an iMX6 host. --rmk
+	 */
+	if (max_current >= 800 &&
+	    card->sw_caps.sd3_curr_limit & SD_MAX_CURRENT_800)
+		current_limit = SD_SET_CURRENT_LIMIT_800;
+	else if (max_current >= 600 &&
+		 card->sw_caps.sd3_curr_limit & SD_MAX_CURRENT_600)
+		current_limit = SD_SET_CURRENT_LIMIT_600;
+	else if (max_current >= 400 &&
+		 card->sw_caps.sd3_curr_limit & SD_MAX_CURRENT_400)
+		current_limit = SD_SET_CURRENT_LIMIT_400;
+	else if (max_current >= 200 &&
+		 card->sw_caps.sd3_curr_limit & SD_MAX_CURRENT_200)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		current_limit = SD_SET_CURRENT_LIMIT_200;
 
 	if (current_limit != SD_SET_CURRENT_NO_CHANGE) {
@@ -1078,6 +1115,7 @@ static void mmc_sd_detect(struct mmc_host *host)
 	BUG_ON(!host);
 	BUG_ON(!host->card);
 
+<<<<<<< HEAD
 	if (host->ops->get_cd && host->ops->get_cd(host) == 0) {
 		mmc_card_set_removed(host->card);
 		mmc_sd_remove(host);
@@ -1089,6 +1127,8 @@ static void mmc_sd_detect(struct mmc_host *host)
 		return;
 	}
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	mmc_get_card(host->card);
 
 	/*
@@ -1318,6 +1358,15 @@ int mmc_attach_sd(struct mmc_host *host)
 			goto err;
 	}
 
+<<<<<<< HEAD
+=======
+	/*
+	 * Some SD cards claims an out of spec VDD voltage range. Let's treat
+	 * these bits as being in-valid and especially also bit7.
+	 */
+	ocr &= ~0x7FFF;
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	rocr = mmc_select_voltage(host, ocr);
 
 	/*

@@ -414,6 +414,12 @@ static int aead_set_sh_desc(struct crypto_aead *aead)
 	if (!ctx->authsize)
 		return 0;
 
+<<<<<<< HEAD
+=======
+	if (!ctx->authsize)
+		return 0;
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/* NULL encryption / decryption */
 	if (!ctx->enckeylen)
 		return aead_null_set_sh_desc(aead);

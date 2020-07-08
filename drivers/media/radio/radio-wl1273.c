@@ -1142,8 +1142,12 @@ static int wl1273_fm_fops_release(struct file *file)
 	if (radio->rds_users > 0) {
 		radio->rds_users--;
 		if (radio->rds_users == 0) {
+<<<<<<< HEAD
 			if (mutex_lock_interruptible(&core->lock))
 				return -EINTR;
+=======
+			mutex_lock(&core->lock);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 			radio->irq_flags &= ~WL1273_RDS_EVENT;
 

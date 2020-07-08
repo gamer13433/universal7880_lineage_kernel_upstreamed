@@ -72,6 +72,11 @@ int llc_build_and_send_ui_pkt(struct llc_sap *sap, struct sk_buff *skb,
 	rc = llc_mac_hdr_init(skb, skb->dev->dev_addr, dmac);
 	if (likely(!rc))
 		rc = dev_queue_xmit(skb);
+<<<<<<< HEAD
+=======
+	else
+		kfree_skb(skb);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return rc;
 }
 

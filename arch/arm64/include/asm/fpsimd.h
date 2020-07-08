@@ -39,6 +39,7 @@ struct fpsimd_state {
 	};
 	/* the id of the last cpu to have restored this state */
 	unsigned int cpu;
+<<<<<<< HEAD
 	/*
 	 * indicate whether this state should be preserve or not
 	 * before FP/SIMD registers be used by other tasks
@@ -48,6 +49,8 @@ struct fpsimd_state {
 	 * some NEON instructions without preemption disable.
 	 */
 	unsigned int preserve;
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 /*
@@ -90,9 +93,12 @@ extern void fpsimd_save_partial_state(struct fpsimd_partial_state *state,
 				      u32 num_regs);
 extern void fpsimd_load_partial_state(struct fpsimd_partial_state *state);
 
+<<<<<<< HEAD
 void fpsimd_set_task_preserve(struct task_struct *t);
 void fpsimd_set_as_user_current(int using);
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #endif
 
 #endif

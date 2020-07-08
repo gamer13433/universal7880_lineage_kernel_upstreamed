@@ -39,11 +39,18 @@
 #define atomic_dec(v) atomic_sub(1, (v))
 
 #define atomic_inc_not_zero(v) atomic_add_unless((v), 1, 0)
+<<<<<<< HEAD
 
 #endif
 
 #define atomic_dec_if_positive(v)       atomic_sub_if_positive(1, v)
 
+=======
+#define atomic_dec_if_positive(v)       atomic_sub_if_positive(1, v)
+
+#endif
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #include <asm-generic/atomic64.h>
 
 #endif /* __ASM_METAG_ATOMIC_H */

@@ -117,7 +117,11 @@ static void xfrm_policy_put_afinfo(struct xfrm_policy_afinfo *afinfo)
 static inline struct dst_entry *__xfrm_dst_lookup(struct net *net, int tos,
 						  const xfrm_address_t *saddr,
 						  const xfrm_address_t *daddr,
+<<<<<<< HEAD
 						  int family)
+=======
+						  int family, u32 mark)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	struct xfrm_policy_afinfo *afinfo;
 	struct dst_entry *dst;
@@ -126,7 +130,11 @@ static inline struct dst_entry *__xfrm_dst_lookup(struct net *net, int tos,
 	if (unlikely(afinfo == NULL))
 		return ERR_PTR(-EAFNOSUPPORT);
 
+<<<<<<< HEAD
 	dst = afinfo->dst_lookup(net, tos, saddr, daddr);
+=======
+	dst = afinfo->dst_lookup(net, tos, saddr, daddr, mark);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	xfrm_policy_put_afinfo(afinfo);
 
@@ -136,7 +144,11 @@ static inline struct dst_entry *__xfrm_dst_lookup(struct net *net, int tos,
 static inline struct dst_entry *xfrm_dst_lookup(struct xfrm_state *x, int tos,
 						xfrm_address_t *prev_saddr,
 						xfrm_address_t *prev_daddr,
+<<<<<<< HEAD
 						int family)
+=======
+						int family, u32 mark)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	struct net *net = xs_net(x);
 	xfrm_address_t *saddr = &x->props.saddr;
@@ -152,7 +164,11 @@ static inline struct dst_entry *xfrm_dst_lookup(struct xfrm_state *x, int tos,
 		daddr = x->coaddr;
 	}
 
+<<<<<<< HEAD
 	dst = __xfrm_dst_lookup(net, tos, saddr, daddr, family);
+=======
+	dst = __xfrm_dst_lookup(net, tos, saddr, daddr, family, mark);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if (!IS_ERR(dst)) {
 		if (prev_saddr != saddr)
@@ -328,7 +344,13 @@ static void xfrm_queue_purge(struct sk_buff_head *list)
 
 static void xfrm_policy_kill(struct xfrm_policy *policy)
 {
+<<<<<<< HEAD
 	policy->walk.dead = 1;
+=======
+	write_lock_bh(&policy->lock);
+	policy->walk.dead = 1;
+	write_unlock_bh(&policy->lock);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	atomic_inc(&policy->genid);
 
@@ -731,12 +753,16 @@ static void xfrm_policy_requeue(struct xfrm_policy *old,
 static bool xfrm_policy_mark_match(struct xfrm_policy *policy,
 				   struct xfrm_policy *pol)
 {
+<<<<<<< HEAD
 	u32 mark = policy->mark.v & policy->mark.m;
 
 	if (policy->mark.v == pol->mark.v && policy->mark.m == pol->mark.m)
 		return true;
 
 	if ((mark & pol->mark.m) == pol->mark.v &&
+=======
+	if (policy->mark.v == pol->mark.v &&
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	    policy->priority == pol->priority)
 		return true;
 
@@ -1371,14 +1397,22 @@ int __xfrm_sk_clone_policy(struct sock *sk)
 
 static int
 xfrm_get_saddr(struct net *net, xfrm_address_t *local, xfrm_address_t *remote,
+<<<<<<< HEAD
 	       unsigned short family)
+=======
+	       unsigned short family, u32 mark)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	int err;
 	struct xfrm_policy_afinfo *afinfo = xfrm_policy_get_afinfo(family);
 
 	if (unlikely(afinfo == NULL))
 		return -EINVAL;
+<<<<<<< HEAD
 	err = afinfo->get_saddr(net, local, remote);
+=======
+	err = afinfo->get_saddr(net, local, remote, mark);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	xfrm_policy_put_afinfo(afinfo);
 	return err;
 }
@@ -1407,7 +1441,12 @@ xfrm_tmpl_resolve_one(struct xfrm_policy *policy, const struct flowi *fl,
 			remote = &tmpl->id.daddr;
 			local = &tmpl->saddr;
 			if (xfrm_addr_any(local, tmpl->encap_family)) {
+<<<<<<< HEAD
 				error = xfrm_get_saddr(net, &tmp, remote, tmpl->encap_family);
+=======
+				error = xfrm_get_saddr(net, &tmp, remote,
+						       tmpl->encap_family, 0);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 				if (error)
 					goto fail;
 				local = &tmp;
@@ -1688,7 +1727,12 @@ static struct dst_entry *xfrm_bundle_create(struct xfrm_policy *policy,
 		if (xfrm[i]->props.mode != XFRM_MODE_TRANSPORT) {
 			family = xfrm[i]->props.family;
 			dst = xfrm_dst_lookup(xfrm[i], tos, &saddr, &daddr,
+<<<<<<< HEAD
 					      family);
+=======
+					      family,
+					      xfrm[i]->props.output_mark);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			err = PTR_ERR(dst);
 			if (IS_ERR(dst))
 				goto put_states;

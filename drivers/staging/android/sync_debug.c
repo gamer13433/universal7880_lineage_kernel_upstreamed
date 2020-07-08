@@ -155,11 +155,15 @@ static void sync_print_fence(struct seq_file *s, struct sync_fence *fence)
 			container_of(fence->cbs[i].sync_pt,
 				     struct sync_pt, base);
 
+<<<<<<< HEAD
 		spin_lock_irqsave(pt->base.lock, flags);
 
 		sync_print_pt(s, pt, true);
 
 		spin_unlock_irqrestore(pt->base.lock, flags);
+=======
+		sync_print_pt(s, pt, true);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 	spin_lock_irqsave(&fence->wq.lock, flags);

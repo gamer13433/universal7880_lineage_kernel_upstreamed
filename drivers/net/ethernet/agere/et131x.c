@@ -3852,7 +3852,11 @@ static void et131x_tx_timeout(struct net_device *netdev)
 	unsigned long flags;
 
 	/* If the device is closed, ignore the timeout */
+<<<<<<< HEAD
 	if (~(adapter->flags & FMP_ADAPTER_INTERRUPT_IN_USE))
+=======
+	if (!(adapter->flags & FMP_ADAPTER_INTERRUPT_IN_USE))
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		return;
 
 	/* Any nonrecoverable hardware error?

@@ -359,6 +359,10 @@ bool has_capability_noaudit(struct task_struct *t, int cap)
 {
 	return has_ns_capability_noaudit(t, &init_user_ns, cap);
 }
+<<<<<<< HEAD
+=======
+EXPORT_SYMBOL_GPL(has_capability_noaudit);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /**
  * ns_capable - Determine if the current task has a superior capability in effect

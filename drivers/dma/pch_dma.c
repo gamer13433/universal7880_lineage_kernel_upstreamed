@@ -885,6 +885,10 @@ static int pch_dma_probe(struct pci_dev *pdev,
 	}
 
 	pci_set_master(pdev);
+<<<<<<< HEAD
+=======
+	pd->dma.dev = &pdev->dev;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	err = request_irq(pdev->irq, pd_irq, IRQF_SHARED, DRV_NAME, pd);
 	if (err) {
@@ -900,7 +904,10 @@ static int pch_dma_probe(struct pci_dev *pdev,
 		goto err_free_irq;
 	}
 
+<<<<<<< HEAD
 	pd->dma.dev = &pdev->dev;
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	INIT_LIST_HEAD(&pd->dma.channels);
 

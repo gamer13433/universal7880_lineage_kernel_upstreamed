@@ -72,7 +72,11 @@ static const char * const si5351_input_names[] = {
 	"xtal", "clkin"
 };
 static const char * const si5351_pll_names[] = {
+<<<<<<< HEAD
 	"plla", "pllb", "vxco"
+=======
+	"si5351_plla", "si5351_pllb", "si5351_vxco"
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 static const char * const si5351_msynth_names[] = {
 	"ms0", "ms1", "ms2", "ms3", "ms4", "ms5", "ms6", "ms7"

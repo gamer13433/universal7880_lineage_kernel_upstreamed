@@ -14,8 +14,11 @@
 
 #include <linux/kernel.h>
 #include <linux/platform_device.h>
+<<<<<<< HEAD
 #include <linux/serial_core.h>
 #include <linux/serial_s3c.h>
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #include <plat/devs.h>
 
@@ -46,5 +49,8 @@ struct platform_device *s3c24xx_uart_src[4] = {
 
 struct platform_device *s3c24xx_uart_devs[4] = {
 };
+<<<<<<< HEAD
 
 s3c_wake_peer_t s3c2410_serial_wake_peer[CONFIG_SERIAL_SAMSUNG_UARTS];
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012

@@ -147,10 +147,13 @@ static int __init acm_ms_do_config(struct usb_configuration *c)
 	if (status < 0)
 		goto put_msg;
 
+<<<<<<< HEAD
 	status = fsg_common_run_thread(opts->common);
 	if (status)
 		goto remove_acm;
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	status = usb_add_function(c, f_msg);
 	if (status)
 		goto remove_acm;

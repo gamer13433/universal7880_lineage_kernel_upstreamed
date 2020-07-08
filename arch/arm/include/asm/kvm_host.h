@@ -125,9 +125,12 @@ struct kvm_vcpu_arch {
 	 * Anything that is not used directly from assembly code goes
 	 * here.
 	 */
+<<<<<<< HEAD
 	/* dcache set/way operation pending */
 	int last_pcpu;
 	cpumask_t require_dcache_flush;
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	/* Don't run the guest on this vcpu */
 	bool pause;

@@ -445,9 +445,21 @@ static int __init init_squashfs_fs(void)
 	if (err)
 		return err;
 
+<<<<<<< HEAD
 	err = register_filesystem(&squashfs_fs_type);
 	if (err) {
 		destroy_inodecache();
+=======
+	if (!squashfs_init_read_wq()) {
+		destroy_inodecache();
+		return -ENOMEM;
+        }
+
+	err = register_filesystem(&squashfs_fs_type);
+	if (err) {
+		destroy_inodecache();
+		squashfs_destroy_read_wq();
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		return err;
 	}
 
@@ -461,6 +473,10 @@ static void __exit exit_squashfs_fs(void)
 {
 	unregister_filesystem(&squashfs_fs_type);
 	destroy_inodecache();
+<<<<<<< HEAD
+=======
+	squashfs_destroy_read_wq();
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 

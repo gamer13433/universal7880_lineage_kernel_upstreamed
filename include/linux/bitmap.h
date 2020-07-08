@@ -86,6 +86,17 @@
  */
 
 /*
+<<<<<<< HEAD
+=======
+ * Allocation and deallocation of bitmap.
+ * Provided in lib/bitmap.c to avoid circular dependency.
+ */
+extern unsigned long *bitmap_alloc(unsigned int nbits, gfp_t flags);
+extern unsigned long *bitmap_zalloc(unsigned int nbits, gfp_t flags);
+extern void bitmap_free(const unsigned long *bitmap);
+
+/*
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
  * lib/bitmap.c provides these functions:
  */
 
@@ -179,8 +190,18 @@ extern int bitmap_ord_to_pos(const unsigned long *bitmap, int n, int bits);
 		(1UL<<((nbits) % BITS_PER_LONG))-1 : ~0UL		\
 )
 
+<<<<<<< HEAD
 #define small_const_nbits(nbits) \
 	(__builtin_constant_p(nbits) && (nbits) <= BITS_PER_LONG)
+=======
+/*
+ * The static inlines below do not handle constant nbits==0 correctly,
+ * so make such users (should any ever turn up) call the out-of-line
+ * versions.
+ */
+#define small_const_nbits(nbits) \
+	(__builtin_constant_p(nbits) && (nbits) <= BITS_PER_LONG && (nbits) > 0)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 static inline void bitmap_zero(unsigned long *dst, int nbits)
 {

@@ -605,6 +605,15 @@ int netlbl_catmap_getlong(struct netlbl_lsm_catmap *catmap,
 	if ((off & (BITS_PER_LONG - 1)) != 0)
 		return -EINVAL;
 
+<<<<<<< HEAD
+=======
+	/* a null catmap is equivalent to an empty one */
+	if (!catmap) {
+		*offset = (u32)-1;
+		return 0;
+	}
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (off < catmap->startbit) {
 		off = catmap->startbit;
 		*offset = off;

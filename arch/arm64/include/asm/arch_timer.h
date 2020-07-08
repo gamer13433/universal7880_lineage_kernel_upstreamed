@@ -21,6 +21,10 @@
 
 #include <asm/barrier.h>
 
+<<<<<<< HEAD
+=======
+#include <linux/bug.h>
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #include <linux/init.h>
 #include <linux/types.h>
 

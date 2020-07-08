@@ -14,10 +14,13 @@
 #include <linux/mmc/core.h>
 #include <linux/mod_devicetable.h>
 
+<<<<<<< HEAD
 #define MAX_CNT_U64     0xFFFFFFFFFF
 #define MAX_CNT_U32     0x7FFFFFFF
 #define STATUS_MASK     (R1_ERROR | R1_CC_ERROR | R1_CARD_ECC_FAILED | R1_WP_VIOLATION | R1_OUT_OF_RANGE)
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 struct mmc_cid {
 	unsigned int		manfid;
 	char			prod_name[8];
@@ -96,8 +99,11 @@ struct mmc_ext_csd {
 	u8			raw_partition_support;	/* 160 */
 	u8			raw_rpmb_size_mult;	/* 168 */
 	u8			raw_erased_mem_count;	/* 181 */
+<<<<<<< HEAD
 	u8			enhanced_strobe_support;	/* 184 */
 #define MMC_STROBE_ENHANCED_SUPPORT	BIT(0)
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	u8			raw_ext_csd_structure;	/* 194 */
 	u8			raw_card_type;		/* 196 */
 	u8			out_of_int_time;	/* 198 */
@@ -120,6 +126,7 @@ struct mmc_ext_csd {
 	u8			raw_pwr_cl_ddr_200_360;	/* 253 */
 	u8			raw_bkops_status;	/* 246 */
 	u8			raw_sectors[4];		/* 212 - 4 bytes */
+<<<<<<< HEAD
 
 	unsigned int            feature_support;
 #define MMC_DISCARD_FEATURE	BIT(0)                  /* CMD38 feature */
@@ -139,6 +146,14 @@ struct mmc_ext_csd {
 	 * [63:00] : FIRMWARE_VERSION [261-254]
 	 */
 	unsigned long long	fwdate;
+=======
+	u8			pre_eol_info;		/* 267 */
+	u8			device_life_time_est_typ_a;	/* 268 */
+	u8			device_life_time_est_typ_b;	/* 269 */
+
+	unsigned int            feature_support;
+#define MMC_DISCARD_FEATURE	BIT(0)                  /* CMD38 feature */
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 struct sd_scr {
@@ -260,6 +275,7 @@ struct mmc_part {
 #define MMC_BLK_DATA_AREA_RPMB	(1<<3)
 };
 
+<<<<<<< HEAD
 struct mmc_card_error_log {
 	char	type[4];	// sbc, cmd, data, stop, busy
 	int	err_type;
@@ -274,6 +290,8 @@ struct mmc_card_error_log {
 	u32 	oor_cnt;		// status[31] : out of range error
 };
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /*
  * MMC device
  */
@@ -342,10 +360,13 @@ struct mmc_card {
 	struct dentry		*debugfs_root;
 	struct mmc_part	part[MMC_NUM_PHY_PARTITION]; /* physical partitions */
 	unsigned int    nr_parts;
+<<<<<<< HEAD
 	u8 en_strobe_enhanced;	/*enhanced strobe ctrl */
 
 	struct device_attribute error_count;
 	struct mmc_card_error_log err_log[10];
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 /*

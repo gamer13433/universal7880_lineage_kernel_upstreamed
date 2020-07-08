@@ -50,7 +50,11 @@ struct dm_io_client *dm_io_client_create(void)
 	struct dm_io_client *client;
 	unsigned min_ios = dm_get_reserved_bio_based_ios();
 
+<<<<<<< HEAD
 	client = kmalloc(sizeof(*client), GFP_KERNEL);
+=======
+	client = kzalloc(sizeof(*client), GFP_KERNEL);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (!client)
 		return ERR_PTR(-ENOMEM);
 

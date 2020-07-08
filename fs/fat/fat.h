@@ -10,12 +10,15 @@
 #include <linux/ratelimit.h>
 #include <linux/msdos_fs.h>
 
+<<<<<<< HEAD
 #ifdef CONFIG_FAT_SUPPORT_STLOG
 #include <linux/stlog.h>
 #else
 #define ST_LOG(fmt,...) 
 #endif
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /*
  * vfat shortname flags
  */
@@ -427,6 +430,7 @@ void fat_cache_destroy(void);
 extern const struct export_operations fat_export_ops;
 extern const struct export_operations fat_export_ops_nostale;
 
+<<<<<<< HEAD
 /* fat/xattr.c */
 extern int fat_setxattr(struct dentry *dentry, const char *name,
 				const void *value, size_t size, int flags);
@@ -435,6 +439,8 @@ extern ssize_t fat_getxattr(struct dentry *dentry, const char *name,
 extern ssize_t fat_listxattr(struct dentry *dentry, char *list, size_t size);
 extern int fat_removexattr(struct dentry *dentry, const char *name);
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /* helper for printk */
 typedef unsigned long long	llu;
 

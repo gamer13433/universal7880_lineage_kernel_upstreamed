@@ -4,6 +4,9 @@ obj-$(CONFIG_PM_TRACE_RTC)	+= trace.o
 obj-$(CONFIG_PM_OPP)	+= opp.o
 obj-$(CONFIG_PM_GENERIC_DOMAINS)	+=  domain.o domain_governor.o
 obj-$(CONFIG_HAVE_CLK)	+= clock_ops.o
+<<<<<<< HEAD
 obj-$(CONFIG_BOEFFLA_WL_BLOCKER)	+= boeffla_wl_blocker.o
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 ccflags-$(CONFIG_DEBUG_DRIVER) := -DDEBUG

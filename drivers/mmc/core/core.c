@@ -30,6 +30,10 @@
 #include <linux/slab.h>
 #include <linux/of.h>
 
+<<<<<<< HEAD
+=======
+#define CREATE_TRACE_POINTS
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #include <trace/events/mmc.h>
 
 #include <linux/mmc/card.h>
@@ -47,11 +51,18 @@
 #include "sd_ops.h"
 #include "sdio_ops.h"
 
+<<<<<<< HEAD
 #ifdef CONFIG_MMC_SUPPORT_STLOG
 #include <linux/stlog.h>
 #else
 #define ST_LOG(fmt,...)
 #endif
+=======
+EXPORT_TRACEPOINT_SYMBOL_GPL(mmc_blk_erase_start);
+EXPORT_TRACEPOINT_SYMBOL_GPL(mmc_blk_erase_end);
+EXPORT_TRACEPOINT_SYMBOL_GPL(mmc_blk_rw_start);
+EXPORT_TRACEPOINT_SYMBOL_GPL(mmc_blk_rw_end);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /* If the device is not responding */
 #define MMC_CORE_TIMEOUT_MS	(10 * 60 * 1000) /* 10 minute timeout */
@@ -166,6 +177,23 @@ void mmc_request_done(struct mmc_host *host, struct mmc_request *mrq)
 			pr_debug("%s:     %d bytes transferred: %d\n",
 				mmc_hostname(host),
 				mrq->data->bytes_xfered, mrq->data->error);
+<<<<<<< HEAD
+=======
+#ifdef CONFIG_BLOCK
+			if (mrq->lat_hist_enabled) {
+				ktime_t completion;
+				u_int64_t delta_us;
+
+				completion = ktime_get();
+				delta_us = ktime_us_delta(completion,
+							  mrq->io_start);
+				blk_update_latency_hist(
+					(mrq->data->flags & MMC_DATA_READ) ?
+					&host->io_lat_read :
+					&host->io_lat_write, delta_us);
+			}
+#endif
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			trace_mmc_blk_rw_end(cmd->opcode, cmd->arg, mrq->data);
 		}
 
@@ -323,12 +351,19 @@ EXPORT_SYMBOL(mmc_start_bkops);
  */
 static void mmc_wait_data_done(struct mmc_request *mrq)
 {
+<<<<<<< HEAD
 	unsigned long flags;
 
 	spin_lock_irqsave(&mrq->host->context_info.lock, flags);
 	mrq->host->context_info.is_done_rcv = true;
 	wake_up_interruptible(&mrq->host->context_info.wait);
 	spin_unlock_irqrestore(&mrq->host->context_info.lock, flags);
+=======
+	struct mmc_context_info *context_info = &mrq->host->context_info;
+
+	context_info->is_done_rcv = true;
+	wake_up_interruptible(&context_info->wait);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 static void mmc_wait_done(struct mmc_request *mrq)
@@ -397,10 +432,17 @@ static int mmc_wait_for_data_req_done(struct mmc_host *host,
 				 context_info->is_new_req));
 		spin_lock_irqsave(&context_info->lock, flags);
 		context_info->is_waiting_last_req = false;
+<<<<<<< HEAD
 		if (context_info->is_done_rcv) {
 			context_info->is_done_rcv = false;
 			context_info->is_new_req = false;
 			spin_unlock_irqrestore(&context_info->lock, flags);
+=======
+		spin_unlock_irqrestore(&context_info->lock, flags);
+		if (context_info->is_done_rcv) {
+			context_info->is_done_rcv = false;
+			context_info->is_new_req = false;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			cmd = mrq->cmd;
 
 			if (!cmd->error || !cmd->retries ||
@@ -420,14 +462,21 @@ static int mmc_wait_for_data_req_done(struct mmc_host *host,
 		} else if (context_info->is_new_req) {
 			context_info->is_new_req = false;
 			if (!next_req) {
+<<<<<<< HEAD
 				spin_unlock_irqrestore(&context_info->lock,
 							flags);
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 				err = MMC_BLK_NEW_REQUEST;
 				break; /* return err */
 			}
 		}
+<<<<<<< HEAD
 		spin_unlock_irqrestore(&context_info->lock, flags);
 	} /* while */
+=======
+	}
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return err;
 }
 
@@ -559,6 +608,16 @@ struct mmc_async_req *mmc_start_req(struct mmc_host *host,
 	}
 
 	if (!err && areq) {
+<<<<<<< HEAD
+=======
+#ifdef CONFIG_BLOCK
+		if (host->latency_hist_enabled) {
+			areq->mrq->io_start = ktime_get();
+			areq->mrq->lat_hist_enabled = 1;
+		} else
+			areq->mrq->lat_hist_enabled = 0;
+#endif
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		trace_mmc_blk_rw_start(areq->mrq->cmd->opcode,
 				       areq->mrq->cmd->arg,
 				       areq->mrq->data);
@@ -594,11 +653,14 @@ EXPORT_SYMBOL(mmc_start_req);
  */
 void mmc_wait_for_req(struct mmc_host *host, struct mmc_request *mrq)
 {
+<<<<<<< HEAD
 #ifdef CONFIG_MMC_BLOCK_DEFERRED_RESUME
    if (mmc_bus_needs_resume(host))
 	   mmc_resume_bus(host);
 #endif
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	__mmc_start_req(host, mrq);
 	mmc_wait_for_req_done(host, mrq);
 }
@@ -1254,6 +1316,37 @@ EXPORT_SYMBOL(mmc_of_parse_voltage);
 
 #endif /* CONFIG_OF */
 
+<<<<<<< HEAD
+=======
+static int mmc_of_get_func_num(struct device_node *node)
+{
+	u32 reg;
+	int ret;
+
+	ret = of_property_read_u32(node, "reg", &reg);
+	if (ret < 0)
+		return ret;
+
+	return reg;
+}
+
+struct device_node *mmc_of_find_child_device(struct mmc_host *host,
+		unsigned func_num)
+{
+	struct device_node *node;
+
+	if (!host->parent || !host->parent->of_node)
+		return NULL;
+
+	for_each_child_of_node(host->parent->of_node, node) {
+		if (mmc_of_get_func_num(node) == func_num)
+			return node;
+	}
+
+	return NULL;
+}
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #ifdef CONFIG_REGULATOR
 
 /**
@@ -1689,6 +1782,7 @@ static inline void mmc_bus_put(struct mmc_host *host)
 	spin_unlock_irqrestore(&host->lock, flags);
 }
 
+<<<<<<< HEAD
 int mmc_resume_bus(struct mmc_host *host)
 {
 	unsigned long flags;
@@ -1721,6 +1815,8 @@ int mmc_resume_bus(struct mmc_host *host)
 
 EXPORT_SYMBOL(mmc_resume_bus);
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /*
  * Assign a mmc bus handler to a host. Only one bus handler may control a
  * host at any given time.
@@ -1786,9 +1882,12 @@ static void _mmc_detect_change(struct mmc_host *host, unsigned long delay,
 		pm_wakeup_event(mmc_dev(host), 5000);
 
 	host->detect_change = 1;
+<<<<<<< HEAD
 	/* wake lock: 500ms */
 	if (!(host->caps & MMC_CAP_NONREMOVABLE))
 		wake_lock_timeout(&host->detect_wake_lock, HZ / 2);
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	mmc_schedule_delayed_work(&host->detect, delay);
 }
 
@@ -1859,7 +1958,11 @@ void mmc_init_erase(struct mmc_card *card)
 }
 
 static unsigned int mmc_mmc_erase_timeout(struct mmc_card *card,
+<<<<<<< HEAD
 				          unsigned int arg, unsigned int qty)
+=======
+					  unsigned int arg, unsigned int qty)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	unsigned int erase_timeout;
 
@@ -2176,9 +2279,12 @@ EXPORT_SYMBOL(mmc_can_discard);
 
 int mmc_can_sanitize(struct mmc_card *card)
 {
+<<<<<<< HEAD
 	/* do not use sanitize*/
 	return 0;
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (!mmc_can_trim(card) && !mmc_can_erase(card))
 		return 0;
 	if (card->ext_csd.sec_feature_support & EXT_CSD_SEC_SANITIZE)
@@ -2454,13 +2560,21 @@ int _mmc_detect_card_removed(struct mmc_host *host)
 	 */
 	if (!ret && host->ops->get_cd && !host->ops->get_cd(host)) {
 		mmc_detect_change(host, msecs_to_jiffies(200));
+<<<<<<< HEAD
 		pr_err("%s: card removed too slowly\n", mmc_hostname(host));
+=======
+		pr_debug("%s: card removed too slowly\n", mmc_hostname(host));
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 	if (ret) {
 		mmc_card_set_removed(host->card);
+<<<<<<< HEAD
 		pr_err("%s: card remove detected\n", mmc_hostname(host));
 		ST_LOG("<%s> %s: card remove detected\n", __func__,mmc_hostname(host));
+=======
+		pr_debug("%s: card remove detected\n", mmc_hostname(host));
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 	return ret;
@@ -2481,15 +2595,23 @@ int mmc_detect_card_removed(struct mmc_host *host)
 	 * The card will be considered unchanged unless we have been asked to
 	 * detect a change or host requires polling to provide card detection.
 	 */
+<<<<<<< HEAD
 	if (!host->detect_change && !(host->caps & MMC_CAP_NEEDS_POLL) &&
 		!(host->caps2 & MMC_CAP2_DETECT_ON_ERR))
+=======
+	if (!host->detect_change && !(host->caps & MMC_CAP_NEEDS_POLL))
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		return ret;
 
 	host->detect_change = 0;
 	if (!ret) {
 		ret = _mmc_detect_card_removed(host);
+<<<<<<< HEAD
 		if (ret && ((host->caps & MMC_CAP_NEEDS_POLL) ||
 			(host->caps2 & MMC_CAP2_DETECT_ON_ERR))) {
+=======
+		if (ret && (host->caps & MMC_CAP_NEEDS_POLL)) {
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			/*
 			 * Schedule a detect work as soon as possible to let a
 			 * rescan handle the card removal.
@@ -2571,9 +2693,12 @@ void mmc_rescan(struct work_struct *work)
 	mmc_release_host(host);
 
  out:
+<<<<<<< HEAD
 	host->pm_progress = 0;
 	if (!host->rescan_disable)
 		wake_lock_timeout(&host->detect_wake_lock, HZ / 2);
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (host->caps & MMC_CAP_NEEDS_POLL)
 		mmc_schedule_delayed_work(&host->detect, HZ);
 }
@@ -2587,6 +2712,7 @@ void mmc_start_host(struct mmc_host *host)
 		mmc_power_off(host);
 	else
 		mmc_power_up(host, host->ocr_avail);
+<<<<<<< HEAD
 
 	if (host->caps2 & MMC_CAP2_SKIP_INIT_SCAN) {
 		printk("%s skip mmc detect change\n", mmc_hostname(host));
@@ -2603,6 +2729,10 @@ void mmc_start_host(struct mmc_host *host)
 		_mmc_detect_change(host, 0, false);
 #endif
 	}
+=======
+	mmc_gpiod_request_cd_irq(host);
+	_mmc_detect_change(host, 0, false);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 void mmc_stop_host(struct mmc_host *host)
@@ -2731,10 +2861,13 @@ int mmc_pm_notify(struct notifier_block *notify_block,
 	case PM_SUSPEND_PREPARE:
 	case PM_RESTORE_PREPARE:
 		spin_lock_irqsave(&host->lock, flags);
+<<<<<<< HEAD
 		if (mmc_bus_needs_resume(host)) {
 			spin_unlock_irqrestore(&host->lock, flags);
 			break;
 		}
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		host->rescan_disable = 1;
 		spin_unlock_irqrestore(&host->lock, flags);
 		cancel_delayed_work_sync(&host->detect);
@@ -2742,6 +2875,7 @@ int mmc_pm_notify(struct notifier_block *notify_block,
 		if (!host->bus_ops)
 			break;
 
+<<<<<<< HEAD
 		/*
 		 * It is possible that the wake-lock has been acquired, since
 		 * its being suspended, release the wakelock
@@ -2749,12 +2883,25 @@ int mmc_pm_notify(struct notifier_block *notify_block,
 		if (wake_lock_active(&host->detect_wake_lock))
 			wake_unlock(&host->detect_wake_lock);
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		/* Validate prerequisites for suspend */
 		if (host->bus_ops->pre_suspend)
 			err = host->bus_ops->pre_suspend(host);
 		if (!err)
 			break;
 
+<<<<<<< HEAD
+=======
+		if (!mmc_card_is_removable(host)) {
+			dev_warn(mmc_dev(host),
+				 "pre_suspend failed for non-removable host: "
+				 "%d\n", err);
+			/* Avoid removing non-removable hosts */
+			break;
+		}
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		/* Calling bus_ops->remove() with a claimed host can deadlock */
 		host->bus_ops->remove(host);
 		mmc_claim_host(host);
@@ -2771,9 +2918,12 @@ int mmc_pm_notify(struct notifier_block *notify_block,
 		spin_lock_irqsave(&host->lock, flags);
 		host->rescan_disable = 0;
 		spin_unlock_irqrestore(&host->lock, flags);
+<<<<<<< HEAD
 		/* SD sync mode will be enabled during pm_progress is set */
 		if (host->card && mmc_card_sd(host->card))
 			host->pm_progress = 1;
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		_mmc_detect_change(host, 0, false);
 
 	}
@@ -2855,6 +3005,66 @@ static void __exit mmc_exit(void)
 	destroy_workqueue(workqueue);
 }
 
+<<<<<<< HEAD
+=======
+#ifdef CONFIG_BLOCK
+static ssize_t
+latency_hist_show(struct device *dev, struct device_attribute *attr, char *buf)
+{
+	struct mmc_host *host = cls_dev_to_mmc_host(dev);
+	size_t written_bytes;
+
+	written_bytes = blk_latency_hist_show("Read", &host->io_lat_read,
+			buf, PAGE_SIZE);
+	written_bytes += blk_latency_hist_show("Write", &host->io_lat_write,
+			buf + written_bytes, PAGE_SIZE - written_bytes);
+
+	return written_bytes;
+}
+
+/*
+ * Values permitted 0, 1, 2.
+ * 0 -> Disable IO latency histograms (default)
+ * 1 -> Enable IO latency histograms
+ * 2 -> Zero out IO latency histograms
+ */
+static ssize_t
+latency_hist_store(struct device *dev, struct device_attribute *attr,
+		   const char *buf, size_t count)
+{
+	struct mmc_host *host = cls_dev_to_mmc_host(dev);
+	long value;
+
+	if (kstrtol(buf, 0, &value))
+		return -EINVAL;
+	if (value == BLK_IO_LAT_HIST_ZERO) {
+		memset(&host->io_lat_read, 0, sizeof(host->io_lat_read));
+		memset(&host->io_lat_write, 0, sizeof(host->io_lat_write));
+	} else if (value == BLK_IO_LAT_HIST_ENABLE ||
+		 value == BLK_IO_LAT_HIST_DISABLE)
+		host->latency_hist_enabled = value;
+	return count;
+}
+
+static DEVICE_ATTR(latency_hist, S_IRUGO | S_IWUSR,
+		   latency_hist_show, latency_hist_store);
+
+void
+mmc_latency_hist_sysfs_init(struct mmc_host *host)
+{
+	if (device_create_file(&host->class_dev, &dev_attr_latency_hist))
+		dev_err(&host->class_dev,
+			"Failed to create latency_hist sysfs entry\n");
+}
+
+void
+mmc_latency_hist_sysfs_exit(struct mmc_host *host)
+{
+	device_remove_file(&host->class_dev, &dev_attr_latency_hist);
+}
+#endif
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 subsys_initcall(mmc_init);
 module_exit(mmc_exit);
 

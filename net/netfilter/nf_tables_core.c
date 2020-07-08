@@ -125,7 +125,11 @@ next_rule:
 	list_for_each_entry_continue_rcu(rule, &chain->rules, list) {
 
 		/* This rule is not active, skip. */
+<<<<<<< HEAD
 		if (unlikely(rule->genmask & (1 << gencursor)))
+=======
+		if (unlikely(rule->genmask & gencursor))
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			continue;
 
 		rulenum++;

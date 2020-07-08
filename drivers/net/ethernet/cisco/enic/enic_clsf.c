@@ -5,7 +5,11 @@
 #include <linux/in.h>
 #include <linux/types.h>
 #include <linux/skbuff.h>
+<<<<<<< HEAD
 #include <net/flow_keys.h>
+=======
+#include <net/flow_dissector.h>
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #include "enic_res.h"
 #include "enic_clsf.h"
 
@@ -22,7 +26,11 @@ int enic_addfltr_5t(struct enic *enic, struct flow_keys *keys, u16 rq)
 	int res;
 	struct filter data;
 
+<<<<<<< HEAD
 	switch (keys->ip_proto) {
+=======
+	switch (keys->basic.ip_proto) {
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	case IPPROTO_TCP:
 		data.u.ipv4.protocol = PROTO_TCP;
 		break;
@@ -33,10 +41,17 @@ int enic_addfltr_5t(struct enic *enic, struct flow_keys *keys, u16 rq)
 		return -EPROTONOSUPPORT;
 	};
 	data.type = FILTER_IPV4_5TUPLE;
+<<<<<<< HEAD
 	data.u.ipv4.src_addr = ntohl(keys->src);
 	data.u.ipv4.dst_addr = ntohl(keys->dst);
 	data.u.ipv4.src_port = ntohs(keys->port16[0]);
 	data.u.ipv4.dst_port = ntohs(keys->port16[1]);
+=======
+	data.u.ipv4.src_addr = ntohl(keys->addrs.src);
+	data.u.ipv4.dst_addr = ntohl(keys->addrs.dst);
+	data.u.ipv4.src_port = ntohs(keys->ports.port16[0]);
+	data.u.ipv4.dst_port = ntohs(keys->ports.port16[1]);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	data.u.ipv4.flags = FILTER_FIELDS_IPV4_5TUPLE;
 
 	spin_lock_bh(&enic->devcmd_lock);
@@ -157,11 +172,19 @@ static struct enic_rfs_fltr_node *htbl_key_search(struct hlist_head *h,
 	struct enic_rfs_fltr_node *tpos;
 
 	hlist_for_each_entry(tpos, h, node)
+<<<<<<< HEAD
 		if (tpos->keys.src == k->src &&
 		    tpos->keys.dst == k->dst &&
 		    tpos->keys.ports == k->ports &&
 		    tpos->keys.ip_proto == k->ip_proto &&
 		    tpos->keys.n_proto == k->n_proto)
+=======
+		if (tpos->keys.addrs.src == k->addrs.src &&
+		    tpos->keys.addrs.dst == k->addrs.dst &&
+		    tpos->keys.ports.ports == k->ports.ports &&
+		    tpos->keys.basic.ip_proto == k->basic.ip_proto &&
+		    tpos->keys.basic.n_proto == k->basic.n_proto)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			return tpos;
 	return NULL;
 }
@@ -176,9 +199,16 @@ int enic_rx_flow_steer(struct net_device *dev, const struct sk_buff *skb,
 	int res, i;
 
 	enic = netdev_priv(dev);
+<<<<<<< HEAD
 	res = skb_flow_dissect(skb, &keys);
 	if (!res || keys.n_proto != htons(ETH_P_IP) ||
 	    (keys.ip_proto != IPPROTO_TCP && keys.ip_proto != IPPROTO_UDP))
+=======
+	res = skb_flow_dissect_flow_keys(skb, &keys);
+	if (!res || keys.basic.n_proto != htons(ETH_P_IP) ||
+	    (keys.basic.ip_proto != IPPROTO_TCP &&
+	     keys.basic.ip_proto != IPPROTO_UDP))
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		return -EPROTONOSUPPORT;
 
 	tbl_idx = skb_get_hash_raw(skb) & ENIC_RFS_FLW_MASK;

@@ -46,6 +46,7 @@ config USB_SEVSEG
 	  To compile this driver as a module, choose M here: the
 	  module will be called usbsevseg.
 
+<<<<<<< HEAD
 config USB_RIO500
 	tristate "USB Diamond Rio500 support"
 	help
@@ -56,6 +57,8 @@ config USB_RIO500
 	  To compile this driver as a module, choose M here: the
 	  module will be called rio500.
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 config USB_LEGOTOWER
 	tristate "USB Lego Infrared Tower support"
 	help
@@ -200,9 +203,13 @@ config USB_TEST
 	  including sample test device firmware and "how to use it".
 
 config USB_EHSET_TEST_FIXTURE
+<<<<<<< HEAD
         bool "USB EHSET Test Fixture driver"
 	depends on HOST_COMPLIANT_TEST
 	default y
+=======
+        tristate "USB EHSET Test Fixture driver"
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
         help
 	  Say Y here if you want to support the special test fixture device
 	  used for the USB-IF Embedded Host High-Speed Electrical Test procedure.

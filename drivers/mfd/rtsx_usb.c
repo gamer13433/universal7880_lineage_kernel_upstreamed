@@ -46,9 +46,12 @@ static void rtsx_usb_sg_timed_out(unsigned long data)
 
 	dev_dbg(&ucr->pusb_intf->dev, "%s: sg transfer timed out", __func__);
 	usb_sg_cancel(&ucr->current_sg);
+<<<<<<< HEAD
 
 	/* we know the cancellation is caused by time-out */
 	ucr->current_sg.status = -ETIMEDOUT;
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 static int rtsx_usb_bulk_transfer_sglist(struct rtsx_ucr *ucr,
@@ -67,12 +70,23 @@ static int rtsx_usb_bulk_transfer_sglist(struct rtsx_ucr *ucr,
 	ucr->sg_timer.expires = jiffies + msecs_to_jiffies(timeout);
 	add_timer(&ucr->sg_timer);
 	usb_sg_wait(&ucr->current_sg);
+<<<<<<< HEAD
 	del_timer_sync(&ucr->sg_timer);
+=======
+	if (!del_timer_sync(&ucr->sg_timer))
+		ret = -ETIMEDOUT;
+	else
+		ret = ucr->current_sg.status;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if (act_len)
 		*act_len = ucr->current_sg.bytes;
 
+<<<<<<< HEAD
 	return ucr->current_sg.status;
+=======
+	return ret;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 int rtsx_usb_transfer_data(struct rtsx_ucr *ucr, unsigned int pipe,

@@ -40,6 +40,12 @@
 #include "internal.h"
 #include "mount.h"
 
+<<<<<<< HEAD
+=======
+#define CREATE_TRACE_POINTS
+#include <trace/events/namei.h>
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /* [Feb-1997 T. Schoebel-Theuer]
  * Fundamental changes in the pathname lookup mechanisms (namei)
  * were necessary because of omirr.  The reason is that omirr needs
@@ -502,6 +508,27 @@ void path_put(const struct path *path)
 }
 EXPORT_SYMBOL(path_put);
 
+<<<<<<< HEAD
+=======
+/**
+ * path_connected - Verify that a path->dentry is below path->mnt.mnt_root
+ * @path: nameidate to verify
+ *
+ * Rename can sometimes move a file or directory outside of a bind
+ * mount, path_connected allows those cases to be detected.
+ */
+static bool path_connected(const struct path *path)
+{
+	struct vfsmount *mnt = path->mnt;
+
+	/* Only bind mounts can have disconnected paths */
+	if (mnt->mnt_root == mnt->mnt_sb->s_root)
+		return true;
+
+	return is_subdir(path->dentry, mnt->mnt_root);
+}
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /*
  * Path walking has 2 modes, rcu-walk and ref-walk (see
  * Documentation/filesystems/path-lookup.txt).  In situations when we can't
@@ -603,6 +630,84 @@ static inline int d_revalidate(struct dentry *dentry, unsigned int flags)
 	return dentry->d_op->d_revalidate(dentry, flags);
 }
 
+<<<<<<< HEAD
+=======
+#define INIT_PATH_SIZE 64
+
+static void success_walk_trace(struct nameidata *nd)
+{
+	struct path *pt = &nd->path;
+	struct inode *i = nd->inode;
+	char buf[INIT_PATH_SIZE], *try_buf;
+	int cur_path_size;
+	char *p;
+
+	/* When eBPF/ tracepoint is disabled, keep overhead low. */
+	if (!trace_inodepath_enabled())
+		return;
+
+	/* First try stack allocated buffer. */
+	try_buf = buf;
+	cur_path_size = INIT_PATH_SIZE;
+
+	while (cur_path_size <= PATH_MAX) {
+		/* Free previous heap allocation if we are now trying
+		 * a second or later heap allocation.
+		 */
+		if (try_buf != buf)
+			kfree(try_buf);
+
+		/* All but the first alloc are on the heap. */
+		if (cur_path_size != INIT_PATH_SIZE) {
+			try_buf = kmalloc(cur_path_size, GFP_KERNEL);
+			if (!try_buf) {
+				try_buf = buf;
+				sprintf(try_buf, "error:buf_alloc_failed");
+				break;
+			}
+		}
+
+		p = d_path(pt, try_buf, cur_path_size);
+
+		if (!IS_ERR(p)) {
+			char *end = mangle_path(try_buf, p, "\n");
+
+			if (end) {
+				try_buf[end - try_buf] = 0;
+				break;
+			} else {
+				/* On mangle errors, double path size
+				 * till PATH_MAX.
+				 */
+				cur_path_size = cur_path_size << 1;
+				continue;
+			}
+		}
+
+		if (PTR_ERR(p) == -ENAMETOOLONG) {
+			/* If d_path complains that name is too long,
+			 * then double path size till PATH_MAX.
+			 */
+			cur_path_size = cur_path_size << 1;
+			continue;
+		}
+
+		sprintf(try_buf, "error:d_path_failed_%lu",
+			-1 * PTR_ERR(p));
+		break;
+	}
+
+	if (cur_path_size > PATH_MAX)
+		sprintf(try_buf, "error:d_path_name_too_long");
+
+	trace_inodepath(i, try_buf);
+
+	if (try_buf != buf)
+		kfree(try_buf);
+	return;
+}
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /**
  * complete_walk - successful completion of path walk
  * @nd:  pointer nameidata
@@ -641,6 +746,7 @@ static int complete_walk(struct nameidata *nd)
 		rcu_read_unlock();
 	}
 
+<<<<<<< HEAD
 	if (likely(!(nd->flags & LOOKUP_JUMPED)))
 		return 0;
 
@@ -650,6 +756,23 @@ static int complete_walk(struct nameidata *nd)
 	status = dentry->d_op->d_weak_revalidate(dentry, nd->flags);
 	if (status > 0)
 		return 0;
+=======
+	if (likely(!(nd->flags & LOOKUP_JUMPED))) {
+		success_walk_trace(nd);
+		return 0;
+	}
+
+	if (likely(!(dentry->d_flags & DCACHE_OP_WEAK_REVALIDATE))) {
+		success_walk_trace(nd);
+		return 0;
+	}
+
+	status = dentry->d_op->d_weak_revalidate(dentry, nd->flags);
+	if (status > 0) {
+		success_walk_trace(nd);
+		return 0;
+	}
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if (!status)
 		status = -ESTALE;
@@ -741,6 +864,10 @@ static inline int may_follow_link(struct path *link, struct nameidata *nd)
 {
 	const struct inode *inode;
 	const struct inode *parent;
+<<<<<<< HEAD
+=======
+	kuid_t puid;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if (!sysctl_protected_symlinks)
 		return 0;
@@ -756,7 +883,12 @@ static inline int may_follow_link(struct path *link, struct nameidata *nd)
 		return 0;
 
 	/* Allowed if parent directory and link owner match. */
+<<<<<<< HEAD
 	if (uid_eq(parent->i_uid, inode->i_uid))
+=======
+	puid = parent->i_uid;
+	if (uid_valid(puid) && uid_eq(puid, inode->i_uid))
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		return 0;
 
 	audit_log_link_denied("follow_link", link);
@@ -1179,6 +1311,11 @@ static int follow_dotdot_rcu(struct nameidata *nd)
 				goto failed;
 			nd->path.dentry = parent;
 			nd->seq = seq;
+<<<<<<< HEAD
+=======
+			if (unlikely(!path_connected(&nd->path)))
+				goto failed;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			break;
 		}
 		if (!follow_up_rcu(&nd->path))
@@ -1275,7 +1412,11 @@ static void follow_mount(struct path *path)
 	}
 }
 
+<<<<<<< HEAD
 static void follow_dotdot(struct nameidata *nd)
+=======
+static int follow_dotdot(struct nameidata *nd)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	if (!nd->root.mnt)
 		set_root(nd);
@@ -1291,6 +1432,13 @@ static void follow_dotdot(struct nameidata *nd)
 			/* rare case of legitimate dget_parent()... */
 			nd->path.dentry = dget_parent(nd->path.dentry);
 			dput(old);
+<<<<<<< HEAD
+=======
+			if (unlikely(!path_connected(&nd->path))) {
+				path_put(&nd->path);
+				return -ENOENT;
+			}
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			break;
 		}
 		if (!follow_up(&nd->path))
@@ -1298,6 +1446,10 @@ static void follow_dotdot(struct nameidata *nd)
 	}
 	follow_mount(&nd->path);
 	nd->inode = nd->path.dentry->d_inode;
+<<<<<<< HEAD
+=======
+	return 0;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 /*
@@ -1518,7 +1670,11 @@ static inline int handle_dots(struct nameidata *nd, int type)
 			if (follow_dotdot_rcu(nd))
 				return -ECHILD;
 		} else
+<<<<<<< HEAD
 			follow_dotdot(nd);
+=======
+			return follow_dotdot(nd);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 	return 0;
 }
@@ -1575,7 +1731,12 @@ static inline int walk_component(struct nameidata *nd, struct path *path,
 
 	if (should_follow_link(path->dentry, follow)) {
 		if (nd->flags & LOOKUP_RCU) {
+<<<<<<< HEAD
 			if (unlikely(unlazy_walk(nd, path->dentry))) {
+=======
+			if (unlikely(nd->path.mnt != path->mnt ||
+				     unlazy_walk(nd, path->dentry))) {
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 				err = -ECHILD;
 				goto out_err;
 			}
@@ -2261,7 +2422,11 @@ mountpoint_last(struct nameidata *nd, struct path *path)
 	if (unlikely(nd->last_type != LAST_NORM)) {
 		error = handle_dots(nd, nd->last_type);
 		if (error)
+<<<<<<< HEAD
 			goto out;
+=======
+			return error;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		dentry = dget(nd->path.dentry);
 		goto done;
 	}
@@ -2802,6 +2967,7 @@ no_open:
 		dentry = lookup_real(dir, dentry, nd->flags);
 		if (IS_ERR(dentry))
 			return PTR_ERR(dentry);
+<<<<<<< HEAD
 
 		if (create_error) {
 			int open_flag = op->open_flag;
@@ -2818,6 +2984,12 @@ no_open:
 			}
 			/* will fail later, go on to get the right error */
 		}
+=======
+	}
+	if (create_error && !dentry->d_inode) {
+		error = create_error;
+		goto out;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 looked_up:
 	path->dentry = dentry;
@@ -3047,7 +3219,12 @@ finish_lookup:
 
 	if (should_follow_link(path->dentry, !symlink_ok)) {
 		if (nd->flags & LOOKUP_RCU) {
+<<<<<<< HEAD
 			if (unlikely(unlazy_walk(nd, path->dentry))) {
+=======
+			if (unlikely(nd->path.mnt != path->mnt ||
+				     unlazy_walk(nd, path->dentry))) {
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 				error = -ECHILD;
 				goto out;
 			}
@@ -3116,6 +3293,13 @@ opened:
 			goto exit_fput;
 	}
 out:
+<<<<<<< HEAD
+=======
+	if (unlikely(error > 0)) {
+		WARN_ON(1);
+		error = -EINVAL;
+	}
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (got_write)
 		mnt_drop_write(nd->path.mnt);
 	path_put(&save_parent);
@@ -3227,7 +3411,11 @@ static struct file *path_openat(int dfd, struct filename *pathname,
 
 	if (unlikely(file->f_flags & __O_TMPFILE)) {
 		error = do_tmpfile(dfd, pathname, nd, flags, op, file, &opened);
+<<<<<<< HEAD
 		goto out;
+=======
+		goto out2;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 	error = path_init(dfd, pathname->name, flags | LOOKUP_PARENT, nd, &base);
@@ -3265,6 +3453,10 @@ out:
 		path_put(&nd->root);
 	if (base)
 		fput(base);
+<<<<<<< HEAD
+=======
+out2:
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (!(opened & FILE_OPENED)) {
 		BUG_ON(!error);
 		put_filp(file);
@@ -3485,12 +3677,20 @@ retry:
 		goto out;
 	switch (mode & S_IFMT) {
 		case 0: case S_IFREG:
+<<<<<<< HEAD
 			error = vfs_create2(path.mnt, path.dentry->d_inode,
 					dentry, mode, true);
 			break;
 		case S_IFCHR: case S_IFBLK:
 			error = vfs_mknod2(path.mnt, path.dentry->d_inode,
 					dentry, mode, new_decode_dev(dev));
+=======
+			error = vfs_create2(path.mnt, path.dentry->d_inode,dentry,mode,true);
+			break;
+		case S_IFCHR: case S_IFBLK:
+			error = vfs_mknod2(path.mnt, path.dentry->d_inode,dentry,mode,
+					new_decode_dev(dev));
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			break;
 		case S_IFIFO: case S_IFSOCK:
 			error = vfs_mknod(path.dentry->d_inode,dentry,mode,0);
@@ -3634,6 +3834,11 @@ out:
 		d_delete(dentry);
 	return error;
 }
+<<<<<<< HEAD
+=======
+EXPORT_SYMBOL(vfs_rmdir2);
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 int vfs_rmdir(struct inode *dir, struct dentry *dentry)
 {
 	return vfs_rmdir2(NULL, dir, dentry);
@@ -3647,10 +3852,13 @@ static long do_rmdir(int dfd, const char __user *pathname)
 	struct dentry *dentry;
 	struct nameidata nd;
 	unsigned int lookup_flags = 0;
+<<<<<<< HEAD
 #if ANDROID_VERSION < 80000
 	char *path_buf = NULL;
 	char *propagate_path = NULL;
 #endif
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 retry:
 	name = user_path_parent(dfd, pathname, &nd, lookup_flags);
 	if (IS_ERR(name))
@@ -3685,17 +3893,21 @@ retry:
 	error = security_path_rmdir(&nd.path, dentry);
 	if (error)
 		goto exit3;
+<<<<<<< HEAD
 #if ANDROID_VERSION < 80000
 	if (nd.path.dentry->d_sb->s_op->unlink_callback) {
 		path_buf = kmalloc(PATH_MAX, GFP_KERNEL);
 		propagate_path = dentry_path_raw(dentry, path_buf, PATH_MAX);
 	}
 #endif
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	error = vfs_rmdir2(nd.path.mnt, nd.path.dentry->d_inode, dentry);
 exit3:
 	dput(dentry);
 exit2:
 	mutex_unlock(&nd.path.dentry->d_inode->i_mutex);
+<<<<<<< HEAD
 #if ANDROID_VERSION < 80000
 	if (path_buf && !error) {
 		nd.path.dentry->d_sb->s_op->unlink_callback(nd.path.dentry->d_sb,
@@ -3706,6 +3918,8 @@ exit2:
 		path_buf = NULL;
 	}
 #endif
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	mnt_drop_write(nd.path.mnt);
 exit1:
 	path_put(&nd.path);
@@ -3801,10 +4015,13 @@ static long do_unlinkat(int dfd, const char __user *pathname)
 	struct inode *inode = NULL;
 	struct inode *delegated_inode = NULL;
 	unsigned int lookup_flags = 0;
+<<<<<<< HEAD
 #if ANDROID_VERSION < 80000
 	char *path_buf = NULL;
 	char *propagate_path = NULL;
 #endif
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 retry:
 	name = user_path_parent(dfd, pathname, &nd, lookup_flags);
 	if (IS_ERR(name))
@@ -3829,12 +4046,15 @@ retry_deleg:
 		inode = dentry->d_inode;
 		if (d_is_negative(dentry))
 			goto slashes;
+<<<<<<< HEAD
 #if ANDROID_VERSION < 80000
 		if (inode->i_sb->s_op->unlink_callback) {
 			path_buf = kmalloc(PATH_MAX, GFP_KERNEL);
 			propagate_path = dentry_path_raw(dentry, path_buf, PATH_MAX);
 		}
 #endif
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		ihold(inode);
 		error = security_path_unlink(&nd.path, dentry);
 		if (error)
@@ -3844,6 +4064,7 @@ exit2:
 		dput(dentry);
 	}
 	mutex_unlock(&nd.path.dentry->d_inode->i_mutex);
+<<<<<<< HEAD
 #if ANDROID_VERSION < 80000
 	if (path_buf && !error) {
 		inode->i_sb->s_op->unlink_callback(inode->i_sb, propagate_path);
@@ -3853,6 +4074,8 @@ exit2:
 		path_buf = NULL;
 	}
 #endif
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (inode)
 		iput(inode);	/* truncate the inode here */
 	inode = NULL;
@@ -4181,7 +4404,15 @@ int vfs_rename2(struct vfsmount *mnt,
 	unsigned max_links = new_dir->i_sb->s_max_links;
 	struct name_snapshot old_name;
 
+<<<<<<< HEAD
 	if (source == target)
+=======
+	/*
+	 * Check source == target.
+	 * On overlayfs need to look at underlying inodes.
+	 */
+	if (vfs_select_inode(old_dentry, 0) == vfs_select_inode(new_dentry, 0))
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		return 0;
 
 	error = may_delete(mnt, old_dir, old_dentry, is_dir);

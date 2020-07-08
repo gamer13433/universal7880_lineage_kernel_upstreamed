@@ -39,6 +39,15 @@
 # define FTRACE_FORCE_LIST_FUNC 0
 #endif
 
+<<<<<<< HEAD
+=======
+/* Main tracing buffer and events set up */
+#ifdef CONFIG_TRACING
+void trace_init(void);
+#else
+static inline void trace_init(void) { }
+#endif
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 struct module;
 struct ftrace_hash;

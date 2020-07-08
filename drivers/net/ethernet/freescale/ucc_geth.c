@@ -45,6 +45,10 @@
 #include <asm/ucc.h>
 #include <asm/ucc_fast.h>
 #include <asm/machdep.h>
+<<<<<<< HEAD
+=======
+#include <net/sch_generic.h>
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #include "ucc_geth.h"
 
@@ -1549,11 +1553,16 @@ static int ugeth_disable(struct ucc_geth_private *ugeth, enum comm_dir mode)
 
 static void ugeth_quiesce(struct ucc_geth_private *ugeth)
 {
+<<<<<<< HEAD
 	/* Prevent any further xmits, plus detach the device. */
 	netif_device_detach(ugeth->ndev);
 
 	/* Wait for any current xmits to finish. */
 	netif_tx_disable(ugeth->ndev);
+=======
+	/* Prevent any further xmits */
+	netif_tx_stop_all_queues(ugeth->ndev);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	/* Disable the interrupt to avoid NAPI rescheduling. */
 	disable_irq(ugeth->ug_info->uf_info.irq);
@@ -1566,7 +1575,14 @@ static void ugeth_activate(struct ucc_geth_private *ugeth)
 {
 	napi_enable(&ugeth->napi);
 	enable_irq(ugeth->ug_info->uf_info.irq);
+<<<<<<< HEAD
 	netif_device_attach(ugeth->ndev);
+=======
+
+	/* allow to xmit again  */
+	netif_tx_wake_all_queues(ugeth->ndev);
+	__netdev_watchdog_up(ugeth->ndev);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 /* Called every time the controller might need to be made

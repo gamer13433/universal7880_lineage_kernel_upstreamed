@@ -41,10 +41,13 @@
 #include "objsec.h"
 #include "conditional.h"
 
+<<<<<<< HEAD
 #if defined(CONFIG_TZ_ICCC)
 #include <linux/security/Iccc_Interface.h>
 #endif
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /* Policy capability filenames */
 static char *policycap_names[] = {
 	"network_peer_controls",
@@ -132,20 +135,29 @@ static unsigned long sel_last_ino = SEL_INO_NEXT - 1;
 #define SEL_INO_MASK			0x00ffffff
 
 #define TMPBUFLEN	12
+<<<<<<< HEAD
 #ifdef CONFIG_SECURITY_SELINUX_FAKE_ENFORCE
 static int user_selinux_enforcing = 0;
 #endif
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static ssize_t sel_read_enforce(struct file *filp, char __user *buf,
 				size_t count, loff_t *ppos)
 {
 	char tmpbuf[TMPBUFLEN];
 	ssize_t length;
+<<<<<<< HEAD
 #ifdef CONFIG_SECURITY_SELINUX_FAKE_ENFORCE
 	length = scnprintf(tmpbuf, TMPBUFLEN, "%d", user_selinux_enforcing);
 #else	
 	length = scnprintf(tmpbuf, TMPBUFLEN, "%d", selinux_enforcing);
 #endif		
         return simple_read_from_buffer(buf, count, ppos, tmpbuf, length);
+=======
+
+	length = scnprintf(tmpbuf, TMPBUFLEN, "%d", selinux_enforcing);
+	return simple_read_from_buffer(buf, count, ppos, tmpbuf, length);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 #ifdef CONFIG_SECURITY_SELINUX_DEVELOP
@@ -179,6 +191,7 @@ static ssize_t sel_write_enforce(struct file *file, const char __user *buf,
 	if (sscanf(page, "%d", &new_value) != 1)
 		goto out;
 
+<<<<<<< HEAD
         new_value = 0;
 
 // [ SEC_SELINUX_PORTING_COMMON
@@ -215,6 +228,8 @@ static ssize_t sel_write_enforce(struct file *file, const char __user *buf,
 	length = count;
 	goto out;
 #endif
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (new_value != selinux_enforcing) {
 		length = task_has_security(current, SECURITY__SETENFORCE);
 		if (length)
@@ -230,6 +245,7 @@ static ssize_t sel_write_enforce(struct file *file, const char __user *buf,
 		selnl_notify_setenforce(selinux_enforcing);
 		selinux_status_update_setenforce(selinux_enforcing);
 	}
+<<<<<<< HEAD
 #endif
 // ] SEC_SELINUX_PORTING_COMMON
 	length = count;
@@ -247,6 +263,9 @@ static ssize_t sel_write_enforce(struct file *file, const char __user *buf,
 	}
 #endif
 
+=======
+	length = count;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 out:
 	free_page((unsigned long) page);
 	return length;

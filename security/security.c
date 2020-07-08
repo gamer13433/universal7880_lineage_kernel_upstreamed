@@ -492,6 +492,10 @@ int security_path_chown(struct path *path, kuid_t uid, kgid_t gid)
 		return 0;
 	return security_ops->path_chown(path, uid, gid);
 }
+<<<<<<< HEAD
+=======
+EXPORT_SYMBOL(security_path_chown);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 int security_path_chroot(struct path *path)
 {

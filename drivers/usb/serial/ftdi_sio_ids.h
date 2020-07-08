@@ -38,6 +38,12 @@
 
 #define FTDI_LUMEL_PD12_PID	0x6002
 
+<<<<<<< HEAD
+=======
+/* Sienna Serial Interface by Secyourit GmbH */
+#define FTDI_SIENNA_PID		0x8348
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /* Cyber Cortex AV by Fabulous Silicon (http://fabuloussilicon.com) */
 #define CYBER_CORTEX_AV_PID	0x8698
 
@@ -155,6 +161,10 @@
 #define XSENS_AWINDA_STATION_PID 0x0101
 #define XSENS_AWINDA_DONGLE_PID 0x0102
 #define XSENS_MTW_PID		0x0200	/* Xsens MTw */
+<<<<<<< HEAD
+=======
+#define XSENS_MTDEVBOARD_PID	0x0300	/* Motion Tracker Development Board */
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #define XSENS_CONVERTER_PID	0xD00D	/* Xsens USB-serial converter */
 
 /* Xsens devices using FTDI VID */
@@ -565,7 +575,13 @@
 /*
  * NovaTech product ids (FTDI_VID)
  */
+<<<<<<< HEAD
 #define FTDI_NT_ORIONLXM_PID	0x7c90	/* OrionLXm Substation Automation Platform */
+=======
+#define FTDI_NT_ORIONLXM_PID		0x7c90	/* OrionLXm Substation Automation Platform */
+#define FTDI_NT_ORIONLX_PLUS_PID	0x7c91	/* OrionLX+ Substation Automation Platform */
+#define FTDI_NT_ORION_IO_PID		0x7c92	/* Orion I/O */
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /*
  * Synapse Wireless product ids (FTDI_VID)
@@ -672,6 +688,15 @@
 #define BANDB_ZZ_PROG1_USB_PID	0xBA02
 
 /*
+<<<<<<< HEAD
+=======
+ * Echelon USB Serial Interface
+ */
+#define ECHELON_VID		0x0920
+#define ECHELON_U20_PID		0x7500
+
+/*
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
  * Intrepid Control Systems (http://www.intrepidcs.com/) ValueCAN and NeoVI
  */
 #define INTREPID_VID		0x093C
@@ -1514,3 +1539,19 @@
 #define CHETCO_SEASMART_DISPLAY_PID	0xA5AD /* SeaSmart NMEA2000 Display */
 #define CHETCO_SEASMART_LITE_PID	0xA5AE /* SeaSmart Lite USB Adapter */
 #define CHETCO_SEASMART_ANALOG_PID	0xA5AF /* SeaSmart Analog Adapter */
+<<<<<<< HEAD
+=======
+
+/*
+ * Unjo AB
+ */
+#define UNJO_VID			0x22B7
+#define UNJO_ISODEBUG_V1_PID		0x150D
+
+/*
+ * U-Blox products (http://www.u-blox.com).
+ */
+#define UBLOX_VID			0x1546
+#define UBLOX_C099F9P_ZED_PID		0x0502
+#define UBLOX_C099F9P_ODIN_PID		0x0503
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012

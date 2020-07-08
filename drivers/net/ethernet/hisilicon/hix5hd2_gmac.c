@@ -952,7 +952,11 @@ static int hix5hd2_dev_probe(struct platform_device *pdev)
 		goto err_free_mdio;
 
 	priv->phy_mode = of_get_phy_mode(node);
+<<<<<<< HEAD
 	if (priv->phy_mode < 0) {
+=======
+	if ((int)priv->phy_mode < 0) {
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		netdev_err(ndev, "not find phy-mode\n");
 		ret = -EINVAL;
 		goto err_mdiobus;

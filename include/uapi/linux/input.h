@@ -16,6 +16,7 @@
 #include <linux/types.h>
 #endif
 
+<<<<<<< HEAD
 /*
  * sec Log
  */
@@ -87,6 +88,8 @@
 	dev_err(dev, input_log_buf, ## __VA_ARGS__);				\
 })
 #endif
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /*
  * The event structure itself
@@ -551,8 +554,11 @@ struct input_keymap_entry {
 
 #define KEY_MICMUTE		248	/* Mute / unmute the microphone */
 
+<<<<<<< HEAD
 #define KEY_RECENT   254
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /* Code 255 is reserved for special needs of AT keyboard driver */
 
 #define BTN_MISC		0x100
@@ -612,7 +618,10 @@ struct input_keymap_entry {
 #define BTN_MODE		0x13c
 #define BTN_THUMBL		0x13d
 #define BTN_THUMBR		0x13e
+<<<<<<< HEAD
 #define BTN_GAME		0x13f
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #define BTN_DIGI		0x140
 #define BTN_TOOL_PEN		0x140
@@ -734,7 +743,10 @@ struct input_keymap_entry {
 #define KEY_DEL_EOS		0x1c1
 #define KEY_INS_LINE		0x1c2
 #define KEY_DEL_LINE		0x1c3
+<<<<<<< HEAD
 #define KEY_BLACK_UI_GESTURE	0x1c7
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #define KEY_FN			0x1d0
 #define KEY_FN_ESC		0x1d1
@@ -868,6 +880,7 @@ struct input_keymap_entry {
 #define BTN_TRIGGER_HAPPY39		0x2e6
 #define BTN_TRIGGER_HAPPY40		0x2e7
 
+<<<<<<< HEAD
 #define KEY_CP_GRIP	0x2f1	/* grip sensor for CP */
 #ifdef CONFIG_USB_HMT_SAMSUNG_INPUT
 #define KEY_START_NOTA_CMD		0x2fc
@@ -876,6 +889,8 @@ struct input_keymap_entry {
 #define KEY_HMT_CMD_START		KEY_START_NOTA_CMD
 #endif
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /* We avoid low common keys in module aliases so they don't get huge. */
 #define KEY_MIN_INTERESTING	KEY_MUTE
 #define KEY_MAX			0x2ff
@@ -947,8 +962,11 @@ struct input_keymap_entry {
 #define ABS_MT_TOOL_X		0x3c	/* Center X tool position */
 #define ABS_MT_TOOL_Y		0x3d	/* Center Y tool position */
 
+<<<<<<< HEAD
 #define ABS_MT_PALM		0x3e	/* palm touch */
 #define ABS_MT_GRIP             0x3f    /* grip touch */
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #define ABS_MAX			0x3f
 #define ABS_CNT			(ABS_MAX+1)
@@ -974,10 +992,14 @@ struct input_keymap_entry {
 #define SW_ROTATE_LOCK		0x0c  /* set = rotate locked/disabled */
 #define SW_LINEIN_INSERT	0x0d  /* set = inserted */
 #define SW_MUTE_DEVICE		0x0e  /* set = device disabled */
+<<<<<<< HEAD
 #define SW_GLOVE		0x0f	/* set = glove mode */
 #define SW_FLIP			0x15	/* set = flip cover */
 #define SW_CERTIFYHALL          0x1b    /* set = certify_hall... */
 #define SW_MAX			0x20
+=======
+#define SW_MAX			0x0f
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #define SW_CNT			(SW_MAX+1)
 
 /*

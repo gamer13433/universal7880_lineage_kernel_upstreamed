@@ -117,6 +117,10 @@ static DEFINE_PCI_DEVICE_TABLE(cxl_pci_tbl) = {
 	{ PCI_DEVICE(PCI_VENDOR_ID_IBM, 0x0477), },
 	{ PCI_DEVICE(PCI_VENDOR_ID_IBM, 0x044b), },
 	{ PCI_DEVICE(PCI_VENDOR_ID_IBM, 0x04cf), },
+<<<<<<< HEAD
+=======
+	{ PCI_DEVICE(PCI_VENDOR_ID_IBM, 0x0601), },
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	{ PCI_DEVICE_CLASS(0x120000, ~0), },
 
 	{ }

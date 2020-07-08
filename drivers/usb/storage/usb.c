@@ -940,9 +940,12 @@ int usb_stor_probe1(struct us_data **pus,
 	/*
 	 * Allow 16-byte CDBs and thus > 2TB
 	 */
+<<<<<<< HEAD
 #ifdef CONFIG_USB_STORAGE_DETECT
 	host->by_usb = 1;
 #endif
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	host->max_cmd_len = 16;
 	host->sg_tablesize = usb_stor_sg_tablesize(intf);
 	*pus = us = host_to_us(host);
@@ -1055,6 +1058,7 @@ EXPORT_SYMBOL_GPL(usb_stor_probe2);
 void usb_stor_disconnect(struct usb_interface *intf)
 {
 	struct us_data *us = usb_get_intfdata(intf);
+<<<<<<< HEAD
 #ifdef CONFIG_USB_STORAGE_DETECT
 	pr_info("%s enter\n", __func__);
 #endif
@@ -1066,6 +1070,11 @@ void usb_stor_disconnect(struct usb_interface *intf)
 #ifdef CONFIG_USB_STORAGE_DETECT
 	pr_info("%s exit\n", __func__);
 #endif
+=======
+
+	quiesce_and_remove_host(us);
+	release_everything(us);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 EXPORT_SYMBOL_GPL(usb_stor_disconnect);
 

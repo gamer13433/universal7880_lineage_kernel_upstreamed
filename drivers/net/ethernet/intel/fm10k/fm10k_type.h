@@ -77,6 +77,10 @@ struct fm10k_hw;
 #define FM10K_PCIE_SRIOV_CTRL_VFARI		0x10
 
 #define FM10K_ERR_PARAM				-2
+<<<<<<< HEAD
+=======
+#define FM10K_ERR_NO_RESOURCES			-3
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #define FM10K_ERR_REQUESTS_PENDING		-4
 #define FM10K_ERR_RESET_REQUESTED		-5
 #define FM10K_ERR_DMA_PENDING			-6

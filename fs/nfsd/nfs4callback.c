@@ -941,6 +941,11 @@ static void nfsd4_process_cb_update(struct nfsd4_callback *cb)
 	err = setup_callback_client(clp, &conn, ses);
 	if (err) {
 		nfsd4_mark_cb_down(clp, err);
+<<<<<<< HEAD
+=======
+		if (c)
+			svc_xprt_put(c->cn_xprt);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		return;
 	}
 	/* Yay, the callback channel's back! Restart any callbacks: */

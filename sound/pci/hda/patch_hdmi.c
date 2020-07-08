@@ -1635,9 +1635,17 @@ static bool hdmi_present_sense(struct hdmi_spec_per_pin *per_pin, int repoll)
 	ret = !repoll || !pin_eld->monitor_present || pin_eld->eld_valid;
 
 	jack = snd_hda_jack_tbl_get(codec, pin_nid);
+<<<<<<< HEAD
 	if (jack)
 		jack->block_report = !ret;
 
+=======
+	if (jack) {
+		jack->block_report = !ret;
+		jack->pin_sense = (eld->monitor_present && eld->eld_valid) ?
+			AC_PINSENSE_PRESENCE : 0;
+	}
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	mutex_unlock(&per_pin->lock);
 	snd_hda_power_down(codec);
 	return ret;

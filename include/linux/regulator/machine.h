@@ -138,11 +138,14 @@ struct regulation_constraints {
 	unsigned boot_on:1;	/* bootloader/firmware enabled regulator */
 	unsigned apply_uV:1;	/* apply uV constraint if min == max */
 	unsigned ramp_disable:1; /* disable ramp delay */
+<<<<<<< HEAD
 
 	/* expected consumer
 	 * will not set lower voltage unless all consumer is registered
 	 */
 	unsigned int expected_consumer;
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 /**

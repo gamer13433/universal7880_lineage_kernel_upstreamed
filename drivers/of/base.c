@@ -166,9 +166,12 @@ int __of_attach_node_sysfs(struct device_node *np)
 	struct property *pp;
 	int rc;
 
+<<<<<<< HEAD
 	if (!IS_ENABLED(CONFIG_SYSFS))
 		return 0;
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (!of_kset)
 		return 0;
 

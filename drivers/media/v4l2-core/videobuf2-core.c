@@ -348,6 +348,7 @@ static int __vb2_queue_alloc(struct vb2_queue *q, enum v4l2_memory memory,
 	struct vb2_buffer *vb;
 	int ret;
 
+<<<<<<< HEAD
 	q->timeline_max = 0;
 	q->timeline = sw_sync_timeline_create("vb2");
 	if (!q->timeline) {
@@ -355,6 +356,8 @@ static int __vb2_queue_alloc(struct vb2_queue *q, enum v4l2_memory memory,
 		return 0;
 	}
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	for (buffer = 0; buffer < num_buffers; ++buffer) {
 		/* Allocate videobuf buffer structures */
 		vb = kzalloc(q->buf_struct_size, GFP_KERNEL);
@@ -548,12 +551,15 @@ static int __vb2_queue_free(struct vb2_queue *q, unsigned int buffers)
 		q->memory = 0;
 		INIT_LIST_HEAD(&q->queued_list);
 	}
+<<<<<<< HEAD
 
 	if (q->timeline) {
 		sync_timeline_destroy(&q->timeline->obj);
 		q->timeline = NULL;
 	}
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return 0;
 }
 
@@ -1214,7 +1220,10 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
 	if (state != VB2_BUF_STATE_QUEUED)
 		list_add_tail(&vb->done_entry, &q->done_list);
 	atomic_dec(&q->owned_by_drv_count);
+<<<<<<< HEAD
 	sw_sync_timeline_inc(q->timeline, 1);
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	spin_unlock_irqrestore(&q->done_lock, flags);
 
 	if (state == VB2_BUF_STATE_QUEUED)
@@ -1347,7 +1356,10 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
 		 */
 		vb->v4l2_buf.flags &= ~V4L2_BUF_FLAG_TIMECODE;
 		vb->v4l2_buf.field = b->field;
+<<<<<<< HEAD
 		vb->v4l2_buf.reserved2 = b->reserved2;
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	} else {
 		/* Zero any output buffer flags as this is a capture buffer */
 		vb->v4l2_buf.flags &= ~V4L2_BUFFER_OUT_FLAGS;
@@ -1381,6 +1393,15 @@ static int __qbuf_userptr(struct vb2_buffer *vb, const struct v4l2_buffer *b)
 	__fill_vb2_buffer(vb, b, planes);
 
 	for (plane = 0; plane < vb->num_planes; ++plane) {
+<<<<<<< HEAD
+=======
+		/* Skip the plane if already verified */
+		if (vb->v4l2_planes[plane].m.userptr &&
+		    vb->v4l2_planes[plane].m.userptr == planes[plane].m.userptr
+		    && vb->v4l2_planes[plane].length == planes[plane].length)
+			continue;
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		dprintk(3, "userspace address for plane %d changed, "
 				"reacquiring memory\n", plane);
 
@@ -1630,6 +1651,7 @@ static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
 	vb->v4l2_buf.timestamp.tv_usec = 0;
 	vb->v4l2_buf.sequence = 0;
 
+<<<<<<< HEAD
 	if (!!(b->flags & V4L2_BUF_FLAG_USE_SYNC) && ((int)b->reserved >= 0)) {
 		vb->acquire_fence = sync_fence_fdget((int)b->reserved);
 		if (!vb->acquire_fence) {
@@ -1639,6 +1661,8 @@ static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
 		}
 	}
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	switch (q->memory) {
 	case V4L2_MEMORY_MMAP:
 		ret = __qbuf_mmap(vb, b);
@@ -1800,6 +1824,7 @@ static int vb2_start_streaming(struct vb2_queue *q)
 	return ret;
 }
 
+<<<<<<< HEAD
 static int __allocate_acquire_fence(struct vb2_queue *q, struct vb2_buffer *vb,
 				     bool use_sync)
 {
@@ -1836,6 +1861,8 @@ static int __allocate_acquire_fence(struct vb2_queue *q, struct vb2_buffer *vb,
 	return 0;
 }
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static int vb2_internal_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
 {
 	int ret = vb2_queue_or_prepare_buf(q, b, "qbuf");
@@ -1890,11 +1917,14 @@ static int vb2_internal_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
 	if (q->start_streaming_called)
 		__enqueue_in_driver(vb);
 
+<<<<<<< HEAD
 	ret = __allocate_acquire_fence(q, vb,
 				!!(b->flags & V4L2_BUF_FLAG_USE_SYNC));
 	if (ret)
 		return ret;
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/* Fill buffer information for the userspace */
 	__fill_v4l2_buffer(vb, b);
 
@@ -2181,7 +2211,10 @@ EXPORT_SYMBOL_GPL(vb2_dqbuf);
  */
 static void __vb2_queue_cancel(struct vb2_queue *q)
 {
+<<<<<<< HEAD
 	struct vb2_buffer *vb;
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	unsigned int i;
 
 	/*
@@ -2210,6 +2243,7 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
 	q->queued_count = 0;
 	q->error = 0;
 
+<<<<<<< HEAD
 	list_for_each_entry(vb, &q->queued_list, queued_entry) {
 		if (vb->acquire_fence) {
 			sync_fence_put(vb->acquire_fence);
@@ -2217,6 +2251,8 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
 		}
 	}
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/*
 	 * Remove all buffers from videobuf's list...
 	 */
@@ -3299,11 +3335,15 @@ EXPORT_SYMBOL_GPL(vb2_thread_start);
 int vb2_thread_stop(struct vb2_queue *q)
 {
 	struct vb2_threadio_data *threadio = q->threadio;
+<<<<<<< HEAD
 	struct vb2_fileio_data __attribute__((__unused__)) *fileio = q->fileio;
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	int err;
 
 	if (threadio == NULL)
 		return 0;
+<<<<<<< HEAD
 	call_void_qop(q, wait_finish, q);
 	threadio->stop = true;
 	vb2_internal_streamoff(q, q->type);
@@ -3316,6 +3356,15 @@ int vb2_thread_stop(struct vb2_queue *q)
 	threadio->thread = NULL;
 	kfree(threadio);
 	q->fileio = NULL;
+=======
+	threadio->stop = true;
+	/* Wake up all pending sleeps in the thread */
+	vb2_queue_error(q);
+	err = kthread_stop(threadio->thread);
+	__vb2_cleanup_fileio(q);
+	threadio->thread = NULL;
+	kfree(threadio);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	q->threadio = NULL;
 	return err;
 }

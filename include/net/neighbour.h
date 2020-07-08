@@ -366,8 +366,13 @@ static inline int neigh_event_send(struct neighbour *neigh, struct sk_buff *skb)
 {
 	unsigned long now = jiffies;
 	
+<<<<<<< HEAD
 	if (neigh->used != now)
 		neigh->used = now;
+=======
+	if (READ_ONCE(neigh->used) != now)
+		WRITE_ONCE(neigh->used, now);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (!(neigh->nud_state&(NUD_CONNECTED|NUD_DELAY|NUD_PROBE)))
 		return __neigh_event_send(neigh, skb);
 	return 0;

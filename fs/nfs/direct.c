@@ -551,6 +551,10 @@ ssize_t nfs_file_direct_read(struct kiocb *iocb, struct iov_iter *iter,
 	l_ctx = nfs_get_lock_context(dreq->ctx);
 	if (IS_ERR(l_ctx)) {
 		result = PTR_ERR(l_ctx);
+<<<<<<< HEAD
+=======
+		nfs_direct_req_release(dreq);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		goto out_release;
 	}
 	dreq->l_ctx = l_ctx;
@@ -936,6 +940,10 @@ ssize_t nfs_file_direct_write(struct kiocb *iocb, struct iov_iter *iter,
 	l_ctx = nfs_get_lock_context(dreq->ctx);
 	if (IS_ERR(l_ctx)) {
 		result = PTR_ERR(l_ctx);
+<<<<<<< HEAD
+=======
+		nfs_direct_req_release(dreq);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		goto out_release;
 	}
 	dreq->l_ctx = l_ctx;

@@ -214,6 +214,7 @@ static inline pmd_t *vmalloc_sync_one(pgd_t *pgd, unsigned long address)
 
 	pmd = pmd_offset(pud, address);
 	pmd_k = pmd_offset(pud_k, address);
+<<<<<<< HEAD
 	if (!pmd_present(*pmd_k))
 		return NULL;
 
@@ -221,11 +222,25 @@ static inline pmd_t *vmalloc_sync_one(pgd_t *pgd, unsigned long address)
 		set_pmd(pmd, *pmd_k);
 	else
 		BUG_ON(pmd_page(*pmd) != pmd_page(*pmd_k));
+=======
+
+	if (pmd_present(*pmd) != pmd_present(*pmd_k))
+		set_pmd(pmd, *pmd_k);
+
+	if (!pmd_present(*pmd_k))
+		return NULL;
+	else
+		BUG_ON(pmd_pfn(*pmd) != pmd_pfn(*pmd_k));
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	return pmd_k;
 }
 
+<<<<<<< HEAD
 void vmalloc_sync_all(void)
+=======
+static void vmalloc_sync(void)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	unsigned long address;
 
@@ -240,22 +255,43 @@ void vmalloc_sync_all(void)
 		spin_lock(&pgd_lock);
 		list_for_each_entry(page, &pgd_list, lru) {
 			spinlock_t *pgt_lock;
+<<<<<<< HEAD
 			pmd_t *ret;
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 			/* the pgt_lock only for Xen */
 			pgt_lock = &pgd_page_get_mm(page)->page_table_lock;
 
 			spin_lock(pgt_lock);
+<<<<<<< HEAD
 			ret = vmalloc_sync_one(page_address(page), address);
 			spin_unlock(pgt_lock);
 
 			if (!ret)
 				break;
+=======
+			vmalloc_sync_one(page_address(page), address);
+			spin_unlock(pgt_lock);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		}
 		spin_unlock(&pgd_lock);
 	}
 }
 
+<<<<<<< HEAD
+=======
+void vmalloc_sync_mappings(void)
+{
+	vmalloc_sync();
+}
+
+void vmalloc_sync_unmappings(void)
+{
+	vmalloc_sync();
+}
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /*
  * 32-bit:
  *
@@ -283,6 +319,12 @@ static noinline int vmalloc_fault(unsigned long address)
 	if (!pmd_k)
 		return -1;
 
+<<<<<<< HEAD
+=======
+	if (pmd_huge(*pmd_k))
+		return 0;
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	pte_k = pte_offset_kernel(pmd_k, address);
 	if (!pte_present(*pte_k))
 		return -1;
@@ -345,17 +387,40 @@ out:
 
 #else /* CONFIG_X86_64: */
 
+<<<<<<< HEAD
 void vmalloc_sync_all(void)
 {
 	sync_global_pgds(VMALLOC_START & PGDIR_MASK, VMALLOC_END, 0);
 }
 
+=======
+void vmalloc_sync_mappings(void)
+{
+	/*
+	 * 64-bit mappings might allocate new p4d/pud pages
+	 * that need to be propagated to all tasks' PGDs.
+	 */
+	sync_global_pgds(VMALLOC_START & PGDIR_MASK, VMALLOC_END, 0);
+}
+
+void vmalloc_sync_unmappings(void)
+{
+	/*
+	 * Unmappings never allocate or free p4d/pud pages.
+	 * No work is required here.
+	 */
+}
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /*
  * 64-bit:
  *
  *   Handle a fault on the vmalloc area
+<<<<<<< HEAD
  *
  * This assumes no large pages in there.
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
  */
 static noinline int vmalloc_fault(unsigned long address)
 {
@@ -368,8 +433,11 @@ static noinline int vmalloc_fault(unsigned long address)
 	if (!(address >= VMALLOC_START && address < VMALLOC_END))
 		return -1;
 
+<<<<<<< HEAD
 	WARN_ON_ONCE(in_nmi());
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/*
 	 * Copy kernel mappings over when needed. This can also
 	 * happen within a race in page table update. In the later
@@ -397,17 +465,35 @@ static noinline int vmalloc_fault(unsigned long address)
 	if (pud_none(*pud_ref))
 		return -1;
 
+<<<<<<< HEAD
 	if (pud_none(*pud) || pud_page_vaddr(*pud) != pud_page_vaddr(*pud_ref))
 		BUG();
 
+=======
+	if (pud_none(*pud) || pud_pfn(*pud) != pud_pfn(*pud_ref))
+		BUG();
+
+	if (pud_huge(*pud))
+		return 0;
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	pmd = pmd_offset(pud, address);
 	pmd_ref = pmd_offset(pud_ref, address);
 	if (pmd_none(*pmd_ref))
 		return -1;
 
+<<<<<<< HEAD
 	if (pmd_none(*pmd) || pmd_page(*pmd) != pmd_page(*pmd_ref))
 		BUG();
 
+=======
+	if (pmd_none(*pmd) || pmd_pfn(*pmd) != pmd_pfn(*pmd_ref))
+		BUG();
+
+	if (pmd_huge(*pmd))
+		return 0;
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	pte_ref = pte_offset_kernel(pmd_ref, address);
 	if (!pte_present(*pte_ref))
 		return -1;

@@ -60,6 +60,7 @@ static LIST_HEAD(thermal_governor_list);
 static DEFINE_MUTEX(thermal_list_lock);
 static DEFINE_MUTEX(thermal_governor_lock);
 
+<<<<<<< HEAD
 #ifdef CONFIG_SCHED_MC
 #define BOUNDED_CPU		1
 static void start_poll_queue(struct thermal_zone_device *tz, int delay)
@@ -69,6 +70,8 @@ static void start_poll_queue(struct thermal_zone_device *tz, int delay)
 }
 #endif
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static atomic_t in_suspend;
 
 static struct thermal_governor *def_governor;
@@ -342,6 +345,7 @@ static void thermal_zone_device_set_polling(struct thermal_zone_device *tz,
 					    int delay)
 {
 	if (delay > 1000)
+<<<<<<< HEAD
 #ifdef CONFIG_SCHED_MC
 		start_poll_queue(tz, delay);
 #else
@@ -355,6 +359,13 @@ static void thermal_zone_device_set_polling(struct thermal_zone_device *tz,
 		mod_delayed_work(system_freezable_wq, &tz->poll_queue,
 				 msecs_to_jiffies(delay));
 #endif
+=======
+		mod_delayed_work(system_freezable_wq, &tz->poll_queue,
+				 round_jiffies(msecs_to_jiffies(delay)));
+	else if (delay)
+		mod_delayed_work(system_freezable_wq, &tz->poll_queue,
+				 msecs_to_jiffies(delay));
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	else
 		cancel_delayed_work(&tz->poll_queue);
 }
@@ -513,16 +524,25 @@ static void thermal_zone_device_reset(struct thermal_zone_device *tz)
 
 void thermal_zone_device_update(struct thermal_zone_device *tz)
 {
+<<<<<<< HEAD
 	int count, result;
 	enum thermal_device_mode mode;
         
         if (atomic_read(&in_suspend))
 		return;
+=======
+	int count;
+
+	if (atomic_read(&in_suspend))
+		return;
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (!tz->ops->get_temp)
 		return;
 
 	update_temperature(tz);
 
+<<<<<<< HEAD
 	result = tz->ops->get_mode(tz, &mode);
 	if (result)
 		return;
@@ -531,6 +551,10 @@ void thermal_zone_device_update(struct thermal_zone_device *tz)
 		for (count = 0; count < tz->trips; count++)
 			handle_thermal_trip(tz, count);
 	}
+=======
+	for (count = 0; count < tz->trips; count++)
+		handle_thermal_trip(tz, count);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 EXPORT_SYMBOL_GPL(thermal_zone_device_update);
 
@@ -555,6 +579,7 @@ type_show(struct device *dev, struct device_attribute *attr, char *buf)
 	return sprintf(buf, "%s\n", tz->type);
 }
 
+<<<<<<< HEAD
 #ifdef CONFIG_SEC_PM
 static ssize_t
 curr_temp_show(struct device *dev, struct device_attribute *attr, char *buf)
@@ -581,6 +606,8 @@ curr_temp_show(struct device *dev, struct device_attribute *attr, char *buf)
 }
 #endif
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static ssize_t
 temp_show(struct device *dev, struct device_attribute *attr, char *buf)
 {
@@ -884,9 +911,12 @@ static DEVICE_ATTR(temp, 0444, temp_show, NULL);
 static DEVICE_ATTR(mode, 0644, mode_show, mode_store);
 static DEVICE_ATTR(passive, S_IRUGO | S_IWUSR, passive_show, passive_store);
 static DEVICE_ATTR(policy, S_IRUGO | S_IWUSR, policy_show, policy_store);
+<<<<<<< HEAD
 #ifdef CONFIG_SEC_PM
 static DEVICE_ATTR(curr_temp, 0444, curr_temp_show, NULL);
 #endif
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /* sys I/F for cooling device */
 #define to_cooling_device(_dev)	\
@@ -1580,9 +1610,12 @@ struct thermal_zone_device *thermal_zone_device_register(const char *type,
 	tz->polling_delay = polling_delay;
 	/* A new thermal zone needs to be updated anyway. */
 	atomic_set(&tz->need_update, 1);
+<<<<<<< HEAD
 #ifdef CONFIG_SCHED_MC
 	tz->poll_queue_cpu = BOUNDED_CPU;
 #endif
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	dev_set_name(&tz->device, "thermal_zone%d", tz->id);
 	result = device_register(&tz->device);
@@ -1603,12 +1636,15 @@ struct thermal_zone_device *thermal_zone_device_register(const char *type,
 	if (result)
 		goto unregister;
 
+<<<<<<< HEAD
 #ifdef CONFIG_SEC_PM
 	result = device_create_file(&tz->device, &dev_attr_curr_temp);
 	if (result)
 		goto unregister;
 #endif
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (ops->get_mode) {
 		result = device_create_file(&tz->device, &dev_attr_mode);
 		if (result)
@@ -1736,7 +1772,11 @@ void thermal_zone_device_unregister(struct thermal_zone_device *tz)
 
 	mutex_unlock(&thermal_list_lock);
 
+<<<<<<< HEAD
 	thermal_zone_device_set_polling(tz, 0);
+=======
+	cancel_delayed_work_sync(&tz->poll_queue);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if (tz->type[0])
 		device_remove_file(&tz->device, &dev_attr_type);
@@ -1916,6 +1956,7 @@ static void thermal_unregister_governors(void)
 	thermal_gov_user_space_unregister();
 }
 
+<<<<<<< HEAD
 #ifdef CONFIG_SCHED_MC
 static int __cpuinit thermal_cpu_callback(struct notifier_block *nfb,
 					unsigned long action, void *hcpu)
@@ -1950,6 +1991,8 @@ static struct notifier_block __cpuinitdata thermal_cpu_notifier =
 };
 #endif
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static int thermal_pm_notify(struct notifier_block *nb,
 				unsigned long mode, void *_unused)
 {
@@ -2000,10 +2043,13 @@ static int __init thermal_init(void)
 	if (result)
 		goto exit_netlink;
 
+<<<<<<< HEAD
 #ifdef CONFIG_SCHED_MC
 	register_hotcpu_notifier(&thermal_cpu_notifier);
 #endif
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	result = register_pm_notifier(&thermal_pm_nb);
 	if (result)
 		pr_warn("Thermal: Can not register suspend notifier, return %d\n",

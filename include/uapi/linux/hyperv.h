@@ -307,6 +307,10 @@ enum hv_kvp_exchg_pool {
 #define HV_INVALIDARG			0x80070057
 #define HV_GUID_NOTFOUND		0x80041002
 #define HV_ERROR_ALREADY_EXISTS		0x80070050
+<<<<<<< HEAD
+=======
+#define HV_ERROR_DISK_FULL		0x80070070
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #define ADDR_FAMILY_NONE	0x00
 #define ADDR_FAMILY_IPV4	0x01

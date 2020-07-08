@@ -36,7 +36,11 @@ struct cpu_id
 {
 	__u8	x86;            /* CPU family */
 	__u8	x86_model;	/* model */
+<<<<<<< HEAD
 	__u8	x86_mask;	/* stepping */
+=======
+	__u8	x86_stepping;	/* stepping */
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 enum {
@@ -276,7 +280,11 @@ static int centrino_verify_cpu_id(const struct cpuinfo_x86 *c,
 {
 	if ((c->x86 == x->x86) &&
 	    (c->x86_model == x->x86_model) &&
+<<<<<<< HEAD
 	    (c->x86_mask == x->x86_mask))
+=======
+	    (c->x86_stepping == x->x86_stepping))
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		return 1;
 	return 0;
 }

@@ -64,9 +64,15 @@ static int cachefiles_read_waiter(wait_queue_t *wait, unsigned mode,
 	object = container_of(op->op.object, struct cachefiles_object, fscache);
 	spin_lock(&object->work_lock);
 	list_add_tail(&monitor->op_link, &op->to_do);
+<<<<<<< HEAD
 	spin_unlock(&object->work_lock);
 
 	fscache_enqueue_retrieval(op);
+=======
+	fscache_enqueue_retrieval(op);
+	spin_unlock(&object->work_lock);
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	fscache_put_retrieval(op);
 	return 0;
 }

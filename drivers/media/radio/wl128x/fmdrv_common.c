@@ -494,7 +494,12 @@ int fmc_send_cmd(struct fmdev *fmdev, u8 fm_op, u16 type, void *payload,
 		return -EIO;
 	}
 	/* Send response data to caller */
+<<<<<<< HEAD
 	if (response != NULL && response_len != NULL && evt_hdr->dlen) {
+=======
+	if (response != NULL && response_len != NULL && evt_hdr->dlen &&
+	    evt_hdr->dlen <= payload_len) {
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		/* Skip header info and copy only response data */
 		skb_pull(skb, sizeof(struct fm_event_msg_hdr));
 		memcpy(response, skb->data, evt_hdr->dlen);
@@ -590,6 +595,11 @@ static void fm_irq_handle_flag_getcmd_resp(struct fmdev *fmdev)
 		return;
 
 	fm_evt_hdr = (void *)skb->data;
+<<<<<<< HEAD
+=======
+	if (fm_evt_hdr->dlen > sizeof(fmdev->irq_info.flag))
+		return;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	/* Skip header info and copy only response data */
 	skb_pull(skb, sizeof(struct fm_event_msg_hdr));
@@ -1278,8 +1288,14 @@ static int fm_download_firmware(struct fmdev *fmdev, const u8 *fw_name)
 
 		switch (action->type) {
 		case ACTION_SEND_COMMAND:	/* Send */
+<<<<<<< HEAD
 			if (fmc_send_cmd(fmdev, 0, 0, action->data,
 						action->size, NULL, NULL))
+=======
+			ret = fmc_send_cmd(fmdev, 0, 0, action->data,
+					   action->size, NULL, NULL);
+			if (ret)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 				goto rel_fw;
 
 			cmd_cnt++;
@@ -1318,7 +1334,11 @@ static int load_default_rx_configuration(struct fmdev *fmdev)
 static int fm_power_up(struct fmdev *fmdev, u8 mode)
 {
 	u16 payload;
+<<<<<<< HEAD
 	__be16 asic_id, asic_ver;
+=======
+	__be16 asic_id = 0, asic_ver = 0;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	int resp_len, ret;
 	u8 fw_name[50];
 

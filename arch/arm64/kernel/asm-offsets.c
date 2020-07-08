@@ -22,9 +22,15 @@
 #include <linux/mm.h>
 #include <linux/dma-mapping.h>
 #include <linux/kvm_host.h>
+<<<<<<< HEAD
 #include <asm/thread_info.h>
 #include <asm/memory.h>
 #include <asm/cputable.h>
+=======
+#include <asm/fixmap.h>
+#include <asm/thread_info.h>
+#include <asm/memory.h>
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #include <asm/smp_plat.h>
 #include <asm/suspend.h>
 #include <asm/vdso_datapage.h>
@@ -40,6 +46,12 @@ int main(void)
   DEFINE(TI_TASK,		offsetof(struct thread_info, task));
   DEFINE(TI_EXEC_DOMAIN,	offsetof(struct thread_info, exec_domain));
   DEFINE(TI_CPU,		offsetof(struct thread_info, cpu));
+<<<<<<< HEAD
+=======
+#ifdef CONFIG_ARM64_SW_TTBR0_PAN
+  DEFINE(TSK_TI_TTBR0,		offsetof(struct thread_info, ttbr0));
+#endif
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
   BLANK();
   DEFINE(THREAD_CPU_CONTEXT,	offsetof(struct task_struct, thread.cpu_context));
   BLANK();
@@ -60,9 +72,16 @@ int main(void)
   DEFINE(S_PC,			offsetof(struct pt_regs, pc));
   DEFINE(S_ORIG_X0,		offsetof(struct pt_regs, orig_x0));
   DEFINE(S_SYSCALLNO,		offsetof(struct pt_regs, syscallno));
+<<<<<<< HEAD
   DEFINE(S_FRAME_SIZE,		sizeof(struct pt_regs));
   BLANK();
   DEFINE(MM_CONTEXT_ID,		offsetof(struct mm_struct, context.id));
+=======
+  DEFINE(S_ORIG_ADDR_LIMIT,	offsetof(struct pt_regs, orig_addr_limit));
+  DEFINE(S_FRAME_SIZE,		sizeof(struct pt_regs));
+  BLANK();
+  DEFINE(MM_CONTEXT_ID,		offsetof(struct mm_struct, context.id.counter));
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
   BLANK();
   DEFINE(VMA_VM_MM,		offsetof(struct vm_area_struct, vm_mm));
   DEFINE(VMA_VM_FLAGS,		offsetof(struct vm_area_struct, vm_flags));
@@ -71,15 +90,22 @@ int main(void)
   BLANK();
   DEFINE(PAGE_SZ,	       	PAGE_SIZE);
   BLANK();
+<<<<<<< HEAD
   DEFINE(CPU_INFO_SZ,		sizeof(struct cpu_info));
   DEFINE(CPU_INFO_SETUP,	offsetof(struct cpu_info, cpu_setup));
   BLANK();
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
   DEFINE(DMA_BIDIRECTIONAL,	DMA_BIDIRECTIONAL);
   DEFINE(DMA_TO_DEVICE,		DMA_TO_DEVICE);
   DEFINE(DMA_FROM_DEVICE,	DMA_FROM_DEVICE);
   BLANK();
   DEFINE(CLOCK_REALTIME,	CLOCK_REALTIME);
   DEFINE(CLOCK_MONOTONIC,	CLOCK_MONOTONIC);
+<<<<<<< HEAD
+=======
+  DEFINE(CLOCK_MONOTONIC_RAW,	CLOCK_MONOTONIC_RAW);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
   DEFINE(CLOCK_REALTIME_RES,	MONOTONIC_RES_NSEC);
   DEFINE(CLOCK_REALTIME_COARSE,	CLOCK_REALTIME_COARSE);
   DEFINE(CLOCK_MONOTONIC_COARSE,CLOCK_MONOTONIC_COARSE);
@@ -87,6 +113,11 @@ int main(void)
   DEFINE(NSEC_PER_SEC,		NSEC_PER_SEC);
   BLANK();
   DEFINE(VDSO_CS_CYCLE_LAST,	offsetof(struct vdso_data, cs_cycle_last));
+<<<<<<< HEAD
+=======
+  DEFINE(VDSO_RAW_TIME_SEC,	offsetof(struct vdso_data, raw_time_sec));
+  DEFINE(VDSO_RAW_TIME_NSEC,	offsetof(struct vdso_data, raw_time_nsec));
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
   DEFINE(VDSO_XTIME_CLK_SEC,	offsetof(struct vdso_data, xtime_clock_sec));
   DEFINE(VDSO_XTIME_CLK_NSEC,	offsetof(struct vdso_data, xtime_clock_nsec));
   DEFINE(VDSO_XTIME_CRS_SEC,	offsetof(struct vdso_data, xtime_coarse_sec));
@@ -94,7 +125,12 @@ int main(void)
   DEFINE(VDSO_WTM_CLK_SEC,	offsetof(struct vdso_data, wtm_clock_sec));
   DEFINE(VDSO_WTM_CLK_NSEC,	offsetof(struct vdso_data, wtm_clock_nsec));
   DEFINE(VDSO_TB_SEQ_COUNT,	offsetof(struct vdso_data, tb_seq_count));
+<<<<<<< HEAD
   DEFINE(VDSO_CS_MULT,		offsetof(struct vdso_data, cs_mult));
+=======
+  DEFINE(VDSO_CS_MONO_MULT,	offsetof(struct vdso_data, cs_mono_mult));
+  DEFINE(VDSO_CS_RAW_MULT,	offsetof(struct vdso_data, cs_raw_mult));
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
   DEFINE(VDSO_CS_SHIFT,		offsetof(struct vdso_data, cs_shift));
   DEFINE(VDSO_TZ_MINWEST,	offsetof(struct vdso_data, tz_minuteswest));
   DEFINE(VDSO_TZ_DSTTIME,	offsetof(struct vdso_data, tz_dsttime));
@@ -161,5 +197,12 @@ int main(void)
   DEFINE(SLEEP_SAVE_SP_PHYS,	offsetof(struct sleep_save_sp, save_ptr_stash_phys));
   DEFINE(SLEEP_SAVE_SP_VIRT,	offsetof(struct sleep_save_sp, save_ptr_stash));
 #endif
+<<<<<<< HEAD
+=======
+  BLANK();
+#ifdef CONFIG_UNMAP_KERNEL_AT_EL0
+  DEFINE(TRAMP_VALIAS,		TRAMP_VALIAS);
+#endif
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
   return 0;
 }

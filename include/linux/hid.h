@@ -169,9 +169,12 @@ struct hid_item {
 #define HID_UP_LOGIVENDOR	0xffbc0000
 #define HID_UP_LNVENDOR		0xffa00000
 #define HID_UP_SENSOR		0x00200000
+<<<<<<< HEAD
 #ifdef CONFIG_USB_HMT_SAMSUNG_INPUT
 #define HID_UP_HMTVENDOR		0xff020000
 #endif
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #define HID_USAGE		0x0000ffff
 
@@ -427,7 +430,11 @@ struct hid_report_enum {
 };
 
 #define HID_MIN_BUFFER_SIZE	64		/* make sure there is at least a packet size of space */
+<<<<<<< HEAD
 #define HID_MAX_BUFFER_SIZE	4096		/* 4kb */
+=======
+#define HID_MAX_BUFFER_SIZE	8192		/* 8kb */
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #define HID_CONTROL_FIFO_SIZE	256		/* to init devices with >100 reports */
 #define HID_OUTPUT_FIFO_SIZE	64
 
@@ -731,11 +738,16 @@ struct hid_ll_driver {
 
 /* Applications from HID Usage Tables 4/8/99 Version 1.1 */
 /* We ignore a few input applications that are not widely used */
+<<<<<<< HEAD
 #ifdef CONFIG_USB_HMT_SAMSUNG_INPUT
 #define IS_INPUT_APPLICATION(a) (((a >= 0x00010000) && (a <= 0x00010008)) || (a == 0x00010080) || (a == 0x000c0001) || ((a >= 0x000d0002) && (a <= 0x000d0006)) || a == 0xff020001)
 #else
 #define IS_INPUT_APPLICATION(a) (((a >= 0x00010000) && (a <= 0x00010008)) || (a == 0x00010080) || (a == 0x000c0001) || ((a >= 0x000d0002) && (a <= 0x000d0006)))
 #endif
+=======
+#define IS_INPUT_APPLICATION(a) (((a >= 0x00010000) && (a <= 0x00010008)) || (a == 0x00010080) || (a == 0x000c0001) || ((a >= 0x000d0002) && (a <= 0x000d0006)))
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /* HID core API */
 
 extern int hid_debug;

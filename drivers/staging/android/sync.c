@@ -175,6 +175,7 @@ err:
 	return NULL;
 }
 
+<<<<<<< HEAD
 static void sync_fence_free(struct kref *kref)
 {
 	struct sync_fence *fence = container_of(kref, struct sync_fence, kref);
@@ -215,6 +216,8 @@ static void sync_fence_delayed_free(struct kref *kref) {
 	schedule_delayed_work(&sync_fence_delayed_work, 1);
 }
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static void fence_check_cb_func(struct fence *f, struct fence_cb *cb)
 {
 	struct sync_fence_cb *check;
@@ -225,8 +228,11 @@ static void fence_check_cb_func(struct fence *f, struct fence_cb *cb)
 
 	if (atomic_dec_and_test(&fence->status))
 		wake_up_all(&fence->wq);
+<<<<<<< HEAD
 
 	kref_put(&fence->kref, sync_fence_delayed_free);
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 /* TODO: implement a create which takes more that one sync_pt */
@@ -238,17 +244,25 @@ struct sync_fence *sync_fence_create(const char *name, struct sync_pt *pt)
 	if (fence == NULL)
 		return NULL;
 
+<<<<<<< HEAD
 	kref_get(&fence->kref);
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	fence->num_fences = 1;
 	atomic_set(&fence->status, 1);
 
 	fence->cbs[0].sync_pt = &pt->base;
 	fence->cbs[0].fence = fence;
 	if (fence_add_callback(&pt->base, &fence->cbs[0].cb,
+<<<<<<< HEAD
 			       fence_check_cb_func)) {
 		atomic_dec(&fence->status);
 		kref_put(&fence->kref, sync_fence_free);
 	}
+=======
+			       fence_check_cb_func))
+		atomic_dec(&fence->status);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	sync_fence_debug_add(fence);
 
@@ -293,7 +307,10 @@ static void sync_fence_add_pt(struct sync_fence *fence,
 	fence->cbs[*i].fence = fence;
 
 	if (!fence_add_callback(pt, &fence->cbs[*i].cb, fence_check_cb_func)) {
+<<<<<<< HEAD
 		kref_get(&fence->kref);
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		fence_get(pt);
 		(*i)++;
 	}
@@ -312,7 +329,10 @@ struct sync_fence *sync_fence_merge(const char *name,
 		return NULL;
 
 	atomic_set(&fence->status, num_fences);
+<<<<<<< HEAD
 	kref_get(&fence->kref);
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	/*
 	 * Assume sync_fence a and b are both ordered and have no
@@ -354,7 +374,10 @@ struct sync_fence *sync_fence_merge(const char *name,
 		atomic_sub(num_fences - i, &fence->status);
 	fence->num_fences = i;
 
+<<<<<<< HEAD
 	kref_put(&fence->kref, sync_fence_free);
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	sync_fence_debug_add(fence);
 	return fence;
 }
@@ -416,10 +439,13 @@ int sync_fence_cancel_async(struct sync_fence *fence,
 }
 EXPORT_SYMBOL(sync_fence_cancel_async);
 
+<<<<<<< HEAD
 #ifdef CONFIG_MALI_SEC_JOB_STATUS_CHECK
 extern int gpu_job_fence_status_dump(struct sync_fence *timeout_fence);
 #endif
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 int sync_fence_wait(struct sync_fence *fence, long timeout)
 {
 	long ret;
@@ -442,6 +468,7 @@ int sync_fence_wait(struct sync_fence *fence, long timeout)
 		return ret;
 	} else if (ret == 0) {
 		if (timeout) {
+<<<<<<< HEAD
 #if defined(CONFIG_SAMSUNG_PRODUCT_SHIP)
 			pr_info("fence timeout on [%pK] after %dms\n", fence,
 				jiffies_to_msecs(timeout));
@@ -453,6 +480,10 @@ int sync_fence_wait(struct sync_fence *fence, long timeout)
 			pr_info("GPU JOB STATUS DUMP\n");
 			gpu_job_fence_status_dump(fence);
 #endif
+=======
+			pr_info("fence timeout on [%p] after %dms\n", fence,
+				jiffies_to_msecs(timeout));
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			sync_dump();
 		}
 		return -ETIME;
@@ -460,6 +491,7 @@ int sync_fence_wait(struct sync_fence *fence, long timeout)
 
 	ret = atomic_read(&fence->status);
 	if (ret) {
+<<<<<<< HEAD
 #if defined(CONFIG_SAMSUNG_PRODUCT_SHIP)
 		pr_info("fence error %ld on [%pK]\n", ret, fence);
 #else
@@ -469,6 +501,9 @@ int sync_fence_wait(struct sync_fence *fence, long timeout)
 		pr_info("GPU JOB STATUS DUMP\n");
 		gpu_job_fence_status_dump(fence);
 #endif
+=======
+		pr_info("fence error %ld on [%p]\n", ret, fence);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		sync_dump();
 	}
 	return ret;
@@ -534,6 +569,16 @@ static bool android_fence_enable_signaling(struct fence *fence)
 	return true;
 }
 
+<<<<<<< HEAD
+=======
+static void android_fence_disable_signaling(struct fence *fence)
+{
+	struct sync_pt *pt = container_of(fence, struct sync_pt, base);
+
+	list_del_init(&pt->active_list);
+}
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static int android_fence_fill_driver_data(struct fence *fence,
 					  void *data, int size)
 {
@@ -577,6 +622,10 @@ static const struct fence_ops android_fence_ops = {
 	.get_driver_name = android_fence_get_driver_name,
 	.get_timeline_name = android_fence_get_timeline_name,
 	.enable_signaling = android_fence_enable_signaling,
+<<<<<<< HEAD
+=======
+	.disable_signaling = android_fence_disable_signaling,
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	.signaled = android_fence_signaled,
 	.wait = fence_default_wait,
 	.release = android_fence_release,
@@ -585,6 +634,7 @@ static const struct fence_ops android_fence_ops = {
 	.timeline_value_str = android_fence_timeline_value_str,
 };
 
+<<<<<<< HEAD
 static int sync_fence_release(struct inode *inode, struct file *file)
 {
 	struct sync_fence *fence = file->private_data;
@@ -599,6 +649,27 @@ static int sync_fence_release(struct inode *inode, struct file *file)
 				kref_put(&fence->kref, sync_fence_free);
 		}
 	}
+=======
+static void sync_fence_free(struct kref *kref)
+{
+	struct sync_fence *fence = container_of(kref, struct sync_fence, kref);
+	int i;
+
+	for (i = 0; i < fence->num_fences; ++i) {
+		fence_remove_callback(fence->cbs[i].sync_pt, &fence->cbs[i].cb);
+		fence_put(fence->cbs[i].sync_pt);
+	}
+
+	kfree(fence);
+}
+
+static int sync_fence_release(struct inode *inode, struct file *file)
+{
+	struct sync_fence *fence = file->private_data;
+
+	sync_fence_debug_remove(fence);
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	kref_put(&fence->kref, sync_fence_free);
 	return 0;
 }

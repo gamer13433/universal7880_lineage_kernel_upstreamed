@@ -740,8 +740,11 @@ void elv_completed_request(struct request_queue *q, struct request *rq)
 	 */
 	if (blk_account_rq(rq)) {
 		q->in_flight[rq_is_sync(rq)]--;
+<<<<<<< HEAD
 		if (!queue_in_flight(q))
 			q->in_flight_time += ktime_us_delta(ktime_get(), q->in_flight_stamp);
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		if ((rq->cmd_flags & REQ_SORTED) &&
 		    e->type->ops.elevator_completed_req_fn)
 			e->type->ops.elevator_completed_req_fn(q, rq);

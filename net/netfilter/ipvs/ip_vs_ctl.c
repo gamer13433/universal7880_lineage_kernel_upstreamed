@@ -97,7 +97,10 @@ static bool __ip_vs_addr_is_local_v6(struct net *net,
 static void update_defense_level(struct netns_ipvs *ipvs)
 {
 	struct sysinfo i;
+<<<<<<< HEAD
 	static int old_secure_tcp = 0;
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	int availmem;
 	int nomem;
 	int to_change = -1;
@@ -178,35 +181,62 @@ static void update_defense_level(struct netns_ipvs *ipvs)
 	spin_lock(&ipvs->securetcp_lock);
 	switch (ipvs->sysctl_secure_tcp) {
 	case 0:
+<<<<<<< HEAD
 		if (old_secure_tcp >= 2)
+=======
+		if (ipvs->old_secure_tcp >= 2)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			to_change = 0;
 		break;
 	case 1:
 		if (nomem) {
+<<<<<<< HEAD
 			if (old_secure_tcp < 2)
 				to_change = 1;
 			ipvs->sysctl_secure_tcp = 2;
 		} else {
 			if (old_secure_tcp >= 2)
+=======
+			if (ipvs->old_secure_tcp < 2)
+				to_change = 1;
+			ipvs->sysctl_secure_tcp = 2;
+		} else {
+			if (ipvs->old_secure_tcp >= 2)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 				to_change = 0;
 		}
 		break;
 	case 2:
 		if (nomem) {
+<<<<<<< HEAD
 			if (old_secure_tcp < 2)
 				to_change = 1;
 		} else {
 			if (old_secure_tcp >= 2)
+=======
+			if (ipvs->old_secure_tcp < 2)
+				to_change = 1;
+		} else {
+			if (ipvs->old_secure_tcp >= 2)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 				to_change = 0;
 			ipvs->sysctl_secure_tcp = 1;
 		}
 		break;
 	case 3:
+<<<<<<< HEAD
 		if (old_secure_tcp < 2)
 			to_change = 1;
 		break;
 	}
 	old_secure_tcp = ipvs->sysctl_secure_tcp;
+=======
+		if (ipvs->old_secure_tcp < 2)
+			to_change = 1;
+		break;
+	}
+	ipvs->old_secure_tcp = ipvs->sysctl_secure_tcp;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (to_change >= 0)
 		ip_vs_protocol_timeout_change(ipvs,
 					      ipvs->sysctl_secure_tcp > 1);

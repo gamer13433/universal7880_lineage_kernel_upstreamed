@@ -1342,7 +1342,11 @@ unsigned long try_to_compact_pages(struct zonelist *zonelist,
 		return COMPACT_SKIPPED;
 
 #ifdef CONFIG_CMA
+<<<<<<< HEAD
 	if (gfp_mask & __GFP_CMA)
+=======
+	if (gfpflags_to_migratetype(gfp_mask) == MIGRATE_MOVABLE)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		alloc_flags |= ALLOC_CMA;
 #endif
 	/* Compact each zone in the list */
@@ -1448,6 +1452,7 @@ static void __compact_pgdat(pg_data_t *pgdat, struct compact_control *cc)
 		INIT_LIST_HEAD(&cc->freepages);
 		INIT_LIST_HEAD(&cc->migratepages);
 
+<<<<<<< HEAD
 		/*
 		 * When called via /proc/sys/vm/compact_memory
 		 * this makes sure we compact the whole zone regardless of
@@ -1456,6 +1461,8 @@ static void __compact_pgdat(pg_data_t *pgdat, struct compact_control *cc)
 		if (cc->order == -1)
 			__reset_isolation_suitable(zone);
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		if (cc->order == -1 || !compaction_deferred(zone, cc->order))
 			compact_zone(zone, cc);
 
@@ -1487,7 +1494,11 @@ static void compact_node(int nid)
 {
 	struct compact_control cc = {
 		.order = -1,
+<<<<<<< HEAD
 		.mode = MIGRATE_SYNC_LIGHT,
+=======
+		.mode = MIGRATE_SYNC,
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		.ignore_skip_hint = true,
 	};
 
@@ -1513,6 +1524,7 @@ int sysctl_compact_memory;
 int sysctl_compaction_handler(struct ctl_table *table, int write,
 			void __user *buffer, size_t *length, loff_t *ppos)
 {
+<<<<<<< HEAD
 	if (write) {
 		pr_info("compact_memory start.(%d times so far)\n",
 			sysctl_compact_memory);
@@ -1523,6 +1535,10 @@ int sysctl_compaction_handler(struct ctl_table *table, int write,
 	}
 	else
 		proc_dointvec(table, write, buffer, length, ppos);
+=======
+	if (write)
+		compact_nodes();
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	return 0;
 }

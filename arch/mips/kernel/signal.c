@@ -243,7 +243,11 @@ int restore_sigcontext(struct pt_regs *regs, struct sigcontext __user *sc)
 	int i;
 
 	/* Always make any pending restarted system calls return -EINTR */
+<<<<<<< HEAD
 	current_thread_info()->restart_block.fn = do_no_restart_syscall;
+=======
+	current->restart_block.fn = do_no_restart_syscall;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	err |= __get_user(regs->cp0_epc, &sc->sc_pc);
 

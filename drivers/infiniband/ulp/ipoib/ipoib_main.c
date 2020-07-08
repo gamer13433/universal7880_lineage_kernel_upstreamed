@@ -278,7 +278,11 @@ int ipoib_set_mode(struct net_device *dev, const char *buf)
 	return -EINVAL;
 }
 
+<<<<<<< HEAD
 static struct ipoib_path *__path_find(struct net_device *dev, void *gid)
+=======
+struct ipoib_path *__path_find(struct net_device *dev, void *gid)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	struct ipoib_dev_priv *priv = netdev_priv(dev);
 	struct rb_node *n = priv->path_tree.rb_node;
@@ -488,6 +492,25 @@ static void path_rec_completion(int status,
 	spin_lock_irqsave(&priv->lock, flags);
 
 	if (!IS_ERR_OR_NULL(ah)) {
+<<<<<<< HEAD
+=======
+		/*
+		 * pathrec.dgid is used as the database key from the LLADDR,
+		 * it must remain unchanged even if the SA returns a different
+		 * GID to use in the AH.
+		 */
+		if (memcmp(pathrec->dgid.raw, path->pathrec.dgid.raw,
+			   sizeof(union ib_gid))) {
+			ipoib_dbg(
+				priv,
+				"%s got PathRec for gid %pI6 while asked for %pI6\n",
+				dev->name, pathrec->dgid.raw,
+				path->pathrec.dgid.raw);
+			memcpy(pathrec->dgid.raw, path->pathrec.dgid.raw,
+			       sizeof(union ib_gid));
+		}
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		path->pathrec = *pathrec;
 
 		old_ah   = path->ah;
@@ -909,7 +932,13 @@ struct ipoib_neigh *ipoib_neigh_get(struct net_device *dev, u8 *daddr)
 				neigh = NULL;
 				goto out_unlock;
 			}
+<<<<<<< HEAD
 			neigh->alive = jiffies;
+=======
+
+			if (likely(skb_queue_len(&neigh->queue) < IPOIB_MAX_PATH_REC_QUEUE))
+				neigh->alive = jiffies;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			goto out_unlock;
 		}
 	}

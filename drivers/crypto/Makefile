@@ -25,4 +25,7 @@ obj-$(CONFIG_CRYPTO_DEV_TALITOS) += talitos.o
 obj-$(CONFIG_CRYPTO_DEV_UX500) += ux500/
 obj-$(CONFIG_CRYPTO_DEV_QAT) += qat/
 obj-$(CONFIG_CRYPTO_DEV_QCE) += qce/
+<<<<<<< HEAD
 obj-y				 += fmp/
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012

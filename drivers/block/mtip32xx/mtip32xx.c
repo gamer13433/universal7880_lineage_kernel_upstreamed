@@ -621,8 +621,11 @@ static void mtip_handle_tfe(struct driver_data *dd)
 
 	port = dd->port;
 
+<<<<<<< HEAD
 	set_bit(MTIP_PF_EH_ACTIVE_BIT, &port->flags);
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (test_bit(MTIP_PF_IC_ACTIVE_BIT, &port->flags) &&
 			test_bit(MTIP_TAG_INTERNAL, port->allocated)) {
 		cmd = mtip_cmd_from_tag(dd, MTIP_TAG_INTERNAL);
@@ -632,7 +635,11 @@ static void mtip_handle_tfe(struct driver_data *dd)
 			cmd->comp_func(port, MTIP_TAG_INTERNAL,
 					cmd, PORT_IRQ_TF_ERR);
 		}
+<<<<<<< HEAD
 		goto handle_tfe_exit;
+=======
+		return;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 	/* clear the tag accumulator */
@@ -775,11 +782,14 @@ static void mtip_handle_tfe(struct driver_data *dd)
 		}
 	}
 	print_tags(dd, "reissued (TFE)", tagaccum, cmd_cnt);
+<<<<<<< HEAD
 
 handle_tfe_exit:
 	/* clear eh_active */
 	clear_bit(MTIP_PF_EH_ACTIVE_BIT, &port->flags);
 	wake_up_interruptible(&port->svc_wait);
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 /*

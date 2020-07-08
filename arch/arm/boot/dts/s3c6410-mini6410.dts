@@ -167,6 +167,13 @@
 	};
 };
 
+<<<<<<< HEAD
+=======
+&clocks {
+	clocks = <&fin_pll>;
+};
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 &sdhci0 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&sd0_clk>, <&sd0_cmd>, <&sd0_cd>, <&sd0_bus4>;

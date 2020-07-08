@@ -48,8 +48,15 @@ static ssize_t cm_write(struct file *file, const char __user * user_buf,
 	if ((*ppos > max_size) ||
 	    (*ppos + count > max_size) ||
 	    (*ppos + count < count) ||
+<<<<<<< HEAD
 	    (count > uncopied_bytes))
 		return -EINVAL;
+=======
+	    (count > uncopied_bytes)) {
+		kfree(buf);
+		return -EINVAL;
+	}
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if (copy_from_user(buf + (*ppos), user_buf, count)) {
 		kfree(buf);
@@ -69,6 +76,10 @@ static ssize_t cm_write(struct file *file, const char __user * user_buf,
 		add_taint(TAINT_OVERRIDDEN_ACPI_TABLE, LOCKDEP_NOW_UNRELIABLE);
 	}
 
+<<<<<<< HEAD
+=======
+	kfree(buf);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return count;
 }
 

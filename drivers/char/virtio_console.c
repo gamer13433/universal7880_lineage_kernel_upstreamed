@@ -76,7 +76,11 @@ struct ports_driver_data {
 	/* All the console devices handled by this driver */
 	struct list_head consoles;
 };
+<<<<<<< HEAD
 static struct ports_driver_data pdrvdata;
+=======
+static struct ports_driver_data pdrvdata = { .next_vtermno = 1};
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 static DEFINE_SPINLOCK(pdrvdata_lock);
 static DECLARE_COMPLETION(early_console_added);
@@ -417,7 +421,11 @@ static void reclaim_dma_bufs(void)
 	}
 }
 
+<<<<<<< HEAD
 static struct port_buffer *alloc_buf(struct virtqueue *vq, size_t buf_size,
+=======
+static struct port_buffer *alloc_buf(struct virtio_device *vdev, size_t buf_size,
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 				     int pages)
 {
 	struct port_buffer *buf;
@@ -440,7 +448,11 @@ static struct port_buffer *alloc_buf(struct virtqueue *vq, size_t buf_size,
 		return buf;
 	}
 
+<<<<<<< HEAD
 	if (is_rproc_serial(vq->vdev)) {
+=======
+	if (is_rproc_serial(vdev)) {
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		/*
 		 * Allocate DMA memory from ancestor. When a virtio
 		 * device is created by remoteproc, the DMA memory is
@@ -450,9 +462,15 @@ static struct port_buffer *alloc_buf(struct virtqueue *vq, size_t buf_size,
 		 * DMA_MEMORY_INCLUDES_CHILDREN had been supported
 		 * in dma-coherent.c
 		 */
+<<<<<<< HEAD
 		if (!vq->vdev->dev.parent || !vq->vdev->dev.parent->parent)
 			goto free_buf;
 		buf->dev = vq->vdev->dev.parent->parent;
+=======
+		if (!vdev->dev.parent || !vdev->dev.parent->parent)
+			goto free_buf;
+		buf->dev = vdev->dev.parent->parent;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 		/* Increase device refcnt to avoid freeing it */
 		get_device(buf->dev);
@@ -834,7 +852,11 @@ static ssize_t port_fops_write(struct file *filp, const char __user *ubuf,
 
 	count = min((size_t)(32 * 1024), count);
 
+<<<<<<< HEAD
 	buf = alloc_buf(port->out_vq, count, 0);
+=======
+	buf = alloc_buf(port->portdev->vdev, count, 0);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (!buf)
 		return -ENOMEM;
 
@@ -953,7 +975,11 @@ static ssize_t port_fops_splice_write(struct pipe_inode_info *pipe,
 	if (ret < 0)
 		goto error_out;
 
+<<<<<<< HEAD
 	buf = alloc_buf(port->out_vq, 0, pipe->nrbufs);
+=======
+	buf = alloc_buf(port->portdev->vdev, 0, pipe->nrbufs);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (!buf) {
 		ret = -ENOMEM;
 		goto error_out;
@@ -1362,24 +1388,41 @@ static void set_console_size(struct port *port, u16 rows, u16 cols)
 	port->cons.ws.ws_col = cols;
 }
 
+<<<<<<< HEAD
 static unsigned int fill_queue(struct virtqueue *vq, spinlock_t *lock)
 {
 	struct port_buffer *buf;
 	unsigned int nr_added_bufs;
+=======
+static int fill_queue(struct virtqueue *vq, spinlock_t *lock)
+{
+	struct port_buffer *buf;
+	int nr_added_bufs;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	int ret;
 
 	nr_added_bufs = 0;
 	do {
+<<<<<<< HEAD
 		buf = alloc_buf(vq, PAGE_SIZE, 0);
 		if (!buf)
 			break;
+=======
+		buf = alloc_buf(vq->vdev, PAGE_SIZE, 0);
+		if (!buf)
+			return -ENOMEM;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 		spin_lock_irq(lock);
 		ret = add_inbuf(vq, buf);
 		if (ret < 0) {
 			spin_unlock_irq(lock);
 			free_buf(buf, true);
+<<<<<<< HEAD
 			break;
+=======
+			return ret;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		}
 		nr_added_bufs++;
 		spin_unlock_irq(lock);
@@ -1399,7 +1442,10 @@ static int add_port(struct ports_device *portdev, u32 id)
 	char debugfs_name[16];
 	struct port *port;
 	dev_t devt;
+<<<<<<< HEAD
 	unsigned int nr_added_bufs;
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	int err;
 
 	port = kmalloc(sizeof(*port), GFP_KERNEL);
@@ -1418,6 +1464,10 @@ static int add_port(struct ports_device *portdev, u32 id)
 	port->async_queue = NULL;
 
 	port->cons.ws.ws_row = port->cons.ws.ws_col = 0;
+<<<<<<< HEAD
+=======
+	port->cons.vtermno = 0;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	port->host_connected = port->guest_connected = false;
 	port->stats = (struct port_stats) { 0 };
@@ -1457,11 +1507,21 @@ static int add_port(struct ports_device *portdev, u32 id)
 	spin_lock_init(&port->outvq_lock);
 	init_waitqueue_head(&port->waitqueue);
 
+<<<<<<< HEAD
 	/* Fill the in_vq with buffers so the host can send us data. */
 	nr_added_bufs = fill_queue(port->in_vq, &port->inbuf_lock);
 	if (!nr_added_bufs) {
 		dev_err(port->dev, "Error allocating inbufs\n");
 		err = -ENOMEM;
+=======
+	/* We can safely ignore ENOSPC because it means
+	 * the queue already has buffers. Buffers are removed
+	 * only by virtcons_remove(), not by unplug_port()
+	 */
+	err = fill_queue(port->in_vq, &port->inbuf_lock);
+	if (err < 0 && err != -ENOSPC) {
+		dev_err(port->dev, "Error allocating inbufs\n");
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		goto free_device;
 	}
 
@@ -1980,6 +2040,7 @@ static void remove_vqs(struct ports_device *portdev)
 	kfree(portdev->out_vqs);
 }
 
+<<<<<<< HEAD
 static void remove_controlq_data(struct ports_device *portdev)
 {
 	struct port_buffer *buf;
@@ -1993,6 +2054,42 @@ static void remove_controlq_data(struct ports_device *portdev)
 
 	while ((buf = virtqueue_detach_unused_buf(portdev->c_ivq)))
 		free_buf(buf, true);
+=======
+static void virtcons_remove(struct virtio_device *vdev)
+{
+	struct ports_device *portdev;
+	struct port *port, *port2;
+
+	portdev = vdev->priv;
+
+	spin_lock_irq(&pdrvdata_lock);
+	list_del(&portdev->list);
+	spin_unlock_irq(&pdrvdata_lock);
+
+	/* Disable interrupts for vqs */
+	vdev->config->reset(vdev);
+	/* Finish up work that's lined up */
+	if (use_multiport(portdev))
+		cancel_work_sync(&portdev->control_work);
+	else
+		cancel_work_sync(&portdev->config_work);
+
+	list_for_each_entry_safe(port, port2, &portdev->ports, list)
+		unplug_port(port);
+
+	unregister_chrdev(portdev->chr_major, "virtio-portsdev");
+
+	/*
+	 * When yanking out a device, we immediately lose the
+	 * (device-side) queues.  So there's no point in keeping the
+	 * guest side around till we drop our final reference.  This
+	 * also means that any ports which are in an open state will
+	 * have to just stop using the port, as the vqs are going
+	 * away.
+	 */
+	remove_vqs(portdev);
+	kfree(portdev);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 /*
@@ -2052,6 +2149,10 @@ static int virtcons_probe(struct virtio_device *vdev)
 
 	spin_lock_init(&portdev->ports_lock);
 	INIT_LIST_HEAD(&portdev->ports);
+<<<<<<< HEAD
+=======
+	INIT_LIST_HEAD(&portdev->list);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	virtio_device_ready(portdev->vdev);
 
@@ -2059,6 +2160,7 @@ static int virtcons_probe(struct virtio_device *vdev)
 	INIT_WORK(&portdev->control_work, &control_work_handler);
 
 	if (multiport) {
+<<<<<<< HEAD
 		unsigned int nr_added_bufs;
 
 		spin_lock_init(&portdev->c_ivq_lock);
@@ -2071,6 +2173,24 @@ static int virtcons_probe(struct virtio_device *vdev)
 				"Error allocating buffers for control queue\n");
 			err = -ENOMEM;
 			goto free_vqs;
+=======
+		spin_lock_init(&portdev->c_ivq_lock);
+		spin_lock_init(&portdev->c_ovq_lock);
+
+		err = fill_queue(portdev->c_ivq, &portdev->c_ivq_lock);
+		if (err < 0) {
+			dev_err(&vdev->dev,
+				"Error allocating buffers for control queue\n");
+			/*
+			 * The host might want to notify mgmt sw about device
+			 * add failure.
+			 */
+			__send_control_msg(portdev, VIRTIO_CONSOLE_BAD_ID,
+					   VIRTIO_CONSOLE_DEVICE_READY, 0);
+			/* Device was functional: we need full cleanup. */
+			virtcons_remove(vdev);
+			return err;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		}
 	} else {
 		/*
@@ -2101,11 +2221,14 @@ static int virtcons_probe(struct virtio_device *vdev)
 
 	return 0;
 
+<<<<<<< HEAD
 free_vqs:
 	/* The host might want to notify mgmt sw about device add failure */
 	__send_control_msg(portdev, VIRTIO_CONSOLE_BAD_ID,
 			   VIRTIO_CONSOLE_DEVICE_READY, 0);
 	remove_vqs(portdev);
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 free_chrdev:
 	unregister_chrdev(portdev->chr_major, "virtio-portsdev");
 free:
@@ -2114,6 +2237,7 @@ fail:
 	return err;
 }
 
+<<<<<<< HEAD
 static void virtcons_remove(struct virtio_device *vdev)
 {
 	struct ports_device *portdev;
@@ -2151,6 +2275,8 @@ static void virtcons_remove(struct virtio_device *vdev)
 	kfree(portdev);
 }
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static struct virtio_device_id id_table[] = {
 	{ VIRTIO_ID_CONSOLE, VIRTIO_DEV_ANY_ID },
 	{ 0 },
@@ -2181,15 +2307,25 @@ static int virtcons_freeze(struct virtio_device *vdev)
 
 	vdev->config->reset(vdev);
 
+<<<<<<< HEAD
 	virtqueue_disable_cb(portdev->c_ivq);
+=======
+	if (use_multiport(portdev))
+		virtqueue_disable_cb(portdev->c_ivq);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	cancel_work_sync(&portdev->control_work);
 	cancel_work_sync(&portdev->config_work);
 	/*
 	 * Once more: if control_work_handler() was running, it would
 	 * enable the cb as the last step.
 	 */
+<<<<<<< HEAD
 	virtqueue_disable_cb(portdev->c_ivq);
 	remove_controlq_data(portdev);
+=======
+	if (use_multiport(portdev))
+		virtqueue_disable_cb(portdev->c_ivq);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	list_for_each_entry(port, &portdev->ports, list) {
 		virtqueue_disable_cb(port->in_vq);

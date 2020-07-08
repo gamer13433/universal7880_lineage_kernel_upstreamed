@@ -75,7 +75,11 @@ static void hda_fixup_thinkpad_acpi(struct hda_codec *codec,
 			removefunc = false;
 		}
 		if (led_set_func(TPACPI_LED_MICMUTE, false) >= 0) {
+<<<<<<< HEAD
 			if (spec->num_adc_nids > 1)
+=======
+			if (spec->num_adc_nids > 1 && !spec->dyn_adc_switch)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 				codec_dbg(codec,
 					  "Skipping micmute LED control due to several ADCs");
 			else {

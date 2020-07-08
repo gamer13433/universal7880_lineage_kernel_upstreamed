@@ -75,11 +75,19 @@ nfs_fattr_to_ino_t(struct nfs_fattr *fattr)
  * nfs_wait_bit_killable - helper for functions that are sleeping on bit locks
  * @word: long word containing the bit lock
  */
+<<<<<<< HEAD
 int nfs_wait_bit_killable(struct wait_bit_key *key, int mode)
 {
 	freezable_schedule_unsafe();
 	if (signal_pending_state(mode, current))
 		return -ERESTARTSYS;
+=======
+int nfs_wait_bit_killable(struct wait_bit_key *key)
+{
+	if (fatal_signal_pending(current))
+		return -ERESTARTSYS;
+	freezable_schedule_unsafe();
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return 0;
 }
 EXPORT_SYMBOL_GPL(nfs_wait_bit_killable);
@@ -903,6 +911,10 @@ int nfs_release(struct inode *inode, struct file *filp)
 	nfs_file_clear_open_context(filp);
 	return 0;
 }
+<<<<<<< HEAD
+=======
+EXPORT_SYMBOL_GPL(nfs_open);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /*
  * This function is called whenever some part of NFS notices that

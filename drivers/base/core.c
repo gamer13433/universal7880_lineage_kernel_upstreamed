@@ -10,6 +10,10 @@
  *
  */
 
+<<<<<<< HEAD
+=======
+#include <linux/cpufreq.h>
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #include <linux/device.h>
 #include <linux/err.h>
 #include <linux/init.h>
@@ -27,10 +31,13 @@
 #include <linux/netdevice.h>
 #include <linux/sysfs.h>
 
+<<<<<<< HEAD
 #ifdef CONFIG_ARCH_EXYNOS
 #include <soc/samsung/exynos-cpu_hotplug.h>
 #endif
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #include "base.h"
 #include "power/power.h"
 
@@ -430,11 +437,18 @@ static DEVICE_ATTR_RW(uevent);
 static ssize_t online_show(struct device *dev, struct device_attribute *attr,
 			   char *buf)
 {
+<<<<<<< HEAD
 	struct cpu *cpu = container_of(dev, struct cpu, dev);
 	bool val;
 
 	device_lock(dev);
 	val = !!cpu_online(cpu->dev.id);
+=======
+	bool val;
+
+	device_lock(dev);
+	val = !dev->offline;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	device_unlock(dev);
 	return sprintf(buf, "%u\n", val);
 }
@@ -445,11 +459,14 @@ static ssize_t online_store(struct device *dev, struct device_attribute *attr,
 	bool val;
 	int ret;
 
+<<<<<<< HEAD
 #ifdef CONFIG_ARCH_EXYNOS
 	if (exynos_cpu_hotplug_enabled())
 		return count;
 #endif
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	ret = strtobool(buf, &val);
 	if (ret < 0)
 		return ret;
@@ -1404,14 +1421,21 @@ int __init devices_init(void)
 
 static int device_check_offline(struct device *dev, void *not_used)
 {
+<<<<<<< HEAD
 	struct cpu *cpu = container_of(dev, struct cpu, dev);
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	int ret;
 
 	ret = device_for_each_child(dev, NULL, device_check_offline);
 	if (ret)
 		return ret;
 
+<<<<<<< HEAD
 	return device_supports_offline(dev) && cpu_online(cpu->dev.id) ? -EBUSY : 0;
+=======
+	return device_supports_offline(dev) && !dev->offline ? -EBUSY : 0;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 /**
@@ -1427,7 +1451,10 @@ static int device_check_offline(struct device *dev, void *not_used)
  */
 int device_offline(struct device *dev)
 {
+<<<<<<< HEAD
 	struct cpu *cpu = container_of(dev, struct cpu, dev);
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	int ret;
 
 	if (dev->offline_disabled)
@@ -1439,12 +1466,23 @@ int device_offline(struct device *dev)
 
 	device_lock(dev);
 	if (device_supports_offline(dev)) {
+<<<<<<< HEAD
 		if (!cpu_online(cpu->dev.id)) {
 			ret = 1;
 		} else {
 			ret = dev->bus->offline(dev);
 			if (!ret)
 				kobject_uevent(&dev->kobj, KOBJ_OFFLINE);
+=======
+		if (dev->offline) {
+			ret = 1;
+		} else {
+			ret = dev->bus->offline(dev);
+			if (!ret) {
+				kobject_uevent(&dev->kobj, KOBJ_OFFLINE);
+				dev->offline = true;
+			}
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		}
 	}
 	device_unlock(dev);
@@ -1464,15 +1502,27 @@ int device_offline(struct device *dev)
  */
 int device_online(struct device *dev)
 {
+<<<<<<< HEAD
 	struct cpu *cpu = container_of(dev, struct cpu, dev);
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	int ret = 0;
 
 	device_lock(dev);
 	if (device_supports_offline(dev)) {
+<<<<<<< HEAD
 		if (!cpu_online(cpu->dev.id)) {
 			ret = dev->bus->online(dev);
 			if (!ret)
 				kobject_uevent(&dev->kobj, KOBJ_ONLINE);
+=======
+		if (dev->offline) {
+			ret = dev->bus->online(dev);
+			if (!ret) {
+				kobject_uevent(&dev->kobj, KOBJ_ONLINE);
+				dev->offline = false;
+			}
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		} else {
 			ret = 1;
 		}
@@ -1930,9 +1980,12 @@ int device_move(struct device *dev, struct device *new_parent,
 	case DPM_ORDER_DEV_LAST:
 		device_pm_move_last(dev);
 		break;
+<<<<<<< HEAD
 	case DPM_ORDER_DEV_FIRST:
 		device_pm_move_first(dev);
 		break;
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 	put_device(old_parent);
@@ -1950,6 +2003,11 @@ void device_shutdown(void)
 {
 	struct device *dev, *parent;
 
+<<<<<<< HEAD
+=======
+	cpufreq_suspend();
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	spin_lock(&devices_kset->list_lock);
 	/*
 	 * Walk the devices list backward, shutting down each in turn.

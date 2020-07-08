@@ -18,6 +18,10 @@
 #include "ext4.h"
 #include "xattr.h"
 #include "truncate.h"
+<<<<<<< HEAD
+=======
+#include <trace/events/android_fs.h>
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #define EXT4_XATTR_SYSTEM_DATA	"data"
 #define EXT4_MIN_INLINE_DATA_SIZE	((sizeof(__le32) * EXT4_N_BLOCKS))
@@ -503,6 +507,20 @@ int ext4_readpage_inline(struct inode *inode, struct page *page)
 		return -EAGAIN;
 	}
 
+<<<<<<< HEAD
+=======
+	if (trace_android_fs_dataread_start_enabled()) {
+		char *path, pathbuf[MAX_TRACE_PATHBUF_LEN];
+
+		path = android_fstrace_get_pathname(pathbuf,
+						    MAX_TRACE_PATHBUF_LEN,
+						    inode);
+		trace_android_fs_dataread_start(inode, page_offset(page),
+						PAGE_SIZE, current->pid,
+						path, current->comm);
+	}
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/*
 	 * Current inline data can only exist in the 1st page,
 	 * So for all the other pages, just set them uptodate.
@@ -514,6 +532,11 @@ int ext4_readpage_inline(struct inode *inode, struct page *page)
 		SetPageUptodate(page);
 	}
 
+<<<<<<< HEAD
+=======
+	trace_android_fs_dataread_end(inode, page_offset(page), PAGE_SIZE);
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	up_read(&EXT4_I(inode)->xattr_sem);
 
 	unlock_page(page);
@@ -1405,7 +1428,11 @@ int htree_inlinedir_to_tree(struct file *dir_file,
 		err = ext4_htree_store_dirent(dir_file, hinfo->hash,
 					      hinfo->minor_hash, de, &tmp_str);
 		if (err) {
+<<<<<<< HEAD
 			count = err;
+=======
+			ret = err;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			goto out;
 		}
 		count++;
@@ -1632,7 +1659,11 @@ struct buffer_head *ext4_find_inline_entry(struct inode *dir,
 						EXT4_INLINE_DOTDOT_SIZE;
 	inline_size = EXT4_MIN_INLINE_DATA_SIZE - EXT4_INLINE_DOTDOT_SIZE;
 	ret = ext4_search_dir(iloc.bh, inline_start, inline_size,
+<<<<<<< HEAD
 			      dir, fname, d_name, 0, res_dir, NULL);
+=======
+			      dir, fname, d_name, 0, res_dir);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (ret == 1)
 		goto out_find;
 	if (ret < 0)
@@ -1645,7 +1676,11 @@ struct buffer_head *ext4_find_inline_entry(struct inode *dir,
 	inline_size = ext4_get_inline_size(dir) - EXT4_MIN_INLINE_DATA_SIZE;
 
 	ret = ext4_search_dir(iloc.bh, inline_start, inline_size,
+<<<<<<< HEAD
 			      dir, fname, d_name, 0, res_dir, NULL);
+=======
+			      dir, fname, d_name, 0, res_dir);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (ret == 1)
 		goto out_find;
 

@@ -34,10 +34,13 @@
 #include <linux/prefetch.h>
 #include <linux/memcontrol.h>
 
+<<<<<<< HEAD
 #ifdef CONFIG_SEC_DEBUG_AUTO_SUMMARY
 #include <linux/sec_debug.h>
 #endif
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #include <trace/events/kmem.h>
 
 #include "internal.h"
@@ -567,9 +570,14 @@ static void print_track(const char *s, struct track *t)
 	if (!t->addr)
 		return;
 
+<<<<<<< HEAD
 	pr_auto(ASL7, "INFO: %s in %pS age=%lu cpu=%u pid=%d\n",
 		   s, (void *)t->addr, jiffies - t->when, t->cpu, t->pid);
 
+=======
+	pr_err("INFO: %s in %pS age=%lu cpu=%u pid=%d\n",
+	       s, (void *)t->addr, jiffies - t->when, t->cpu, t->pid);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #ifdef CONFIG_STACKTRACE
 	{
 		int i;
@@ -606,10 +614,16 @@ static void slab_bug(struct kmem_cache *s, char *fmt, ...)
 	va_start(args, fmt);
 	vaf.fmt = fmt;
 	vaf.va = &args;
+<<<<<<< HEAD
 
 	pr_auto(ASL7, "=============================================================================\n");
 	pr_auto(ASL7, "BUG %s (%s): %pV\n", s->name, print_tainted(), &vaf);
 	pr_auto(ASL7, "-----------------------------------------------------------------------------\n");
+=======
+	pr_err("=============================================================================\n");
+	pr_err("BUG %s (%s): %pV\n", s->name, print_tainted(), &vaf);
+	pr_err("-----------------------------------------------------------------------------\n\n");
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	add_taint(TAINT_BAD_PAGE, LOCKDEP_NOW_UNRELIABLE);
 	va_end(args);
@@ -636,8 +650,13 @@ static void print_trailer(struct kmem_cache *s, struct page *page, u8 *p)
 
 	print_page_info(page);
 
+<<<<<<< HEAD
 	pr_auto(ASL7, "INFO: Object 0x%p @offset=%tu fp=0x%p\n\n",
 		   p, p - addr, get_freepointer(s, p));
+=======
+	pr_err("INFO: Object 0x%p @offset=%tu fp=0x%p\n\n",
+	       p, p - addr, get_freepointer(s, p));
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if (s->flags & SLAB_RED_ZONE)
 		print_section("Redzone ", p - s->red_left_pad, s->red_left_pad);
@@ -668,6 +687,7 @@ static void print_trailer(struct kmem_cache *s, struct page *page, u8 *p)
 static void object_err(struct kmem_cache *s, struct page *page,
 			u8 *object, char *reason)
 {
+<<<<<<< HEAD
 	pr_auto_once(7);
 	slab_bug(s, "%s", reason);
 	print_trailer(s, page, object);
@@ -675,6 +695,10 @@ static void object_err(struct kmem_cache *s, struct page *page,
 
 	if (slub_debug)
 		panic("SLUB ERROR: object_err");
+=======
+	slab_bug(s, "%s", reason);
+	print_trailer(s, page, object);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 static __printf(3, 4) void slab_err(struct kmem_cache *s, struct page *page,
@@ -683,6 +707,7 @@ static __printf(3, 4) void slab_err(struct kmem_cache *s, struct page *page,
 	va_list args;
 	char buf[100];
 
+<<<<<<< HEAD
 	pr_auto_once(7);
 	va_start(args, fmt);
 	vsnprintf(buf, sizeof(buf), fmt, args);
@@ -702,6 +727,8 @@ static void slab_err_nopanic(struct kmem_cache *s, struct page *page,
 	va_list args;
 	char buf[100];
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	va_start(args, fmt);
 	vsnprintf(buf, sizeof(buf), fmt, args);
 	va_end(args);
@@ -748,6 +775,7 @@ static int check_bytes_and_report(struct kmem_cache *s, struct page *page,
 	while (end > fault && end[-1] == value)
 		end--;
 
+<<<<<<< HEAD
 	pr_auto_once(7);
 	slab_bug(s, "%s overwritten", what);
 
@@ -759,6 +787,12 @@ static int check_bytes_and_report(struct kmem_cache *s, struct page *page,
 
 	if (slub_debug)
 		panic("SLUB ERROR: check_bytes_and_report. Can it be restored?");
+=======
+	slab_bug(s, "%s overwritten", what);
+	pr_err("INFO: 0x%p-0x%p. First byte 0x%x instead of 0x%x\n",
+					fault, end - 1, fault[0], value);
+	print_trailer(s, page, object);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	restore_bytes(s, what, value, fault, end);
 	return 0;
@@ -846,12 +880,18 @@ static int slab_pad_check(struct kmem_cache *s, struct page *page)
 	while (end > fault && end[-1] == POISON_INUSE)
 		end--;
 
+<<<<<<< HEAD
 	slab_err_nopanic(s, page, "Padding overwritten. 0x%p-0x%p", fault, end - 1);
 	print_section("Padding ", end - remainder, remainder);
 
 	if (slub_debug)
 		panic("SLUB ERROR: slab_pad_check. Can it be restored?");
 
+=======
+	slab_err(s, page, "Padding overwritten. 0x%p-0x%p", fault, end - 1);
+	print_section("Padding ", end - remainder, remainder);
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	restore_bytes(s, "slab padding", POISON_INUSE, end - remainder, end);
 	return 0;
 }
@@ -1770,8 +1810,11 @@ static void *get_partial(struct kmem_cache *s, gfp_t flags, int node,
 
 	if (node == NUMA_NO_NODE)
 		searchnode = numa_mem_id();
+<<<<<<< HEAD
 	else if (!node_present_pages(node))
 		searchnode = node_to_mem_node(node);
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	object = get_partial_node(s, get_node(s, searchnode), c, flags);
 	if (object || node != NUMA_NO_NODE)
@@ -2347,6 +2390,7 @@ static void *__slab_alloc(struct kmem_cache *s, gfp_t gfpflags, int node,
 #endif
 
 	page = c->page;
+<<<<<<< HEAD
 	if (!page)
 		goto new_slab;
 redo:
@@ -2358,6 +2402,29 @@ redo:
 			searchnode = node_to_mem_node(node);
 
 		if (unlikely(!node_match(page, searchnode))) {
+=======
+	if (!page) {
+		/*
+		 * if the node is not online or has no normal memory, just
+		 * ignore the node constraint
+		 */
+		if (unlikely(node != NUMA_NO_NODE &&
+			     !node_state(node, N_NORMAL_MEMORY)))
+			node = NUMA_NO_NODE;
+		goto new_slab;
+	}
+redo:
+
+	if (unlikely(!node_match(page, node))) {
+		/*
+		 * same as above but node_match() being false already
+		 * implies node != NUMA_NO_NODE
+		 */
+		if (!node_state(node, N_NORMAL_MEMORY)) {
+			node = NUMA_NO_NODE;
+			goto redo;
+		} else {
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			stat(s, ALLOC_NODE_MISMATCH);
 			deactivate_slab(s, page, c->freelist);
 			c->page = NULL;
@@ -2736,11 +2803,21 @@ redo:
 	preempt_enable();
 
 	if (likely(page == c->page)) {
+<<<<<<< HEAD
 		set_freepointer(s, object, c->freelist);
 
 		if (unlikely(!this_cpu_cmpxchg_double(
 				s->cpu_slab->freelist, s->cpu_slab->tid,
 				c->freelist, tid,
+=======
+		void **freelist = READ_ONCE(c->freelist);
+
+		set_freepointer(s, object, freelist);
+
+		if (unlikely(!this_cpu_cmpxchg_double(
+				s->cpu_slab->freelist, s->cpu_slab->tid,
+				freelist, tid,
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 				object, next_tid(tid)))) {
 
 			note_cmpxchg_failure("slab_free", s, tid);
@@ -3225,7 +3302,11 @@ static void list_slab_objects(struct kmem_cache *s, struct page *page,
 				     sizeof(long), GFP_ATOMIC);
 	if (!map)
 		return;
+<<<<<<< HEAD
 	slab_err_nopanic(s, page, text, s->name);
+=======
+	slab_err(s, page, text, s->name);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	slab_lock(page);
 
 	get_map(s, page, map);
@@ -3236,10 +3317,13 @@ static void list_slab_objects(struct kmem_cache *s, struct page *page,
 			print_tracking(s, p);
 		}
 	}
+<<<<<<< HEAD
 	
 	if (slub_debug)
 		panic("SLUB ERROR: list_slab_objects.");
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	slab_unlock(page);
 	kfree(map);
 #endif
@@ -4340,7 +4424,21 @@ static ssize_t show_slab_objects(struct kmem_cache *s,
 		}
 	}
 
+<<<<<<< HEAD
 	get_online_mems();
+=======
+	/*
+	 * It is impossible to take "mem_hotplug_lock" here with "kernfs_mutex"
+	 * already held which will conflict with an existing lock order:
+	 *
+	 * mem_hotplug_lock->slab_mutex->kernfs_mutex
+	 *
+	 * We don't really need mem_hotplug_lock (to hold off
+	 * slab_mem_going_offline_callback) here because slab's memory hot
+	 * unplug code doesn't destroy the kmem_cache->node[] data.
+	 */
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #ifdef CONFIG_SLUB_DEBUG
 	if (flags & SO_ALL) {
 		struct kmem_cache_node *n;
@@ -4381,7 +4479,10 @@ static ssize_t show_slab_objects(struct kmem_cache *s,
 			x += sprintf(buf + x, " N%d=%lu",
 					node, nodes[node]);
 #endif
+<<<<<<< HEAD
 	put_online_mems();
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	kfree(nodes);
 	return x + sprintf(buf + x, "\n");
 }

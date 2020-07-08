@@ -327,10 +327,20 @@ static void snd_opti9xx_write(struct snd_opti9xx *chip, unsigned char reg,
 }
 
 
+<<<<<<< HEAD
 #define snd_opti9xx_write_mask(chip, reg, value, mask)	\
 	snd_opti9xx_write(chip, reg,			\
 		(snd_opti9xx_read(chip, reg) & ~(mask)) | ((value) & (mask)))
 
+=======
+static inline void snd_opti9xx_write_mask(struct snd_opti9xx *chip,
+		unsigned char reg, unsigned char value, unsigned char mask)
+{
+	unsigned char oldval = snd_opti9xx_read(chip, reg);
+
+	snd_opti9xx_write(chip, reg, (oldval & ~mask) | (value & mask));
+}
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 static int snd_opti9xx_configure(struct snd_opti9xx *chip,
 					   long port,

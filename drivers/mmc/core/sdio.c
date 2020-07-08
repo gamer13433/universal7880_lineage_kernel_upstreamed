@@ -33,10 +33,13 @@
 #include <linux/mmc/sdio_ids.h>
 #endif
 
+<<<<<<< HEAD
 #ifdef CONFIG_QCOM_WIFI
 #define MANUAL_BUS_TUNING 1
 #endif /* CONFIG_QCOM_WIFI */
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static int sdio_read_fbr(struct sdio_func *func)
 {
 	int ret;
@@ -529,6 +532,7 @@ static int sdio_set_bus_speed_mode(struct mmc_card *card)
 	if (err)
 		return err;
 
+<<<<<<< HEAD
 #ifdef CONFIG_QCOM_WIFI
 	if (MANUAL_BUS_TUNING && (!strcmp("mmc1", mmc_hostname(card->host)))) {
 		unsigned char temp;
@@ -576,6 +580,8 @@ static int sdio_set_bus_speed_mode(struct mmc_card *card)
 		}
 	}
 #endif /* CONFIG_QCOM_WIFI */
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	speed &= ~SDIO_SPEED_BSS_MASK;
 	speed |= bus_speed;
 	err = mmc_io_rw_direct(card, 1, 0, SDIO_CCCR_SPEED, speed, NULL);
@@ -1043,7 +1049,11 @@ static int mmc_sdio_resume(struct mmc_host *host)
 	}
 
 	/* No need to reinitialize powered-resumed nonremovable cards */
+<<<<<<< HEAD
 	if ((mmc_card_is_removable(host) || !mmc_card_keep_power(host)) && (strcmp("mmc1", mmc_hostname(host)))) {
+=======
+	if (mmc_card_is_removable(host) || !mmc_card_keep_power(host)) {
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		sdio_reset(host);
 		mmc_go_idle(host);
 		err = mmc_sdio_init_card(host, host->card->ocr, host->card,

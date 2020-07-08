@@ -1,6 +1,9 @@
+<<<<<<< HEAD
 # Kernel does not boot with instrumentation of tlb.c.
 KCOV_INSTRUMENT_tlb.o	:= n
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 obj-y	:=  init.o init_$(BITS).o fault.o ioremap.o extable.o pageattr.o mmap.o \
 	    pat.o pgtable.o physaddr.o gup.o setup_nx.o
 

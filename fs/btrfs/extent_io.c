@@ -3836,8 +3836,13 @@ retry:
 	if (wbc->sync_mode == WB_SYNC_ALL)
 		tag_pages_for_writeback(mapping, index, end);
 	while (!done && !nr_to_write_done && (index <= end) &&
+<<<<<<< HEAD
 	       (nr_pages = pagevec_lookup_tag(&pvec, mapping, &index, tag,
 			min(end - index, (pgoff_t)PAGEVEC_SIZE-1) + 1))) {
+=======
+			(nr_pages = pagevec_lookup_range_tag(&pvec, mapping,
+						&index, end, tag))) {
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		unsigned i;
 
 		scanned = 1;
@@ -3847,11 +3852,14 @@ retry:
 			if (!PagePrivate(page))
 				continue;
 
+<<<<<<< HEAD
 			if (!wbc->range_cyclic && page->index > end) {
 				done = 1;
 				break;
 			}
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			spin_lock(&mapping->private_lock);
 			if (!PagePrivate(page)) {
 				spin_unlock(&mapping->private_lock);
@@ -3980,8 +3988,13 @@ retry:
 	if (wbc->sync_mode == WB_SYNC_ALL)
 		tag_pages_for_writeback(mapping, index, end);
 	while (!done && !nr_to_write_done && (index <= end) &&
+<<<<<<< HEAD
 	       (nr_pages = pagevec_lookup_tag(&pvec, mapping, &index, tag,
 			min(end - index, (pgoff_t)PAGEVEC_SIZE-1) + 1))) {
+=======
+	       (nr_pages = pagevec_lookup_range_tag(&pvec, mapping, &index, end,
+			tag))) {
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		unsigned i;
 
 		scanned = 1;
@@ -4005,12 +4018,15 @@ retry:
 				continue;
 			}
 
+<<<<<<< HEAD
 			if (!wbc->range_cyclic && page->index > end) {
 				done = 1;
 				unlock_page(page);
 				continue;
 			}
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			if (wbc->sync_mode != WB_SYNC_NONE) {
 				if (PageWriteback(page))
 					flush_fn(data);
@@ -4049,6 +4065,17 @@ retry:
 		 */
 		scanned = 1;
 		index = 0;
+<<<<<<< HEAD
+=======
+
+		/*
+		 * If we're looping we could run into a page that is locked by a
+		 * writer and that writer could be waiting on writeback for a
+		 * page in our current bio, and thus deadlock, so flush the
+		 * write bio here.
+		 */
+		flush_write_bio(data);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		goto retry;
 	}
 	btrfs_add_delayed_iput(inode);
@@ -4800,12 +4827,23 @@ struct extent_buffer *alloc_test_extent_buffer(struct btrfs_fs_info *fs_info,
 		return eb;
 	eb = alloc_dummy_extent_buffer(start, len);
 	if (!eb)
+<<<<<<< HEAD
 		return NULL;
 	eb->fs_info = fs_info;
 again:
 	ret = radix_tree_preload(GFP_NOFS & ~__GFP_HIGHMEM);
 	if (ret)
 		goto free_eb;
+=======
+		return ERR_PTR(-ENOMEM);
+	eb->fs_info = fs_info;
+again:
+	ret = radix_tree_preload(GFP_NOFS & ~__GFP_HIGHMEM);
+	if (ret) {
+		exists = ERR_PTR(ret);
+		goto free_eb;
+	}
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	spin_lock(&fs_info->buffer_lock);
 	ret = radix_tree_insert(&fs_info->buffer_radix,
 				start >> PAGE_CACHE_SHIFT, eb);

@@ -50,6 +50,10 @@ static const char *const speed_names[] = {
 	[USB_SPEED_HIGH] = "high-speed",
 	[USB_SPEED_WIRELESS] = "wireless",
 	[USB_SPEED_SUPER] = "super-speed",
+<<<<<<< HEAD
+=======
+	[USB_SPEED_SUPER_PLUS] = "super-speed-plus",
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 const char *usb_speed_string(enum usb_device_speed speed)
@@ -90,6 +94,7 @@ static const char *const usb_dr_modes[] = {
 };
 
 /**
+<<<<<<< HEAD
  * of_usb_get_suspend_clk_freq - Get suspend clock frequency
  *
  * USB3 core needs 16KHz clock for a small part that operates
@@ -110,6 +115,8 @@ unsigned int of_usb_get_suspend_clk_freq(struct device_node *np)
 EXPORT_SYMBOL_GPL(of_usb_get_suspend_clk_freq);
 
 /**
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
  * of_usb_get_dr_mode - Get dual role mode for given device_node
  * @np:	Pointer to the given device_node
  *

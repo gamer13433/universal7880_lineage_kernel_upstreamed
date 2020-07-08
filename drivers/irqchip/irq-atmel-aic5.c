@@ -256,6 +256,10 @@ static int aic5_irq_domain_xlate(struct irq_domain *d,
 {
 	struct irq_domain_chip_generic *dgc = d->gc;
 	struct irq_chip_generic *gc;
+<<<<<<< HEAD
+=======
+	unsigned long flags;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	unsigned smr;
 	int ret;
 
@@ -269,13 +273,21 @@ static int aic5_irq_domain_xlate(struct irq_domain *d,
 
 	gc = dgc->gc[0];
 
+<<<<<<< HEAD
 	irq_gc_lock(gc);
+=======
+	irq_gc_lock_irqsave(gc, flags);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	irq_reg_writel(gc, *out_hwirq, AT91_AIC5_SSR);
 	smr = irq_reg_readl(gc, AT91_AIC5_SMR);
 	ret = aic_common_set_priority(intspec[2], &smr);
 	if (!ret)
 		irq_reg_writel(gc, intspec[2] | smr, AT91_AIC5_SMR);
+<<<<<<< HEAD
 	irq_gc_unlock(gc);
+=======
+	irq_gc_unlock_irqrestore(gc, flags);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	return ret;
 }

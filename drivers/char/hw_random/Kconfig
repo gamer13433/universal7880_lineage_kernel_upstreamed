@@ -307,6 +307,7 @@ config HW_RANDOM_EXYNOS
 
 	  If unsure, say Y.
 
+<<<<<<< HEAD
 config HW_RANDOM_EXYNOS_SWD
 	tristate "EXYNOS SWD HW random number generator support"
 	depends on ARCH_EXYNOS
@@ -344,6 +345,8 @@ config EXYRNG_USE_CRYPTOMANAGER
 	depends on HW_RANDOM_EXYNOS_SWD
 	default n
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 config HW_RANDOM_TPM
 	tristate "TPM HW Random Number Generator support"
 	depends on TCG_TPM
@@ -399,4 +402,7 @@ config UML_RANDOM
 	  (check your distro, or download from
 	  http://sourceforge.net/projects/gkernel/).  rngd periodically reads
 	  /dev/hwrng and injects the entropy into /dev/random.
+<<<<<<< HEAD
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012

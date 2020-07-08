@@ -250,6 +250,7 @@ static void dwc3_ep0_stall_and_restart(struct dwc3 *dwc)
 {
 	struct dwc3_ep		*dep;
 
+<<<<<<< HEAD
 	if (dwc->eps[1]->endpoint.desc == NULL) {
 		dev_err(dwc->dev, "EP1 was disabled: DESC NULL\n");
 		return;
@@ -259,13 +260,19 @@ static void dwc3_ep0_stall_and_restart(struct dwc3 *dwc)
 		return;
 	}
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/* reinitialize physical ep1 */
 	dep = dwc->eps[1];
 	dep->flags = DWC3_EP_ENABLED;
 
 	/* stall is always issued on EP0 */
 	dep = dwc->eps[0];
+<<<<<<< HEAD
 	__dwc3_gadget_ep_set_halt(dep, 1, true);
+=======
+	__dwc3_gadget_ep_set_halt(dep, 1, false);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	dep->flags = DWC3_EP_ENABLED;
 	dwc->delayed_status = false;
 
@@ -426,10 +433,13 @@ static int dwc3_ep0_handle_feature(struct dwc3 *dwc,
 			if (dwc->speed != DWC3_DSTS_SUPERSPEED)
 				return -EINVAL;
 
+<<<<<<< HEAD
 			/* see NEGATIVE RX DETECTION comment */
 			if (set && dwc->revision < DWC3_REVISION_230A)
 				return 0;
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			reg = dwc3_readl(dwc->regs, DWC3_DCTL);
 			if (set)
 				reg |= DWC3_DCTL_INITU1ENA;
@@ -444,10 +454,13 @@ static int dwc3_ep0_handle_feature(struct dwc3 *dwc,
 			if (dwc->speed != DWC3_DSTS_SUPERSPEED)
 				return -EINVAL;
 
+<<<<<<< HEAD
 			/* see NEGATIVE RX DETECTION comment */
 			if (set && dwc->revision < DWC3_REVISION_230A)
 				return 0;
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			reg = dwc3_readl(dwc->regs, DWC3_DCTL);
 			if (set)
 				reg |= DWC3_DCTL_INITU2ENA;
@@ -584,6 +597,7 @@ static int dwc3_ep0_set_config(struct dwc3 *dwc, struct usb_ctrlrequest *ctrl)
 						USB_STATE_CONFIGURED);
 
 			/*
+<<<<<<< HEAD
 			 * NEGATIVE RX DETECTION
 			 * Some host controllers (e.g. Intel) perform far-end
 			 * receiver termination _negative_ detection while link
@@ -604,6 +618,14 @@ static int dwc3_ep0_set_config(struct dwc3 *dwc, struct usb_ctrlrequest *ctrl)
 						DWC3_DCTL_ACCEPTU2ENA);
 				dwc3_writel(dwc->regs, DWC3_DCTL, reg);
 			}
+=======
+			 * Enable transition to U1/U2 state when
+			 * nothing is pending from application.
+			 */
+			reg = dwc3_readl(dwc->regs, DWC3_DCTL);
+			reg |= (DWC3_DCTL_ACCEPTU1ENA | DWC3_DCTL_ACCEPTU2ENA);
+			dwc3_writel(dwc->regs, DWC3_DCTL, reg);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 			dwc->resize_fifos = true;
 			dwc3_trace(trace_dwc3_ep0, "resize FIFOs flag SET");
@@ -961,6 +983,16 @@ static void __dwc3_ep0_do_control_data(struct dwc3 *dwc,
 		u32	transfer_size;
 		u32	maxpacket;
 
+<<<<<<< HEAD
+=======
+		ret = usb_gadget_map_request(&dwc->gadget, &req->request,
+				dep->number);
+		if (ret) {
+			dev_dbg(dwc->dev, "failed to map request\n");
+			return;
+		}
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		maxpacket = dep->endpoint.maxpacket;
 		transfer_size = roundup(req->request.length, maxpacket);
 
@@ -1117,4 +1149,7 @@ void dwc3_ep0_interrupt(struct dwc3 *dwc,
 		break;
 	}
 }
+<<<<<<< HEAD
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012

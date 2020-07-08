@@ -30,7 +30,10 @@
 #include <linux/mempolicy.h>
 #include <linux/vmalloc.h>
 #include <linux/security.h>
+<<<<<<< HEAD
 #include <linux/backing-dev.h>
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #include <linux/memcontrol.h>
 #include <linux/syscalls.h>
 #include <linux/hugetlb.h>
@@ -38,6 +41,10 @@
 #include <linux/gfp.h>
 #include <linux/balloon_compaction.h>
 #include <linux/mmu_notifier.h>
+<<<<<<< HEAD
+=======
+#include <linux/ptrace.h>
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #include <asm/tlbflush.h>
 
@@ -343,8 +350,11 @@ int migrate_page_move_mapping(struct address_space *mapping,
 		struct buffer_head *head, enum migrate_mode mode,
 		int extra_count)
 {
+<<<<<<< HEAD
 	struct zone *oldzone, *newzone;
 	int dirty;
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	int expected_count = 1 + extra_count;
 	void **pslot;
 
@@ -355,9 +365,12 @@ int migrate_page_move_mapping(struct address_space *mapping,
 		return MIGRATEPAGE_SUCCESS;
 	}
 
+<<<<<<< HEAD
 	oldzone = page_zone(page);
 	newzone = page_zone(newpage);
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	spin_lock_irq(&mapping->tree_lock);
 
 	pslot = radix_tree_lookup_slot(&mapping->page_tree,
@@ -398,6 +411,7 @@ int migrate_page_move_mapping(struct address_space *mapping,
 		set_page_private(newpage, page_private(page));
 	}
 
+<<<<<<< HEAD
 	/* Move dirty while page refs frozen and newpage not yet exposed */
 	dirty = PageDirty(page);
 	if (dirty) {
@@ -405,6 +419,8 @@ int migrate_page_move_mapping(struct address_space *mapping,
 		SetPageDirty(newpage);
 	}
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	radix_tree_replace_slot(pslot, newpage);
 
 	/*
@@ -414,9 +430,12 @@ int migrate_page_move_mapping(struct address_space *mapping,
 	 */
 	page_unfreeze_refs(page, expected_count - 1);
 
+<<<<<<< HEAD
 	spin_unlock(&mapping->tree_lock);
 	/* Leave irq disabled to prevent preemption while updating stats */
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/*
 	 * If moved to a different zone then also account
 	 * the page for that zone. Other VM counters will be
@@ -427,6 +446,7 @@ int migrate_page_move_mapping(struct address_space *mapping,
 	 * via NR_FILE_PAGES and NR_ANON_PAGES if they
 	 * are mapped to swap space.
 	 */
+<<<<<<< HEAD
 	if (newzone != oldzone) {
 		__dec_zone_state(oldzone, NR_FILE_PAGES);
 		__inc_zone_state(newzone, NR_FILE_PAGES);
@@ -443,6 +463,19 @@ int migrate_page_move_mapping(struct address_space *mapping,
 
 	return MIGRATEPAGE_SUCCESS;
 }
+=======
+	__dec_zone_page_state(page, NR_FILE_PAGES);
+	__inc_zone_page_state(newpage, NR_FILE_PAGES);
+	if (!PageSwapCache(page) && PageSwapBacked(page)) {
+		__dec_zone_page_state(page, NR_SHMEM);
+		__inc_zone_page_state(newpage, NR_SHMEM);
+	}
+	spin_unlock_irq(&mapping->tree_lock);
+
+	return MIGRATEPAGE_SUCCESS;
+}
+EXPORT_SYMBOL(migrate_page_move_mapping);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /*
  * The expected number of remaining references is the same as that
@@ -563,9 +596,26 @@ void migrate_page_copy(struct page *newpage, struct page *page)
 	if (PageMappedToDisk(page))
 		SetPageMappedToDisk(newpage);
 
+<<<<<<< HEAD
 	/* Move dirty on pages not done by migrate_page_move_mapping() */
 	if (PageDirty(page))
 		SetPageDirty(newpage);
+=======
+	if (PageDirty(page)) {
+		clear_page_dirty_for_io(page);
+		/*
+		 * Want to mark the page and the radix tree as dirty, and
+		 * redo the accounting that clear_page_dirty_for_io undid,
+		 * but we can't use set_page_dirty because that function
+		 * is actually a signal that all of the page has become dirty.
+		 * Whereas only part of our page may be dirty.
+		 */
+		if (PageSwapBacked(page))
+			SetPageDirty(newpage);
+		else
+			__set_page_dirty_nobuffers(newpage);
+ 	}
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	/*
 	 * Copy NUMA information to the new page, to prevent over-eager
@@ -591,6 +641,10 @@ void migrate_page_copy(struct page *newpage, struct page *page)
 	if (PageWriteback(newpage))
 		end_page_writeback(newpage);
 }
+<<<<<<< HEAD
+=======
+EXPORT_SYMBOL(migrate_page_copy);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /************************************************************
  *                    Migration functions
@@ -1161,6 +1215,7 @@ int migrate_pages(struct list_head *from, new_page_t get_new_page,
 				rc = unmap_and_move(get_new_page, put_new_page,
 						private, page, pass > 2, mode);
 
+<<<<<<< HEAD
 			if ((reason == MR_CMA) && (rc != -EAGAIN) &&
 						  (rc != MIGRATEPAGE_SUCCESS)) {
 				phys_addr_t pa = page_to_phys(page);
@@ -1170,6 +1225,8 @@ int migrate_pages(struct list_head *from, new_page_t get_new_page,
 					page_mapcount(page), page_count(page));
 			}
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			switch(rc) {
 			case -ENOMEM:
 				goto out;
@@ -1294,7 +1351,12 @@ static int do_move_page_to_node_array(struct mm_struct *mm,
 			goto put_and_set;
 
 		if (PageHuge(page)) {
+<<<<<<< HEAD
 			isolate_huge_page(page, &pagelist);
+=======
+			if (PageHead(page))
+				isolate_huge_page(page, &pagelist);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			goto put_and_set;
 		}
 
@@ -1499,7 +1561,10 @@ SYSCALL_DEFINE6(move_pages, pid_t, pid, unsigned long, nr_pages,
 		const int __user *, nodes,
 		int __user *, status, int, flags)
 {
+<<<<<<< HEAD
 	const struct cred *cred = current_cred(), *tcred;
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	struct task_struct *task;
 	struct mm_struct *mm;
 	int err;
@@ -1523,6 +1588,7 @@ SYSCALL_DEFINE6(move_pages, pid_t, pid, unsigned long, nr_pages,
 
 	/*
 	 * Check if this process has the right to modify the specified
+<<<<<<< HEAD
 	 * process. The right exists if the process has administrative
 	 * capabilities, superuser privileges or the same
 	 * userid as the target process.
@@ -1531,6 +1597,11 @@ SYSCALL_DEFINE6(move_pages, pid_t, pid, unsigned long, nr_pages,
 	if (!uid_eq(cred->euid, tcred->suid) && !uid_eq(cred->euid, tcred->uid) &&
 	    !uid_eq(cred->uid,  tcred->suid) && !uid_eq(cred->uid,  tcred->uid) &&
 	    !capable(CAP_SYS_NICE)) {
+=======
+	 * process. Use the regular "ptrace_may_access()" checks.
+	 */
+	if (!ptrace_may_access(task, PTRACE_MODE_READ_REALCREDS)) {
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		rcu_read_unlock();
 		err = -EPERM;
 		goto out;

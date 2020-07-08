@@ -1353,6 +1353,7 @@ void rtl88ee_set_qos(struct ieee80211_hw *hw, int aci)
 	}
 }
 
+<<<<<<< HEAD
 static void rtl88ee_clear_interrupt(struct ieee80211_hw *hw)
 {
 	struct rtl_priv *rtlpriv = rtl_priv(hw);
@@ -1368,12 +1369,17 @@ static void rtl88ee_clear_interrupt(struct ieee80211_hw *hw)
 	rtl_write_dword(rtlpriv, REG_HSISR, tmp);
 }
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 void rtl88ee_enable_interrupt(struct ieee80211_hw *hw)
 {
 	struct rtl_priv *rtlpriv = rtl_priv(hw);
 	struct rtl_pci *rtlpci = rtl_pcidev(rtl_pcipriv(hw));
 
+<<<<<<< HEAD
 	rtl88ee_clear_interrupt(hw);/*clear it here first*/
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	rtl_write_dword(rtlpriv, REG_HIMR,
 			rtlpci->irq_mask[0] & 0xFFFFFFFF);
 	rtl_write_dword(rtlpriv, REG_HIMRE,

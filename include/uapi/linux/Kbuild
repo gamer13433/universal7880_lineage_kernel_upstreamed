@@ -112,7 +112,10 @@ header-y += errno.h
 header-y += errqueue.h
 header-y += ethtool.h
 header-y += eventpoll.h
+<<<<<<< HEAD
 header-y += exynos_mfc_media.h
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 header-y += fadvise.h
 header-y += falloc.h
 header-y += fanotify.h
@@ -238,7 +241,10 @@ header-y += limits.h
 header-y += llc.h
 header-y += loop.h
 header-y += lp.h
+<<<<<<< HEAD
 header-y += m2m1shot.h
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 header-y += magic.h
 header-y += major.h
 header-y += map_to_7segment.h
@@ -419,8 +425,11 @@ header-y += veth.h
 header-y += vfio.h
 header-y += vhost.h
 header-y += videodev2.h
+<<<<<<< HEAD
 header-y += videodev2_exynos_camera.h
 header-y += videodev2_exynos_media.h
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 header-y += virtio_9p.h
 header-y += virtio_balloon.h
 header-y += virtio_blk.h

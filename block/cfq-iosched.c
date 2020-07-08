@@ -31,11 +31,17 @@ static const int cfq_slice_sync = HZ / 10;
 static int cfq_slice_async = HZ / 25;
 static const int cfq_slice_async_rq = 2;
 static int cfq_slice_idle = HZ / 125;
+<<<<<<< HEAD
 static int cfq_rt_idle_only = 1;
 static int cfq_group_idle = HZ / 125;
 static const int cfq_target_latency = HZ * 3/10; /* 300 ms */
 static const int cfq_hist_divisor = 4;
 static int cfq_max_async_dispatch = 4;
+=======
+static int cfq_group_idle = HZ / 125;
+static const int cfq_target_latency = HZ * 3/10; /* 300 ms */
+static const int cfq_hist_divisor = 4;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /*
  * offset from end of service tree
@@ -48,7 +54,11 @@ static int cfq_max_async_dispatch = 4;
 #define CFQ_MIN_TT		(2)
 
 #define CFQ_SLICE_SCALE		(5)
+<<<<<<< HEAD
 #define CFQ_HW_QUEUE_MIN	(4)
+=======
+#define CFQ_HW_QUEUE_MIN	(5)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #define CFQ_SERVICE_SHIFT       12
 
 #define CFQQ_SEEK_THR		(sector_t)(8 * 100)
@@ -376,8 +386,11 @@ struct cfq_data {
 	unsigned int cfq_slice[2];
 	unsigned int cfq_slice_async_rq;
 	unsigned int cfq_slice_idle;
+<<<<<<< HEAD
 	unsigned int cfq_rt_idle_only;
 	unsigned int cfq_max_async_dispatch;
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	unsigned int cfq_group_idle;
 	unsigned int cfq_latency;
 	unsigned int cfq_target_latency;
@@ -2705,9 +2718,12 @@ static bool cfq_should_idle(struct cfq_data *cfqd, struct cfq_queue *cfqq)
 	if (wl_class == IDLE_WORKLOAD)
 		return false;
 
+<<<<<<< HEAD
 	if (cfqd->cfq_rt_idle_only && wl_class != RT_WORKLOAD)
 		return false;
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/* We do for queues that were marked with idle window flag. */
 	if (cfq_cfqq_idle_window(cfqq) &&
 	   !(blk_queue_nonrot(cfqd->queue) && cfqd->hw_tag))
@@ -3223,6 +3239,7 @@ static bool cfq_may_dispatch(struct cfq_data *cfqd, struct cfq_queue *cfqq)
 	if (cfqd->rq_in_flight[BLK_RW_SYNC] && !cfq_cfqq_sync(cfqq))
 		return false;
 
+<<<<<<< HEAD
 	/*
 	 * Let it wait if too many async requests are dispatched.
 	 */
@@ -3230,6 +3247,8 @@ static bool cfq_may_dispatch(struct cfq_data *cfqd, struct cfq_queue *cfqq)
 			&& !cfq_cfqq_sync(cfqq))
 		return false;
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	max_dispatch = max_t(unsigned int, cfqd->cfq_quantum / 2, 1);
 	if (cfq_class_idle(cfqq))
 		max_dispatch = 1;
@@ -3557,7 +3576,11 @@ static void cfq_init_cfqq(struct cfq_data *cfqd, struct cfq_queue *cfqq,
 	cfq_mark_cfqq_prio_changed(cfqq);
 
 	if (is_sync) {
+<<<<<<< HEAD
 		if (!cfq_class_idle(cfqq) && (!cfqd->cfq_rt_idle_only || cfq_class_rt(cfqq)))
+=======
+		if (!cfq_class_idle(cfqq))
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			cfq_mark_cfqq_idle_window(cfqq);
 		cfq_mark_cfqq_sync(cfqq);
 	}
@@ -3774,9 +3797,12 @@ cfq_update_idle_window(struct cfq_data *cfqd, struct cfq_queue *cfqq,
 	if (!cfq_cfqq_sync(cfqq) || cfq_class_idle(cfqq))
 		return;
 
+<<<<<<< HEAD
 	if (cfqd->cfq_rt_idle_only && !cfq_class_rt(cfqq))
 		return;
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	enable_idle = old_idle = cfq_cfqq_idle_window(cfqq);
 
 	if (cfqq->queued[0] + cfqq->queued[1] >= 4)
@@ -4011,6 +4037,7 @@ static void cfq_update_hw_tag(struct cfq_data *cfqd)
 	if (cfqd->hw_tag_samples++ < 50)
 		return;
 
+<<<<<<< HEAD
 	if (cfqd->hw_tag_est_depth >= CFQ_HW_QUEUE_MIN) {
 		cfqd->hw_tag = 1;
 		/*
@@ -4019,6 +4046,10 @@ static void cfq_update_hw_tag(struct cfq_data *cfqd)
 		 */
 		cfqd->cfq_slice_idle = 0;
 	}
+=======
+	if (cfqd->hw_tag_est_depth >= CFQ_HW_QUEUE_MIN)
+		cfqd->hw_tag = 1;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	else
 		cfqd->hw_tag = 0;
 }
@@ -4492,8 +4523,11 @@ static int cfq_init_queue(struct request_queue *q, struct elevator_type *e)
 	cfqd->cfq_target_latency = cfq_target_latency;
 	cfqd->cfq_slice_async_rq = cfq_slice_async_rq;
 	cfqd->cfq_slice_idle = cfq_slice_idle;
+<<<<<<< HEAD
 	cfqd->cfq_rt_idle_only = cfq_rt_idle_only;
 	cfqd->cfq_max_async_dispatch = cfq_max_async_dispatch;
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	cfqd->cfq_group_idle = cfq_group_idle;
 	cfqd->cfq_latency = 1;
 	cfqd->hw_tag = -1;
@@ -4543,8 +4577,11 @@ SHOW_FUNCTION(cfq_fifo_expire_async_show, cfqd->cfq_fifo_expire[0], 1);
 SHOW_FUNCTION(cfq_back_seek_max_show, cfqd->cfq_back_max, 0);
 SHOW_FUNCTION(cfq_back_seek_penalty_show, cfqd->cfq_back_penalty, 0);
 SHOW_FUNCTION(cfq_slice_idle_show, cfqd->cfq_slice_idle, 1);
+<<<<<<< HEAD
 SHOW_FUNCTION(cfq_rt_idle_only_show, cfqd->cfq_rt_idle_only, 0);
 SHOW_FUNCTION(cfq_max_async_dispatch_show, cfqd->cfq_max_async_dispatch, 0);
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 SHOW_FUNCTION(cfq_group_idle_show, cfqd->cfq_group_idle, 1);
 SHOW_FUNCTION(cfq_slice_sync_show, cfqd->cfq_slice[1], 1);
 SHOW_FUNCTION(cfq_slice_async_show, cfqd->cfq_slice[0], 1);
@@ -4578,8 +4615,11 @@ STORE_FUNCTION(cfq_back_seek_max_store, &cfqd->cfq_back_max, 0, UINT_MAX, 0);
 STORE_FUNCTION(cfq_back_seek_penalty_store, &cfqd->cfq_back_penalty, 1,
 		UINT_MAX, 0);
 STORE_FUNCTION(cfq_slice_idle_store, &cfqd->cfq_slice_idle, 0, UINT_MAX, 1);
+<<<<<<< HEAD
 STORE_FUNCTION(cfq_rt_idle_only_store, &cfqd->cfq_rt_idle_only, 0, 1, 0);
 STORE_FUNCTION(cfq_max_async_dispatch_store, &cfqd->cfq_max_async_dispatch, 1, UINT_MAX, 0);
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 STORE_FUNCTION(cfq_group_idle_store, &cfqd->cfq_group_idle, 0, UINT_MAX, 1);
 STORE_FUNCTION(cfq_slice_sync_store, &cfqd->cfq_slice[1], 1, UINT_MAX, 1);
 STORE_FUNCTION(cfq_slice_async_store, &cfqd->cfq_slice[0], 1, UINT_MAX, 1);
@@ -4602,8 +4642,11 @@ static struct elv_fs_entry cfq_attrs[] = {
 	CFQ_ATTR(slice_async),
 	CFQ_ATTR(slice_async_rq),
 	CFQ_ATTR(slice_idle),
+<<<<<<< HEAD
 	CFQ_ATTR(rt_idle_only),
 	CFQ_ATTR(max_async_dispatch),
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	CFQ_ATTR(group_idle),
 	CFQ_ATTR(low_latency),
 	CFQ_ATTR(target_latency),
@@ -4659,7 +4702,10 @@ static int __init cfq_init(void)
 	 */
 	if (!cfq_slice_async)
 		cfq_slice_async = 1;
+<<<<<<< HEAD
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (!cfq_slice_idle)
 		cfq_slice_idle = 1;
 

@@ -15,6 +15,10 @@
  */
 #include <linux/debugfs.h>
 #include <linux/fs.h>
+<<<<<<< HEAD
+=======
+#include <linux/io.h>
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #include <linux/mm.h>
 #include <linux/sched.h>
 #include <linux/seq_file.h>

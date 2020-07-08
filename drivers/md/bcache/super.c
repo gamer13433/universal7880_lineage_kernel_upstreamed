@@ -933,6 +933,10 @@ static void cached_dev_detach_finish(struct work_struct *w)
 	bch_write_bdev_super(dc, &cl);
 	closure_sync(&cl);
 
+<<<<<<< HEAD
+=======
+	calc_cached_dev_sectors(dc->disk.c);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	bcache_device_detach(&dc->disk);
 	list_move(&dc->list, &uncached_devices);
 
@@ -1375,6 +1379,10 @@ static void cache_set_free(struct closure *cl)
 	bch_btree_cache_free(c);
 	bch_journal_free(c);
 
+<<<<<<< HEAD
+=======
+	mutex_lock(&bch_register_lock);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	for_each_cache(ca, c, i)
 		if (ca) {
 			ca->set = NULL;
@@ -1397,7 +1405,10 @@ static void cache_set_free(struct closure *cl)
 		mempool_destroy(c->search);
 	kfree(c->devices);
 
+<<<<<<< HEAD
 	mutex_lock(&bch_register_lock);
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	list_del(&c->list);
 	mutex_unlock(&bch_register_lock);
 
@@ -1415,15 +1426,22 @@ static void cache_set_flush(struct closure *cl)
 	struct btree *b;
 	unsigned i;
 
+<<<<<<< HEAD
 	if (!c)
 		closure_return(cl);
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	bch_cache_accounting_destroy(&c->accounting);
 
 	kobject_put(&c->internal);
 	kobject_del(&c->kobj);
 
+<<<<<<< HEAD
 	if (c->gc_thread)
+=======
+	if (!IS_ERR_OR_NULL(c->gc_thread))
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		kthread_stop(c->gc_thread);
 
 	if (!IS_ERR_OR_NULL(c->root))
@@ -1577,7 +1595,11 @@ err:
 	return NULL;
 }
 
+<<<<<<< HEAD
 static void run_cache_set(struct cache_set *c)
+=======
+static int run_cache_set(struct cache_set *c)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	const char *err = "cannot allocate memory";
 	struct cached_dev *dc, *t;
@@ -1668,7 +1690,13 @@ static void run_cache_set(struct cache_set *c)
 		if (j->version < BCACHE_JSET_VERSION_UUID)
 			__uuid_write(c);
 
+<<<<<<< HEAD
 		bch_journal_replay(c, &journal);
+=======
+		err = "bcache: replay journal failed";
+		if (bch_journal_replay(c, &journal))
+			goto err;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	} else {
 		pr_notice("invalidating existing data");
 
@@ -1736,11 +1764,20 @@ static void run_cache_set(struct cache_set *c)
 	flash_devs_run(c);
 
 	set_bit(CACHE_SET_RUNNING, &c->flags);
+<<<<<<< HEAD
 	return;
+=======
+	return 0;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 err:
 	closure_sync(&cl);
 	/* XXX: test this, it's broken */
 	bch_cache_set_error(c, "%s", err);
+<<<<<<< HEAD
+=======
+
+	return -EIO;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 static bool can_attach_cache(struct cache *ca, struct cache_set *c)
@@ -1804,8 +1841,16 @@ found:
 	ca->set->cache[ca->sb.nr_this_dev] = ca;
 	c->cache_by_alloc[c->caches_loaded++] = ca;
 
+<<<<<<< HEAD
 	if (c->caches_loaded == c->sb.nr_in_set)
 		run_cache_set(c);
+=======
+	if (c->caches_loaded == c->sb.nr_in_set) {
+		err = "failed to run cache set";
+		if (run_cache_set(c) < 0)
+			goto err;
+	}
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	return NULL;
 err:

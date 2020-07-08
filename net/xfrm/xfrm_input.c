@@ -207,6 +207,7 @@ int xfrm_input(struct sk_buff *skb, int nexthdr, __be32 spi, int encap_type)
 	family = XFRM_SPI_SKB_CB(skb)->family;
 
 	/* if tunnel is present override skb->mark value with tunnel i_key */
+<<<<<<< HEAD
 	if (XFRM_TUNNEL_SKB_CB(skb)->tunnel.ip4) {
 		switch (family) {
 		case AF_INET:
@@ -216,6 +217,17 @@ int xfrm_input(struct sk_buff *skb, int nexthdr, __be32 spi, int encap_type)
 			mark = be32_to_cpu(XFRM_TUNNEL_SKB_CB(skb)->tunnel.ip6->parms.i_key);
 			break;
 		}
+=======
+	switch (family) {
+	case AF_INET:
+		if (XFRM_TUNNEL_SKB_CB(skb)->tunnel.ip4)
+			mark = be32_to_cpu(XFRM_TUNNEL_SKB_CB(skb)->tunnel.ip4->parms.i_key);
+		break;
+	case AF_INET6:
+		if (XFRM_TUNNEL_SKB_CB(skb)->tunnel.ip6)
+			mark = be32_to_cpu(XFRM_TUNNEL_SKB_CB(skb)->tunnel.ip6->parms.i_key);
+		break;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 	/* Allocate new secpath or COW existing one. */
@@ -302,7 +314,11 @@ resume:
 		dev_put(skb->dev);
 
 		spin_lock(&x->lock);
+<<<<<<< HEAD
 		if (nexthdr <= 0) {
+=======
+		if (nexthdr < 0) {
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			if (nexthdr == -EBADMSG) {
 				xfrm_audit_state_icvfail(x, skb,
 							 x->type->proto);

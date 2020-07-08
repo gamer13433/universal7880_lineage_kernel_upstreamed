@@ -23,6 +23,7 @@
  * The valid range of num_buffers is: num >= 2 && num <= 4.
  */
 
+<<<<<<< HEAD
 
 #include <linux/usb/storage.h>
 #include <scsi/scsi.h>
@@ -262,6 +263,19 @@ enum {
 
 static struct usb_interface_descriptor
 fsg_intf_desc = {
+=======
+#include <linux/module.h>
+#include <linux/blkdev.h>
+#include <linux/file.h>
+#include <linux/fs.h>
+#include <linux/usb/composite.h>
+
+#include "storage_common.h"
+
+/* There is only one interface. */
+
+struct usb_interface_descriptor fsg_intf_desc = {
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	.bLength =		sizeof fsg_intf_desc,
 	.bDescriptorType =	USB_DT_INTERFACE,
 
@@ -271,14 +285,22 @@ fsg_intf_desc = {
 	.bInterfaceProtocol =	USB_PR_BULK,	/* Adjusted during fsg_bind() */
 	.iInterface =		FSG_STRING_INTERFACE,
 };
+<<<<<<< HEAD
+=======
+EXPORT_SYMBOL_GPL(fsg_intf_desc);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /*
  * Three full-speed endpoint descriptors: bulk-in, bulk-out, and
  * interrupt-in.
  */
 
+<<<<<<< HEAD
 static struct usb_endpoint_descriptor
 fsg_fs_bulk_in_desc = {
+=======
+struct usb_endpoint_descriptor fsg_fs_bulk_in_desc = {
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	.bLength =		USB_DT_ENDPOINT_SIZE,
 	.bDescriptorType =	USB_DT_ENDPOINT,
 
@@ -286,9 +308,15 @@ fsg_fs_bulk_in_desc = {
 	.bmAttributes =		USB_ENDPOINT_XFER_BULK,
 	/* wMaxPacketSize set by autoconfiguration */
 };
+<<<<<<< HEAD
 
 static struct usb_endpoint_descriptor
 fsg_fs_bulk_out_desc = {
+=======
+EXPORT_SYMBOL_GPL(fsg_fs_bulk_in_desc);
+
+struct usb_endpoint_descriptor fsg_fs_bulk_out_desc = {
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	.bLength =		USB_DT_ENDPOINT_SIZE,
 	.bDescriptorType =	USB_DT_ENDPOINT,
 
@@ -296,13 +324,23 @@ fsg_fs_bulk_out_desc = {
 	.bmAttributes =		USB_ENDPOINT_XFER_BULK,
 	/* wMaxPacketSize set by autoconfiguration */
 };
+<<<<<<< HEAD
 
 static struct usb_descriptor_header *fsg_fs_function[] = {
+=======
+EXPORT_SYMBOL_GPL(fsg_fs_bulk_out_desc);
+
+struct usb_descriptor_header *fsg_fs_function[] = {
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	(struct usb_descriptor_header *) &fsg_intf_desc,
 	(struct usb_descriptor_header *) &fsg_fs_bulk_in_desc,
 	(struct usb_descriptor_header *) &fsg_fs_bulk_out_desc,
 	NULL,
 };
+<<<<<<< HEAD
+=======
+EXPORT_SYMBOL_GPL(fsg_fs_function);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 
 /*
@@ -313,8 +351,12 @@ static struct usb_descriptor_header *fsg_fs_function[] = {
  * and a "device qualifier" ... plus more construction options
  * for the configuration descriptor.
  */
+<<<<<<< HEAD
 static struct usb_endpoint_descriptor
 fsg_hs_bulk_in_desc = {
+=======
+struct usb_endpoint_descriptor fsg_hs_bulk_in_desc = {
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	.bLength =		USB_DT_ENDPOINT_SIZE,
 	.bDescriptorType =	USB_DT_ENDPOINT,
 
@@ -322,9 +364,15 @@ fsg_hs_bulk_in_desc = {
 	.bmAttributes =		USB_ENDPOINT_XFER_BULK,
 	.wMaxPacketSize =	cpu_to_le16(512),
 };
+<<<<<<< HEAD
 
 static struct usb_endpoint_descriptor
 fsg_hs_bulk_out_desc = {
+=======
+EXPORT_SYMBOL_GPL(fsg_hs_bulk_in_desc);
+
+struct usb_endpoint_descriptor fsg_hs_bulk_out_desc = {
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	.bLength =		USB_DT_ENDPOINT_SIZE,
 	.bDescriptorType =	USB_DT_ENDPOINT,
 
@@ -333,17 +381,30 @@ fsg_hs_bulk_out_desc = {
 	.wMaxPacketSize =	cpu_to_le16(512),
 	.bInterval =		1,	/* NAK every 1 uframe */
 };
+<<<<<<< HEAD
 
 
 static struct usb_descriptor_header *fsg_hs_function[] = {
+=======
+EXPORT_SYMBOL_GPL(fsg_hs_bulk_out_desc);
+
+
+struct usb_descriptor_header *fsg_hs_function[] = {
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	(struct usb_descriptor_header *) &fsg_intf_desc,
 	(struct usb_descriptor_header *) &fsg_hs_bulk_in_desc,
 	(struct usb_descriptor_header *) &fsg_hs_bulk_out_desc,
 	NULL,
 };
+<<<<<<< HEAD
 
 static struct usb_endpoint_descriptor
 fsg_ss_bulk_in_desc = {
+=======
+EXPORT_SYMBOL_GPL(fsg_hs_function);
+
+struct usb_endpoint_descriptor fsg_ss_bulk_in_desc = {
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	.bLength =		USB_DT_ENDPOINT_SIZE,
 	.bDescriptorType =	USB_DT_ENDPOINT,
 
@@ -351,16 +412,28 @@ fsg_ss_bulk_in_desc = {
 	.bmAttributes =		USB_ENDPOINT_XFER_BULK,
 	.wMaxPacketSize =	cpu_to_le16(1024),
 };
+<<<<<<< HEAD
 
 static struct usb_ss_ep_comp_descriptor fsg_ss_bulk_in_comp_desc = {
+=======
+EXPORT_SYMBOL_GPL(fsg_ss_bulk_in_desc);
+
+struct usb_ss_ep_comp_descriptor fsg_ss_bulk_in_comp_desc = {
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	.bLength =		sizeof(fsg_ss_bulk_in_comp_desc),
 	.bDescriptorType =	USB_DT_SS_ENDPOINT_COMP,
 
 	/*.bMaxBurst =		DYNAMIC, */
 };
+<<<<<<< HEAD
 
 static struct usb_endpoint_descriptor
 fsg_ss_bulk_out_desc = {
+=======
+EXPORT_SYMBOL_GPL(fsg_ss_bulk_in_comp_desc);
+
+struct usb_endpoint_descriptor fsg_ss_bulk_out_desc = {
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	.bLength =		USB_DT_ENDPOINT_SIZE,
 	.bDescriptorType =	USB_DT_ENDPOINT,
 
@@ -368,15 +441,27 @@ fsg_ss_bulk_out_desc = {
 	.bmAttributes =		USB_ENDPOINT_XFER_BULK,
 	.wMaxPacketSize =	cpu_to_le16(1024),
 };
+<<<<<<< HEAD
 
 static struct usb_ss_ep_comp_descriptor fsg_ss_bulk_out_comp_desc = {
+=======
+EXPORT_SYMBOL_GPL(fsg_ss_bulk_out_desc);
+
+struct usb_ss_ep_comp_descriptor fsg_ss_bulk_out_comp_desc = {
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	.bLength =		sizeof(fsg_ss_bulk_in_comp_desc),
 	.bDescriptorType =	USB_DT_SS_ENDPOINT_COMP,
 
 	/*.bMaxBurst =		DYNAMIC, */
 };
+<<<<<<< HEAD
 
 static struct usb_descriptor_header *fsg_ss_function[] = {
+=======
+EXPORT_SYMBOL_GPL(fsg_ss_bulk_out_comp_desc);
+
+struct usb_descriptor_header *fsg_ss_function[] = {
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	(struct usb_descriptor_header *) &fsg_intf_desc,
 	(struct usb_descriptor_header *) &fsg_ss_bulk_in_desc,
 	(struct usb_descriptor_header *) &fsg_ss_bulk_in_comp_desc,
@@ -384,6 +469,7 @@ static struct usb_descriptor_header *fsg_ss_function[] = {
 	(struct usb_descriptor_header *) &fsg_ss_bulk_out_comp_desc,
 	NULL,
 };
+<<<<<<< HEAD
 
 /* Static strings, in UTF-8 (for simplicity we use only ASCII characters) */
 static struct usb_string		fsg_strings[] = {
@@ -395,6 +481,9 @@ static struct usb_gadget_strings	fsg_stringtab = {
 	.language	= 0x0409,		/* en-us */
 	.strings	= fsg_strings,
 };
+=======
+EXPORT_SYMBOL_GPL(fsg_ss_function);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 
  /*-------------------------------------------------------------------------*/
@@ -404,7 +493,11 @@ static struct usb_gadget_strings	fsg_stringtab = {
  * the caller must own fsg->filesem for writing.
  */
 
+<<<<<<< HEAD
 static void fsg_lun_close(struct fsg_lun *curlun)
+=======
+void fsg_lun_close(struct fsg_lun *curlun)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	if (curlun->filp) {
 		LDBG(curlun, "close backing file\n");
@@ -412,9 +505,15 @@ static void fsg_lun_close(struct fsg_lun *curlun)
 		curlun->filp = NULL;
 	}
 }
+<<<<<<< HEAD
 
 
 static int fsg_lun_open(struct fsg_lun *curlun, const char *filename)
+=======
+EXPORT_SYMBOL_GPL(fsg_lun_close);
+
+int fsg_lun_open(struct fsg_lun *curlun, const char *filename)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	int				ro;
 	struct file			*filp = NULL;
@@ -453,11 +552,19 @@ static int fsg_lun_open(struct fsg_lun *curlun, const char *filename)
 	 * If we can't read the file, it's no good.
 	 * If we can't write the file, use it read-only.
 	 */
+<<<<<<< HEAD
 	if (!(filp->f_op->read || filp->f_op->aio_read)) {
 		LINFO(curlun, "file not readable: %s\n", filename);
 		goto out;
 	}
 	if (!(filp->f_op->write || filp->f_op->aio_write))
+=======
+	if (!(filp->f_mode & FMODE_CAN_READ)) {
+		LINFO(curlun, "file not readable: %s\n", filename);
+		goto out;
+	}
+	if (!(filp->f_mode & FMODE_CAN_WRITE))
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		ro = 1;
 
 	size = i_size_read(inode->i_mapping->host);
@@ -511,6 +618,10 @@ out:
 	fput(filp);
 	return rc;
 }
+<<<<<<< HEAD
+=======
+EXPORT_SYMBOL_GPL(fsg_lun_open);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 
 /*-------------------------------------------------------------------------*/
@@ -519,7 +630,11 @@ out:
  * Sync the file data, don't bother with the metadata.
  * This code was copied from fs/buffer.c:sys_fdatasync().
  */
+<<<<<<< HEAD
 static int fsg_lun_fsync_sub(struct fsg_lun *curlun)
+=======
+int fsg_lun_fsync_sub(struct fsg_lun *curlun)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	struct file	*filp = curlun->filp;
 
@@ -527,8 +642,14 @@ static int fsg_lun_fsync_sub(struct fsg_lun *curlun)
 		return 0;
 	return vfs_fsync(filp, 1);
 }
+<<<<<<< HEAD
 
 static void store_cdrom_address(u8 *dest, int msf, u32 addr)
+=======
+EXPORT_SYMBOL_GPL(fsg_lun_fsync_sub);
+
+void store_cdrom_address(u8 *dest, int msf, u32 addr)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	if (msf) {
 		/* Convert to Minutes-Seconds-Frames */
@@ -545,20 +666,30 @@ static void store_cdrom_address(u8 *dest, int msf, u32 addr)
 		put_unaligned_be32(addr, dest);
 	}
 }
+<<<<<<< HEAD
 
+=======
+EXPORT_SYMBOL_GPL(store_cdrom_address);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /*-------------------------------------------------------------------------*/
 
 
+<<<<<<< HEAD
 static ssize_t fsg_show_ro(struct device *dev, struct device_attribute *attr,
 			   char *buf)
 {
 	struct fsg_lun	*curlun = fsg_lun_from_dev(dev);
 
+=======
+ssize_t fsg_show_ro(struct fsg_lun *curlun, char *buf)
+{
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return sprintf(buf, "%d\n", fsg_lun_is_open(curlun)
 				  ? curlun->ro
 				  : curlun->initially_ro);
 }
+<<<<<<< HEAD
 
 static ssize_t fsg_show_nofua(struct device *dev, struct device_attribute *attr,
 			      char *buf)
@@ -573,6 +704,19 @@ static ssize_t fsg_show_file(struct device *dev, struct device_attribute *attr,
 {
 	struct fsg_lun	*curlun = fsg_lun_from_dev(dev);
 	struct rw_semaphore	*filesem = dev_get_drvdata(dev);
+=======
+EXPORT_SYMBOL_GPL(fsg_show_ro);
+
+ssize_t fsg_show_nofua(struct fsg_lun *curlun, char *buf)
+{
+	return sprintf(buf, "%u\n", curlun->nofua);
+}
+EXPORT_SYMBOL_GPL(fsg_show_nofua);
+
+ssize_t fsg_show_file(struct fsg_lun *curlun, struct rw_semaphore *filesem,
+		      char *buf)
+{
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	char		*p;
 	ssize_t		rc;
 
@@ -583,9 +727,12 @@ static ssize_t fsg_show_file(struct device *dev, struct device_attribute *attr,
 			rc = PTR_ERR(p);
 		else {
 			rc = strlen(p);
+<<<<<<< HEAD
 			if (rc > PAGE_SIZE - 2)
 				rc = PAGE_SIZE - 2;
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			memmove(buf, p, rc);
 			buf[rc] = '\n';		/* Add a newline */
 			buf[++rc] = 0;
@@ -597,6 +744,7 @@ static ssize_t fsg_show_file(struct device *dev, struct device_attribute *attr,
 	up_read(filesem);
 	return rc;
 }
+<<<<<<< HEAD
 
 
 static ssize_t fsg_store_ro(struct device *dev, struct device_attribute *attr,
@@ -608,6 +756,46 @@ static ssize_t fsg_store_ro(struct device *dev, struct device_attribute *attr,
 	unsigned	ro;
 
 	rc = kstrtouint(buf, 2, &ro);
+=======
+EXPORT_SYMBOL_GPL(fsg_show_file);
+
+ssize_t fsg_show_cdrom(struct fsg_lun *curlun, char *buf)
+{
+	return sprintf(buf, "%u\n", curlun->cdrom);
+}
+EXPORT_SYMBOL_GPL(fsg_show_cdrom);
+
+ssize_t fsg_show_removable(struct fsg_lun *curlun, char *buf)
+{
+	return sprintf(buf, "%u\n", curlun->removable);
+}
+EXPORT_SYMBOL_GPL(fsg_show_removable);
+
+/*
+ * The caller must hold fsg->filesem for reading when calling this function.
+ */
+static ssize_t _fsg_store_ro(struct fsg_lun *curlun, bool ro)
+{
+	if (fsg_lun_is_open(curlun)) {
+		LDBG(curlun, "read-only status change prevented\n");
+		return -EBUSY;
+	}
+
+	curlun->ro = ro;
+	curlun->initially_ro = ro;
+	LDBG(curlun, "read-only status set to %d\n", curlun->ro);
+
+	return 0;
+}
+
+ssize_t fsg_store_ro(struct fsg_lun *curlun, struct rw_semaphore *filesem,
+		     const char *buf, size_t count)
+{
+	ssize_t		rc;
+	bool		ro;
+
+	rc = strtobool(buf, &ro);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (rc)
 		return rc;
 
@@ -616,6 +804,7 @@ static ssize_t fsg_store_ro(struct device *dev, struct device_attribute *attr,
 	 * backing file is closed.
 	 */
 	down_read(filesem);
+<<<<<<< HEAD
 	if (fsg_lun_is_open(curlun)) {
 		LDBG(curlun, "read-only status change prevented\n");
 		rc = -EBUSY;
@@ -638,6 +827,23 @@ static ssize_t fsg_store_nofua(struct device *dev,
 	int		ret;
 
 	ret = kstrtouint(buf, 2, &nofua);
+=======
+	rc = _fsg_store_ro(curlun, ro);
+	if (!rc)
+		rc = count;
+	up_read(filesem);
+
+	return rc;
+}
+EXPORT_SYMBOL_GPL(fsg_store_ro);
+
+ssize_t fsg_store_nofua(struct fsg_lun *curlun, const char *buf, size_t count)
+{
+	bool		nofua;
+	int		ret;
+
+	ret = strtobool(buf, &nofua);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (ret)
 		return ret;
 
@@ -649,12 +855,20 @@ static ssize_t fsg_store_nofua(struct device *dev,
 
 	return count;
 }
+<<<<<<< HEAD
 
 static ssize_t fsg_store_file(struct device *dev, struct device_attribute *attr,
 			      const char *buf, size_t count)
 {
 	struct fsg_lun	*curlun = fsg_lun_from_dev(dev);
 	struct rw_semaphore	*filesem = dev_get_drvdata(dev);
+=======
+EXPORT_SYMBOL_GPL(fsg_store_nofua);
+
+ssize_t fsg_store_file(struct fsg_lun *curlun, struct rw_semaphore *filesem,
+		       const char *buf, size_t count)
+{
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	int		rc = 0;
 
 	if (curlun->prevent_medium_removal && fsg_lun_is_open(curlun)) {
@@ -681,3 +895,48 @@ static ssize_t fsg_store_file(struct device *dev, struct device_attribute *attr,
 	up_write(filesem);
 	return (rc < 0 ? rc : count);
 }
+<<<<<<< HEAD
+=======
+EXPORT_SYMBOL_GPL(fsg_store_file);
+
+ssize_t fsg_store_cdrom(struct fsg_lun *curlun, struct rw_semaphore *filesem,
+			const char *buf, size_t count)
+{
+	bool		cdrom;
+	int		ret;
+
+	ret = strtobool(buf, &cdrom);
+	if (ret)
+		return ret;
+
+	down_read(filesem);
+	ret = cdrom ? _fsg_store_ro(curlun, true) : 0;
+
+	if (!ret) {
+		curlun->cdrom = cdrom;
+		ret = count;
+	}
+	up_read(filesem);
+
+	return ret;
+}
+EXPORT_SYMBOL_GPL(fsg_store_cdrom);
+
+ssize_t fsg_store_removable(struct fsg_lun *curlun, const char *buf,
+			    size_t count)
+{
+	bool		removable;
+	int		ret;
+
+	ret = strtobool(buf, &removable);
+	if (ret)
+		return ret;
+
+	curlun->removable = removable;
+
+	return count;
+}
+EXPORT_SYMBOL_GPL(fsg_store_removable);
+
+MODULE_LICENSE("GPL");
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012

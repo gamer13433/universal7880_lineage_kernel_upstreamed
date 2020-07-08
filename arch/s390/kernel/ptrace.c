@@ -809,7 +809,11 @@ asmlinkage long do_syscall_trace_enter(struct pt_regs *regs)
 	long ret = 0;
 
 	/* Do the secure computing check first. */
+<<<<<<< HEAD
 	if (secure_computing()) {
+=======
+	if (secure_computing(NULL)) {
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		/* seccomp failures shouldn't expose any additional code. */
 		ret = -1;
 		goto out;

@@ -693,8 +693,13 @@ static int setup_attrs(struct acpi_power_meter_resource *resource)
 
 	if (resource->caps.flags & POWER_METER_CAN_CAP) {
 		if (!can_cap_in_hardware()) {
+<<<<<<< HEAD
 			dev_err(&resource->acpi_dev->dev,
 				"Ignoring unsafe software power cap!\n");
+=======
+			dev_warn(&resource->acpi_dev->dev,
+				 "Ignoring unsafe software power cap!\n");
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			goto skip_unsafe_cap;
 		}
 

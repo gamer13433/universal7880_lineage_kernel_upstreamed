@@ -111,6 +111,10 @@ static void tm6000_urb_received(struct urb *urb)
 			printk(KERN_ERR "tm6000:  error %s\n", __func__);
 			kfree(urb->transfer_buffer);
 			usb_free_urb(urb);
+<<<<<<< HEAD
+=======
+			dev->dvb->bulk_urb = NULL;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		}
 	}
 }
@@ -143,6 +147,10 @@ static int tm6000_start_stream(struct tm6000_core *dev)
 	dvb->bulk_urb->transfer_buffer = kzalloc(size, GFP_KERNEL);
 	if (dvb->bulk_urb->transfer_buffer == NULL) {
 		usb_free_urb(dvb->bulk_urb);
+<<<<<<< HEAD
+=======
+		dvb->bulk_urb = NULL;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		printk(KERN_ERR "tm6000: couldn't allocate transfer buffer!\n");
 		return -ENOMEM;
 	}
@@ -170,6 +178,10 @@ static int tm6000_start_stream(struct tm6000_core *dev)
 
 		kfree(dvb->bulk_urb->transfer_buffer);
 		usb_free_urb(dvb->bulk_urb);
+<<<<<<< HEAD
+=======
+		dvb->bulk_urb = NULL;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		return ret;
 	}
 

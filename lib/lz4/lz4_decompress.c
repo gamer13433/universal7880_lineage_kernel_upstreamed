@@ -47,6 +47,14 @@
 
 #include "lz4defs.h"
 
+<<<<<<< HEAD
+=======
+static const int dec32table[] = {0, 3, 2, 3, 0, 0, 0, 0};
+#if LZ4_ARCH64
+static const int dec64table[] = {0, 0, 0, -1, 0, 1, 2, 3};
+#endif
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static int lz4_uncompress(const char *source, char *dest, int osize)
 {
 	const BYTE *ip = (const BYTE *) source;
@@ -56,10 +64,13 @@ static int lz4_uncompress(const char *source, char *dest, int osize)
 	BYTE *cpy;
 	unsigned token;
 	size_t length;
+<<<<<<< HEAD
 	size_t dec32table[] = {0, 3, 2, 3, 0, 0, 0, 0};
 #if LZ4_ARCH64
 	size_t dec64table[] = {0, 0, 0, -1, 0, 1, 2, 3};
 #endif
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	while (1) {
 
@@ -116,7 +127,11 @@ static int lz4_uncompress(const char *source, char *dest, int osize)
 		/* copy repeated sequence */
 		if (unlikely((op - ref) < STEPSIZE)) {
 #if LZ4_ARCH64
+<<<<<<< HEAD
 			size_t dec64 = dec64table[op - ref];
+=======
+			int dec64 = dec64table[op - ref];
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #else
 			const int dec64 = 0;
 #endif
@@ -139,8 +154,17 @@ static int lz4_uncompress(const char *source, char *dest, int osize)
 			/* Error: request to write beyond destination buffer */
 			if (cpy > oend)
 				goto _output_error;
+<<<<<<< HEAD
 			if ((ref + COPYLENGTH) > oend ||
 					(op + COPYLENGTH) > oend)
+=======
+#if LZ4_ARCH64
+			if ((ref + COPYLENGTH) > oend)
+#else
+			if ((ref + COPYLENGTH) > oend ||
+					(op + COPYLENGTH) > oend)
+#endif
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 				goto _output_error;
 			LZ4_SECURECOPY(ref, op, (oend - COPYLENGTH));
 			while (op < cpy)
@@ -177,11 +201,14 @@ static int lz4_uncompress_unknownoutputsize(const char *source, char *dest,
 	BYTE * const oend = op + maxoutputsize;
 	BYTE *cpy;
 
+<<<<<<< HEAD
 	size_t dec32table[] = {0, 3, 2, 3, 0, 0, 0, 0};
 #if LZ4_ARCH64
 	size_t dec64table[] = {0, 0, 0, -1, 0, 1, 2, 3};
 #endif
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/* Main Loop */
 	while (ip < iend) {
 
@@ -249,7 +276,11 @@ static int lz4_uncompress_unknownoutputsize(const char *source, char *dest,
 		/* copy repeated sequence */
 		if (unlikely((op - ref) < STEPSIZE)) {
 #if LZ4_ARCH64
+<<<<<<< HEAD
 			size_t dec64 = dec64table[op - ref];
+=======
+			int dec64 = dec64table[op - ref];
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #else
 			const int dec64 = 0;
 #endif
@@ -270,7 +301,17 @@ static int lz4_uncompress_unknownoutputsize(const char *source, char *dest,
 		if (cpy > oend - COPYLENGTH) {
 			if (cpy > oend)
 				goto _output_error; /* write outside of buf */
+<<<<<<< HEAD
 
+=======
+#if LZ4_ARCH64
+			if ((ref + COPYLENGTH) > oend)
+#else
+			if ((ref + COPYLENGTH) > oend ||
+					(op + COPYLENGTH) > oend)
+#endif
+				goto _output_error;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			LZ4_SECURECOPY(ref, op, (oend - COPYLENGTH));
 			while (op < cpy)
 				*op++ = *ref++;

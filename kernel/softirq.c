@@ -26,7 +26,10 @@
 #include <linux/smpboot.h>
 #include <linux/tick.h>
 #include <linux/irq.h>
+<<<<<<< HEAD
 #include <linux/exynos-ss.h>
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #define CREATE_TRACE_POINTS
 #include <trace/events/irq.h>
@@ -267,9 +270,13 @@ restart:
 		kstat_incr_softirqs_this_cpu(vec_nr);
 
 		trace_softirq_entry(vec_nr);
+<<<<<<< HEAD
 		exynos_ss_irq(ESS_FLAG_SOFTIRQ, h->action, vec_nr, ESS_FLAG_IN);
 		h->action(h);
 		exynos_ss_irq(ESS_FLAG_SOFTIRQ, h->action, local_softirq_pending(), ESS_FLAG_OUT);
+=======
+		h->action(h);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		trace_softirq_exit(vec_nr);
 		if (unlikely(prev_count != preempt_count())) {
 			pr_err("huh, entered softirq %u %s %p with preempt_count %08x, exited with %08x?\n",
@@ -501,6 +508,7 @@ static void tasklet_action(struct softirq_action *a)
 				if (!test_and_clear_bit(TASKLET_STATE_SCHED,
 							&t->state))
 					BUG();
+<<<<<<< HEAD
 				exynos_ss_irq(ESS_FLAG_SOFTIRQ_TASKLET,
 						t->func, t->state, ESS_FLAG_IN);
 				trace_tasklet_entry(t);
@@ -508,6 +516,9 @@ static void tasklet_action(struct softirq_action *a)
 				exynos_ss_irq(ESS_FLAG_SOFTIRQ_TASKLET,
 						t->func, local_softirq_pending(), ESS_FLAG_OUT);
 				trace_tasklet_exit(t);
+=======
+				t->func(t->data);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 				tasklet_unlock(t);
 				continue;
 			}
@@ -543,6 +554,7 @@ static void tasklet_hi_action(struct softirq_action *a)
 				if (!test_and_clear_bit(TASKLET_STATE_SCHED,
 							&t->state))
 					BUG();
+<<<<<<< HEAD
 				exynos_ss_irq(ESS_FLAG_SOFTIRQ_HI_TASKLET,
 						t->func, t->state, ESS_FLAG_IN);
 				trace_tasklet_entry(t);
@@ -550,6 +562,9 @@ static void tasklet_hi_action(struct softirq_action *a)
 				exynos_ss_irq(ESS_FLAG_SOFTIRQ_HI_TASKLET,
 						t->func, local_softirq_pending(), ESS_FLAG_OUT);
 				trace_tasklet_exit(t);
+=======
+				t->func(t->data);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 				tasklet_unlock(t);
 				continue;
 			}
@@ -671,9 +686,19 @@ static void run_ksoftirqd(unsigned int cpu)
 		 * in the task stack here.
 		 */
 		__do_softirq();
+<<<<<<< HEAD
 		rcu_note_context_switch(cpu);
 		local_irq_enable();
 		cond_resched();
+=======
+		local_irq_enable();
+		cond_resched();
+
+		preempt_disable();
+		rcu_note_context_switch(cpu);
+		preempt_enable();
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		return;
 	}
 	local_irq_enable();

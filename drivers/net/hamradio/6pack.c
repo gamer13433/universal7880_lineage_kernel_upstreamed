@@ -693,10 +693,17 @@ static void sixpack_close(struct tty_struct *tty)
 {
 	struct sixpack *sp;
 
+<<<<<<< HEAD
 	write_lock_bh(&disc_data_lock);
 	sp = tty->disc_data;
 	tty->disc_data = NULL;
 	write_unlock_bh(&disc_data_lock);
+=======
+	write_lock_irq(&disc_data_lock);
+	sp = tty->disc_data;
+	tty->disc_data = NULL;
+	write_unlock_irq(&disc_data_lock);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (!sp)
 		return;
 

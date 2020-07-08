@@ -89,6 +89,10 @@ struct iowarrior {
 	char chip_serial[9];		/* the serial number string of the chip connected */
 	int report_size;		/* number of bytes in a report */
 	u16 product_id;
+<<<<<<< HEAD
+=======
+	struct usb_anchor submitted;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 /*--------------*/
@@ -248,6 +252,10 @@ static inline void iowarrior_delete(struct iowarrior *dev)
 	kfree(dev->int_in_buffer);
 	usb_free_urb(dev->int_in_urb);
 	kfree(dev->read_queue);
+<<<<<<< HEAD
+=======
+	usb_put_intf(dev->interface);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	kfree(dev);
 }
 
@@ -436,11 +444,19 @@ static ssize_t iowarrior_write(struct file *file,
 			retval = -EFAULT;
 			goto error;
 		}
+<<<<<<< HEAD
+=======
+		usb_anchor_urb(int_out_urb, &dev->submitted);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		retval = usb_submit_urb(int_out_urb, GFP_KERNEL);
 		if (retval) {
 			dev_dbg(&dev->interface->dev,
 				"submit error %d for urb nr.%d\n",
 				retval, atomic_read(&dev->write_busy));
+<<<<<<< HEAD
+=======
+			usb_unanchor_urb(int_out_urb);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			goto error;
 		}
 		/* submit was ok */
@@ -782,11 +798,20 @@ static int iowarrior_probe(struct usb_interface *interface,
 	init_waitqueue_head(&dev->write_wait);
 
 	dev->udev = udev;
+<<<<<<< HEAD
 	dev->interface = interface;
+=======
+	dev->interface = usb_get_intf(interface);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	iface_desc = interface->cur_altsetting;
 	dev->product_id = le16_to_cpu(udev->descriptor.idProduct);
 
+<<<<<<< HEAD
+=======
+	init_usb_anchor(&dev->submitted);
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/* set up the endpoint information */
 	for (i = 0; i < iface_desc->desc.bNumEndpoints; ++i) {
 		endpoint = &iface_desc->endpoint[i].desc;
@@ -900,8 +925,14 @@ static void iowarrior_disconnect(struct usb_interface *interface)
 	usb_set_intfdata(interface, NULL);
 
 	minor = dev->minor;
+<<<<<<< HEAD
 
 	/* give back our minor */
+=======
+	mutex_unlock(&iowarrior_open_disc_lock);
+	/* give back our minor - this will call close() locks need to be dropped at this point*/
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	usb_deregister_dev(interface, &iowarrior_class);
 
 	mutex_lock(&dev->mutex);
@@ -909,19 +940,32 @@ static void iowarrior_disconnect(struct usb_interface *interface)
 	/* prevent device read, write and ioctl */
 	dev->present = 0;
 
+<<<<<<< HEAD
 	mutex_unlock(&dev->mutex);
 	mutex_unlock(&iowarrior_open_disc_lock);
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (dev->opened) {
 		/* There is a process that holds a filedescriptor to the device ,
 		   so we only shutdown read-/write-ops going on.
 		   Deleting the device is postponed until close() was called.
 		 */
 		usb_kill_urb(dev->int_in_urb);
+<<<<<<< HEAD
 		wake_up_interruptible(&dev->read_wait);
 		wake_up_interruptible(&dev->write_wait);
 	} else {
 		/* no process is using the device, cleanup now */
+=======
+		usb_kill_anchored_urbs(&dev->submitted);
+		wake_up_interruptible(&dev->read_wait);
+		wake_up_interruptible(&dev->write_wait);
+		mutex_unlock(&dev->mutex);
+	} else {
+		/* no process is using the device, cleanup now */
+		mutex_unlock(&dev->mutex);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		iowarrior_delete(dev);
 	}
 

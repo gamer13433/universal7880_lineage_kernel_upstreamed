@@ -437,7 +437,11 @@ gmbus_xfer(struct i2c_adapter *adapter,
 					       struct intel_gmbus,
 					       adapter);
 	struct drm_i915_private *dev_priv = bus->dev_priv;
+<<<<<<< HEAD
 	int i, reg_offset;
+=======
+	int i = 0, inc, try = 0, reg_offset;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	int ret = 0;
 
 	intel_aux_display_runtime_get(dev_priv);
@@ -450,12 +454,23 @@ gmbus_xfer(struct i2c_adapter *adapter,
 
 	reg_offset = dev_priv->gpio_mmio_base;
 
+<<<<<<< HEAD
 	I915_WRITE(GMBUS0 + reg_offset, bus->reg0);
 
 	for (i = 0; i < num; i++) {
 		if (gmbus_is_index_read(msgs, i, num)) {
 			ret = gmbus_xfer_index_read(dev_priv, &msgs[i]);
 			i += 1;  /* set i to the index of the read xfer */
+=======
+retry:
+	I915_WRITE(GMBUS0 + reg_offset, bus->reg0);
+
+	for (; i < num; i += inc) {
+		inc = 1;
+		if (gmbus_is_index_read(msgs, i, num)) {
+			ret = gmbus_xfer_index_read(dev_priv, &msgs[i]);
+			inc = 2; /* an index read is two msgs */
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		} else if (msgs[i].flags & I2C_M_RD) {
 			ret = gmbus_xfer_read(dev_priv, &msgs[i], 0);
 		} else {
@@ -527,6 +542,21 @@ clear_err:
 			 adapter->name, msgs[i].addr,
 			 (msgs[i].flags & I2C_M_RD) ? 'r' : 'w', msgs[i].len);
 
+<<<<<<< HEAD
+=======
+	/*
+	 * Passive adapters sometimes NAK the first probe. Retry the first
+	 * message once on -ENXIO for GMBUS transfers; the bit banging algorithm
+	 * has retries internally. See also the retry loop in
+	 * drm_do_probe_ddc_edid, which bails out on the first -ENXIO.
+	 */
+	if (ret == -ENXIO && i == 0 && try++ == 0) {
+		DRM_DEBUG_KMS("GMBUS [%s] NAK on first message, retry\n",
+			      adapter->name);
+		goto retry;
+	}
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	goto out;
 
 timeout:
@@ -614,7 +644,11 @@ int intel_setup_gmbus(struct drm_device *dev)
 	return 0;
 
 err:
+<<<<<<< HEAD
 	while (--i) {
+=======
+	while (i--) {
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		struct intel_gmbus *bus = &dev_priv->gmbus[i];
 		i2c_del_adapter(&bus->adapter);
 	}

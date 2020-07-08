@@ -392,7 +392,11 @@ static int dw8250_probe(struct platform_device *pdev)
 	}
 
 	data->pclk = devm_clk_get(&pdev->dev, "apb_pclk");
+<<<<<<< HEAD
 	if (IS_ERR(data->clk) && PTR_ERR(data->clk) == -EPROBE_DEFER) {
+=======
+	if (IS_ERR(data->pclk) && PTR_ERR(data->pclk) == -EPROBE_DEFER) {
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		err = -EPROBE_DEFER;
 		goto err_clk;
 	}

@@ -200,8 +200,11 @@ struct ehci_hcd {			/* one per controller */
 			suspended */
 	unsigned long		resuming_ports;		/* which ports have
 			started to resume */
+<<<<<<< HEAD
 	unsigned long		hsic_ports;		/* which ports are
 			used for HSIC */
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	/* per-HC memory pools (could be per-bus, but ...) */
 	struct dma_pool		*qh_pool;	/* qh per active urb */
@@ -225,7 +228,10 @@ struct ehci_hcd {			/* one per controller */
 	unsigned		amd_pll_fix:1;
 	unsigned		use_dummy_qh:1;	/* AMD Frame List table quirk*/
 	unsigned		has_synopsys_hc_bug:1; /* Synopsys HC */
+<<<<<<< HEAD
 	unsigned		has_synopsys_hsic_bug:1; /* Synop HSIC port */
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	unsigned		frame_index_bug:1; /* MosChip (AKA NetMos) */
 	unsigned		need_oc_pp_cycle:1; /* MPC834X port power */
 	unsigned		imx28_write_fix:1; /* For Freescale i.MX28 */

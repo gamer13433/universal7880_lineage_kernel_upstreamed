@@ -8,7 +8,10 @@
 
 struct irqaction;
 struct softirq_action;
+<<<<<<< HEAD
 struct tasklet_struct;
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #define softirq_name(sirq) { sirq##_SOFTIRQ, #sirq }
 #define show_softirq_name(val)				\
@@ -145,6 +148,7 @@ DEFINE_EVENT(softirq, softirq_raise,
 	TP_ARGS(vec_nr)
 );
 
+<<<<<<< HEAD
 /* tasklet traces */
 TRACE_EVENT(tasklet_entry,
 
@@ -182,6 +186,8 @@ TRACE_EVENT(tasklet_exit,
 	TP_printk("function=%pf", __entry->function)
 );
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #endif /*  _TRACE_IRQ_H */
 
 /* This part must be outside protection */

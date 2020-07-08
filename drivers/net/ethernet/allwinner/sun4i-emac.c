@@ -437,7 +437,11 @@ static void emac_timeout(struct net_device *dev)
 /* Hardware start transmission.
  * Send a packet to media from the upper layer.
  */
+<<<<<<< HEAD
 static int emac_start_xmit(struct sk_buff *skb, struct net_device *dev)
+=======
+static netdev_tx_t emac_start_xmit(struct sk_buff *skb, struct net_device *dev)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	struct emac_board_info *db = netdev_priv(dev);
 	unsigned long channel;
@@ -445,7 +449,11 @@ static int emac_start_xmit(struct sk_buff *skb, struct net_device *dev)
 
 	channel = db->tx_fifo_stat & 3;
 	if (channel == 3)
+<<<<<<< HEAD
 		return 1;
+=======
+		return NETDEV_TX_BUSY;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	channel = (channel == 1 ? 1 : 0);
 

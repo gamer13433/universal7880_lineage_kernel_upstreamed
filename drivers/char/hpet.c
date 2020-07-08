@@ -570,8 +570,12 @@ static inline unsigned long hpet_time_div(struct hpets *hpets,
 	unsigned long long m;
 
 	m = hpets->hp_tick_freq + (dis >> 1);
+<<<<<<< HEAD
 	do_div(m, dis);
 	return (unsigned long)m;
+=======
+	return div64_ul(m, dis);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 static int

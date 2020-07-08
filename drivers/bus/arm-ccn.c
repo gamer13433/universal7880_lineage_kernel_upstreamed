@@ -213,7 +213,11 @@ static int arm_ccn_node_to_xp_port(int node)
 
 static void arm_ccn_pmu_config_set(u64 *config, u32 node_xp, u32 type, u32 port)
 {
+<<<<<<< HEAD
 	*config &= ~((0xff << 0) | (0xff << 8) | (0xff << 24));
+=======
+	*config &= ~((0xff << 0) | (0xff << 8) | (0x3 << 24));
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	*config |= (node_xp << 0) | (type << 8) | (port << 24);
 }
 

@@ -236,10 +236,13 @@ if [ -n "${CONFIG_KALLSYMS}" ]; then
 	fi
 fi
 
+<<<<<<< HEAD
 if [ -n "${CONFIG_FIPS_FMP}" ]; then
     echo '  FIPS : Generating hmac of fmp and updating vmlinux... '
     ${CONFIG_SHELL} "${srctree}/scripts/fips_fmp_hmac.sh" "${objtree}/vmlinux" "${objtree}/System.map"
 fi
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 # We made a new kernel - delete old version file
 rm -f .old_version

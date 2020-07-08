@@ -30,9 +30,12 @@
 
 struct inet_bind_bucket;
 struct tcp_congestion_ops;
+<<<<<<< HEAD
 #ifdef CONFIG_MPTCP
 struct tcp_options_received;
 #endif
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /*
  * Pointers to address related TCP functions
@@ -257,11 +260,14 @@ inet_csk_rto_backoff(const struct inet_connection_sock *icsk,
 
 struct sock *inet_csk_accept(struct sock *sk, int flags, int *err);
 
+<<<<<<< HEAD
 #ifdef CONFIG_MPTCP
 u32 inet_synq_hash(const __be32 raddr, const __be16 rport, const u32 rnd,
 		   const u32 synq_hsize);
 #endif
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 struct request_sock *inet_csk_search_req(const struct sock *sk,
 					 struct request_sock ***prevp,
 					 const __be16 rport,

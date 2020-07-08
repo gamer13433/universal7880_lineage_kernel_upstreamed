@@ -376,12 +376,16 @@ static int acpi_lpss_create_device(struct acpi_device *adev,
 	 * have _PS0 and _PS3 without _PSC (and no power resources), so
 	 * acpi_bus_init_power() will assume that the BIOS has put them into D0.
 	 */
+<<<<<<< HEAD
 	ret = acpi_device_fix_up_power(adev);
 	if (ret) {
 		/* Skip the device, but continue the namespace scan. */
 		ret = 0;
 		goto err_out;
 	}
+=======
+	acpi_device_fix_up_power(adev);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	adev->driver_data = pdata;
 	pdev = acpi_create_platform_device(adev);

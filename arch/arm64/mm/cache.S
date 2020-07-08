@@ -21,6 +21,7 @@
 #include <linux/init.h>
 #include <asm/assembler.h>
 #include <asm/cpufeature.h>
+<<<<<<< HEAD
 #include <asm/alternative-asm.h>
 
 #include "proc-macros.S"
@@ -117,6 +118,10 @@ ENTRY(flush_cache_louis)
 	ic	ialluis
 	ret	x12
 ENDPROC(flush_cache_louis)
+=======
+#include <asm/alternative.h>
+#include <asm/uaccess.h>
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /*
  *	flush_icache_range(start,end)
@@ -142,6 +147,10 @@ ENTRY(flush_icache_range)
  *	- end     - virtual end address of region
  */
 ENTRY(__flush_cache_user_range)
+<<<<<<< HEAD
+=======
+	uaccess_ttbr0_enable x2, x3, x4
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	dcache_line_size x2, x3
 	sub	x3, x2, #1
 	bic	x4, x0, x3
@@ -163,6 +172,10 @@ USER(9f, ic	ivau, x4	)		// invalidate I line PoU
 9:						// ignore any faulting cache operation
 	dsb	ish
 	isb
+<<<<<<< HEAD
+=======
+	uaccess_ttbr0_disable x1, x2
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	ret
 ENDPROC(flush_icache_range)
 ENDPROC(__flush_cache_user_range)
@@ -170,13 +183,19 @@ ENDPROC(__flush_cache_user_range)
 /*
  *	__flush_dcache_area(kaddr, size)
  *
+<<<<<<< HEAD
  *	Ensure that any D-cache lines for the interval [kaddr, kaddr+size)
  *	are cleaned and invalidated to the PoC.
+=======
+ *	Ensure that the data held in the page kaddr is written back to the
+ *	page in question.
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
  *
  *	- kaddr   - kernel address
  *	- size    - size in question
  */
 ENTRY(__flush_dcache_area)
+<<<<<<< HEAD
 	dcache_by_line_op civac, sy, x0, x1, x2, x3
 	ret
 ENDPROC(__flush_dcache_area)
@@ -194,6 +213,19 @@ ENTRY(__clean_dcache_area_pou)
 	dcache_by_line_op cvau, ish, x0, x1, x2, x3
 	ret
 ENDPROC(__clean_dcache_area_pou)
+=======
+	dcache_line_size x2, x3
+	add	x1, x0, x1
+	sub	x3, x2, #1
+	bic	x0, x0, x3
+1:	dc	civac, x0			// clean & invalidate D line / unified line
+	add	x0, x0, x2
+	cmp	x0, x1
+	b.lo	1b
+	dsb	sy
+	ret
+ENDPIPROC(__flush_dcache_area)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /*
  *	__inval_cache_range(start, end)
@@ -226,7 +258,11 @@ __dma_inv_range:
 	b.lo	2b
 	dsb	sy
 	ret
+<<<<<<< HEAD
 ENDPROC(__inval_cache_range)
+=======
+ENDPIPROC(__inval_cache_range)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 ENDPROC(__dma_inv_range)
 
 /*
@@ -238,7 +274,16 @@ __dma_clean_range:
 	dcache_line_size x2, x3
 	sub	x3, x2, #1
 	bic	x0, x0, x3
+<<<<<<< HEAD
 1:	alternative_insn "dc cvac, x0", "dc civac, x0", ARM64_WORKAROUND_CLEAN_CACHE
+=======
+1:
+alternative_if_not ARM64_WORKAROUND_CLEAN_CACHE
+	dc	cvac, x0
+alternative_else
+	dc	civac, x0
+alternative_endif
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	add	x0, x0, x2
 	cmp	x0, x1
 	b.lo	1b
@@ -261,7 +306,11 @@ ENTRY(__dma_flush_range)
 	b.lo	1b
 	dsb	sy
 	ret
+<<<<<<< HEAD
 ENDPROC(__dma_flush_range)
+=======
+ENDPIPROC(__dma_flush_range)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /*
  *	__dma_map_area(start, size, dir)
@@ -274,7 +323,11 @@ ENTRY(__dma_map_area)
 	cmp	w2, #DMA_FROM_DEVICE
 	b.eq	__dma_inv_range
 	b	__dma_clean_range
+<<<<<<< HEAD
 ENDPROC(__dma_map_area)
+=======
+ENDPIPROC(__dma_map_area)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /*
  *	__dma_unmap_area(start, size, dir)
@@ -287,4 +340,8 @@ ENTRY(__dma_unmap_area)
 	cmp	w2, #DMA_TO_DEVICE
 	b.ne	__dma_inv_range
 	ret
+<<<<<<< HEAD
 ENDPROC(__dma_unmap_area)
+=======
+ENDPIPROC(__dma_unmap_area)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012

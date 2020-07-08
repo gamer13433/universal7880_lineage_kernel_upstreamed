@@ -29,7 +29,11 @@
 
 #define to_clk_mux(_hw) container_of(_hw, struct clk_mux, hw)
 
+<<<<<<< HEAD
 static int clk_mux_get_parent(struct clk_hw *hw)
+=======
+static u8 clk_mux_get_parent(struct clk_hw *hw)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	struct clk_mux *mux = to_clk_mux(hw);
 	int num_parents = __clk_get_num_parents(hw->clk);

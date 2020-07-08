@@ -1603,7 +1603,11 @@ static void scsi_kill_request(struct request *req, struct request_queue *q)
 	blk_complete_request(req);
 }
 
+<<<<<<< HEAD
 void scsi_softirq_done(struct request *rq)
+=======
+static void scsi_softirq_done(struct request *rq)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	struct scsi_cmnd *cmd = rq->special;
 	unsigned long wait_for = (cmd->allowed + 1) * rq->timeout;

@@ -36,7 +36,10 @@ obj-$(CONFIG_VIDEO_SAMSUNG_S5P_TV)	+= s5p-tv/
 
 obj-$(CONFIG_VIDEO_SAMSUNG_S5P_G2D)	+= s5p-g2d/
 obj-$(CONFIG_VIDEO_SAMSUNG_EXYNOS_GSC)	+= exynos-gsc/
+<<<<<<< HEAD
 obj-$(CONFIG_VIDEO_EXYNOS)		+= exynos/
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 obj-$(CONFIG_BLACKFIN)                  += blackfin/
 

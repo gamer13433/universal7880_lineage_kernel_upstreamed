@@ -124,7 +124,10 @@ extern void inode_add_lru(struct inode *inode);
 extern void inode_wb_list_del(struct inode *inode);
 
 extern long get_nr_dirty_inodes(void);
+<<<<<<< HEAD
 extern void evict_inodes(struct super_block *);
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 extern int invalidate_inodes(struct super_block *, bool);
 
 /*

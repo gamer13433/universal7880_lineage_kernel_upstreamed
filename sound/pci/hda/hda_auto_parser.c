@@ -792,6 +792,11 @@ static void apply_fixup(struct hda_codec *codec, int id, int action, int depth)
 	while (id >= 0) {
 		const struct hda_fixup *fix = codec->fixup_list + id;
 
+<<<<<<< HEAD
+=======
+		if (++depth > 10)
+			break;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		if (fix->chained_before)
 			apply_fixup(codec, fix->chain_id, action, depth + 1);
 
@@ -831,8 +836,11 @@ static void apply_fixup(struct hda_codec *codec, int id, int action, int depth)
 		}
 		if (!fix->chained || fix->chained_before)
 			break;
+<<<<<<< HEAD
 		if (++depth > 10)
 			break;
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		id = fix->chain_id;
 	}
 }

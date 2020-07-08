@@ -36,6 +36,7 @@
 #include <asm/unaligned.h>
 #include "ecryptfs_kernel.h"
 
+<<<<<<< HEAD
 #ifdef CONFIG_SDP
 #include <sdp/fs_request.h>
 #include "ecryptfs_sdp_chamber.h"
@@ -80,6 +81,8 @@ void ecryptfs_revert_fsids(const struct cred * old_cred)
 }
 
 #if !defined(CONFIG_SDP) || (ANDROID_VERSION >= 80000)
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static struct dentry *lock_parent(struct dentry *dentry)
 {
 	struct dentry *dir;
@@ -94,7 +97,10 @@ static void unlock_dir(struct dentry *dir)
 	mutex_unlock(&dir->d_inode->i_mutex);
 	dput(dir);
 }
+<<<<<<< HEAD
 #endif
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 static int ecryptfs_inode_test(struct inode *inode, void *lower_inode)
 {
@@ -181,6 +187,7 @@ static int ecryptfs_interpose(struct dentry *lower_dentry,
 
 	if (IS_ERR(inode))
 		return PTR_ERR(inode);
+<<<<<<< HEAD
 
 	d_instantiate(dentry, inode);
 #if (ANDROID_VERSION < 80000)
@@ -218,6 +225,9 @@ static int ecryptfs_interpose(struct dentry *lower_dentry,
 	    }
 	}
 #endif
+=======
+	d_instantiate(dentry, inode);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	return 0;
 }
@@ -306,10 +316,13 @@ int ecryptfs_initialize_file(struct dentry *ecryptfs_dentry,
 		&ecryptfs_inode_to_private(ecryptfs_inode)->crypt_stat;
 	int rc = 0;
 
+<<<<<<< HEAD
 #ifdef CONFIG_DLP
 	sdp_fs_command_t *cmd = NULL;
 #endif
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (S_ISDIR(ecryptfs_inode->i_mode)) {
 		ecryptfs_printk(KERN_DEBUG, "This is a directory\n");
 		crypt_stat->flags &= ~(ECRYPTFS_ENCRYPTED);
@@ -330,6 +343,7 @@ int ecryptfs_initialize_file(struct dentry *ecryptfs_dentry,
 			ecryptfs_dentry, rc);
 		goto out;
 	}
+<<<<<<< HEAD
 #ifdef CONFIG_DLP
 	if(crypt_stat->mount_crypt_stat->flags & ECRYPTFS_MOUNT_DLP_ENABLED) {
 #if DLP_DEBUG
@@ -400,10 +414,13 @@ int ecryptfs_initialize_file(struct dentry *ecryptfs_dentry,
 	}
 	mutex_unlock(&crypt_stat->cs_mutex);
 #else
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	rc = ecryptfs_write_metadata(ecryptfs_dentry, ecryptfs_inode);
 	if (rc)
 		printk(KERN_ERR "Error writing headers; rc = [%d]\n", rc);
 	ecryptfs_put_lower_file(ecryptfs_inode);
+<<<<<<< HEAD
 #endif
 
 out:
@@ -413,6 +430,9 @@ out:
 		sdp_fs_command_free(cmd);
 	}
 #endif
+=======
+out:
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return rc;
 }
 
@@ -452,12 +472,16 @@ ecryptfs_create(struct inode *directory_inode, struct dentry *ecryptfs_dentry,
 		iput(ecryptfs_inode);
 		goto out;
 	}
+<<<<<<< HEAD
 	unlock_new_inode(ecryptfs_inode);
 	d_instantiate(ecryptfs_dentry, ecryptfs_inode);
 #if (ANDROID_VERSION < 80000)
 	if(d_unhashed(ecryptfs_dentry))
 		d_rehash(ecryptfs_dentry);
 #endif
+=======
+	d_instantiate_new(ecryptfs_dentry, ecryptfs_inode);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 out:
 	return rc;
 }
@@ -500,9 +524,15 @@ static int ecryptfs_lookup_interpose(struct dentry *dentry,
 				     struct dentry *lower_dentry,
 				     struct inode *dir_inode)
 {
+<<<<<<< HEAD
 	struct inode *inode, *lower_inode = lower_dentry->d_inode;
 	struct ecryptfs_dentry_info *dentry_info;
 	struct vfsmount *lower_mnt;
+=======
+	struct path *path = ecryptfs_dentry_to_lower_path(dentry->d_parent);
+	struct inode *inode, *lower_inode;
+	struct ecryptfs_dentry_info *dentry_info;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	int rc = 0;
 
 	dentry_info = kmem_cache_alloc(ecryptfs_dentry_info_cache, GFP_KERNEL);
@@ -514,6 +544,7 @@ static int ecryptfs_lookup_interpose(struct dentry *dentry,
 		return -ENOMEM;
 	}
 
+<<<<<<< HEAD
 	lower_mnt = mntget(ecryptfs_dentry_to_lower_mnt(dentry->d_parent));
 	fsstack_copy_attr_atime(dir_inode, lower_dentry->d_parent->d_inode);
 	BUG_ON(!d_count(lower_dentry));
@@ -527,6 +558,26 @@ static int ecryptfs_lookup_interpose(struct dentry *dentry,
 		/* We want to add because we couldn't find in lower */
 		d_add(dentry, NULL);
 #endif
+=======
+	fsstack_copy_attr_atime(dir_inode, d_inode(path->dentry));
+	BUG_ON(!d_count(lower_dentry));
+
+	ecryptfs_set_dentry_private(dentry, dentry_info);
+	dentry_info->lower_path.mnt = mntget(path->mnt);
+	dentry_info->lower_path.dentry = lower_dentry;
+
+	/*
+	 * negative dentry can go positive under us here - its parent is not
+	 * locked.  That's OK and that could happen just as we return from
+	 * ecryptfs_lookup() anyway.  Just need to be careful and fetch
+	 * ->d_inode only once - it's not stable here.
+	 */
+	lower_inode = READ_ONCE(lower_dentry->d_inode);
+
+	if (!lower_inode) {
+		/* We want to add because we couldn't find in lower */
+		d_add(dentry, NULL);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		return 0;
 	}
 	inode = __ecryptfs_get_inode(lower_inode, dir_inode->i_sb);
@@ -543,6 +594,7 @@ static int ecryptfs_lookup_interpose(struct dentry *dentry,
 		}
 	}
 
+<<<<<<< HEAD
 #ifdef CONFIG_SDP
 	if (S_ISDIR(inode->i_mode) && dentry) {
 	    if(IS_UNDER_ROOT(dentry)) {
@@ -576,6 +628,8 @@ static int ecryptfs_lookup_interpose(struct dentry *dentry,
 	}
 #endif
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (inode->i_state & I_NEW)
 		unlock_new_inode(inode);
 	d_add(dentry, inode);
@@ -583,6 +637,7 @@ static int ecryptfs_lookup_interpose(struct dentry *dentry,
 	return rc;
 }
 
+<<<<<<< HEAD
 #ifdef CONFIG_SDP
 static inline int isdigit(int ch)
 {
@@ -590,6 +645,8 @@ static inline int isdigit(int ch)
 }
 #endif
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /**
  * ecryptfs_lookup
  * @ecryptfs_dir_inode: The eCryptfs directory inode
@@ -640,6 +697,7 @@ static struct dentry *ecryptfs_lookup(struct inode *ecryptfs_dir_inode,
 		goto out;
 	}
 	mutex_lock(&lower_dir_dentry->d_inode->i_mutex);
+<<<<<<< HEAD
 
 #if defined(CONFIG_SDP) && (ANDROID_VERSION < 80000)
 	if(!strncmp(lower_dir_dentry->d_sb->s_type->name, "sdcardfs", 8)) {
@@ -703,6 +761,11 @@ static struct dentry *ecryptfs_lookup(struct inode *ecryptfs_dir_inode,
 		dinfo->userid = -1;
 	}
 #endif
+=======
+	lower_dentry = lookup_one_len(encrypted_and_encoded_name,
+				      lower_dir_dentry,
+				      encrypted_and_encoded_name_size);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	mutex_unlock(&lower_dir_dentry->d_inode->i_mutex);
 	if (IS_ERR(lower_dentry)) {
 		rc = PTR_ERR(lower_dentry);
@@ -806,6 +869,7 @@ static int ecryptfs_mkdir(struct inode *dir, struct dentry *dentry, umode_t mode
 
 	lower_dentry = ecryptfs_dentry_to_lower(dentry);
 	lower_dir_dentry = lock_parent(lower_dentry);
+<<<<<<< HEAD
 
 #if defined(CONFIG_SDP) && (ANDROID_VERSION < 80000)
 	if(!strncmp(lower_dir_dentry->d_sb->s_type->name, "sdcardfs", 8)) {
@@ -824,6 +888,8 @@ static int ecryptfs_mkdir(struct inode *dir, struct dentry *dentry, umode_t mode
 		}
 	}
 #endif
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	rc = vfs_mkdir(lower_dir_dentry->d_inode, lower_dentry, mode);
 	if (rc || !lower_dentry->d_inode)
 		goto out;
@@ -834,6 +900,7 @@ static int ecryptfs_mkdir(struct inode *dir, struct dentry *dentry, umode_t mode
 	fsstack_copy_inode_size(dir, lower_dir_dentry->d_inode);
 	set_nlink(dir, lower_dir_dentry->d_inode->i_nlink);
 out:
+<<<<<<< HEAD
 #if defined(CONFIG_SDP) && (ANDROID_VERSION < 80000)
 	if(!strncmp(lower_dir_dentry->d_sb->s_type->name, "sdcardfs", 8)) {
 		struct sdcardfs_dentry_info *dinfo = SDCARDFS_D(lower_dir_dentry);
@@ -841,6 +908,8 @@ out:
 		dinfo->userid = -1;
 	}
 #endif
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	unlock_dir(lower_dir_dentry);
 	if (!dentry->d_inode)
 		d_drop(dentry);
@@ -853,6 +922,7 @@ static int ecryptfs_rmdir(struct inode *dir, struct dentry *dentry)
 	struct dentry *lower_dir_dentry;
 	int rc;
 
+<<<<<<< HEAD
 #ifdef CONFIG_SDP
 	if(IS_CHAMBER_DENTRY(dentry)) {
 		printk("You're removing chamber directory. I/O error\n");
@@ -860,6 +930,8 @@ static int ecryptfs_rmdir(struct inode *dir, struct dentry *dentry)
 	}
 #endif
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	lower_dentry = ecryptfs_dentry_to_lower(dentry);
 	dget(dentry);
 	lower_dir_dentry = lock_parent(lower_dentry);
@@ -901,8 +973,11 @@ out:
 	return rc;
 }
 
+<<<<<<< HEAD
 #define ECRYPTFS_SDP_RENAME_DEBUG 0
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static int
 ecryptfs_rename(struct inode *old_dir, struct dentry *old_dentry,
 		struct inode *new_dir, struct dentry *new_dentry)
@@ -914,6 +989,7 @@ ecryptfs_rename(struct inode *old_dir, struct dentry *old_dentry,
 	struct dentry *lower_new_dir_dentry;
 	struct dentry *trap = NULL;
 	struct inode *target_inode;
+<<<<<<< HEAD
 #ifdef CONFIG_DLP
 	sdp_fs_command_t *cmd1 = NULL;
 	unsigned long old_inode = old_dentry->d_inode->i_ino;
@@ -984,6 +1060,8 @@ ecryptfs_rename(struct inode *old_dir, struct dentry *old_dentry,
 			IS_SENSITIVE_DENTRY(new_dentry->d_parent))
 		rename_event |= ECRYPTFS_EVT_RENAME_TO_CHAMBER;
 #endif
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	lower_old_dentry = ecryptfs_dentry_to_lower(old_dentry);
 	lower_new_dentry = ecryptfs_dentry_to_lower(new_dentry);
@@ -1014,6 +1092,7 @@ ecryptfs_rename(struct inode *old_dir, struct dentry *old_dentry,
 	fsstack_copy_attr_all(new_dir, lower_new_dir_dentry->d_inode);
 	if (new_dir != old_dir)
 		fsstack_copy_attr_all(old_dir, lower_old_dir_dentry->d_inode);
+<<<<<<< HEAD
 
 #ifdef CONFIG_SDP
 	if(!rc) {
@@ -1054,12 +1133,15 @@ ecryptfs_rename(struct inode *old_dir, struct dentry *old_dentry,
     }
 #endif
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 out_lock:
 	unlock_rename(lower_old_dir_dentry, lower_new_dir_dentry);
 	dput(lower_new_dir_dentry);
 	dput(lower_old_dir_dentry);
 	dput(lower_new_dentry);
 	dput(lower_old_dentry);
+<<<<<<< HEAD
 
 #ifdef CONFIG_SDP
 	if(!rc && cmd != NULL) {
@@ -1084,6 +1166,8 @@ out_lock:
 	}
     //end- Handle transient case MS-Apps
 #endif
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return rc;
 }
 
@@ -1466,6 +1550,7 @@ ecryptfs_setxattr(struct dentry *dentry, const char *name, const void *value,
 		goto out;
 	}
 
+<<<<<<< HEAD
 #ifdef CONFIG_DLP
 	if (!strcmp(name, KNOX_DLP_XATTR_NAME)) {
 #if DLP_DEBUG
@@ -1479,6 +1564,8 @@ ecryptfs_setxattr(struct dentry *dentry, const char *name, const void *value,
 	}
 #endif
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	rc = vfs_setxattr(lower_dentry, name, value, size, flags);
 	if (!rc && dentry->d_inode)
 		fsstack_copy_attr_all(dentry->d_inode, lower_dentry->d_inode);
@@ -1508,6 +1595,7 @@ static ssize_t
 ecryptfs_getxattr(struct dentry *dentry, const char *name, void *value,
 		  size_t size)
 {
+<<<<<<< HEAD
 #ifdef CONFIG_DLP
 	int rc = 0;
 	struct ecryptfs_crypt_stat *crypt_stat = NULL;
@@ -1555,6 +1643,10 @@ ecryptfs_getxattr(struct dentry *dentry, const char *name, void *value,
 	return ecryptfs_getxattr_lower(ecryptfs_dentry_to_lower(dentry), name,
 				       value, size);
 #endif
+=======
+	return ecryptfs_getxattr_lower(ecryptfs_dentry_to_lower(dentry), name,
+				       value, size);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 static ssize_t
@@ -1585,6 +1677,7 @@ static int ecryptfs_removexattr(struct dentry *dentry, const char *name)
 		rc = -EOPNOTSUPP;
 		goto out;
 	}
+<<<<<<< HEAD
 
 #ifdef CONFIG_DLP
 	if (!strcmp(name, KNOX_DLP_XATTR_NAME)) {
@@ -1598,6 +1691,8 @@ static int ecryptfs_removexattr(struct dentry *dentry, const char *name)
 	}
 #endif
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	mutex_lock(&lower_dentry->d_inode->i_mutex);
 	rc = lower_dentry->d_inode->i_op->removexattr(lower_dentry, name);
 	mutex_unlock(&lower_dentry->d_inode->i_mutex);

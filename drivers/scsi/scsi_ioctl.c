@@ -22,7 +22,10 @@
 #include <scsi/scsi_ioctl.h>
 #include <scsi/sg.h>
 #include <scsi/scsi_dbg.h>
+<<<<<<< HEAD
 #include <linux/compat.h>
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #include "scsi_logging.h"
 
@@ -137,6 +140,7 @@ static int ioctl_internal_command(struct scsi_device *sdev, char *cmd,
 	return result;
 }
 
+<<<<<<< HEAD
 
 static int ioctl_secu_prot_command(struct scsi_device *sdev, char *cmd,
 					int prot_in_out, void __user *arg,
@@ -210,6 +214,8 @@ err_pre_buf_alloc:
 	return result;
 }
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 int scsi_set_medium_removal(struct scsi_device *sdev, char state)
 {
 	char scsi_cmd[MAX_COMMAND_SIZE];
@@ -278,7 +284,10 @@ int scsi_ioctl(struct scsi_device *sdev, int cmd, void __user *arg)
 	if (!sdev)
 		return -ENXIO;
 
+<<<<<<< HEAD
 	memset(scsi_cmd, 0x0, MAX_COMMAND_SIZE);
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/*
 	 * If we are in the middle of error recovery, don't let anyone
 	 * else try and use this device.  Also, if error recovery fails, it
@@ -346,6 +355,7 @@ int scsi_ioctl(struct scsi_device *sdev, int cmd, void __user *arg)
 		scsi_cmd[4] = 0;
 		return ioctl_internal_command(sdev, scsi_cmd,
 				     START_STOP_TIMEOUT, NORMAL_RETRIES);
+<<<<<<< HEAD
 	case SCSI_IOCTL_SECURITY_PROTOCOL_IN:
 	case SCSI_IOCTL_SECURITY_PROTOCOL_OUT:
 		{
@@ -375,6 +385,9 @@ int scsi_ioctl(struct scsi_device *sdev, int cmd, void __user *arg)
 		}
 
 	case SCSI_IOCTL_GET_PCI:
+=======
+        case SCSI_IOCTL_GET_PCI:
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
                 return scsi_ioctl_get_pci(sdev, arg);
 	default:
 		if (sdev->host->hostt->ioctl)

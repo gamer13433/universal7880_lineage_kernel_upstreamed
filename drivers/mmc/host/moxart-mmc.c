@@ -256,7 +256,11 @@ static void moxart_dma_complete(void *param)
 static void moxart_transfer_dma(struct mmc_data *data, struct moxart_host *host)
 {
 	u32 len, dir_data, dir_slave;
+<<<<<<< HEAD
 	unsigned long dma_time;
+=======
+	long dma_time;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	struct dma_async_tx_descriptor *desc = NULL;
 	struct dma_chan *dma_chan;
 
@@ -396,7 +400,12 @@ static void moxart_prepare_data(struct moxart_host *host)
 static void moxart_request(struct mmc_host *mmc, struct mmc_request *mrq)
 {
 	struct moxart_host *host = mmc_priv(mmc);
+<<<<<<< HEAD
 	unsigned long pio_time, flags;
+=======
+	long pio_time;
+	unsigned long flags;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	u32 status;
 
 	spin_lock_irqsave(&host->lock, flags);

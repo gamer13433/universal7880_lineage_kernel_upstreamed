@@ -102,7 +102,11 @@ static void init_amd_k6(struct cpuinfo_x86 *c)
 		return;
 	}
 
+<<<<<<< HEAD
 	if (c->x86_model == 6 && c->x86_mask == 1) {
+=======
+	if (c->x86_model == 6 && c->x86_stepping == 1) {
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		const int K6_BUG_LOOP = 1000000;
 		int n;
 		void (*f_vide)(void);
@@ -132,7 +136,11 @@ static void init_amd_k6(struct cpuinfo_x86 *c)
 
 	/* K6 with old style WHCR */
 	if (c->x86_model < 8 ||
+<<<<<<< HEAD
 	   (c->x86_model == 8 && c->x86_mask < 8)) {
+=======
+	   (c->x86_model == 8 && c->x86_stepping < 8)) {
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		/* We can only write allocate on the low 508Mb */
 		if (mbytes > 508)
 			mbytes = 508;
@@ -151,7 +159,11 @@ static void init_amd_k6(struct cpuinfo_x86 *c)
 		return;
 	}
 
+<<<<<<< HEAD
 	if ((c->x86_model == 8 && c->x86_mask > 7) ||
+=======
+	if ((c->x86_model == 8 && c->x86_stepping > 7) ||
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	     c->x86_model == 9 || c->x86_model == 13) {
 		/* The more serious chips .. */
 
@@ -204,7 +216,11 @@ static void init_amd_k7(struct cpuinfo_x86 *c)
 	 * are more robust with CLK_CTL set to 200xxxxx instead of 600xxxxx
 	 * As per AMD technical note 27212 0.2
 	 */
+<<<<<<< HEAD
 	if ((c->x86_model == 8 && c->x86_mask >= 1) || (c->x86_model > 8)) {
+=======
+	if ((c->x86_model == 8 && c->x86_stepping >= 1) || (c->x86_model > 8)) {
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		rdmsr(MSR_K7_CLK_CTL, l, h);
 		if ((l & 0xfff00000) != 0x20000000) {
 			printk(KERN_INFO
@@ -225,12 +241,21 @@ static void init_amd_k7(struct cpuinfo_x86 *c)
 	 * but they are not certified as MP capable.
 	 */
 	/* Athlon 660/661 is valid. */
+<<<<<<< HEAD
 	if ((c->x86_model == 6) && ((c->x86_mask == 0) ||
 	    (c->x86_mask == 1)))
 		return;
 
 	/* Duron 670 is valid */
 	if ((c->x86_model == 7) && (c->x86_mask == 0))
+=======
+	if ((c->x86_model == 6) && ((c->x86_stepping == 0) ||
+	    (c->x86_stepping == 1)))
+		return;
+
+	/* Duron 670 is valid */
+	if ((c->x86_model == 7) && (c->x86_stepping == 0))
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		return;
 
 	/*
@@ -240,8 +265,13 @@ static void init_amd_k7(struct cpuinfo_x86 *c)
 	 * See http://www.heise.de/newsticker/data/jow-18.10.01-000 for
 	 * more.
 	 */
+<<<<<<< HEAD
 	if (((c->x86_model == 6) && (c->x86_mask >= 2)) ||
 	    ((c->x86_model == 7) && (c->x86_mask >= 1)) ||
+=======
+	if (((c->x86_model == 6) && (c->x86_stepping >= 2)) ||
+	    ((c->x86_model == 7) && (c->x86_stepping >= 1)) ||
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	     (c->x86_model > 7))
 		if (cpu_has(c, X86_FEATURE_MP))
 			return;
@@ -512,7 +542,11 @@ static void early_init_amd(struct cpuinfo_x86 *c)
 	/*  Set MTRR capability flag if appropriate */
 	if (c->x86 == 5)
 		if (c->x86_model == 13 || c->x86_model == 9 ||
+<<<<<<< HEAD
 		    (c->x86_model == 8 && c->x86_mask >= 8))
+=======
+		    (c->x86_model == 8 && c->x86_stepping >= 8))
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			set_cpu_cap(c, X86_FEATURE_K6_MTRR);
 #endif
 #if defined(CONFIG_X86_LOCAL_APIC) && defined(CONFIG_PCI)
@@ -732,11 +766,19 @@ static unsigned int amd_size_cache(struct cpuinfo_x86 *c, unsigned int size)
 	/* AMD errata T13 (order #21922) */
 	if ((c->x86 == 6)) {
 		/* Duron Rev A0 */
+<<<<<<< HEAD
 		if (c->x86_model == 3 && c->x86_mask == 0)
 			size = 64;
 		/* Tbird rev A1/A2 */
 		if (c->x86_model == 4 &&
 			(c->x86_mask == 0 || c->x86_mask == 1))
+=======
+		if (c->x86_model == 3 && c->x86_stepping == 0)
+			size = 64;
+		/* Tbird rev A1/A2 */
+		if (c->x86_model == 4 &&
+			(c->x86_stepping == 0 || c->x86_stepping == 1))
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			size = 256;
 	}
 	return size;
@@ -873,7 +915,11 @@ static bool cpu_has_amd_erratum(struct cpuinfo_x86 *cpu, const int *erratum)
 	}
 
 	/* OSVW unavailable or ID unknown, match family-model-stepping range */
+<<<<<<< HEAD
 	ms = (cpu->x86_model << 4) | cpu->x86_mask;
+=======
+	ms = (cpu->x86_model << 4) | cpu->x86_stepping;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	while ((range = *erratum++))
 		if ((cpu->x86 == AMD_MODEL_RANGE_FAMILY(range)) &&
 		    (ms >= AMD_MODEL_RANGE_START(range)) &&

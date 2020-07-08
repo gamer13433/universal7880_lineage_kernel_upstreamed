@@ -594,8 +594,14 @@ static void hide_softcursor(struct vc_data *vc)
 
 static void hide_cursor(struct vc_data *vc)
 {
+<<<<<<< HEAD
 	if (vc == sel_cons)
 		clear_selection();
+=======
+	if (vc_is_sel(vc))
+		clear_selection();
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	vc->vc_sw->con_cursor(vc, CM_ERASE);
 	hide_softcursor(vc);
 }
@@ -606,7 +612,11 @@ static void set_cursor(struct vc_data *vc)
 	    vc->vc_mode == KD_GRAPHICS)
 		return;
 	if (vc->vc_deccm) {
+<<<<<<< HEAD
 		if (vc == sel_cons)
+=======
+		if (vc_is_sel(vc))
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			clear_selection();
 		add_softcursor(vc);
 		if ((vc->vc_cursor_type & 0x0f) != 1)
@@ -750,6 +760,20 @@ static void visual_init(struct vc_data *vc, int num, int init)
 	vc->vc_screenbuf_size = vc->vc_rows * vc->vc_size_row;
 }
 
+<<<<<<< HEAD
+=======
+static void vc_port_destruct(struct tty_port *port)
+{
+	struct vc_data *vc = container_of(port, struct vc_data, port);
+
+	kfree(vc);
+}
+
+static const struct tty_port_operations vc_port_ops = {
+	.destruct = vc_port_destruct,
+};
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 int vc_allocate(unsigned int currcons)	/* return 0 on success */
 {
 	WARN_CONSOLE_UNLOCKED();
@@ -775,6 +799,10 @@ int vc_allocate(unsigned int currcons)	/* return 0 on success */
 		return -ENOMEM;
 	    vc_cons[currcons].d = vc;
 	    tty_port_init(&vc->port);
+<<<<<<< HEAD
+=======
+	    vc->port.ops = &vc_port_ops;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	    INIT_WORK(&vc_cons[currcons].SAK_work, vc_SAK);
 	    visual_init(vc, currcons, 1);
 	    if (!*vc->vc_uni_pagedir_loc)
@@ -869,7 +897,11 @@ static int vc_do_resize(struct tty_struct *tty, struct vc_data *vc,
 	if (!newscreen)
 		return -ENOMEM;
 
+<<<<<<< HEAD
 	if (vc == sel_cons)
+=======
+	if (vc_is_sel(vc))
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		clear_selection();
 
 	old_rows = vc->vc_rows;
@@ -2666,9 +2698,13 @@ int tioclinux(struct tty_struct *tty, unsigned long arg)
 	switch (type)
 	{
 		case TIOCL_SETSEL:
+<<<<<<< HEAD
 			console_lock();
 			ret = set_selection((struct tiocl_selection __user *)(p+1), tty);
 			console_unlock();
+=======
+			ret = set_selection((struct tiocl_selection __user *)(p+1), tty);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			break;
 		case TIOCL_PASTESEL:
 			ret = paste_selection(tty);
@@ -2874,6 +2910,10 @@ static int con_install(struct tty_driver *driver, struct tty_struct *tty)
 
 	tty->driver_data = vc;
 	vc->port.tty = tty;
+<<<<<<< HEAD
+=======
+	tty_port_get(&vc->port);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if (!tty->winsize.ws_row && !tty->winsize.ws_col) {
 		tty->winsize.ws_row = vc_cons[currcons].d->vc_rows;
@@ -2909,6 +2949,16 @@ static void con_shutdown(struct tty_struct *tty)
 	console_unlock();
 }
 
+<<<<<<< HEAD
+=======
+static void con_cleanup(struct tty_struct *tty)
+{
+	struct vc_data *vc = tty->driver_data;
+
+	tty_port_put(&vc->port);
+}
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static int default_color           = 7; /* white */
 static int default_italic_color    = 2; // green (ASCII)
 static int default_underline_color = 3; // cyan (ASCII)
@@ -3033,7 +3083,12 @@ static const struct tty_operations con_ops = {
 	.throttle = con_throttle,
 	.unthrottle = con_unthrottle,
 	.resize = vt_resize,
+<<<<<<< HEAD
 	.shutdown = con_shutdown
+=======
+	.shutdown = con_shutdown,
+	.cleanup = con_cleanup,
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 static struct cdev vc0_cdev;

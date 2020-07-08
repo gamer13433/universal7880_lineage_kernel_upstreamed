@@ -305,6 +305,11 @@ int cmd_freq_set(int argc, char **argv)
 				bitmask_setbit(cpus_chosen, cpus->cpu);
 				cpus = cpus->next;
 			}
+<<<<<<< HEAD
+=======
+			/* Set the last cpu in related cpus list */
+			bitmask_setbit(cpus_chosen, cpus->cpu);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			cpufreq_put_related_cpus(cpus);
 		}
 	}

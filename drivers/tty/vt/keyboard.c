@@ -120,10 +120,22 @@ static const int NR_TYPES = ARRAY_SIZE(max_vals);
 static struct input_handler kbd_handler;
 static DEFINE_SPINLOCK(kbd_event_lock);
 static DEFINE_SPINLOCK(led_lock);
+<<<<<<< HEAD
 static unsigned long key_down[BITS_TO_LONGS(KEY_CNT)];	/* keyboard key bitmap */
 static unsigned char shift_down[NR_SHIFT];		/* shift state counters.. */
 static bool dead_key_next;
 static int npadch = -1;					/* -1 or number assembled on pad */
+=======
+static DEFINE_SPINLOCK(func_buf_lock); /* guard 'func_buf'  and friends */
+static unsigned long key_down[BITS_TO_LONGS(KEY_CNT)];	/* keyboard key bitmap */
+static unsigned char shift_down[NR_SHIFT];		/* shift state counters.. */
+static bool dead_key_next;
+
+/* Handles a number being assembled on the number pad */
+static bool npadch_active;
+static unsigned int npadch_value;
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static unsigned int diacr;
 static char rep;					/* flag telling character repeat */
 
@@ -813,12 +825,21 @@ static void k_shift(struct vc_data *vc, unsigned char value, char up_flag)
 		shift_state &= ~(1 << value);
 
 	/* kludge */
+<<<<<<< HEAD
 	if (up_flag && shift_state != old_state && npadch != -1) {
 		if (kbd->kbdmode == VC_UNICODE)
 			to_utf8(vc, npadch);
 		else
 			put_queue(vc, npadch & 0xff);
 		npadch = -1;
+=======
+	if (up_flag && shift_state != old_state && npadch_active) {
+		if (kbd->kbdmode == VC_UNICODE)
+			to_utf8(vc, npadch_value);
+		else
+			put_queue(vc, npadch_value & 0xff);
+		npadch_active = false;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 }
 
@@ -836,7 +857,11 @@ static void k_meta(struct vc_data *vc, unsigned char value, char up_flag)
 
 static void k_ascii(struct vc_data *vc, unsigned char value, char up_flag)
 {
+<<<<<<< HEAD
 	int base;
+=======
+	unsigned int base;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if (up_flag)
 		return;
@@ -850,10 +875,19 @@ static void k_ascii(struct vc_data *vc, unsigned char value, char up_flag)
 		base = 16;
 	}
 
+<<<<<<< HEAD
 	if (npadch == -1)
 		npadch = value;
 	else
 		npadch = npadch * base + value;
+=======
+	if (!npadch_active) {
+		npadch_value = 0;
+		npadch_active = true;
+	}
+
+	npadch_value = npadch_value * base + value;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 static void k_lock(struct vc_data *vc, unsigned char value, char up_flag)
@@ -1357,7 +1391,11 @@ static void kbd_event(struct input_handle *handle, unsigned int event_type,
 
 	if (event_type == EV_MSC && event_code == MSC_RAW && HW_RAW(handle->dev))
 		kbd_rawcode(value);
+<<<<<<< HEAD
 	if (event_type == EV_KEY)
+=======
+	if (event_type == EV_KEY && event_code <= KEY_MAX)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		kbd_keycode(event_code, value, HW_RAW(handle->dev));
 
 	spin_unlock(&kbd_event_lock);
@@ -1865,11 +1903,19 @@ int vt_do_kdgkb_ioctl(int cmd, struct kbsentry __user *user_kdgkb, int perm)
 	char *p;
 	u_char *q;
 	u_char __user *up;
+<<<<<<< HEAD
 	int sz;
+=======
+	int sz, fnw_sz;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	int delta;
 	char *first_free, *fj, *fnw;
 	int i, j, k;
 	int ret;
+<<<<<<< HEAD
+=======
+	unsigned long flags;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if (!capable(CAP_SYS_TTY_CONFIG))
 		perm = 0;
@@ -1912,7 +1958,18 @@ int vt_do_kdgkb_ioctl(int cmd, struct kbsentry __user *user_kdgkb, int perm)
 			goto reterr;
 		}
 
+<<<<<<< HEAD
 		q = func_table[i];
+=======
+		fnw = NULL;
+		fnw_sz = 0;
+		/* race aginst other writers */
+		again:
+		spin_lock_irqsave(&func_buf_lock, flags);
+		q = func_table[i];
+
+		/* fj pointer to next entry after 'q' */
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		first_free = funcbufptr + (funcbufsize - funcbufleft);
 		for (j = i+1; j < MAX_NR_FUNC && !func_table[j]; j++)
 			;
@@ -1920,10 +1977,19 @@ int vt_do_kdgkb_ioctl(int cmd, struct kbsentry __user *user_kdgkb, int perm)
 			fj = func_table[j];
 		else
 			fj = first_free;
+<<<<<<< HEAD
 
 		delta = (q ? -strlen(q) : 1) + strlen(kbs->kb_string);
 		if (delta <= funcbufleft) { 	/* it fits in current buf */
 		    if (j < MAX_NR_FUNC) {
+=======
+		/* buffer usage increase by new entry */
+		delta = (q ? -strlen(q) : 1) + strlen(kbs->kb_string);
+
+		if (delta <= funcbufleft) { 	/* it fits in current buf */
+		    if (j < MAX_NR_FUNC) {
+			/* make enough space for new entry at 'fj' */
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			memmove(fj + delta, fj, first_free - fj);
 			for (k = j; k < MAX_NR_FUNC; k++)
 			    if (func_table[k])
@@ -1936,20 +2002,41 @@ int vt_do_kdgkb_ioctl(int cmd, struct kbsentry __user *user_kdgkb, int perm)
 		    sz = 256;
 		    while (sz < funcbufsize - funcbufleft + delta)
 		      sz <<= 1;
+<<<<<<< HEAD
 		    fnw = kmalloc(sz, GFP_KERNEL);
 		    if(!fnw) {
 		      ret = -ENOMEM;
 		      goto reterr;
+=======
+		    if (fnw_sz != sz) {
+		      spin_unlock_irqrestore(&func_buf_lock, flags);
+		      kfree(fnw);
+		      fnw = kmalloc(sz, GFP_KERNEL);
+		      fnw_sz = sz;
+		      if (!fnw) {
+			ret = -ENOMEM;
+			goto reterr;
+		      }
+		      goto again;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		    }
 
 		    if (!q)
 		      func_table[i] = fj;
+<<<<<<< HEAD
+=======
+		    /* copy data before insertion point to new location */
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		    if (fj > funcbufptr)
 			memmove(fnw, funcbufptr, fj - funcbufptr);
 		    for (k = 0; k < j; k++)
 		      if (func_table[k])
 			func_table[k] = fnw + (func_table[k] - funcbufptr);
 
+<<<<<<< HEAD
+=======
+		    /* copy data after insertion point to new location */
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		    if (first_free > fj) {
 			memmove(fnw + (fj - funcbufptr) + delta, fj, first_free - fj);
 			for (k = j; k < MAX_NR_FUNC; k++)
@@ -1962,7 +2049,13 @@ int vt_do_kdgkb_ioctl(int cmd, struct kbsentry __user *user_kdgkb, int perm)
 		    funcbufleft = funcbufleft - delta + sz - funcbufsize;
 		    funcbufsize = sz;
 		}
+<<<<<<< HEAD
 		strcpy(func_table[i], kbs->kb_string);
+=======
+		/* finally insert item itself */
+		strcpy(func_table[i], kbs->kb_string);
+		spin_unlock_irqrestore(&func_buf_lock, flags);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		break;
 	}
 	ret = 0;

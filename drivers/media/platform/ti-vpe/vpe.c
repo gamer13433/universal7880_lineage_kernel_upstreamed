@@ -329,20 +329,36 @@ enum {
 };
 
 /* find our format description corresponding to the passed v4l2_format */
+<<<<<<< HEAD
 static struct vpe_fmt *find_format(struct v4l2_format *f)
+=======
+static struct vpe_fmt *__find_format(u32 fourcc)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	struct vpe_fmt *fmt;
 	unsigned int k;
 
 	for (k = 0; k < ARRAY_SIZE(vpe_formats); k++) {
 		fmt = &vpe_formats[k];
+<<<<<<< HEAD
 		if (fmt->fourcc == f->fmt.pix.pixelformat)
+=======
+		if (fmt->fourcc == fourcc)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			return fmt;
 	}
 
 	return NULL;
 }
 
+<<<<<<< HEAD
+=======
+static struct vpe_fmt *find_format(struct v4l2_format *f)
+{
+	return __find_format(f->fmt.pix.pixelformat);
+}
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /*
  * there is one vpe_dev structure in the driver, it is shared by
  * all instances.
@@ -1436,9 +1452,15 @@ static int __vpe_try_fmt(struct vpe_ctx *ctx, struct v4l2_format *f,
 	int i, depth, depth_bytes;
 
 	if (!fmt || !(fmt->types & type)) {
+<<<<<<< HEAD
 		vpe_err(ctx->dev, "Fourcc format (0x%08x) invalid.\n",
 			pix->pixelformat);
 		return -EINVAL;
+=======
+		vpe_dbg(ctx->dev, "Fourcc format (0x%08x) invalid.\n",
+			pix->pixelformat);
+		fmt = __find_format(V4L2_PIX_FMT_YUYV);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 	if (pix->field != V4L2_FIELD_NONE && pix->field != V4L2_FIELD_ALTERNATE)
@@ -2032,7 +2054,11 @@ static int vpe_open(struct file *file)
 	v4l2_ctrl_handler_setup(hdl);
 
 	s_q_data = &ctx->q_data[Q_DATA_SRC];
+<<<<<<< HEAD
 	s_q_data->fmt = &vpe_formats[2];
+=======
+	s_q_data->fmt = __find_format(V4L2_PIX_FMT_YUYV);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	s_q_data->width = 1920;
 	s_q_data->height = 1080;
 	s_q_data->bytesperline[VPE_LUMA] = (s_q_data->width *

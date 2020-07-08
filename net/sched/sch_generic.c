@@ -49,6 +49,10 @@ static inline int dev_requeue_skb(struct sk_buff *skb, struct Qdisc *q)
 {
 	q->gso_skb = skb;
 	q->qstats.requeues++;
+<<<<<<< HEAD
+=======
+	qdisc_qstats_backlog_inc(q, skb);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	q->q.qlen++;	/* it's still part of the queue */
 	__netif_schedule(q);
 
@@ -92,6 +96,10 @@ static struct sk_buff *dequeue_skb(struct Qdisc *q, bool *validate,
 		txq = skb_get_tx_queue(txq->dev, skb);
 		if (!netif_xmit_frozen_or_stopped(txq)) {
 			q->gso_skb = NULL;
+<<<<<<< HEAD
+=======
+			qdisc_qstats_backlog_dec(q, skb);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			q->q.qlen--;
 		} else
 			skb = NULL;
@@ -632,18 +640,31 @@ struct Qdisc *qdisc_create_dflt(struct netdev_queue *dev_queue,
 	struct Qdisc *sch;
 
 	if (!try_module_get(ops->owner))
+<<<<<<< HEAD
 		goto errout;
 
 	sch = qdisc_alloc(dev_queue, ops);
 	if (IS_ERR(sch))
 		goto errout;
+=======
+		return NULL;
+
+	sch = qdisc_alloc(dev_queue, ops);
+	if (IS_ERR(sch)) {
+		module_put(ops->owner);
+		return NULL;
+	}
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	sch->parent = parentid;
 
 	if (!ops->init || ops->init(sch, NULL) == 0)
 		return sch;
 
 	qdisc_destroy(sch);
+<<<<<<< HEAD
 errout:
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return NULL;
 }
 EXPORT_SYMBOL(qdisc_create_dflt);
@@ -679,7 +700,15 @@ static void qdisc_rcu_free(struct rcu_head *head)
 
 void qdisc_destroy(struct Qdisc *qdisc)
 {
+<<<<<<< HEAD
 	const struct Qdisc_ops  *ops = qdisc->ops;
+=======
+	const struct Qdisc_ops *ops;
+
+	if (!qdisc)
+		return;
+	ops = qdisc->ops;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if (qdisc->flags & TCQ_F_BUILTIN ||
 	    !atomic_dec_and_test(&qdisc->refcnt))

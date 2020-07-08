@@ -17,11 +17,20 @@
 #ifndef __LINUX_PSTORE_RAM_H__
 #define __LINUX_PSTORE_RAM_H__
 
+<<<<<<< HEAD
 #include <linux/device.h>
 #include <linux/kernel.h>
 #include <linux/list.h>
 #include <linux/types.h>
 #include <linux/init.h>
+=======
+#include <linux/compiler.h>
+#include <linux/device.h>
+#include <linux/init.h>
+#include <linux/kernel.h>
+#include <linux/list.h>
+#include <linux/types.h>
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /*
  * Choose whether access to the RAM zone requires locking or not.  If a zone
@@ -68,7 +77,13 @@ void persistent_ram_free(struct persistent_ram_zone *prz);
 void persistent_ram_zap(struct persistent_ram_zone *prz);
 
 int persistent_ram_write(struct persistent_ram_zone *prz, const void *s,
+<<<<<<< HEAD
 	unsigned int count);
+=======
+			 unsigned int count);
+int persistent_ram_write_user(struct persistent_ram_zone *prz,
+			      const void __user *s, unsigned int count);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 void persistent_ram_save_old(struct persistent_ram_zone *prz);
 size_t persistent_ram_old_size(struct persistent_ram_zone *prz);

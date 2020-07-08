@@ -197,11 +197,17 @@ out:
  *	After executing actions of the event, upper layer will be indicated
  *	if needed(on receiving an UI frame). sk can be null for the
  *	datalink_proto case.
+<<<<<<< HEAD
+=======
+ *
+ *	This function always consumes a reference to the skb.
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
  */
 static void llc_sap_state_process(struct llc_sap *sap, struct sk_buff *skb)
 {
 	struct llc_sap_state_ev *ev = llc_sap_ev(skb);
 
+<<<<<<< HEAD
 	/*
 	 * We have to hold the skb, because llc_sap_next_state
 	 * will kfree it in the sending path and we need to
@@ -220,6 +226,17 @@ static void llc_sap_state_process(struct llc_sap *sap, struct sk_buff *skb)
 			if (sock_queue_rcv_skb(skb->sk, skb))
 				kfree_skb(skb);
 		}
+=======
+	ev->ind_cfm_flag = 0;
+	llc_sap_next_state(sap, skb);
+
+	if (ev->ind_cfm_flag == LLC_IND && skb->sk->sk_state != TCP_LISTEN) {
+		llc_save_primitive(skb->sk, skb, ev->prim);
+
+		/* queue skb to the user. */
+		if (sock_queue_rcv_skb(skb->sk, skb) == 0)
+			return;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 	kfree_skb(skb);
 }

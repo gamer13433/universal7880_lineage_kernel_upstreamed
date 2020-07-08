@@ -156,9 +156,16 @@ void ping_unhash(struct sock *sk)
 	struct inet_sock *isk = inet_sk(sk);
 
 	pr_debug("ping_unhash(isk=%p,isk->num=%u)\n", isk, isk->inet_num);
+<<<<<<< HEAD
         write_lock_bh(&ping_table.lock);
 	if (sk_hashed(sk)) {
 		hlist_nulls_del(&sk->sk_nulls_node);
+=======
+	write_lock_bh(&ping_table.lock);
+	if (sk_hashed(sk)) {
+		hlist_nulls_del(&sk->sk_nulls_node);
+		sk_nulls_node_init(&sk->sk_nulls_node);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		sock_put(sk);
 		isk->inet_num = 0;
 		isk->inet_sport = 0;
@@ -658,9 +665,19 @@ int ping_common_sendmsg(int family, struct msghdr *msg, size_t len,
 			void *user_icmph, size_t icmph_len) {
 	u8 type, code;
 
+<<<<<<< HEAD
 	if (len > 0xFFFF || len < icmph_len)
 		return -EMSGSIZE;
 
+=======
+	if (len > 0xFFFF)
+		return -EMSGSIZE;
+
+	/* Must have at least a full ICMP header. */
+	if (len < icmph_len)
+		return -EINVAL;
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/*
 	 *	Check the flags.
 	 */
@@ -748,8 +765,15 @@ static int ping_v4_sendmsg(struct kiocb *iocb, struct sock *sk, struct msghdr *m
 
 	if (msg->msg_controllen) {
 		err = ip_cmsg_send(sock_net(sk), msg, &ipc, false);
+<<<<<<< HEAD
 		if (err)
 			return err;
+=======
+		if (unlikely(err)) {
+			kfree(ipc.opt);
+			return err;
+		}
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		if (ipc.opt)
 			free = 1;
 	}

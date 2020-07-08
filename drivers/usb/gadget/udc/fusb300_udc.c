@@ -1346,12 +1346,21 @@ static const struct usb_gadget_ops fusb300_gadget_ops = {
 static int __exit fusb300_remove(struct platform_device *pdev)
 {
 	struct fusb300 *fusb300 = platform_get_drvdata(pdev);
+<<<<<<< HEAD
+=======
+	int i;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	usb_del_gadget_udc(&fusb300->gadget);
 	iounmap(fusb300->reg);
 	free_irq(platform_get_irq(pdev, 0), fusb300);
 
 	fusb300_free_request(&fusb300->ep[0]->ep, fusb300->ep0_req);
+<<<<<<< HEAD
+=======
+	for (i = 0; i < FUSB300_MAX_NUM_EP; i++)
+		kfree(fusb300->ep[i]);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	kfree(fusb300);
 
 	return 0;
@@ -1484,6 +1493,11 @@ clean_up:
 		if (fusb300->ep0_req)
 			fusb300_free_request(&fusb300->ep[0]->ep,
 				fusb300->ep0_req);
+<<<<<<< HEAD
+=======
+		for (i = 0; i < FUSB300_MAX_NUM_EP; i++)
+			kfree(fusb300->ep[i]);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		kfree(fusb300);
 	}
 	if (reg)

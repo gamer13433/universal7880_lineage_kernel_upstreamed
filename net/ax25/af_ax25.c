@@ -640,8 +640,15 @@ static int ax25_setsockopt(struct socket *sock, int level, int optname,
 		break;
 
 	case SO_BINDTODEVICE:
+<<<<<<< HEAD
 		if (optlen > IFNAMSIZ)
 			optlen = IFNAMSIZ;
+=======
+		if (optlen > IFNAMSIZ - 1)
+			optlen = IFNAMSIZ - 1;
+
+		memset(devname, 0, sizeof(devname));
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 		if (copy_from_user(devname, optval, optlen)) {
 			res = -EFAULT;
@@ -815,7 +822,11 @@ static int ax25_create(struct net *net, struct socket *sock, int protocol,
 
 	if (protocol < 0 || protocol > SK_PROTOCOL_MAX)
 		return -EINVAL;
+<<<<<<< HEAD
 	
+=======
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (!net_eq(net, &init_net))
 		return -EAFNOSUPPORT;
 
@@ -860,6 +871,11 @@ static int ax25_create(struct net *net, struct socket *sock, int protocol,
 		break;
 
 	case SOCK_RAW:
+<<<<<<< HEAD
+=======
+		if (!capable(CAP_NET_RAW))
+			return -EPERM;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		break;
 	default:
 		return -ESOCKTNOSUPPORT;
@@ -984,7 +1000,12 @@ static int ax25_release(struct socket *sock)
 			release_sock(sk);
 			ax25_disconnect(ax25, 0);
 			lock_sock(sk);
+<<<<<<< HEAD
 			ax25_destroy_socket(ax25);
+=======
+			if (!sock_flag(ax25->sk, SOCK_DESTROY))
+				ax25_destroy_socket(ax25);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			break;
 
 		case AX25_STATE_3:

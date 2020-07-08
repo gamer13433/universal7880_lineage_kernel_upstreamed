@@ -1928,8 +1928,12 @@ static void xtLog(struct jfs_log * log, struct tblock * tblk, struct lrd * lrd,
 	 * header ?
 	 */
 	if (tlck->type & tlckTRUNCATE) {
+<<<<<<< HEAD
 		/* This odd declaration suppresses a bogus gcc warning */
 		pxd_t pxd = pxd;	/* truncated extent of xad */
+=======
+		pxd_t pxd;	/* truncated extent of xad */
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		int twm;
 
 		/*

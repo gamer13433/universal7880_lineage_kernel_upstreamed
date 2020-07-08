@@ -147,9 +147,16 @@ enum mlx4_resource {
 	RES_MTT,
 	RES_MAC,
 	RES_VLAN,
+<<<<<<< HEAD
 	RES_EQ,
 	RES_COUNTER,
 	RES_FS_RULE,
+=======
+	RES_NPORT_ID,
+	RES_COUNTER,
+	RES_FS_RULE,
+	RES_EQ,
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	MLX4_NUM_OF_RESOURCE_TYPE
 };
 

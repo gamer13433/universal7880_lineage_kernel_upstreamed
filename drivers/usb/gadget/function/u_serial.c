@@ -55,11 +55,16 @@
  * for a telephone or fax link.  And ttyGS2 might be something that just
  * needs a simple byte stream interface for some messaging protocol that
  * is managed in userspace ... OBEX, PTP, and MTP have been mentioned.
+<<<<<<< HEAD
  */
 
 #define PREFIX	"ttyGS"
 
 /*
+=======
+ *
+ *
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
  * gserial is the lifecycle interface, used by USB functions
  * gs_port is the I/O nexus, used by the tty driver
  * tty_struct links to the tty/filesystem framework
@@ -219,7 +224,11 @@ static unsigned gs_buf_space_avail(struct gs_buf *gb)
 static unsigned
 gs_buf_put(struct gs_buf *gb, const char *buf, unsigned count)
 {
+<<<<<<< HEAD
 	unsigned len;	/* prevent CID 11049 */
+=======
+	unsigned len;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	len  = gs_buf_space_avail(gb);
 	if (count > len)
@@ -230,11 +239,19 @@ gs_buf_put(struct gs_buf *gb, const char *buf, unsigned count)
 
 	len = gb->buf_buf + gb->buf_size - gb->buf_put;
 	if (count > len) {
+<<<<<<< HEAD
 		memcpy(gb->buf_put, buf, (size_t)len);
 		memcpy(gb->buf_buf, buf+len, (size_t)(count - len));
 		gb->buf_put = gb->buf_buf + count - len;
 	} else {
 		memcpy(gb->buf_put, buf, (size_t)count);
+=======
+		memcpy(gb->buf_put, buf, len);
+		memcpy(gb->buf_buf, buf+len, count - len);
+		gb->buf_put = gb->buf_buf + count - len;
+	} else {
+		memcpy(gb->buf_put, buf, count);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		if (count < len)
 			gb->buf_put += count;
 		else /* count == len */
@@ -255,7 +272,11 @@ gs_buf_put(struct gs_buf *gb, const char *buf, unsigned count)
 static unsigned
 gs_buf_get(struct gs_buf *gb, char *buf, unsigned count)
 {
+<<<<<<< HEAD
 	unsigned len;	/* prevent CID12927 */
+=======
+	unsigned len;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	len = gs_buf_data_avail(gb);
 	if (count > len)
@@ -266,11 +287,19 @@ gs_buf_get(struct gs_buf *gb, char *buf, unsigned count)
 
 	len = gb->buf_buf + gb->buf_size - gb->buf_get;
 	if (count > len) {
+<<<<<<< HEAD
 		memcpy(buf, gb->buf_get, (size_t)len);
 		memcpy(buf+len, gb->buf_buf, (size_t)(count - len));
 		gb->buf_get = gb->buf_buf + count - len;
 	} else {
 		memcpy(buf, gb->buf_get, (size_t)count);
+=======
+		memcpy(buf, gb->buf_get, len);
+		memcpy(buf+len, gb->buf_buf, count - len);
+		gb->buf_get = gb->buf_buf + count - len;
+	} else {
+		memcpy(buf, gb->buf_get, count);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		if (count < len)
 			gb->buf_get += count;
 		else /* count == len */
@@ -385,9 +414,15 @@ __acquires(&port->port_lock)
 		list_del(&req->list);
 		req->zero = (gs_buf_data_avail(&port->port_write_buf) == 0);
 
+<<<<<<< HEAD
 		pr_vdebug(PREFIX "%d: tx len=%d, 0x%02x 0x%02x 0x%02x ...\n",
 				port->port_num, len, *((u8 *)req->buf),
 				*((u8 *)req->buf+1), *((u8 *)req->buf+2));
+=======
+		pr_vdebug("ttyGS%d: tx len=%d, 0x%02x 0x%02x 0x%02x ...\n",
+			  port->port_num, len, *((u8 *)req->buf),
+			  *((u8 *)req->buf+1), *((u8 *)req->buf+2));
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 		/* Drop lock while we call out of driver; completions
 		 * could be issued while we do so.  Disconnection may
@@ -503,13 +538,22 @@ static void gs_rx_push(unsigned long _port)
 		switch (req->status) {
 		case -ESHUTDOWN:
 			disconnect = true;
+<<<<<<< HEAD
 			pr_vdebug(PREFIX "%d: shutdown\n", port->port_num);
+=======
+			pr_vdebug("ttyGS%d: shutdown\n", port->port_num);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			break;
 
 		default:
 			/* presumably a transient fault */
+<<<<<<< HEAD
 			pr_warning(PREFIX "%d: unexpected RX status %d\n",
 					port->port_num, req->status);
+=======
+			pr_warn("ttyGS%d: unexpected RX status %d\n",
+				port->port_num, req->status);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			/* FALLTHROUGH */
 		case 0:
 			/* normal completion */
@@ -537,9 +581,14 @@ static void gs_rx_push(unsigned long _port)
 			if (count != size) {
 				/* stop pushing; TTY layer can't handle more */
 				port->n_read += count;
+<<<<<<< HEAD
 				pr_vdebug(PREFIX "%d: rx block %d/%d\n",
 						port->port_num,
 						count, req->actual);
+=======
+				pr_vdebug("ttyGS%d: rx block %d/%d\n",
+					  port->port_num, count, req->actual);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 				break;
 			}
 			port->n_read = 0;
@@ -549,8 +598,13 @@ static void gs_rx_push(unsigned long _port)
 		port->read_started--;
 	}
 
+<<<<<<< HEAD
 	/* Push from tty to ldisc; without low_latency set this is handled by
 	 * a workqueue, so we won't get callbacks and can hold port_lock
+=======
+	/* Push from tty to ldisc; this is handled by a workqueue,
+	 * so we won't get callbacks and can hold port_lock
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	 */
 	if (do_push)
 		tty_flip_buffer_push(&port->port);
@@ -569,7 +623,11 @@ static void gs_rx_push(unsigned long _port)
 			if (do_push)
 				tasklet_schedule(&port->push);
 			else
+<<<<<<< HEAD
 				pr_warning(PREFIX "%d: RX not scheduled?\n",
+=======
+				pr_warn("ttyGS%d: RX not scheduled?\n",
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 					port->port_num);
 		}
 	}
@@ -695,6 +753,7 @@ static int gs_start_io(struct gs_port *port)
 	/* queue read requests */
 	port->n_read = 0;
 	started = gs_start_rx(port);
+<<<<<<< HEAD
 	if (!port->port_usb || !port->port.tty) {
 		printk(KERN_ERR "usb:[%s] port_usb or port_tty is NULL!! started(%d)\n",
 						__func__, started);
@@ -702,6 +761,13 @@ static int gs_start_io(struct gs_port *port)
 	}
 	/* unblock any pending writes into our circular buffer */
 	if (started) {
+=======
+
+	if (started) {
+		gs_start_tx(port);
+		/* Unblock any pending writes into our circular buffer, in case
+		 * we didn't in gs_start_tx() */
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		tty_wakeup(port->port.tty);
 	} else {
 		gs_free_requests(ep, head, &port->read_allocated);
@@ -989,7 +1055,11 @@ static void gs_unthrottle(struct tty_struct *tty)
 		 * read queue backs up enough we'll be NAKing OUT packets.
 		 */
 		tasklet_schedule(&port->push);
+<<<<<<< HEAD
 		pr_vdebug(PREFIX "%d: unthrottle\n", port->port_num);
+=======
+		pr_vdebug("ttyGS%d: unthrottle\n", port->port_num);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 	spin_unlock_irqrestore(&port->port_lock, flags);
 }
@@ -1137,8 +1207,15 @@ int gserial_alloc_line(unsigned char *line_num)
 				__func__, port_num, PTR_ERR(tty_dev));
 
 		ret = PTR_ERR(tty_dev);
+<<<<<<< HEAD
 		port = ports[port_num].port;
 		ports[port_num].port = NULL;
+=======
+		mutex_lock(&ports[port_num].lock);
+		port = ports[port_num].port;
+		ports[port_num].port = NULL;
+		mutex_unlock(&ports[port_num].lock);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		gserial_free_port(port);
 		goto err;
 	}
@@ -1300,7 +1377,11 @@ static int userial_init(void)
 		return -ENOMEM;
 
 	gs_tty_driver->driver_name = "g_serial";
+<<<<<<< HEAD
 	gs_tty_driver->name = PREFIX;
+=======
+	gs_tty_driver->name = "ttyGS";
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/* uses dynamically assigned dev_t values */
 
 	gs_tty_driver->type = TTY_DRIVER_TYPE_SERIAL;

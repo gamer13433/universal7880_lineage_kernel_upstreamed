@@ -65,7 +65,13 @@ struct usb_request *alloc_ep_req(struct usb_ep *ep, size_t len, int default_len)
 /* Frees a usb_request previously allocated by alloc_ep_req() */
 static inline void free_ep_req(struct usb_ep *ep, struct usb_request *req)
 {
+<<<<<<< HEAD
 	kfree(req->buf);
+=======
+	WARN_ON(req->buf == NULL);
+	kfree(req->buf);
+	req->buf = NULL;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	usb_ep_free_request(ep, req);
 }
 

@@ -22,7 +22,10 @@
 
 #include "scsi_priv.h"
 #include "scsi_logging.h"
+<<<<<<< HEAD
 #include "ufs/ufshcd.h"
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 static struct device_type scsi_dev_type;
 
@@ -234,6 +237,7 @@ show_shost_supported_mode(struct device *dev, struct device_attribute *attr,
 
 static DEVICE_ATTR(supported_mode, S_IRUGO | S_IWUSR, show_shost_supported_mode, NULL);
 
+<<<<<<< HEAD
 /* for Argos */
 static ssize_t show_shost_transferred_cnt(struct device *dev, struct device_attribute *attr, char *buf)
 {
@@ -244,6 +248,8 @@ static ssize_t show_shost_transferred_cnt(struct device *dev, struct device_attr
 }
 static DEVICE_ATTR(transferred_cnt, 0444, show_shost_transferred_cnt, NULL);
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static ssize_t
 show_shost_active_mode(struct device *dev,
 		       struct device_attribute *attr, char *buf)
@@ -381,7 +387,10 @@ static struct attribute *scsi_sysfs_shost_attrs[] = {
 	&dev_attr_prot_guard_type.attr,
 	&dev_attr_host_reset.attr,
 	&dev_attr_eh_deadline.attr,
+<<<<<<< HEAD
 	&dev_attr_transferred_cnt.attr,
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	NULL
 };
 
@@ -689,6 +698,17 @@ sdev_store_delete(struct device *dev, struct device_attribute *attr,
 		  const char *buf, size_t count)
 {
 	struct kernfs_node *kn;
+<<<<<<< HEAD
+=======
+	struct scsi_device *sdev = to_scsi_device(dev);
+
+	/*
+	 * We need to try to get module, avoiding the module been removed
+	 * during delete.
+	 */
+	if (scsi_device_get(sdev))
+		return -ENODEV;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	kn = sysfs_break_active_protection(&dev->kobj, &attr->attr);
 	WARN_ON_ONCE(!kn);
@@ -703,9 +723,16 @@ sdev_store_delete(struct device *dev, struct device_attribute *attr,
 	 * state into SDEV_DEL.
 	 */
 	device_remove_file(dev, attr);
+<<<<<<< HEAD
 	scsi_remove_device(to_scsi_device(dev));
 	if (kn)
 		sysfs_unbreak_active_protection(kn);
+=======
+	scsi_remove_device(sdev);
+	if (kn)
+		sysfs_unbreak_active_protection(kn);
+	scsi_device_put(sdev);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return count;
 };
 static DEVICE_ATTR(delete, S_IWUSR, NULL, sdev_store_delete);
@@ -1061,6 +1088,10 @@ int scsi_sysfs_add_sdev(struct scsi_device *sdev)
 
 	transport_configure_device(&starget->dev);
 
+<<<<<<< HEAD
+=======
+	device_enable_async_suspend(&sdev->sdev_gendev);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	scsi_autopm_get_target(starget);
 	pm_runtime_set_active(&sdev->sdev_gendev);
 	pm_runtime_forbid(&sdev->sdev_gendev);
@@ -1075,6 +1106,10 @@ int scsi_sysfs_add_sdev(struct scsi_device *sdev)
 				"failed to add device: %d\n", error);
 		return error;
 	}
+<<<<<<< HEAD
+=======
+	device_enable_async_suspend(&sdev->sdev_dev);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	error = device_add(&sdev->sdev_dev);
 	if (error) {
 		sdev_printk(KERN_INFO, sdev,
@@ -1200,11 +1235,20 @@ void scsi_remove_target(struct device *dev)
 	 */
 	spin_lock_irqsave(shost->host_lock, flags);
 	list_for_each_entry(starget, &shost->__targets, siblings) {
+<<<<<<< HEAD
 		if (starget->state == STARGET_DEL)
+=======
+		if (starget->state == STARGET_DEL ||
+		    starget->state == STARGET_REMOVE)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			continue;
 		if (starget->dev.parent == dev || &starget->dev == dev) {
 			/* assuming new targets arrive at the end */
 			kref_get(&starget->reap_ref);
+<<<<<<< HEAD
+=======
+			starget->state = STARGET_REMOVE;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			spin_unlock_irqrestore(shost->host_lock, flags);
 			if (last)
 				scsi_target_reap(last);

@@ -364,12 +364,20 @@ static void ip6gre_tunnel_uninit(struct net_device *dev)
 	struct ip6gre_net *ign = net_generic(t->net, ip6gre_net_id);
 
 	ip6gre_tunnel_unlink(ign, t);
+<<<<<<< HEAD
+=======
+	ip6_tnl_dst_reset(netdev_priv(dev));
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	dev_put(dev);
 }
 
 
 static void ip6gre_err(struct sk_buff *skb, struct inet6_skb_parm *opt,
+<<<<<<< HEAD
 					  u8 type, u8 code, int offset, __be32 info)
+=======
+		       u8 type, u8 code, int offset, __be32 info)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	const struct gre_base_hdr *greh;
 	const struct ipv6hdr *ipv6h;
@@ -399,7 +407,11 @@ static void ip6gre_err(struct sk_buff *skb, struct inet6_skb_parm *opt,
 	key = key_off ? *(__be32 *)(skb->data + key_off) : 0;
 
 	t = ip6gre_tunnel_lookup(skb->dev, &ipv6h->daddr, &ipv6h->saddr,
+<<<<<<< HEAD
 				key, greh->protocol);
+=======
+				 key, greh->protocol);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (t == NULL)
 		return;
 
@@ -790,6 +802,11 @@ static inline int ip6gre_xmit_ipv4(struct sk_buff *skb, struct net_device *dev)
 	__u32 mtu;
 	int err;
 
+<<<<<<< HEAD
+=======
+	memset(&(IPCB(skb)->opt), 0, sizeof(IPCB(skb)->opt));
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (!(t->parms.flags & IP6_TNL_F_IGN_ENCAP_LIMIT))
 		encap_limit = t->parms.encap_limit;
 

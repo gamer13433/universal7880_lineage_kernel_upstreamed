@@ -314,10 +314,14 @@ static void serial_cleanup(struct tty_struct *tty)
 	serial = port->serial;
 	owner = serial->type->driver.owner;
 
+<<<<<<< HEAD
 	mutex_lock(&serial->disc_mutex);
 	if (!serial->disconnected)
 		usb_autopm_put_interface(serial->interface);
 	mutex_unlock(&serial->disc_mutex);
+=======
+	usb_autopm_put_interface(serial->interface);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	usb_serial_put(serial);
 	module_put(owner);
@@ -1337,6 +1341,12 @@ static int usb_serial_register(struct usb_serial_driver *driver)
 		return -EINVAL;
 	}
 
+<<<<<<< HEAD
+=======
+	/* Prevent individual ports from being unbound. */
+	driver->driver.suppress_bind_attrs = true;
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	usb_serial_operations_init(driver);
 
 	/* Add this device to our list of devices */

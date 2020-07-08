@@ -7,9 +7,12 @@
 #include <linux/rculist.h>
 #include <net/inetpeer.h>
 #include <net/tcp.h>
+<<<<<<< HEAD
 #ifdef CONFIG_MPTCP
 #include <net/mptcp.h>
 #endif
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 int sysctl_tcp_fastopen __read_mostly = TFO_CLIENT_ENABLE;
 
@@ -81,8 +84,11 @@ static bool __tcp_fastopen_cookie_gen(const void *path,
 	struct tcp_fastopen_context *ctx;
 	bool ok = false;
 
+<<<<<<< HEAD
 	tcp_fastopen_init_key_once(true);
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	rcu_read_lock();
 	ctx = rcu_dereference(tcp_fastopen_ctx);
 	if (ctx) {
@@ -137,9 +143,12 @@ static bool tcp_fastopen_create_child(struct sock *sk,
 	struct tcp_sock *tp;
 	struct request_sock_queue *queue = &inet_csk(sk)->icsk_accept_queue;
 	struct sock *child;
+<<<<<<< HEAD
 #ifdef CONFIG_MPTCP
 	struct sock *meta_sk;
 #endif
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	u32 end_seq;
 
 	req->num_retrans = 0;
@@ -183,14 +192,20 @@ static bool tcp_fastopen_create_child(struct sock *sk,
 	/* Add the child socket directly into the accept queue */
 	inet_csk_reqsk_queue_add(sk, req, child);
 
+<<<<<<< HEAD
 #ifndef CONFIG_MPTCP
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/* Now finish processing the fastopen child socket. */
 	inet_csk(child)->icsk_af_ops->rebuild_header(child);
 	tcp_init_congestion_control(child);
 	tcp_mtup_init(child);
 	tcp_init_metrics(child);
 	tcp_init_buffer_space(child);
+<<<<<<< HEAD
 #endif
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	/* Queue the data carried in the SYN packet. We need to first
 	 * bump skb's refcnt because the caller will attempt to free it.
@@ -223,6 +238,7 @@ static bool tcp_fastopen_create_child(struct sock *sk,
 		}
 	}
 	tcp_rsk(req)->rcv_nxt = tp->rcv_nxt = end_seq;
+<<<<<<< HEAD
 #ifdef CONFIG_MPTCP
 	meta_sk = child;
 	if (!mptcp_check_req_fastopen(meta_sk, req)) {
@@ -245,6 +261,10 @@ static bool tcp_fastopen_create_child(struct sock *sk,
 #ifdef CONFIG_MPTCP
 	bh_unlock_sock(meta_sk);
 #endif
+=======
+	sk->sk_data_ready(sk);
+	bh_unlock_sock(child);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	sock_put(child);
 	WARN_ON(req->sk == NULL);
 	return true;

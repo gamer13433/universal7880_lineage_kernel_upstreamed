@@ -21,7 +21,11 @@
 
 #define to_clk_composite(_hw) container_of(_hw, struct clk_composite, hw)
 
+<<<<<<< HEAD
 static int clk_composite_get_parent(struct clk_hw *hw)
+=======
+static u8 clk_composite_get_parent(struct clk_hw *hw)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	struct clk_composite *composite = to_clk_composite(hw);
 	const struct clk_ops *mux_ops = composite->mux_ops;

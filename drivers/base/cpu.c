@@ -287,7 +287,10 @@ static void cpu_device_release(struct device *dev)
 	 */
 }
 
+<<<<<<< HEAD
 #ifdef CONFIG_HAVE_CPU_AUTOPROBE
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #ifdef CONFIG_GENERIC_CPU_AUTOPROBE
 static ssize_t print_cpu_modalias(struct device *dev,
 				  struct device_attribute *attr,
@@ -310,11 +313,15 @@ static ssize_t print_cpu_modalias(struct device *dev,
 	buf[n++] = '\n';
 	return n;
 }
+<<<<<<< HEAD
 #else
 #define print_cpu_modalias	arch_print_cpu_modalias
 #endif
 
 #ifdef CONFIG_ARCH_HAS_CPU_AUTOPROBE
+=======
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static int cpu_uevent(struct device *dev, struct kobj_uevent_env *env)
 {
 	char *buf = kzalloc(PAGE_SIZE, GFP_KERNEL);
@@ -326,7 +333,10 @@ static int cpu_uevent(struct device *dev, struct kobj_uevent_env *env)
 	return 0;
 }
 #endif
+<<<<<<< HEAD
 #endif
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /*
  * register_cpu - Setup a sysfs device for a CPU.
@@ -346,8 +356,14 @@ int register_cpu(struct cpu *cpu, int num)
 	cpu->dev.bus = &cpu_subsys;
 	cpu->dev.release = cpu_device_release;
 	cpu->dev.offline_disabled = !cpu->hotpluggable;
+<<<<<<< HEAD
 	cpu->dev.of_node = of_get_cpu_node(num, NULL);
 #ifdef CONFIG_ARCH_HAS_CPU_AUTOPROBE
+=======
+	cpu->dev.offline = !cpu_online(num);
+	cpu->dev.of_node = of_get_cpu_node(num, NULL);
+#ifdef CONFIG_GENERIC_CPU_AUTOPROBE
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	cpu->dev.bus->uevent = cpu_uevent;
 #endif
 	cpu->dev.groups = common_cpu_attr_groups;
@@ -371,7 +387,11 @@ struct device *get_cpu_device(unsigned cpu)
 }
 EXPORT_SYMBOL_GPL(get_cpu_device);
 
+<<<<<<< HEAD
 #ifdef CONFIG_HAVE_CPU_AUTOPROBE
+=======
+#ifdef CONFIG_GENERIC_CPU_AUTOPROBE
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static DEVICE_ATTR(modalias, 0444, print_cpu_modalias, NULL);
 #endif
 
@@ -385,7 +405,11 @@ static struct attribute *cpu_root_attrs[] = {
 	&cpu_attrs[2].attr.attr,
 	&dev_attr_kernel_max.attr,
 	&dev_attr_offline.attr,
+<<<<<<< HEAD
 #ifdef CONFIG_HAVE_CPU_AUTOPROBE
+=======
+#ifdef CONFIG_GENERIC_CPU_AUTOPROBE
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	&dev_attr_modalias.attr,
 #endif
 	NULL

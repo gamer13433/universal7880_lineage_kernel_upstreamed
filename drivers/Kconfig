@@ -20,10 +20,13 @@ source "drivers/block/Kconfig"
 
 source "drivers/misc/Kconfig"
 
+<<<<<<< HEAD
 source "drivers/staging/samsung/sec_notifier/Kconfig"
 
 source "drivers/muic/Kconfig"
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 source "drivers/ide/Kconfig"
 
 source "drivers/scsi/Kconfig"
@@ -96,8 +99,11 @@ source "drivers/hid/Kconfig"
 
 source "drivers/usb/Kconfig"
 
+<<<<<<< HEAD
 source "drivers/ccic/Kconfig"
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 source "drivers/uwb/Kconfig"
 
 source "drivers/mmc/Kconfig"
@@ -156,6 +162,11 @@ source "drivers/remoteproc/Kconfig"
 
 source "drivers/rpmsg/Kconfig"
 
+<<<<<<< HEAD
+=======
+source "drivers/soc/Kconfig"
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 source "drivers/devfreq/Kconfig"
 
 source "drivers/extcon/Kconfig"
@@ -174,10 +185,13 @@ source "drivers/irqchip/Kconfig"
 
 source "drivers/ipack/Kconfig"
 
+<<<<<<< HEAD
 source "drivers/battery/Kconfig"
 
 source "drivers/battery_v2/Kconfig"
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 source "drivers/reset/Kconfig"
 
 source "drivers/fmc/Kconfig"
@@ -192,6 +206,7 @@ source "drivers/ras/Kconfig"
 
 source "drivers/thunderbolt/Kconfig"
 
+<<<<<<< HEAD
 source "drivers/trace/Kconfig"
 
 source "drivers/bts/Kconfig"
@@ -212,4 +227,6 @@ source "drivers/sensorhub/stm32/Kconfig"
 
 source "drivers/sensorhub/brcm/Kconfig"
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 endmenu

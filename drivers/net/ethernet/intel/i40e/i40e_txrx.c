@@ -237,6 +237,12 @@ static int i40e_add_del_fdir_udpv4(struct i40e_vsi *vsi,
 				 "Filter deleted for PCTYPE %d loc = %d\n",
 				 fd_data->pctype, fd_data->fd_id);
 	}
+<<<<<<< HEAD
+=======
+	if (err)
+		kfree(raw_packet);
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return err ? -EOPNOTSUPP : 0;
 }
 
@@ -312,6 +318,12 @@ static int i40e_add_del_fdir_tcpv4(struct i40e_vsi *vsi,
 				 fd_data->pctype, fd_data->fd_id);
 	}
 
+<<<<<<< HEAD
+=======
+	if (err)
+		kfree(raw_packet);
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return err ? -EOPNOTSUPP : 0;
 }
 
@@ -387,6 +399,12 @@ static int i40e_add_del_fdir_ipv4(struct i40e_vsi *vsi,
 		}
 	}
 
+<<<<<<< HEAD
+=======
+	if (err)
+		kfree(raw_packet);
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return err ? -EOPNOTSUPP : 0;
 }
 
@@ -510,11 +528,15 @@ static void i40e_unmap_and_free_tx_resource(struct i40e_ring *ring,
 					    struct i40e_tx_buffer *tx_buffer)
 {
 	if (tx_buffer->skb) {
+<<<<<<< HEAD
 		if (tx_buffer->tx_flags & I40E_TX_FLAGS_FD_SB)
 			kfree(tx_buffer->raw_buf);
 		else
 			dev_kfree_skb_any(tx_buffer->skb);
 
+=======
+		dev_kfree_skb_any(tx_buffer->skb);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		if (dma_unmap_len(tx_buffer, len))
 			dma_unmap_single(ring->dev,
 					 dma_unmap_addr(tx_buffer, dma),
@@ -526,6 +548,13 @@ static void i40e_unmap_and_free_tx_resource(struct i40e_ring *ring,
 			       dma_unmap_len(tx_buffer, len),
 			       DMA_TO_DEVICE);
 	}
+<<<<<<< HEAD
+=======
+
+	if (tx_buffer->tx_flags & I40E_TX_FLAGS_FD_SB)
+		kfree(tx_buffer->raw_buf);
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	tx_buffer->next_to_watch = NULL;
 	tx_buffer->skb = NULL;
 	dma_unmap_len_set(tx_buffer, len, 0);

@@ -57,7 +57,11 @@ obj-$(CONFIG_MWIFIEX)	+= mwifiex/
 
 obj-$(CONFIG_BRCMFMAC)	+= brcm80211/
 obj-$(CONFIG_BRCMSMAC)	+= brcm80211/
+<<<<<<< HEAD
 obj-$(CONFIG_CNSS_SDIO)	+= cnss/cnss_sdio.o
 obj-$(CONFIG_WCNSS_MEM_PRE_ALLOC) += cnss_prealloc.o
+=======
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 obj-$(CONFIG_CW1200)	+= cw1200/
 obj-$(CONFIG_RSI_91X)	+= rsi/

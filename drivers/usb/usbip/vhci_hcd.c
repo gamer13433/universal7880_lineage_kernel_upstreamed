@@ -297,6 +297,10 @@ static int vhci_hub_control(struct usb_hcd *hcd, u16 typeReq, u16 wValue,
 			default:
 				break;
 			}
+<<<<<<< HEAD
+=======
+			break;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		default:
 			usbip_dbg_vhci_rh(" ClearPortFeature: default %x\n",
 					  wValue);

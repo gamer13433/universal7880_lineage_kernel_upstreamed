@@ -437,6 +437,7 @@ static int cmp_bss(struct cfg80211_bss *a,
 	const u8 *ie2 = NULL;
 	int i, r;
 
+<<<<<<< HEAD
 #if !(defined(CONFIG_BCM4335) || defined(CONFIG_BCM4335_MODULE) \
         || defined(CONFIG_BCM4339) || defined(CONFIG_BCM4339_MODULE) \
 	|| defined(CONFIG_BCM43438) || defined(CONFIG_BCM43438_MODULE) \
@@ -448,6 +449,10 @@ static int cmp_bss(struct cfg80211_bss *a,
 	if (a->channel != b->channel)
 		return b->channel->center_freq - a->channel->center_freq;
 #endif /* CONFIG_BCM43xx */
+=======
+	if (a->channel != b->channel)
+		return b->channel->center_freq - a->channel->center_freq;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	a_ies = rcu_access_pointer(a->ies);
 	if (!a_ies)
@@ -487,6 +492,7 @@ static int cmp_bss(struct cfg80211_bss *a,
 	if (r)
 		return r;
 
+<<<<<<< HEAD
 #if (defined(CONFIG_BCM4335) || defined(CONFIG_BCM4335_MODULE) \
         || defined(CONFIG_BCM4339) || defined(CONFIG_BCM4339_MODULE) \
 	|| defined(CONFIG_BCM43438) || defined(CONFIG_BCM43438_MODULE) \
@@ -499,6 +505,8 @@ static int cmp_bss(struct cfg80211_bss *a,
 		return b->channel->center_freq - a->channel->center_freq;
 #endif /* CONFIG_BCM43xx */
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	ie1 = cfg80211_find_ie(WLAN_EID_SSID, a_ies->data, a_ies->len);
 	ie2 = cfg80211_find_ie(WLAN_EID_SSID, b_ies->data, b_ies->len);
 

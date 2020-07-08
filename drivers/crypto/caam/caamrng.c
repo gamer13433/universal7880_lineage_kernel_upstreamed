@@ -56,7 +56,11 @@
 
 /* Buffer, its dma address and lock */
 struct buf_data {
+<<<<<<< HEAD
 	u8 buf[RN_BUF_SIZE];
+=======
+	u8 buf[RN_BUF_SIZE] ____cacheline_aligned;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	dma_addr_t addr;
 	struct completion filled;
 	u32 hw_desc[DESC_JOB_O_LEN];

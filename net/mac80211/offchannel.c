@@ -308,11 +308,18 @@ void ieee80211_roc_notify_destroy(struct ieee80211_roc_work *roc, bool free)
 
 	/* was never transmitted */
 	if (roc->frame) {
+<<<<<<< HEAD
 		cfg80211_mgmt_tx_status(&roc->sdata->wdev,
 					(unsigned long)roc->frame,
 					roc->frame->data, roc->frame->len,
 					false, GFP_KERNEL);
 		kfree_skb(roc->frame);
+=======
+		cfg80211_mgmt_tx_status(&roc->sdata->wdev, roc->mgmt_tx_cookie,
+					roc->frame->data, roc->frame->len,
+					false, GFP_KERNEL);
+		ieee80211_free_txskb(&roc->sdata->local->hw, roc->frame);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 	if (!roc->mgmt_tx_cookie)

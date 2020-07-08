@@ -50,7 +50,11 @@ static inline void atomic_add(int i, atomic_t *v)
 {
 	asm volatile(LOCK_PREFIX "addl %1,%0"
 		     : "+m" (v->counter)
+<<<<<<< HEAD
 		     : "ir" (i));
+=======
+		     : "ir" (i) : "memory");
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 /**
@@ -64,7 +68,11 @@ static inline void atomic_sub(int i, atomic_t *v)
 {
 	asm volatile(LOCK_PREFIX "subl %1,%0"
 		     : "+m" (v->counter)
+<<<<<<< HEAD
 		     : "ir" (i));
+=======
+		     : "ir" (i) : "memory");
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 /**
@@ -90,7 +98,11 @@ static inline int atomic_sub_and_test(int i, atomic_t *v)
 static inline void atomic_inc(atomic_t *v)
 {
 	asm volatile(LOCK_PREFIX "incl %0"
+<<<<<<< HEAD
 		     : "+m" (v->counter));
+=======
+		     : "+m" (v->counter) :: "memory");
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 /**
@@ -102,7 +114,11 @@ static inline void atomic_inc(atomic_t *v)
 static inline void atomic_dec(atomic_t *v)
 {
 	asm volatile(LOCK_PREFIX "decl %0"
+<<<<<<< HEAD
 		     : "+m" (v->counter));
+=======
+		     : "+m" (v->counter) :: "memory");
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 /**
@@ -206,6 +222,7 @@ static inline int __atomic_add_unless(atomic_t *v, int a, int u)
 	return c;
 }
 
+<<<<<<< HEAD
 /**
  * atomic_inc_short - increment of a short integer
  * @v: pointer to type int
@@ -219,6 +236,8 @@ static inline short int atomic_inc_short(short int *v)
 	return *v;
 }
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /* These are x86-specific, used by some header files */
 #define atomic_clear_mask(mask, addr)				\
 	asm volatile(LOCK_PREFIX "andl %0,%1"			\

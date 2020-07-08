@@ -19,7 +19,11 @@ config NETFILTER_NETLINK_QUEUE
 	help
 	  If this option is enabled, the kernel will include support
 	  for queueing packets via NFNETLINK.
+<<<<<<< HEAD
 
+=======
+	  
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 config NETFILTER_NETLINK_LOG
 	tristate "Netfilter LOG over NFNETLINK interface"
 	default m if NETFILTER_ADVANCED=n
@@ -198,7 +202,11 @@ config NF_CONNTRACK_FTP
 
 config NF_CONNTRACK_H323
 	tristate "H.323 protocol support"
+<<<<<<< HEAD
 	depends on (IPV6 || IPV6=n)
+=======
+	depends on IPV6 || IPV6=n
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	depends on NETFILTER_ADVANCED
 	help
 	  H.323 is a VoIP signalling protocol from ITU-T. As one of the most
@@ -705,7 +713,11 @@ config NETFILTER_XT_TARGET_HL
 
 config NETFILTER_XT_TARGET_HMARK
 	tristate '"HMARK" target support'
+<<<<<<< HEAD
 	depends on (IP6_NF_IPTABLES || IP6_NF_IPTABLES=n)
+=======
+	depends on IP6_NF_IPTABLES || IP6_NF_IPTABLES=n
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	depends on NETFILTER_ADVANCED
 	---help---
 	This option adds the "HMARK" target.
@@ -846,7 +858,11 @@ config NETFILTER_XT_TARGET_REDIRECT
 config NETFILTER_XT_TARGET_TEE
 	tristate '"TEE" - packet cloning to alternate destination'
 	depends on NETFILTER_ADVANCED
+<<<<<<< HEAD
 	depends on (IPV6 || IPV6=n)
+=======
+	depends on IPV6 || IPV6=n
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	depends on !NF_CONNTRACK || NF_CONNTRACK
 	---help---
 	This option adds a "TEE" target with which a packet can be cloned and
@@ -856,7 +872,11 @@ config NETFILTER_XT_TARGET_TPROXY
 	tristate '"TPROXY" target transparent proxying support'
 	depends on NETFILTER_XTABLES
 	depends on NETFILTER_ADVANCED
+<<<<<<< HEAD
 	depends on (IPV6 || IPV6=n)
+=======
+	depends on IPV6 || IPV6=n
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	depends on IP_NF_MANGLE
 	select NF_DEFRAG_IPV4
 	select NF_DEFRAG_IPV6 if IP6_NF_IPTABLES
@@ -895,7 +915,11 @@ config NETFILTER_XT_TARGET_SECMARK
 
 config NETFILTER_XT_TARGET_TCPMSS
 	tristate '"TCPMSS" target support'
+<<<<<<< HEAD
 	depends on (IPV6 || IPV6=n)
+=======
+	depends on IPV6 || IPV6=n
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	default m if NETFILTER_ADVANCED=n
 	---help---
 	  This option adds a `TCPMSS' target, which allows you to alter the
@@ -1107,7 +1131,11 @@ config NETFILTER_XT_MATCH_ESP
 
 config NETFILTER_XT_MATCH_HASHLIMIT
 	tristate '"hashlimit" match support'
+<<<<<<< HEAD
 	depends on (IP6_NF_IPTABLES || IP6_NF_IPTABLES=n)
+=======
+	depends on IP6_NF_IPTABLES || IP6_NF_IPTABLES=n
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	depends on NETFILTER_ADVANCED
 	help
 	  This option adds a `hashlimit' match.
@@ -1306,10 +1334,13 @@ config NETFILTER_XT_MATCH_QTAGUID
 
 	  If unsure, say `N'.
 
+<<<<<<< HEAD
 config NETFILTER_XT_MATCH_ONESHOT
 	bool "Support NETFILTER_XT_MATCH_ONESHOT"
 	default n
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 config NETFILTER_XT_MATCH_QUOTA
 	tristate '"quota" match support'
 	depends on NETFILTER_ADVANCED
@@ -1343,12 +1374,15 @@ config NETFILTER_XT_MATCH_QUOTA2_LOG
 
 	  If unsure, say `N'.
 
+<<<<<<< HEAD
 config NETFILTER_XT_MATCH_QUOTA2_LOG_32BIT
 	bool '"quota2" Netfilter LOG support'
 	default n
 	help
 	  Enabel to support an old 32-bit Android platform with 64-bit Kernel.
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 config NETFILTER_XT_MATCH_RATEEST
 	tristate '"rateest" match support'
 	depends on NETFILTER_ADVANCED
@@ -1367,7 +1401,11 @@ config NETFILTER_XT_MATCH_REALM
 	  This option adds a `realm' match, which allows you to use the realm
 	  key from the routing subsystem inside iptables.
 
+<<<<<<< HEAD
 	  This match pretty much resembles the CONFIG_NET_CLS_ROUTE4 option
+=======
+	  This match pretty much resembles the CONFIG_NET_CLS_ROUTE4 option 
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	  in tc world.
 
 	  If you want to compile it as a module, say M here and read
@@ -1388,7 +1426,11 @@ config NETFILTER_XT_MATCH_SCTP
 	depends on NETFILTER_ADVANCED
 	default IP_SCTP
 	help
+<<<<<<< HEAD
 	  With this option enabled, you will be able to use the
+=======
+	  With this option enabled, you will be able to use the 
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	  `sctp' match in order to match on SCTP source/destination ports
 	  and SCTP chunk types.
 
@@ -1400,7 +1442,11 @@ config NETFILTER_XT_MATCH_SOCKET
 	depends on NETFILTER_XTABLES
 	depends on NETFILTER_ADVANCED
 	depends on !NF_CONNTRACK || NF_CONNTRACK
+<<<<<<< HEAD
 	depends on (IPV6 || IPV6=n)
+=======
+	depends on IPV6 || IPV6=n
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	select NF_DEFRAG_IPV4
 	select NF_DEFRAG_IPV6 if IP6_NF_IPTABLES
 	help
@@ -1483,10 +1529,13 @@ config NETFILTER_XT_MATCH_U32
 
 endif # NETFILTER_XTABLES
 
+<<<<<<< HEAD
 config NF_HISTORY
 	bool "Support NF HISTORY"
 	default n
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 endmenu
 
 source "net/netfilter/ipset/Kconfig"

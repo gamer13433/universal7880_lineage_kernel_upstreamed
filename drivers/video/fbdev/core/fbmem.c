@@ -1132,7 +1132,11 @@ static long do_fb_ioctl(struct fb_info *info, unsigned int cmd,
 	case FBIOGET_FSCREENINFO:
 		if (!lock_fb_info(info))
 			return -ENODEV;
+<<<<<<< HEAD
 		fix = info->fix;
+=======
+		memcpy(&fix, &info->fix, sizeof(fix));
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		unlock_fb_info(info);
 
 		ret = copy_to_user(argp, &fix, sizeof(fix)) ? -EFAULT : 0;

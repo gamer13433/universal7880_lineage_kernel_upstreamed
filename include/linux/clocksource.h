@@ -18,8 +18,11 @@
 #include <asm/div64.h>
 #include <asm/io.h>
 
+<<<<<<< HEAD
 /* clocksource cycle base type */
 typedef u64 cycle_t;
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 struct clocksource;
 struct module;
 
@@ -28,6 +31,7 @@ struct module;
 #endif
 
 /**
+<<<<<<< HEAD
  * struct cyclecounter - hardware abstraction for a free running counter
  *	Provides completely state-free accessors to the underlying hardware.
  *	Depending on which hardware it reads, the cycle counter may wrap
@@ -128,6 +132,8 @@ extern u64 timecounter_cyc2time(struct timecounter *tc,
 				cycle_t cycle_tstamp);
 
 /**
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
  * struct clocksource - hardware abstraction for a free running counter
  *	Provides mostly state-free accessors to the underlying hardware.
  *	This is the structure used for system time.

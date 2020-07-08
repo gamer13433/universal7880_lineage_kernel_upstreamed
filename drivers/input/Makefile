@@ -28,5 +28,8 @@ obj-$(CONFIG_INPUT_APMPOWER)	+= apm-power.o
 obj-$(CONFIG_INPUT_KEYRESET)	+= keyreset.o
 obj-$(CONFIG_INPUT_KEYCOMBO)	+= keycombo.o
 
+<<<<<<< HEAD
 obj-$(CONFIG_HALL)		+= hall.o
 obj-$(CONFIG_CERTIFY_HALL)	+= certify_hall.o
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012

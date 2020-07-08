@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 /* Copyright (c) 2015 Samsung Electronics Co., Ltd. */
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /*
  *	Definitions for the 'struct sk_buff' memory handlers.
  *
@@ -11,6 +14,7 @@
  *	as published by the Free Software Foundation; either version
  *	2 of the License, or (at your option) any later version.
  */
+<<<<<<< HEAD
 /*
  *  Changes:
  *  KwnagHyun Kim <kh0304.kim@samsung.com> 2015/07/08
@@ -19,6 +23,8 @@
  *    Add codes to share UID/PID information
  *
  */
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #ifndef _LINUX_SKBUFF_H
 #define _LINUX_SKBUFF_H
@@ -41,7 +47,11 @@
 #include <linux/dma-mapping.h>
 #include <linux/netdev_features.h>
 #include <linux/sched.h>
+<<<<<<< HEAD
 #include <net/flow_keys.h>
+=======
+#include <net/flow_dissector.h>
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /* A. Checksumming of received packets by device.
  *
@@ -327,6 +337,7 @@ struct skb_shared_info {
 	/* Intermediate layers must ensure that destructor_arg
 	 * remains valid until skb destructor */
 	void *		destructor_arg;
+<<<<<<< HEAD
     
  // ------------- START of KNOX_VPN ------------------//
 	uid_t uid;
@@ -334,6 +345,8 @@ struct skb_shared_info {
 	u_int32_t knox_mark;
  // ------------- END of KNOX_VPN -------------------//
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	/* must be last field, see pskb_expand_head() */
 	skb_frag_t	frags[MAX_SKB_FRAGS];
@@ -944,6 +957,12 @@ static inline __u32 skb_get_hash(struct sk_buff *skb)
 	return skb->hash;
 }
 
+<<<<<<< HEAD
+=======
+__u32 skb_get_hash_perturb(const struct sk_buff *skb,
+			   const siphash_key_t *perturb);
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static inline __u32 skb_get_hash_raw(const struct sk_buff *skb)
 {
 	return skb->hash;
@@ -1793,6 +1812,33 @@ static inline void skb_reserve(struct sk_buff *skb, int len)
 	skb->tail += len;
 }
 
+<<<<<<< HEAD
+=======
+/**
+ *	skb_tailroom_reserve - adjust reserved_tailroom
+ *	@skb: buffer to alter
+ *	@mtu: maximum amount of headlen permitted
+ *	@needed_tailroom: minimum amount of reserved_tailroom
+ *
+ *	Set reserved_tailroom so that headlen can be as large as possible but
+ *	not larger than mtu and tailroom cannot be smaller than
+ *	needed_tailroom.
+ *	The required headroom should already have been reserved before using
+ *	this function.
+ */
+static inline void skb_tailroom_reserve(struct sk_buff *skb, unsigned int mtu,
+					unsigned int needed_tailroom)
+{
+	SKB_LINEAR_ASSERT(skb);
+	if (mtu < skb_tailroom(skb) - needed_tailroom)
+		/* use at most mtu */
+		skb->reserved_tailroom = skb_tailroom(skb) - mtu;
+	else
+		/* use up to all available space */
+		skb->reserved_tailroom = needed_tailroom;
+}
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #define ENCAP_TYPE_ETHER	0
 #define ENCAP_TYPE_IPPROTO	1
 
@@ -1944,8 +1990,13 @@ static inline void skb_probe_transport_header(struct sk_buff *skb,
 
 	if (skb_transport_header_was_set(skb))
 		return;
+<<<<<<< HEAD
 	else if (skb_flow_dissect(skb, &keys))
 		skb_set_transport_header(skb, keys.thoff);
+=======
+	else if (skb_flow_dissect_flow_keys(skb, &keys))
+		skb_set_transport_header(skb, keys.control.thoff);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	else
 		skb_set_transport_header(skb, offset_hint);
 }
@@ -2653,7 +2704,11 @@ unsigned int datagram_poll(struct file *file, struct socket *sock,
 int skb_copy_datagram_iovec(const struct sk_buff *from, int offset,
 			    struct iovec *to, int size);
 int skb_copy_and_csum_datagram_iovec(struct sk_buff *skb, int hlen,
+<<<<<<< HEAD
 				     struct iovec *iov, int len);
+=======
+				     struct iovec *iov);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 int skb_copy_datagram_from_iovec(struct sk_buff *skb, int offset,
 				 const struct iovec *from, int from_offset,
 				 int len);
@@ -3255,7 +3310,12 @@ struct skb_gso_cb {
 	int	encap_level;
 	__u16	csum_start;
 };
+<<<<<<< HEAD
 #define SKB_GSO_CB(skb) ((struct skb_gso_cb *)(skb)->cb)
+=======
+#define SKB_SGO_CB_OFFSET	32
+#define SKB_GSO_CB(skb) ((struct skb_gso_cb *)((skb)->cb + SKB_SGO_CB_OFFSET))
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 static inline int skb_tnl_header_len(const struct sk_buff *inner_skb)
 {

@@ -69,7 +69,10 @@
 #define Q_SETINFO  0x800006	/* set information about quota files */
 #define Q_GETQUOTA 0x800007	/* get user quota structure */
 #define Q_SETQUOTA 0x800008	/* set user quota structure */
+<<<<<<< HEAD
 #define Q_GETNEXTQUOTA 0x800009	/* get disk limits and usage >= ID */
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /* Quota format type IDs */
 #define	QFMT_VFS_OLD 1
@@ -118,6 +121,7 @@ struct if_dqblk {
 	__u32 dqb_valid;
 };
 
+<<<<<<< HEAD
 struct if_nextdqblk {
 	__u64 dqb_bhardlimit;
 	__u64 dqb_bsoftlimit;
@@ -131,6 +135,8 @@ struct if_nextdqblk {
 	__u32 dqb_id;
 };
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /*
  * Structure used for setting quota information about file via quotactl
  * Following flags are used to specify which fields are valid

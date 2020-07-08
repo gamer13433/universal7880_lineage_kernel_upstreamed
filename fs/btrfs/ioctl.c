@@ -59,6 +59,10 @@
 #include "props.h"
 #include "sysfs.h"
 #include "qgroup.h"
+<<<<<<< HEAD
+=======
+#include "tree-log.h"
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #ifdef CONFIG_64BIT
 /* If we have a 32-bit userspace and 64-bit kernel, then the UAPI
@@ -579,12 +583,26 @@ static noinline int create_subvol(struct inode *dir,
 
 	btrfs_i_size_write(dir, dir->i_size + namelen * 2);
 	ret = btrfs_update_inode(trans, root, dir);
+<<<<<<< HEAD
 	BUG_ON(ret);
+=======
+	if (ret) {
+		btrfs_abort_transaction(trans, root, ret);
+		goto fail;
+	}
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	ret = btrfs_add_root_ref(trans, root->fs_info->tree_root,
 				 objectid, root->root_key.objectid,
 				 btrfs_ino(dir), index, name, namelen);
+<<<<<<< HEAD
 	BUG_ON(ret);
+=======
+	if (ret) {
+		btrfs_abort_transaction(trans, root, ret);
+		goto fail;
+	}
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	ret = btrfs_uuid_tree_add(trans, root->fs_info->uuid_root,
 				  root_item.uuid, BTRFS_UUID_KEY_SUBVOL,
@@ -2446,8 +2464,11 @@ static noinline int btrfs_ioctl_snap_destroy(struct file *file,
 		goto out_unlock_inode;
 	}
 
+<<<<<<< HEAD
 	d_invalidate(dentry);
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	down_write(&root->fs_info->subvol_sem);
 
 	err = may_destroy_subvol(dest);
@@ -2523,6 +2544,11 @@ static noinline int btrfs_ioctl_snap_destroy(struct file *file,
 out_end_trans:
 	trans->block_rsv = NULL;
 	trans->bytes_reserved = 0;
+<<<<<<< HEAD
+=======
+	if (!err)
+		btrfs_record_snapshot_destroy(trans, dir);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	ret = btrfs_end_transaction(trans, root);
 	if (ret && !err)
 		err = ret;
@@ -2541,7 +2567,11 @@ out_up_write:
 out_unlock_inode:
 	mutex_unlock(&inode->i_mutex);
 	if (!err) {
+<<<<<<< HEAD
 		shrink_dcache_sb(root->fs_info->sb);
+=======
+		d_invalidate(dentry);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		btrfs_invalidate_inodes(dest);
 		d_delete(dentry);
 		ASSERT(dest->send_in_progress == 0);
@@ -4977,7 +5007,11 @@ static long btrfs_ioctl_quota_rescan_wait(struct file *file, void __user *arg)
 	if (!capable(CAP_SYS_ADMIN))
 		return -EPERM;
 
+<<<<<<< HEAD
 	return btrfs_qgroup_wait_for_completion(root->fs_info);
+=======
+	return btrfs_qgroup_wait_for_completion(root->fs_info, true);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 static long _btrfs_ioctl_set_received_subvol(struct file *file,

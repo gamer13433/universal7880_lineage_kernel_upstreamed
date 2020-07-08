@@ -11,6 +11,10 @@
 
 #include "misc.h"
 #include "../string.h"
+<<<<<<< HEAD
+=======
+#include <asm/bootparam_utils.h>
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /* WARNING!!
  * This code is compiled with -fPIC and it is relocated dynamically

@@ -1724,7 +1724,11 @@ static int qlcnic_83xx_get_reset_instruction_template(struct qlcnic_adapter *p_d
 
 	ahw->reset.seq_error = 0;
 	ahw->reset.buff = kzalloc(QLC_83XX_RESTART_TEMPLATE_SIZE, GFP_KERNEL);
+<<<<<<< HEAD
 	if (p_dev->ahw->reset.buff == NULL)
+=======
+	if (ahw->reset.buff == NULL)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		return -ENOMEM;
 
 	p_buff = p_dev->ahw->reset.buff;
@@ -2047,6 +2051,10 @@ static void qlcnic_83xx_exec_template_cmd(struct qlcnic_adapter *p_dev,
 			break;
 		}
 		entry += p_hdr->size;
+<<<<<<< HEAD
+=======
+		cond_resched();
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 	p_dev->ahw->reset.seq_index = index;
 }

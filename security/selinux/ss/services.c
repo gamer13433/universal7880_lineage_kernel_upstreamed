@@ -773,11 +773,14 @@ out:
 	kfree(n);
 	kfree(t);
 
+<<<<<<< HEAD
 // [ SEC_SELINUX_PORTING_COMMON
 #ifdef CONFIG_SECURITY_SELINUX_ALWAYS_ENFORCE
 	selinux_enforcing = 1;
 #endif
 // ] SEC_SELINUX_PORTING_COMMON
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (!selinux_enforcing)
 		return 0;
 	return -EPERM;
@@ -1539,12 +1542,15 @@ out:
 	kfree(s);
 	kfree(t);
 	kfree(n);
+<<<<<<< HEAD
 
 // [ SEC_SELINUX_PORTING_COMMON
 #ifdef CONFIG_SECURITY_SELINUX_ALWAYS_ENFORCE
 	selinux_enforcing = 1;
 #endif
 // ] SEC_SELINUX_PORTING_COMMON
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (!selinux_enforcing)
 		return 0;
 	return -EACCES;
@@ -1836,11 +1842,14 @@ static inline int convert_context_handle_invalid_context(struct context *context
 	char *s;
 	u32 len;
 
+<<<<<<< HEAD
 // [ SEC_SELINUX_PORTING_COMMON
 #ifdef CONFIG_SECURITY_SELINUX_ALWAYS_ENFORCE
 	selinux_enforcing = 1;
 #endif
 // ] SEC_SELINUX_PORTING_COMMON
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (selinux_enforcing)
 		return -EINVAL;
 
@@ -2560,10 +2569,13 @@ int security_fs_use(struct super_block *sb)
 {
 	int rc = 0;
 	struct ocontext *c;
+<<<<<<< HEAD
 // [ SEC_SELINUX_PORTING_COMMON
 	u32 tmpsid;
 // ] SEC_SELINUX_PORTING_COMMON
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	struct superblock_security_struct *sbsec = sb->s_security;
 	const char *fstype = sb->s_type->name;
 
@@ -2579,21 +2591,31 @@ int security_fs_use(struct super_block *sb)
 	if (c) {
 		sbsec->behavior = c->v.behavior;
 		if (!c->sid[0]) {
+<<<<<<< HEAD
 // [ SEC_SELINUX_PORTING_COMMON
 			rc = sidtab_context_to_sid(&sidtab, &c->context[0],
 						   &tmpsid);
 			c->sid[0] = tmpsid;
 // ] SEC_SELINUX_PORTING_COMMON
+=======
+			rc = sidtab_context_to_sid(&sidtab, &c->context[0],
+						   &c->sid[0]);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			if (rc)
 				goto out;
 		}
 		sbsec->sid = c->sid[0];
 	} else {
+<<<<<<< HEAD
 // [ SEC_SELINUX_PORTING_COMMON
 		rc = __security_genfs_sid(fstype, "/", SECCLASS_DIR,
 					  &tmpsid);
 		sbsec->sid = tmpsid;
 // ] SEC_SELINUX_PORTING_COMMON
+=======
+		rc = __security_genfs_sid(fstype, "/", SECCLASS_DIR,
+					  &sbsec->sid);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		if (rc) {
 			sbsec->behavior = SECURITY_FS_USE_NONE;
 			rc = 0;
@@ -3279,7 +3301,10 @@ out:
 	return match;
 }
 
+<<<<<<< HEAD
 #ifdef CONFIG_AUDIT
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static int (*aurule_callback)(void) = audit_update_lsm_rules;
 
 static int aurule_avc_callback(u32 event)
@@ -3302,7 +3327,10 @@ static int __init aurule_init(void)
 	return err;
 }
 __initcall(aurule_init);
+<<<<<<< HEAD
 #endif
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #ifdef CONFIG_NETLABEL
 /**

@@ -114,6 +114,10 @@ EXPORT_SYMBOL(can_ioctl);
 static void can_sock_destruct(struct sock *sk)
 {
 	skb_queue_purge(&sk->sk_receive_queue);
+<<<<<<< HEAD
+=======
+	skb_queue_purge(&sk->sk_error_queue);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 static const struct can_proto *can_get_proto(int protocol)

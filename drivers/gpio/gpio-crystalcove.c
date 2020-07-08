@@ -250,6 +250,10 @@ static struct irq_chip crystalcove_irqchip = {
 	.irq_set_type		= crystalcove_irq_type,
 	.irq_bus_lock		= crystalcove_bus_lock,
 	.irq_bus_sync_unlock	= crystalcove_bus_sync_unlock,
+<<<<<<< HEAD
+=======
+	.flags			= IRQCHIP_SKIP_SET_WAKE,
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 static irqreturn_t crystalcove_gpio_irq_handler(int irq, void *data)

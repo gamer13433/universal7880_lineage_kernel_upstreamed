@@ -49,6 +49,11 @@ struct swap_info_struct;
 struct seq_file;
 struct workqueue_struct;
 struct iov_iter;
+<<<<<<< HEAD
+=======
+struct fscrypt_info;
+struct fscrypt_operations;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 extern void __init inode_init(void);
 extern void __init inode_init_early(void);
@@ -133,11 +138,16 @@ typedef void (dio_iodone_t)(struct kiocb *iocb, loff_t offset,
 /* Has write method(s) */
 #define FMODE_CAN_WRITE         ((__force fmode_t)0x40000)
 
+<<<<<<< HEAD
 /* File hasn't page cache and can't be mmaped, for stackable filesystem */
 #define FMODE_NONMAPPABLE        ((__force fmode_t)0x400000)
    
 /* File page don't need to be cached, for stackable filesystem's lower file */
 #define FMODE_NONCACHEABLE     ((__force fmode_t)0x800000)
+=======
+/* File is stream-like */
+#define FMODE_STREAM		((__force fmode_t)0x200000)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /* File was opened by fanotify and shouldn't generate fanotify events */
 #define FMODE_NONOTIFY		((__force fmode_t)0x1000000)
@@ -198,8 +208,11 @@ typedef void (dio_iodone_t)(struct kiocb *iocb, loff_t offset,
 #define READ			0
 #define WRITE			RW_MASK
 #define READA			RWA_MASK
+<<<<<<< HEAD
 #define KERNEL_READ             (READ|REQ_KERNEL)
 #define KERNEL_WRITE            (WRITE|REQ_KERNEL)
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #define READ_SYNC		(READ | REQ_SYNC)
 #define WRITE_SYNC		(WRITE | REQ_SYNC | REQ_NOIDLE)
@@ -229,6 +242,10 @@ typedef void (dio_iodone_t)(struct kiocb *iocb, loff_t offset,
 #define ATTR_KILL_PRIV	(1 << 14)
 #define ATTR_OPEN	(1 << 15) /* Truncating from open(O_TRUNC) */
 #define ATTR_TIMES_SET	(1 << 16)
+<<<<<<< HEAD
+=======
+#define ATTR_TOUCH	(1 << 17)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /*
  * Whiteout is represented by a char device.  The following constants define the
@@ -319,10 +336,13 @@ struct page;
 struct address_space;
 struct writeback_control;
 
+<<<<<<< HEAD
 #define IOCB_EVENTFD		(1 << 0)
 #define IOCB_APPEND		(1 << 1)
 #define IOCB_DIRECT		(1 << 2)
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /*
  * "descriptor" for what we're up to with a read.
  * This allows us to use the same read code yet
@@ -424,6 +444,7 @@ struct address_space {
 	spinlock_t		private_lock;	/* for use by the address_space */
 	struct list_head	private_list;	/* ditto */
 	void			*private_data;	/* ditto */
+<<<<<<< HEAD
 #if defined(CONFIG_MMC_DW_FMP_ECRYPT_FS) || defined(CONFIG_UFS_FMP_ECRYPT_FS)
 	unsigned char		*iv;		/* iv */
 	unsigned char		*key;		/* key */
@@ -440,6 +461,8 @@ struct address_space {
 #ifdef CONFIG_SDP
 	int userid;
 #endif
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 } __attribute__((aligned(sizeof(long))));
 	/*
 	 * On most architectures that alignment is already the case; but
@@ -625,6 +648,10 @@ struct inode {
 		struct rcu_head		i_rcu;
 	};
 	u64			i_version;
+<<<<<<< HEAD
+=======
+	atomic64_t		i_sequence; /* see futex */
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	atomic_t		i_count;
 	atomic_t		i_dio_count;
 	atomic_t		i_writecount;
@@ -651,6 +678,13 @@ struct inode {
 	struct hlist_head	i_fsnotify_marks;
 #endif
 
+<<<<<<< HEAD
+=======
+#if IS_ENABLED(CONFIG_FS_ENCRYPTION)
+	struct fscrypt_info	*i_crypt_info;
+#endif
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	void			*i_private; /* fs or device private pointer */
 };
 
@@ -685,6 +719,34 @@ enum inode_i_mutex_lock_class
 	I_MUTEX_PARENT2,
 };
 
+<<<<<<< HEAD
+=======
+static inline void inode_lock(struct inode *inode)
+{
+	mutex_lock(&inode->i_mutex);
+}
+
+static inline void inode_unlock(struct inode *inode)
+{
+	mutex_unlock(&inode->i_mutex);
+}
+
+static inline int inode_trylock(struct inode *inode)
+{
+	return mutex_trylock(&inode->i_mutex);
+}
+
+static inline int inode_is_locked(struct inode *inode)
+{
+	return mutex_is_locked(&inode->i_mutex);
+}
+
+static inline void inode_lock_nested(struct inode *inode, unsigned subclass)
+{
+	mutex_lock_nested(&inode->i_mutex, subclass);
+}
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 void lock_two_nondirectories(struct inode *, struct inode*);
 void unlock_two_nondirectories(struct inode *, struct inode*);
 
@@ -854,7 +916,11 @@ struct file_handle {
 	__u32 handle_bytes;
 	int handle_type;
 	/* file identifier */
+<<<<<<< HEAD
 	unsigned char f_handle[0];
+=======
+	unsigned char f_handle[];
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 static inline struct file *get_file(struct file *f)
@@ -1245,6 +1311,12 @@ struct super_block {
 	const struct xattr_handler **s_xattr;
 
 	struct list_head	s_inodes;	/* all inodes */
+<<<<<<< HEAD
+=======
+
+	const struct fscrypt_operations	*s_cop;
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	struct hlist_bl_head	s_anon;		/* anonymous dentries for (nfs) exporting */
 	struct list_head	s_mounts;	/* list of mounts; _not_ for fs use */
 	struct block_device	*s_bdev;
@@ -1549,7 +1621,10 @@ struct file_operations {
 	long (*fallocate)(struct file *file, int mode, loff_t offset,
 			  loff_t len);
 	int (*show_fdinfo)(struct seq_file *m, struct file *f);
+<<<<<<< HEAD
 	struct file* (*get_lower_file)(struct file *f);
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 struct inode_operations {
@@ -1624,7 +1699,11 @@ struct super_operations {
 	void (*umount_begin) (struct super_block *);
 
 	int (*show_options)(struct seq_file *, struct dentry *);
+<<<<<<< HEAD
 	int (*show_options2)(struct vfsmount *, struct seq_file *, struct dentry *);
+=======
+	int (*show_options2)(struct vfsmount *,struct seq_file *, struct dentry *);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	int (*show_devname)(struct seq_file *, struct dentry *);
 	int (*show_path)(struct seq_file *, struct dentry *);
 	int (*show_stats)(struct seq_file *, struct dentry *);
@@ -1635,7 +1714,10 @@ struct super_operations {
 	int (*bdev_try_to_free_page)(struct super_block*, struct page*, gfp_t);
 	long (*nr_cached_objects)(struct super_block *, int);
 	long (*free_cached_objects)(struct super_block *, long, int);
+<<<<<<< HEAD
 	long (*unlink_callback)(struct super_block *, char *);
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 /*
@@ -1654,6 +1736,10 @@ struct super_operations {
 #define S_IMA		1024	/* Inode has an associated IMA struct */
 #define S_AUTOMOUNT	2048	/* Automount/referral quasi-directory */
 #define S_NOSEC		4096	/* no suid or xattr security attributes */
+<<<<<<< HEAD
+=======
+#define S_ENCRYPTED	16384	/* Encrypted file (using fs/crypto/) */
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /*
  * Note that nosuid etc flags are inode-specific: setting some file-system
@@ -1691,6 +1777,10 @@ struct super_operations {
 #define IS_IMA(inode)		((inode)->i_flags & S_IMA)
 #define IS_AUTOMOUNT(inode)	((inode)->i_flags & S_AUTOMOUNT)
 #define IS_NOSEC(inode)		((inode)->i_flags & S_NOSEC)
+<<<<<<< HEAD
+=======
+#define IS_ENCRYPTED(inode)	((inode)->i_flags & S_ENCRYPTED)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #define IS_WHITEOUT(inode)	(S_ISCHR(inode->i_mode) && \
 				 (inode)->i_rdev == WHITEOUT_DEV)
@@ -1762,8 +1852,17 @@ struct super_operations {
 #define __I_DIO_WAKEUP		9
 #define I_DIO_WAKEUP		(1 << I_DIO_WAKEUP)
 #define I_LINKABLE		(1 << 10)
+<<<<<<< HEAD
 
 #define I_DIRTY (I_DIRTY_SYNC | I_DIRTY_DATASYNC | I_DIRTY_PAGES)
+=======
+#define I_DIRTY_TIME		(1 << 11)
+#define __I_DIRTY_TIME_EXPIRED	12
+#define I_DIRTY_TIME_EXPIRED	(1 << __I_DIRTY_TIME_EXPIRED)
+
+#define I_DIRTY (I_DIRTY_SYNC | I_DIRTY_DATASYNC | I_DIRTY_PAGES)
+#define I_DIRTY_ALL (I_DIRTY | I_DIRTY_TIME)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 extern void __mark_inode_dirty(struct inode *, int);
 static inline void mark_inode_dirty(struct inode *inode)
@@ -1929,6 +2028,10 @@ extern int current_umask(void);
 
 extern void ihold(struct inode * inode);
 extern void iput(struct inode *);
+<<<<<<< HEAD
+=======
+extern int generic_update_time(struct inode *, struct timespec *, int);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 static inline struct inode *file_inode(const struct file *f)
 {
@@ -2325,8 +2428,11 @@ static inline int generic_write_sync(struct file *file, loff_t pos, loff_t count
 }
 extern void emergency_sync(void);
 extern void emergency_remount(void);
+<<<<<<< HEAD
 extern int intr_sync(int *);
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #ifdef CONFIG_BLOCK
 extern sector_t bmap(struct inode *, sector_t);
 #endif
@@ -2472,6 +2578,10 @@ static inline void lockdep_annotate_inode_mutex_key(struct inode *inode) { };
 #endif
 extern void unlock_new_inode(struct inode *);
 extern unsigned int get_next_ino(void);
+<<<<<<< HEAD
+=======
+extern void evict_inodes(struct super_block *sb);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 extern void __iget(struct inode * inode);
 extern void iget_failed(struct inode *);
@@ -2553,6 +2663,10 @@ extern loff_t fixed_size_llseek(struct file *file, loff_t offset,
 		int whence, loff_t size);
 extern int generic_file_open(struct inode * inode, struct file * filp);
 extern int nonseekable_open(struct inode * inode, struct file * filp);
+<<<<<<< HEAD
+=======
+extern int stream_open(struct inode * inode, struct file * filp);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #ifdef CONFIG_FS_XIP
 extern ssize_t xip_file_read(struct file *filp, char __user *buf, size_t len,
@@ -2871,9 +2985,21 @@ static inline bool dir_emit_dots(struct file *file, struct dir_context *ctx)
 }
 static inline bool dir_relax(struct inode *inode)
 {
+<<<<<<< HEAD
 	mutex_unlock(&inode->i_mutex);
 	mutex_lock(&inode->i_mutex);
 	return !IS_DEADDIR(inode);
 }
 
+=======
+	inode_unlock(inode);
+	inode_lock(inode);
+	return !IS_DEADDIR(inode);
+}
+
+extern void inode_nohighmem(struct inode *inode);
+int vfs_ioc_setflags_prepare(struct inode *inode, unsigned int oldflags,
+			     unsigned int flags);
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #endif /* _LINUX_FS_H */

@@ -17,7 +17,10 @@
 #include <asm/page.h>
 #include <asm/boot.h>
 #include <asm/bootparam.h>
+<<<<<<< HEAD
 #include <asm/bootparam_utils.h>
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #define BOOT_BOOT_H
 #include "../ctype.h"

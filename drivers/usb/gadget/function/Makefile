@@ -38,10 +38,13 @@ usb_f_uac2-y			:= f_uac2.o
 obj-$(CONFIG_USB_F_UAC2)	+= usb_f_uac2.o
 usb_f_uvc-y			:= f_uvc.o uvc_queue.o uvc_v4l2.o uvc_video.o
 obj-$(CONFIG_USB_F_UVC)		+= usb_f_uvc.o
+<<<<<<< HEAD
 usb_f_dm-y			:= f_dm.o
 obj-$(CONFIG_USB_CONFIGFS_F_DM)	+= usb_f_dm.o
 usb_f_adb-y			:= f_adb.o
 obj-$(CONFIG_USB_CONFIGFS_F_ADB)+= usb_f_adb.o
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 usb_f_mtp-y                     := f_mtp.o
 obj-$(CONFIG_USB_F_MTP)         += usb_f_mtp.o
 usb_f_ptp-y                     := f_ptp.o
@@ -51,5 +54,11 @@ obj-$(CONFIG_USB_F_AUDIO_SRC)   += usb_f_audio_source.o
 usb_f_accessory-y               := f_accessory.o
 obj-$(CONFIG_USB_F_ACC)         += usb_f_accessory.o
 
+<<<<<<< HEAD
 obj-$(CONFIG_USB_ANDROID_SAMSUNG_COMPOSITE)	+= multi_config.o
 
+=======
+
+usb_f_midi-y			:= f_midi.o
+obj-$(CONFIG_USB_F_MIDI)	+= usb_f_midi.o
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012

@@ -533,6 +533,10 @@ struct drm_psb_private {
 	int lvds_ssc_freq;
 	bool is_lvds_on;
 	bool is_mipi_on;
+<<<<<<< HEAD
+=======
+	bool lvds_enabled_in_vbt;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	u32 mipi_ctrl_display;
 
 	unsigned int core_freq;

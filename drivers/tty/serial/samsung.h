@@ -12,6 +12,7 @@
  * published by the Free Software Foundation.
 */
 
+<<<<<<< HEAD
 #include <linux/pm_qos.h>
 
 #define S3C24XX_UART_PORT_RESUME		0x0
@@ -21,6 +22,8 @@
 #define S3C24XX_SERIAL_CTRL_NUM			0x4
 #define S3C24XX_SERIAL_BUAD_NUM			0x2
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 struct s3c24xx_uart_info {
 	char			*name;
 	unsigned int		type;
@@ -50,6 +53,7 @@ struct s3c24xx_serial_drv_data {
 	unsigned int			fifosize[CONFIG_SERIAL_SAMSUNG_UARTS];
 };
 
+<<<<<<< HEAD
 struct uart_local_buf {
 	unsigned char *buffer;
 	unsigned int size;
@@ -60,19 +64,31 @@ struct s3c24xx_uart_port {
 	struct list_head		node;
 	unsigned char			rx_claimed;
 	unsigned char			tx_claimed;
+=======
+struct s3c24xx_uart_port {
+	unsigned char			rx_claimed;
+	unsigned char			tx_claimed;
+	unsigned int			pm_level;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	unsigned long			baudclk_rate;
 
 	unsigned int			rx_irq;
 	unsigned int			tx_irq;
 
+<<<<<<< HEAD
 	int				check_separated_clk;
 	struct s3c24xx_uart_info	*info;
 	struct clk			*clk;
 	struct clk			*separated_clk;
+=======
+	struct s3c24xx_uart_info	*info;
+	struct clk			*clk;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	struct clk			*baudclk;
 	struct uart_port		port;
 	struct s3c24xx_serial_drv_data	*drv_data;
 
+<<<<<<< HEAD
 	u32				uart_irq_affinity;
 	s32				mif_qos_val;
 	s32				cpu_qos_val;
@@ -95,6 +111,14 @@ struct s3c24xx_uart_port {
 	unsigned int dbg_mode;
 	unsigned int uart_logging;
 	struct uart_local_buf		uart_local_buf;
+=======
+	/* reference to platform data */
+	struct s3c2410_uartcfg		*cfg;
+
+#ifdef CONFIG_CPU_FREQ
+	struct notifier_block		freq_transition;
+#endif
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 /* conversion functions */

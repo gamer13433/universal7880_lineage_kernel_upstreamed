@@ -1157,6 +1157,10 @@ static int __init yam_init_driver(void)
 		err = register_netdev(dev);
 		if (err) {
 			printk(KERN_WARNING "yam: cannot register net device %s\n", dev->name);
+<<<<<<< HEAD
+=======
+			free_netdev(dev);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			goto error;
 		}
 		yam_devs[i] = dev;

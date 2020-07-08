@@ -20,7 +20,10 @@
 #include <linux/uio.h>
 #include <linux/audit.h>
 #include <linux/pid_namespace.h>
+<<<<<<< HEAD
 #include <linux/user_namespace.h>
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #include <linux/syscalls.h>
 #include <linux/uaccess.h>
 #include <linux/regset.h>
@@ -214,6 +217,7 @@ static int ptrace_check_attach(struct task_struct *child, bool ignore_state)
 	return ret;
 }
 
+<<<<<<< HEAD
 static bool ptrace_has_cap(const struct cred *tcred, unsigned int mode)
 {
 	struct user_namespace *tns = tcred->user_ns;
@@ -240,6 +244,14 @@ static bool ptrace_has_cap(const struct cred *tcred, unsigned int mode)
 		return has_ns_capability_noaudit(current, tns, CAP_SYS_PTRACE);
 	else
 		return has_ns_capability(current, tns, CAP_SYS_PTRACE);
+=======
+static int ptrace_has_cap(struct user_namespace *ns, unsigned int mode)
+{
+	if (mode & PTRACE_MODE_NOAUDIT)
+		return has_ns_capability_noaudit(current, ns, CAP_SYS_PTRACE);
+	else
+		return has_ns_capability(current, ns, CAP_SYS_PTRACE);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 /* Returns 0 on success, -errno on denial. */
@@ -291,7 +303,11 @@ static int __ptrace_may_access(struct task_struct *task, unsigned int mode)
 	    gid_eq(caller_gid, tcred->sgid) &&
 	    gid_eq(caller_gid, tcred->gid))
 		goto ok;
+<<<<<<< HEAD
 	if (ptrace_has_cap(tcred, mode))
+=======
+	if (ptrace_has_cap(tcred->user_ns, mode))
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		goto ok;
 	rcu_read_unlock();
 	return -EPERM;
@@ -302,7 +318,11 @@ ok:
 		dumpable = get_dumpable(task->mm);
 	rcu_read_lock();
 	if (dumpable != SUID_DUMP_USER &&
+<<<<<<< HEAD
 	    !ptrace_has_cap(__task_cred(task), mode)) {
+=======
+	    !ptrace_has_cap(__task_cred(task)->user_ns, mode)) {
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		rcu_read_unlock();
 		return -EPERM;
 	}
@@ -685,6 +705,13 @@ static int ptrace_peek_siginfo(struct task_struct *child,
 	if (arg.nr < 0)
 		return -EINVAL;
 
+<<<<<<< HEAD
+=======
+	/* Ensure arg.off fits in an unsigned long */
+	if (arg.off > ULONG_MAX)
+		return 0;
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (arg.flags & PTRACE_PEEKSIGINFO_SHARED)
 		pending = &child->signal->shared_pending;
 	else
@@ -692,7 +719,12 @@ static int ptrace_peek_siginfo(struct task_struct *child,
 
 	for (i = 0; i < arg.nr; ) {
 		siginfo_t info;
+<<<<<<< HEAD
 		s32 off = arg.off + i;
+=======
+		unsigned long off = arg.off + i;
+		bool found = false;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 		spin_lock_irq(&child->sighand->siglock);
 		list_for_each_entry(q, &pending->list, list) {
@@ -703,7 +735,11 @@ static int ptrace_peek_siginfo(struct task_struct *child,
 		}
 		spin_unlock_irq(&child->sighand->siglock);
 
+<<<<<<< HEAD
 		if (off >= 0) /* beyond the end of the list */
+=======
+		if (!found) /* beyond the end of the list */
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			break;
 
 #ifdef CONFIG_COMPAT

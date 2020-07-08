@@ -450,7 +450,12 @@ static int __init net_ns_init(void)
 
 	mutex_unlock(&net_mutex);
 
+<<<<<<< HEAD
 	register_pernet_subsys(&net_ns_ops);
+=======
+	if (register_pernet_subsys(&net_ns_ops))
+		panic("Could not register network namespace subsystems");
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	return 0;
 }

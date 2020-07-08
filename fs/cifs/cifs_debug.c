@@ -152,6 +152,10 @@ static int cifs_debug_data_proc_show(struct seq_file *m, void *v)
 	list_for_each(tmp1, &cifs_tcp_ses_list) {
 		server = list_entry(tmp1, struct TCP_Server_Info,
 				    tcp_ses_list);
+<<<<<<< HEAD
+=======
+		seq_printf(m, "\nNumber of credits: %d", server->credits);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		i++;
 		list_for_each(tmp2, &server->smb_ses_list) {
 			ses = list_entry(tmp2, struct cifs_ses,

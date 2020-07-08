@@ -97,6 +97,7 @@ void blk_recalc_rq_segments(struct request *rq)
 
 void blk_recount_segments(struct request_queue *q, struct bio *bio)
 {
+<<<<<<< HEAD
 	unsigned short seg_cnt;
 
 	/* estimate segment number by bi_vcnt for non-cloned bio */
@@ -104,6 +105,9 @@ void blk_recount_segments(struct request_queue *q, struct bio *bio)
 		seg_cnt = bio_segments(bio);
 	else
 		seg_cnt = bio->bi_vcnt;
+=======
+	unsigned short seg_cnt = bio_segments(bio);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if (test_bit(QUEUE_FLAG_NO_SG_MERGE, &q->queue_flags) &&
 			(seg_cnt < queue_max_segments(q)))

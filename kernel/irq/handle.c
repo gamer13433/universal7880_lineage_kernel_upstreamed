@@ -136,6 +136,7 @@ handle_irq_event_percpu(struct irq_desc *desc, struct irqaction *action)
 	irqreturn_t retval = IRQ_NONE;
 	unsigned int flags = 0, irq = desc->irq_data.irq;
 
+<<<<<<< HEAD
 	do {
 		irqreturn_t res;
 
@@ -143,6 +144,14 @@ handle_irq_event_percpu(struct irq_desc *desc, struct irqaction *action)
 		exynos_ss_irq(irq, (void *)action->handler, (int)irqs_disabled(), ESS_FLAG_IN);
 		res = action->handler(irq, action->dev_id);
 		exynos_ss_irq(irq, (void *)action->handler, (int)irqs_disabled(), ESS_FLAG_OUT);
+=======
+	/* action might have become NULL since we dropped the lock */
+	while (action) {
+		irqreturn_t res;
+
+		trace_irq_handler_entry(irq, action);
+		res = action->handler(irq, action->dev_id);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		trace_irq_handler_exit(irq, action, res);
 
 		if (WARN_ONCE(!irqs_disabled(),"irq %u handler %pF enabled interrupts\n",
@@ -173,7 +182,11 @@ handle_irq_event_percpu(struct irq_desc *desc, struct irqaction *action)
 
 		retval |= res;
 		action = action->next;
+<<<<<<< HEAD
 	} while (action);
+=======
+	}
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	add_interrupt_randomness(irq, flags);
 

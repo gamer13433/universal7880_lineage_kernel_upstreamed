@@ -146,7 +146,11 @@ static int rtl8187_register_led(struct ieee80211_hw *dev,
 	led->dev = dev;
 	led->ledpin = ledpin;
 	led->is_radio = is_radio;
+<<<<<<< HEAD
 	strncpy(led->name, name, sizeof(led->name));
+=======
+	strlcpy(led->name, name, sizeof(led->name));
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	led->led_dev.name = led->name;
 	led->led_dev.default_trigger = default_trigger;

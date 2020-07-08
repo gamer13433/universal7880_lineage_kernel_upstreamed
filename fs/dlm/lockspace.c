@@ -800,6 +800,10 @@ static int release_lockspace(struct dlm_ls *ls, int force)
 
 	dlm_delete_debug_file(ls);
 
+<<<<<<< HEAD
+=======
+	idr_destroy(&ls->ls_recover_idr);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	kfree(ls->ls_recover_buf);
 
 	/*

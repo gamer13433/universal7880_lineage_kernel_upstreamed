@@ -14,6 +14,10 @@ obj-$(CONFIG_OF_PCI_IRQ)  += of_pci_irq.o
 obj-$(CONFIG_OF_MTD)	+= of_mtd.o
 obj-$(CONFIG_OF_RESERVED_MEM) += of_reserved_mem.o
 obj-$(CONFIG_OF_RESOLVE)  += resolver.o
+<<<<<<< HEAD
+=======
+obj-$(CONFIG_OF_OVERLAY) += overlay.o
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 CFLAGS_fdt.o = -I$(src)/../../scripts/dtc/libfdt
 CFLAGS_fdt_address.o = -I$(src)/../../scripts/dtc/libfdt

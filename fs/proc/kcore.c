@@ -430,6 +430,10 @@ static void elf_kcore_store_hdr(char *bufp, int nphdr, int dataoff)
 static ssize_t
 read_kcore(struct file *file, char __user *buffer, size_t buflen, loff_t *fpos)
 {
+<<<<<<< HEAD
+=======
+	char *buf = file->private_data;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	ssize_t acc = 0;
 	size_t size, tsz;
 	size_t elf_buflen;
@@ -500,6 +504,7 @@ read_kcore(struct file *file, char __user *buffer, size_t buflen, loff_t *fpos)
 			if (clear_user(buffer, tsz))
 				return -EFAULT;
 		} else if (is_vmalloc_or_module_addr((void *)start)) {
+<<<<<<< HEAD
 			char * elf_buf;
 
 			elf_buf = kzalloc(tsz, GFP_KERNEL);
@@ -512,11 +517,26 @@ read_kcore(struct file *file, char __user *buffer, size_t buflen, loff_t *fpos)
 				return -EFAULT;
 			}
 			kfree(elf_buf);
+=======
+			vread(buf, (char *)start, tsz);
+			/* we have to zero-fill user buffer even if no read */
+			if (copy_to_user(buffer, buf, tsz))
+				return -EFAULT;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		} else {
 			if (kern_addr_valid(start)) {
 				unsigned long n;
 
+<<<<<<< HEAD
 				n = copy_to_user(buffer, (char *)start, tsz);
+=======
+				/*
+				 * Using bounce buffer to bypass the
+				 * hardened user copy kernel text checks.
+				 */
+				memcpy(buf, (char *) start, tsz);
+				n = copy_to_user(buffer, buf, tsz);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 				/*
 				 * We cannot distinguish between fault on source
 				 * and fault on destination. When this happens
@@ -549,6 +569,14 @@ static int open_kcore(struct inode *inode, struct file *filp)
 {
 	if (!capable(CAP_SYS_RAWIO))
 		return -EPERM;
+<<<<<<< HEAD
+=======
+
+	filp->private_data = kmalloc(PAGE_SIZE, GFP_KERNEL);
+	if (!filp->private_data)
+		return -ENOMEM;
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (kcore_need_update)
 		kcore_update_ram();
 	if (i_size_read(inode) != proc_root_kcore->size) {
@@ -559,10 +587,22 @@ static int open_kcore(struct inode *inode, struct file *filp)
 	return 0;
 }
 
+<<<<<<< HEAD
+=======
+static int release_kcore(struct inode *inode, struct file *file)
+{
+	kfree(file->private_data);
+	return 0;
+}
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 static const struct file_operations proc_kcore_operations = {
 	.read		= read_kcore,
 	.open		= open_kcore,
+<<<<<<< HEAD
+=======
+	.release	= release_kcore,
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	.llseek		= default_llseek,
 };
 

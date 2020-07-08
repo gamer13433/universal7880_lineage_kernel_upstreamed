@@ -281,8 +281,11 @@ void ipoib_delete_debug_files(struct net_device *dev)
 {
 	struct ipoib_dev_priv *priv = netdev_priv(dev);
 
+<<<<<<< HEAD
 	WARN_ONCE(!priv->mcg_dentry, "null mcg debug file\n");
 	WARN_ONCE(!priv->path_dentry, "null path debug file\n");
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	debugfs_remove(priv->mcg_dentry);
 	debugfs_remove(priv->path_dentry);
 	priv->mcg_dentry = priv->path_dentry = NULL;

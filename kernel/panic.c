@@ -24,16 +24,22 @@
 #include <linux/init.h>
 #include <linux/nmi.h>
 #include <linux/console.h>
+<<<<<<< HEAD
 #include <linux/exynos-ss.h>
 #include <asm/core_regs.h>
 #include "sched/sched.h"
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #define PANIC_TIMER_STEP 100
 #define PANIC_BLINK_SPD 18
 
+<<<<<<< HEAD
 /* Machine specific panic information string */
 char *mach_panic_string;
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 int panic_on_oops = CONFIG_PANIC_ON_OOPS_VALUE;
 static unsigned long tainted_mask;
 static int pause_on_oops;
@@ -78,14 +84,20 @@ void panic(const char *fmt, ...)
 {
 	static DEFINE_SPINLOCK(panic_lock);
 	static char buf[1024];
+<<<<<<< HEAD
 	struct pt_regs fixed_regs, pv_regs;
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	va_list args;
 	long i, i_next = 0;
 	int state = 0;
 
+<<<<<<< HEAD
 	tracing_off();
 	exynos_trace_stop();
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/*
 	 * Disable local interrupts. This will prevent panic_smp_self_stop
 	 * from deadlocking the first cpu that invokes the panic, since
@@ -93,6 +105,10 @@ void panic(const char *fmt, ...)
 	 * after the panic_lock is acquired) from invoking panic again.
 	 */
 	local_irq_disable();
+<<<<<<< HEAD
+=======
+	preempt_disable_notrace();
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	/*
 	 * It's possible to come here directly from a panic-assertion and
@@ -112,6 +128,7 @@ void panic(const char *fmt, ...)
 	va_start(args, fmt);
 	vsnprintf(buf, sizeof(buf), fmt, args);
 	va_end(args);
+<<<<<<< HEAD
 
 #ifdef CONFIG_SEC_DEBUG_AUTO_SUMMARY
 	if(buf[strlen(buf)-1] == '\n')
@@ -122,6 +139,9 @@ void panic(const char *fmt, ...)
 
 	exynos_ss_prepare_panic();
 	exynos_ss_dump_panic(buf, (size_t)strnlen(buf, sizeof(buf)));
+=======
+	pr_emerg("Kernel panic - not syncing: %s\n", buf);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #ifdef CONFIG_DEBUG_BUGVERBOSE
 	/*
 	 * Avoid nested stack-dumping if a panic occurs during oops processing
@@ -129,10 +149,14 @@ void panic(const char *fmt, ...)
 	if (!test_taint(TAINT_DIE) && oops_in_progress <= 1)
 		dump_stack();
 #endif
+<<<<<<< HEAD
 #ifdef CONFIG_SCHED_DEBUG
 	sysrq_sched_debug_show();
 #endif
 #if 0
+=======
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/*
 	 * If we have crashed and we have a crash kernel loaded let it handle
 	 * everything else.
@@ -141,11 +165,14 @@ void panic(const char *fmt, ...)
 	 */
 	if (!crash_kexec_post_notifiers)
 		crash_kexec(NULL);
+<<<<<<< HEAD
 #endif
 	crash_setup_regs(&fixed_regs, NULL);
 	memcpy(&pv_regs, &fixed_regs, sizeof(struct pt_regs));
 	crash_save_vmcoreinfo();
 	machine_crash_shutdown(&fixed_regs);
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	/*
 	 * Note smp_send_stop is the usual smp shutdown function, which
@@ -162,9 +189,12 @@ void panic(const char *fmt, ...)
 
 	kmsg_dump(KMSG_DUMP_PANIC);
 
+<<<<<<< HEAD
 	exynos_cs_show_pcval();
 	exynos_ss_post_panic(&pv_regs);
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/*
 	 * If you doubt kdump always works fine in any situation,
 	 * "crash_kexec_post_notifiers" offers you a chance to run
@@ -438,11 +468,14 @@ late_initcall(init_oops_id);
 void print_oops_end_marker(void)
 {
 	init_oops_id();
+<<<<<<< HEAD
 
 	if (mach_panic_string)
 		printk(KERN_WARNING "Board Information: %s\n",
 		       mach_panic_string);
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	pr_warn("---[ end trace %016llx ]---\n", (unsigned long long)oops_id);
 }
 

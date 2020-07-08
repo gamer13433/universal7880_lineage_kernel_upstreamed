@@ -16,6 +16,10 @@
 #include <linux/err.h>
 #include <linux/slab.h>
 #include <linux/stat.h>
+<<<<<<< HEAD
+=======
+#include <linux/of.h>
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #include <linux/pm_runtime.h>
 
 #include <linux/mmc/card.h>
@@ -27,11 +31,14 @@
 
 #define to_mmc_driver(d)	container_of(d, struct mmc_driver, drv)
 
+<<<<<<< HEAD
 #ifdef CONFIG_MMC_SUPPORT_STLOG
 #include <linux/stlog.h>
 #else
 #define ST_LOG(fmt,...)
 #endif
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static ssize_t type_show(struct device *dev,
 	struct device_attribute *attr, char *buf)
 {
@@ -161,9 +168,12 @@ static int mmc_bus_suspend(struct device *dev)
 			return ret;
 	}
 
+<<<<<<< HEAD
     if (mmc_bus_needs_resume(host))
 		return 0;
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	ret = host->bus_ops->suspend(host);
 	return ret;
 }
@@ -173,6 +183,7 @@ static int mmc_bus_resume(struct device *dev)
 	struct mmc_driver *drv = to_mmc_driver(dev->driver);
 	struct mmc_card *card = mmc_dev_to_card(dev);
 	struct mmc_host *host = card->host;
+<<<<<<< HEAD
 	int ret = 0;
 
 	if (mmc_bus_manual_resume(host) ) {
@@ -183,6 +194,14 @@ static int mmc_bus_resume(struct device *dev)
 			pr_warn("%s: error %d during resume (card was removed?)\n",
 				mmc_hostname(host), ret);
 	}
+=======
+	int ret;
+
+	ret = host->bus_ops->resume(host);
+	if (ret)
+		pr_warn("%s: error %d during resume (card was removed?)\n",
+			mmc_hostname(host), ret);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if (dev->driver && drv->resume)
 		ret = drv->resume(card);
@@ -357,6 +376,7 @@ int mmc_add_card(struct mmc_card *card)
 			(mmc_card_hs200(card) ? "HS200 " : ""),
 			mmc_card_ddr52(card) ? "DDR " : "",
 			uhs_bus_speed_mode, type, card->rca);
+<<<<<<< HEAD
 		ST_LOG("%s: new %s%s%s%s%s card at address %04x\n",
 			mmc_hostname(card->host),
 			mmc_card_uhs(card) ? "ultra high speed " :
@@ -365,6 +385,8 @@ int mmc_add_card(struct mmc_card *card)
 			(mmc_card_hs200(card) ? "HS200 " : ""),
 			mmc_card_ddr52(card) ? "DDR " : "",
 			uhs_bus_speed_mode, type, card->rca);
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 #ifdef CONFIG_DEBUG_FS
@@ -372,6 +394,11 @@ int mmc_add_card(struct mmc_card *card)
 #endif
 	mmc_init_context_info(card->host);
 
+<<<<<<< HEAD
+=======
+	card->dev.of_node = mmc_of_find_child_device(card->host, 0);
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	ret = device_add(&card->dev);
 	if (ret)
 		return ret;
@@ -398,10 +425,16 @@ void mmc_remove_card(struct mmc_card *card)
 		} else {
 			pr_info("%s: card %04x removed\n",
 				mmc_hostname(card->host), card->rca);
+<<<<<<< HEAD
 			ST_LOG("%s: card %04x removed\n",
 				mmc_hostname(card->host), card->rca);
 		}
 		device_del(&card->dev);
+=======
+		}
+		device_del(&card->dev);
+		of_node_put(card->dev.of_node);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 	put_device(&card->dev);

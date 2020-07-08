@@ -134,16 +134,24 @@ static int num_called;
 static void __init dw_apb_timer_init(struct device_node *timer)
 {
 	switch (num_called) {
+<<<<<<< HEAD
 	case 0:
 		pr_debug("%s: found clockevent timer\n", __func__);
 		add_clockevent(timer);
 		break;
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	case 1:
 		pr_debug("%s: found clocksource timer\n", __func__);
 		add_clocksource(timer);
 		init_sched_clock();
 		break;
 	default:
+<<<<<<< HEAD
+=======
+		pr_debug("%s: found clockevent timer\n", __func__);
+		add_clockevent(timer);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		break;
 	}
 

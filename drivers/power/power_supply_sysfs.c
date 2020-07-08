@@ -45,6 +45,7 @@ static ssize_t power_supply_show_property(struct device *dev,
 					  char *buf) {
 	static char *type_text[] = {
 		"Unknown", "Battery", "UPS", "Mains", "USB",
+<<<<<<< HEAD
 		"USB_DCP", "USB_CDP", "USB_ACA", "BMS", "MISC",
 		"Wireless", "HV_Wireless", "PMA_Wireless", "CARDOCK", "UARTOFF", "OTG", "LAN_HUB",
 		"MHL_500", "MHL_900", "MHL_1500", "MHL_USB",
@@ -55,11 +56,15 @@ static ssize_t power_supply_show_property(struct device *dev,
 #if defined(CONFIG_BATTERY_SAMSUNG_V2)
 		"Wireless_Stand", "HV_Wireless_Stand", "PDIC", "HV_Mains_CHG_LIMIT", "HV_QC20", "HV_QC30"
 #endif
+=======
+		"USB_DCP", "USB_CDP", "USB_ACA"
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	};
 	static char *status_text[] = {
 		"Unknown", "Charging", "Discharging", "Not charging", "Full"
 	};
 	static char *charge_type[] = {
+<<<<<<< HEAD
 		"Unknown", "N/A", "Trickle", "Fast", "Slow"
 	};
 	static char *health_text[] = {
@@ -67,6 +72,14 @@ static ssize_t power_supply_show_property(struct device *dev,
 		"Unspecified failure", "Cold", "Cool",
 		"Watchdog timer expire", "Safety timer expire",
 		"Under voltage", "OverheatLimit"
+=======
+		"Unknown", "N/A", "Trickle", "Fast"
+	};
+	static char *health_text[] = {
+		"Unknown", "Good", "Overheat", "Dead", "Over voltage",
+		"Unspecified failure", "Cold", "Watchdog timer expire",
+		"Safety timer expire"
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	};
 	static char *technology_text[] = {
 		"Unknown", "NiMH", "Li-ion", "Li-poly", "LiFe", "NiCd",
@@ -154,7 +167,10 @@ static struct device_attribute power_supply_attrs[] = {
 	POWER_SUPPLY_ATTR(present),
 	POWER_SUPPLY_ATTR(online),
 	POWER_SUPPLY_ATTR(authentic),
+<<<<<<< HEAD
 	POWER_SUPPLY_ATTR(charging_enabled),
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	POWER_SUPPLY_ATTR(technology),
 	POWER_SUPPLY_ATTR(cycle_count),
 	POWER_SUPPLY_ATTR(voltage_max),
@@ -164,6 +180,7 @@ static struct device_attribute power_supply_attrs[] = {
 	POWER_SUPPLY_ATTR(voltage_now),
 	POWER_SUPPLY_ATTR(voltage_avg),
 	POWER_SUPPLY_ATTR(voltage_ocv),
+<<<<<<< HEAD
 	POWER_SUPPLY_ATTR(input_voltage_regulation),
 	POWER_SUPPLY_ATTR(current_max),
 	POWER_SUPPLY_ATTR(input_current_max),
@@ -176,6 +193,15 @@ static struct device_attribute power_supply_attrs[] = {
 #if defined(CONFIG_BATTERY_SAMSUNG_V2)
 	POWER_SUPPLY_ATTR(filter_cfg),
 #endif
+=======
+	POWER_SUPPLY_ATTR(voltage_boot),
+	POWER_SUPPLY_ATTR(current_max),
+	POWER_SUPPLY_ATTR(current_now),
+	POWER_SUPPLY_ATTR(current_avg),
+	POWER_SUPPLY_ATTR(current_boot),
+	POWER_SUPPLY_ATTR(power_now),
+	POWER_SUPPLY_ATTR(power_avg),
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	POWER_SUPPLY_ATTR(charge_full_design),
 	POWER_SUPPLY_ATTR(charge_empty_design),
 	POWER_SUPPLY_ATTR(charge_full),
@@ -183,16 +209,23 @@ static struct device_attribute power_supply_attrs[] = {
 	POWER_SUPPLY_ATTR(charge_now),
 	POWER_SUPPLY_ATTR(charge_avg),
 	POWER_SUPPLY_ATTR(charge_counter),
+<<<<<<< HEAD
 	POWER_SUPPLY_ATTR(charge_otg_control),
 	POWER_SUPPLY_ATTR(charge_powered_otg_control),
 	POWER_SUPPLY_ATTR(charge_uno_control),
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	POWER_SUPPLY_ATTR(constant_charge_current),
 	POWER_SUPPLY_ATTR(constant_charge_current_max),
 	POWER_SUPPLY_ATTR(constant_charge_voltage),
 	POWER_SUPPLY_ATTR(constant_charge_voltage_max),
 	POWER_SUPPLY_ATTR(charge_control_limit),
 	POWER_SUPPLY_ATTR(charge_control_limit_max),
+<<<<<<< HEAD
 	POWER_SUPPLY_ATTR(charge_counter_shadow),
+=======
+	POWER_SUPPLY_ATTR(input_current_limit),
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	POWER_SUPPLY_ATTR(energy_full_design),
 	POWER_SUPPLY_ATTR(energy_empty_design),
 	POWER_SUPPLY_ATTR(energy_full),
@@ -204,10 +237,17 @@ static struct device_attribute power_supply_attrs[] = {
 	POWER_SUPPLY_ATTR(capacity_alert_max),
 	POWER_SUPPLY_ATTR(capacity_level),
 	POWER_SUPPLY_ATTR(temp),
+<<<<<<< HEAD
 	POWER_SUPPLY_ATTR(temp_alert_min),
 	POWER_SUPPLY_ATTR(temp_alert_max),
 	POWER_SUPPLY_ATTR(temp_cool),
 	POWER_SUPPLY_ATTR(temp_warm),
+=======
+	POWER_SUPPLY_ATTR(temp_max),
+	POWER_SUPPLY_ATTR(temp_min),
+	POWER_SUPPLY_ATTR(temp_alert_min),
+	POWER_SUPPLY_ATTR(temp_alert_max),
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	POWER_SUPPLY_ATTR(temp_ambient),
 	POWER_SUPPLY_ATTR(temp_ambient_alert_min),
 	POWER_SUPPLY_ATTR(temp_ambient_alert_max),
@@ -217,14 +257,22 @@ static struct device_attribute power_supply_attrs[] = {
 	POWER_SUPPLY_ATTR(time_to_full_avg),
 	POWER_SUPPLY_ATTR(type),
 	POWER_SUPPLY_ATTR(scope),
+<<<<<<< HEAD
 	POWER_SUPPLY_ATTR(system_temp_level),
 	POWER_SUPPLY_ATTR(resistance),
 	/* Local extensions */
+=======
+	POWER_SUPPLY_ATTR(charge_term_current),
+	POWER_SUPPLY_ATTR(calibrate),
+	/* Local extensions */
+	POWER_SUPPLY_ATTR(usb_hc),
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	POWER_SUPPLY_ATTR(usb_otg),
 	POWER_SUPPLY_ATTR(charge_enabled),
 	/* Local extensions of type int64_t */
 	POWER_SUPPLY_ATTR(charge_counter_ext),
 	/* Properties of type `const char *' */
+<<<<<<< HEAD
 	POWER_SUPPLY_ATTR(manufacturer),
 	POWER_SUPPLY_ATTR(serial_number),
 	POWER_SUPPLY_ATTR(afc_charger_mode),
@@ -236,6 +284,11 @@ static struct device_attribute power_supply_attrs[] = {
 #if !defined(CONFIG_BATTERY_SAMSUNG_V2)
 	POWER_SUPPLY_ATTR(inbat_voltage_fgsrc_switchg),
 #endif
+=======
+	POWER_SUPPLY_ATTR(model_name),
+	POWER_SUPPLY_ATTR(manufacturer),
+	POWER_SUPPLY_ATTR(serial_number),
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 static struct attribute *

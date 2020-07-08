@@ -375,6 +375,12 @@ static void snd_complete_urb(struct urb *urb)
 		}
 
 		prepare_outbound_urb(ep, ctx);
+<<<<<<< HEAD
+=======
+		/* can be stopped during prepare callback */
+		if (unlikely(!test_bit(EP_FLAG_RUNNING, &ep->flags)))
+			goto exit_clear;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	} else {
 		retire_inbound_urb(ep, ctx);
 		/* can be stopped during retire callback */
@@ -410,6 +416,12 @@ exit_clear:
  *
  * New endpoints will be added to chip->ep_list and must be freed by
  * calling snd_usb_endpoint_free().
+<<<<<<< HEAD
+=======
+ *
+ * For SND_USB_ENDPOINT_TYPE_SYNC, the caller needs to guarantee that
+ * bNumEndpoints > 1 beforehand.
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
  */
 struct snd_usb_endpoint *snd_usb_add_endpoint(struct snd_usb_audio *chip,
 					      struct usb_host_interface *alts,

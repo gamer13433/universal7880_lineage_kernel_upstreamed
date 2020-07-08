@@ -57,8 +57,11 @@ enum kobject_action {
 	KOBJ_MOVE,
 	KOBJ_ONLINE,
 	KOBJ_OFFLINE,
+<<<<<<< HEAD
 	KOBJ_POLICY_INIT,
 	KOBJ_POLICY_EXIT,
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	KOBJ_MAX
 };
 
@@ -109,6 +112,11 @@ extern int __must_check kobject_rename(struct kobject *, const char *new_name);
 extern int __must_check kobject_move(struct kobject *, struct kobject *);
 
 extern struct kobject *kobject_get(struct kobject *kobj);
+<<<<<<< HEAD
+=======
+extern struct kobject * __must_check kobject_get_unless_zero(
+						struct kobject *kobj);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 extern void kobject_put(struct kobject *kobj);
 
 extern const void *kobject_namespace(struct kobject *kobj);

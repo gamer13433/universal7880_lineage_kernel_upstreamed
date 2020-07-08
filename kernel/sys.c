@@ -1735,7 +1735,11 @@ static int validate_prctl_map(struct prctl_mm_map *prctl_map)
 	((unsigned long)prctl_map->__m1 __op				\
 	 (unsigned long)prctl_map->__m2) ? 0 : -EINVAL
 	error  = __prctl_check_order(start_code, <, end_code);
+<<<<<<< HEAD
 	error |= __prctl_check_order(start_data, <, end_data);
+=======
+	error |= __prctl_check_order(start_data,<=, end_data);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	error |= __prctl_check_order(start_brk, <=, brk);
 	error |= __prctl_check_order(arg_start, <=, arg_end);
 	error |= __prctl_check_order(env_start, <=, env_end);

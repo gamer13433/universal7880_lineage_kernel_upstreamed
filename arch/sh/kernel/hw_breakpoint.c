@@ -160,6 +160,10 @@ int arch_bp_generic_fields(int sh_len, int sh_type,
 	switch (sh_type) {
 	case SH_BREAKPOINT_READ:
 		*gen_type = HW_BREAKPOINT_R;
+<<<<<<< HEAD
+=======
+		break;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	case SH_BREAKPOINT_WRITE:
 		*gen_type = HW_BREAKPOINT_W;
 		break;

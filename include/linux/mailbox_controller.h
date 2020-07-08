@@ -48,7 +48,11 @@ struct mbox_chan_ops {
 	int (*send_data)(struct mbox_chan *chan, void *data);
 	int (*startup)(struct mbox_chan *chan);
 	void (*shutdown)(struct mbox_chan *chan);
+<<<<<<< HEAD
 	int (*last_tx_done)(struct mbox_chan *chan);
+=======
+	bool (*last_tx_done)(struct mbox_chan *chan);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	bool (*peek_data)(struct mbox_chan *chan);
 };
 

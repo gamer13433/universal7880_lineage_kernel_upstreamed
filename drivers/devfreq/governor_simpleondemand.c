@@ -13,6 +13,7 @@
 #include <linux/module.h>
 #include <linux/devfreq.h>
 #include <linux/math64.h>
+<<<<<<< HEAD
 #include <linux/pm_qos.h>
 #include <linux/module.h>
 #include <linux/slab.h>
@@ -37,10 +38,18 @@ static int devfreq_simple_ondemand_notifier(struct notifier_block *nb, unsigned 
 #define DFSO_UPTHRESHOLD	(90)
 #define DFSO_DOWNDIFFERENCTIAL	(5)
 #define DFSO_WEIGHT		(100)
+=======
+#include "governor.h"
+
+/* Default constants for DevFreq-Simple-Ondemand (DFSO) */
+#define DFSO_UPTHRESHOLD	(90)
+#define DFSO_DOWNDIFFERENCTIAL	(5)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static int devfreq_simple_ondemand_func(struct devfreq *df,
 					unsigned long *freq)
 {
 	struct devfreq_dev_status stat;
+<<<<<<< HEAD
 	int err;
 	unsigned long long a, b;
 	unsigned int dfso_upthreshold = DFSO_UPTHRESHOLD;
@@ -64,6 +73,14 @@ static int devfreq_simple_ondemand_func(struct devfreq *df,
 		*freq = pm_qos_min;
 		return 0;
 	}
+=======
+	int err = df->profile->get_dev_status(df->dev.parent, &stat);
+	unsigned long long a, b;
+	unsigned int dfso_upthreshold = DFSO_UPTHRESHOLD;
+	unsigned int dfso_downdifferential = DFSO_DOWNDIFFERENCTIAL;
+	struct devfreq_simple_ondemand_data *data = df->data;
+	unsigned long max = (df->max_freq) ? df->max_freq : UINT_MAX;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if (err)
 		return err;
@@ -73,13 +90,17 @@ static int devfreq_simple_ondemand_func(struct devfreq *df,
 			dfso_upthreshold = data->upthreshold;
 		if (data->downdifferential)
 			dfso_downdifferential = data->downdifferential;
+<<<<<<< HEAD
 		if (data->multiplication_weight)
 			dfso_multiplication_weight = data->multiplication_weight;
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 	if (dfso_upthreshold > 100 ||
 	    dfso_upthreshold < dfso_downdifferential)
 		return -EINVAL;
 
+<<<<<<< HEAD
 	if (data && data->cal_qos_max)
 		max = (df->max_freq) ? df->max_freq : 0;
 
@@ -87,6 +108,10 @@ static int devfreq_simple_ondemand_func(struct devfreq *df,
 	if (stat.total_time == 0) {
 		if (data && data->cal_qos_max)
 			max = max3(max, data->cal_qos_max, pm_qos_min);
+=======
+	/* Assume MAX if it is going to be divided by zero */
+	if (stat.total_time == 0) {
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		*freq = max;
 		return 0;
 	}
@@ -97,6 +122,7 @@ static int devfreq_simple_ondemand_func(struct devfreq *df,
 		stat.total_time >>= 7;
 	}
 
+<<<<<<< HEAD
 	stat.busy_time *= dfso_multiplication_weight;
 	stat.busy_time = div64_u64(stat.busy_time, 100);
 
@@ -105,14 +131,22 @@ static int devfreq_simple_ondemand_func(struct devfreq *df,
 	    stat.total_time * dfso_upthreshold) {
 		if (data && data->cal_qos_max)
 			max = max3(max, data->cal_qos_max, pm_qos_min);
+=======
+	/* Set MAX if it's busy enough */
+	if (stat.busy_time * 100 >
+	    stat.total_time * dfso_upthreshold) {
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		*freq = max;
 		return 0;
 	}
 
 	/* Set MAX if we do not know the initial frequency */
 	if (stat.current_frequency == 0) {
+<<<<<<< HEAD
 		if (data && data->cal_qos_max)
 			max = max3(max, data->cal_qos_max, pm_qos_min);
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		*freq = max;
 		return 0;
 	}
@@ -120,13 +154,18 @@ static int devfreq_simple_ondemand_func(struct devfreq *df,
 	/* Keep the current frequency */
 	if (stat.busy_time * 100 >
 	    stat.total_time * (dfso_upthreshold - dfso_downdifferential)) {
+<<<<<<< HEAD
 		*freq = max(stat.current_frequency, pm_qos_min);
+=======
+		*freq = stat.current_frequency;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		return 0;
 	}
 
 	/* Set the desired frequency based on the load */
 	a = stat.busy_time;
 	a *= stat.current_frequency;
+<<<<<<< HEAD
 	b = div64_u64(a, stat.total_time);
 	b *= 100;
 	b = div64_u64(b, (dfso_upthreshold - dfso_downdifferential / 2));
@@ -171,11 +210,25 @@ static int devfreq_simple_ondemand_unregister_notifier(struct devfreq *df)
 	struct devfreq_simple_ondemand_data *data = df->data;
 
 	return pm_qos_remove_notifier(data->pm_qos_class, &data->nb.nb);
+=======
+	b = div_u64(a, stat.total_time);
+	b *= 100;
+	b = div_u64(b, (dfso_upthreshold - dfso_downdifferential / 2));
+	*freq = (unsigned long) b;
+
+	if (df->min_freq && *freq < df->min_freq)
+		*freq = df->min_freq;
+	if (df->max_freq && *freq > df->max_freq)
+		*freq = df->max_freq;
+
+	return 0;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 static int devfreq_simple_ondemand_handler(struct devfreq *devfreq,
 				unsigned int event, void *data)
 {
+<<<<<<< HEAD
 	int ret;
 
 	switch (event) {
@@ -183,14 +236,21 @@ static int devfreq_simple_ondemand_handler(struct devfreq *devfreq,
 		ret = devfreq_simple_ondemand_register_notifier(devfreq);
 		if (ret)
 			return ret;
+=======
+	switch (event) {
+	case DEVFREQ_GOV_START:
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		devfreq_monitor_start(devfreq);
 		break;
 
 	case DEVFREQ_GOV_STOP:
 		devfreq_monitor_stop(devfreq);
+<<<<<<< HEAD
 		ret = devfreq_simple_ondemand_unregister_notifier(devfreq);
 		if (ret)
 			return ret;
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		break;
 
 	case DEVFREQ_GOV_INTERVAL:

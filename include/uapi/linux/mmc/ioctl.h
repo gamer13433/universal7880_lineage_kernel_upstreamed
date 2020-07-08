@@ -2,6 +2,10 @@
 #define LINUX_MMC_IOCTL_H
 
 #include <linux/types.h>
+<<<<<<< HEAD
+=======
+#include <linux/major.h>
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 struct mmc_ioc_cmd {
 	/* Implies direction of data.  true = write, false = read */
@@ -46,8 +50,11 @@ struct mmc_ioc_cmd {
 #define mmc_ioc_cmd_set_data(ic, ptr) ic.data_ptr = (__u64)(unsigned long) ptr
 
 #define MMC_IOC_CMD _IOWR(MMC_BLOCK_MAJOR, 0, struct mmc_ioc_cmd)
+<<<<<<< HEAD
 #define MMC_IOC_BUSWIDTH _IO(MMC_BLOCK_MAJOR, 0xCB)
 #define MMC_IOC_CLOCK _IO(MMC_BLOCK_MAJOR, 0xCC)
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /*
  * Since this ioctl is only meant to enhance (and not replace) normal access
@@ -55,5 +62,9 @@ struct mmc_ioc_cmd {
  * is enforced per ioctl call.  For larger data transfers, use the normal
  * block device operations.
  */
+<<<<<<< HEAD
 #define MMC_IOC_MAX_BYTES  (512L * 512)
+=======
+#define MMC_IOC_MAX_BYTES  (512L * 256)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #endif /* LINUX_MMC_IOCTL_H */

@@ -35,6 +35,10 @@ extern unsigned long __tegra_cpu_reset_handler_data[TEGRA_RESET_DATA_SIZE];
 
 void __tegra_cpu_reset_handler_start(void);
 void __tegra_cpu_reset_handler(void);
+<<<<<<< HEAD
+=======
+void __tegra20_cpu1_resettable_status_offset(void);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 void __tegra_cpu_reset_handler_end(void);
 void tegra_secondary_startup(void);
 
@@ -47,6 +51,12 @@ void tegra_secondary_startup(void);
 	(IO_ADDRESS(TEGRA_IRAM_BASE + TEGRA_IRAM_RESET_HANDLER_OFFSET + \
 	((u32)&__tegra_cpu_reset_handler_data[TEGRA_RESET_MASK_LP2] - \
 	 (u32)__tegra_cpu_reset_handler_start)))
+<<<<<<< HEAD
+=======
+#define tegra20_cpu1_resettable_status \
+	(IO_ADDRESS(TEGRA_IRAM_BASE + TEGRA_IRAM_RESET_HANDLER_OFFSET + \
+	 (u32)__tegra20_cpu1_resettable_status_offset))
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #endif
 
 #define tegra_cpu_reset_handler_offset \

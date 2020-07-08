@@ -157,7 +157,11 @@ static int copy_sc_from_user(struct pt_regs *regs,
 	int err, pid;
 
 	/* Always make any pending restarted system calls return -EINTR */
+<<<<<<< HEAD
 	current_thread_info()->restart_block.fn = do_no_restart_syscall;
+=======
+	current->restart_block.fn = do_no_restart_syscall;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	err = copy_from_user(&sc, from, sizeof(sc));
 	if (err)

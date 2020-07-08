@@ -236,6 +236,10 @@ struct fcoe_fcf {
  * @vn_mac:	VN_Node assigned MAC address for data
  */
 struct fcoe_rport {
+<<<<<<< HEAD
+=======
+	struct fc_rport_priv rdata;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	unsigned long time;
 	u16 fcoe_len;
 	u16 flags;

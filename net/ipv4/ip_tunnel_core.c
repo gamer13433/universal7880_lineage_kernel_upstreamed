@@ -74,7 +74,11 @@ int iptunnel_xmit(struct sock *sk, struct rtable *rt, struct sk_buff *skb,
 	iph->daddr	=	dst;
 	iph->saddr	=	src;
 	iph->ttl	=	ttl;
+<<<<<<< HEAD
 	__ip_select_ident(iph, skb_shinfo(skb)->gso_segs ?: 1);
+=======
+	__ip_select_ident(sock_net(sk), iph, skb_shinfo(skb)->gso_segs ?: 1);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	err = ip_local_out_sk(sk, skb);
 	if (unlikely(net_xmit_eval(err)))

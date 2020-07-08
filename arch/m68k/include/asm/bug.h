@@ -7,16 +7,28 @@
 #ifndef CONFIG_SUN3
 #define BUG() do { \
 	printk("kernel BUG at %s:%d!\n", __FILE__, __LINE__); \
+<<<<<<< HEAD
+=======
+	barrier_before_unreachable(); \
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	__builtin_trap(); \
 } while (0)
 #else
 #define BUG() do { \
 	printk("kernel BUG at %s:%d!\n", __FILE__, __LINE__); \
+<<<<<<< HEAD
+=======
+	barrier_before_unreachable(); \
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	panic("BUG!"); \
 } while (0)
 #endif
 #else
 #define BUG() do { \
+<<<<<<< HEAD
+=======
+	barrier_before_unreachable(); \
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	__builtin_trap(); \
 } while (0)
 #endif

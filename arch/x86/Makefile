@@ -27,6 +27,10 @@ REALMODE_CFLAGS	:= $(M16_CFLAGS) -g -Os -D__KERNEL__ \
 		   -mno-mmx -mno-sse \
 		   $(call cc-option, -ffreestanding) \
 		   $(call cc-option, -fno-stack-protector) \
+<<<<<<< HEAD
+=======
+		   $(call cc-option, -Wno-address-of-packed-member) \
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		   $(call cc-option, -mpreferred-stack-boundary=2)
 export REALMODE_CFLAGS
 
@@ -36,7 +40,11 @@ export REALMODE_CFLAGS
 export BITS
 
 ifdef CONFIG_X86_NEED_RELOCS
+<<<<<<< HEAD
         LDFLAGS_vmlinux := --emit-relocs
+=======
+        LDFLAGS_vmlinux := --emit-relocs --discard-none
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 endif
 
 ifeq ($(CONFIG_X86_32),y)

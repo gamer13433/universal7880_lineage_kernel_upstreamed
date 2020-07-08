@@ -669,7 +669,11 @@ static int proc_sys_readdir(struct file *file, struct dir_context *ctx)
 	ctl_dir = container_of(head, struct ctl_dir, header);
 
 	if (!dir_emit_dots(file, ctx))
+<<<<<<< HEAD
 		return 0;
+=======
+		goto out;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	pos = 2;
 
@@ -679,6 +683,10 @@ static int proc_sys_readdir(struct file *file, struct dir_context *ctx)
 			break;
 		}
 	}
+<<<<<<< HEAD
+=======
+out:
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	sysctl_head_finish(head);
 	return 0;
 }

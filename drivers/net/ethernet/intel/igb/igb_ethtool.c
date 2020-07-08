@@ -143,7 +143,12 @@ static int igb_get_settings(struct net_device *netdev, struct ethtool_cmd *ecmd)
 	u32 status;
 	u32 speed;
 
+<<<<<<< HEAD
 	status = rd32(E1000_STATUS);
+=======
+	status = pm_runtime_suspended(&adapter->pdev->dev) ?
+		 0 : rd32(E1000_STATUS);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (hw->phy.media_type == e1000_media_type_copper) {
 
 		ecmd->supported = (SUPPORTED_10baseT_Half |

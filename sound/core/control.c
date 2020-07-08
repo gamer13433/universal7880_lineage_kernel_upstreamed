@@ -1326,6 +1326,11 @@ static int snd_ctl_tlv_ioctl(struct snd_ctl_file *file,
 		return -EFAULT;
 	if (tlv.length < sizeof(unsigned int) * 2)
 		return -EINVAL;
+<<<<<<< HEAD
+=======
+	if (!tlv.numid)
+		return -EINVAL;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	down_read(&card->controls_rwsem);
 	kctl = snd_ctl_find_numid(card, tlv.numid);
 	if (kctl == NULL) {

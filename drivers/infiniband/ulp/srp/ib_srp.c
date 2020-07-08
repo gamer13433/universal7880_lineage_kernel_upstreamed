@@ -1919,6 +1919,10 @@ static int srp_queuecommand(struct Scsi_Host *shost, struct scsi_cmnd *scmnd)
 
 	if (srp_post_send(target, iu, len)) {
 		shost_printk(KERN_ERR, target->scsi_host, PFX "Send failed\n");
+<<<<<<< HEAD
+=======
+		scmnd->result = DID_ERROR << 16;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		goto err_unmap;
 	}
 

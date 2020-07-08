@@ -19,6 +19,7 @@ CFLAGS_trace.o := -I$(src)
 
 ccflags-y += -D__CHECK_ENDIAN__
 
+<<<<<<< HEAD
 ifeq ($(CONFIG_WLAN_SEC_REGULATORY_POLICY),y)
 $(obj)/regdb.c: $(src)/db.txt_old $(src)/genregdb.awk
 	@$(AWK) -f $(srctree)/$(src)/genregdb.awk < $< > $@
@@ -26,5 +27,9 @@ else
 $(obj)/regdb.c: $(src)/db.txt $(src)/genregdb.awk
 	@$(AWK) -f $(srctree)/$(src)/genregdb.awk < $< > $@
 endif
+=======
+$(obj)/regdb.c: $(src)/db.txt $(src)/genregdb.awk
+	@$(AWK) -f $(srctree)/$(src)/genregdb.awk < $< > $@
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 clean-files := regdb.c

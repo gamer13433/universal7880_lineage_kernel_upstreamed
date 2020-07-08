@@ -7,6 +7,11 @@
 
 #include <linux/slab.h>
 
+<<<<<<< HEAD
+=======
+#include "walt.h"
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 int sched_rr_timeslice = RR_TIMESLICE;
 
 static int do_sched_rt_period_timer(struct rt_bandwidth *rt_b, int overrun);
@@ -873,6 +878,54 @@ static inline int rt_se_prio(struct sched_rt_entity *rt_se)
 	return rt_task_of(rt_se)->prio;
 }
 
+<<<<<<< HEAD
+=======
+static void dump_throttled_rt_tasks(struct rt_rq *rt_rq)
+{
+	struct rt_prio_array *array = &rt_rq->active;
+	struct sched_rt_entity *rt_se;
+	char buf[500];
+	char *pos = buf;
+	char *end = buf + sizeof(buf);
+	int idx;
+
+	pos += snprintf(pos, sizeof(buf),
+		"sched: RT throttling activated for rt_rq %p (cpu %d)\n",
+		rt_rq, cpu_of(rq_of_rt_rq(rt_rq)));
+
+	if (bitmap_empty(array->bitmap, MAX_RT_PRIO))
+		goto out;
+
+	pos += snprintf(pos, end - pos, "potential CPU hogs:\n");
+	idx = sched_find_first_bit(array->bitmap);
+	while (idx < MAX_RT_PRIO) {
+		list_for_each_entry(rt_se, array->queue + idx, run_list) {
+			struct task_struct *p;
+
+			if (!rt_entity_is_task(rt_se))
+				continue;
+
+			p = rt_task_of(rt_se);
+			if (pos < end)
+				pos += snprintf(pos, end - pos, "\t%s (%d)\n",
+					p->comm, p->pid);
+		}
+		idx = find_next_bit(array->bitmap, MAX_RT_PRIO, idx + 1);
+	}
+out:
+#ifdef CONFIG_PANIC_ON_RT_THROTTLING
+	/*
+	 * Use pr_err() in the BUG() case since printk_sched() will
+	 * not get flushed and deadlock is not a concern.
+	 */
+	pr_err("%s", buf);
+	BUG();
+#else
+	printk_deferred("%s", buf);
+#endif
+}
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static int sched_rt_runtime_exceeded(struct rt_rq *rt_rq)
 {
 	u64 runtime = sched_rt_runtime(rt_rq);
@@ -896,8 +949,19 @@ static int sched_rt_runtime_exceeded(struct rt_rq *rt_rq)
 		 * but accrue some time due to boosting.
 		 */
 		if (likely(rt_b->rt_runtime)) {
+<<<<<<< HEAD
 			rt_rq->rt_throttled = 1;
 			printk_deferred_once("sched: RT throttling activated\n");
+=======
+			static bool once = false;
+
+			rt_rq->rt_throttled = 1;
+
+			if (!once) {
+				once = true;
+				dump_throttled_rt_tasks(rt_rq);
+			}
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		} else {
 			/*
 			 * In case we did anyway, make it go away,
@@ -1245,6 +1309,10 @@ enqueue_task_rt(struct rq *rq, struct task_struct *p, int flags)
 		rt_se->timeout = 0;
 
 	enqueue_rt_entity(rt_se, flags & ENQUEUE_HEAD);
+<<<<<<< HEAD
+=======
+	walt_inc_cumulative_runnable_avg(rq, p);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if (!task_current(rq, p) && p->nr_cpus_allowed > 1)
 		enqueue_pushable_task(rq, p);
@@ -1256,6 +1324,10 @@ static void dequeue_task_rt(struct rq *rq, struct task_struct *p, int flags)
 
 	update_curr_rt(rq);
 	dequeue_rt_entity(rt_se);
+<<<<<<< HEAD
+=======
+	walt_dec_cumulative_runnable_avg(rq, p);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	dequeue_pushable_task(rq, p);
 }
@@ -1313,7 +1385,11 @@ select_task_rq_rt(struct task_struct *p, int cpu, int sd_flag, int flags)
 	rq = cpu_rq(cpu);
 
 	rcu_read_lock();
+<<<<<<< HEAD
 	curr = ACCESS_ONCE(rq->curr); /* unlocked access */
+=======
+	curr = READ_ONCE(rq->curr); /* unlocked access */
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	/*
 	 * If the current task on @p's runqueue is an RT task, then
@@ -1342,7 +1418,16 @@ select_task_rq_rt(struct task_struct *p, int cpu, int sd_flag, int flags)
 	     curr->prio <= p->prio)) {
 		int target = find_lowest_rq(p);
 
+<<<<<<< HEAD
 		if (target != -1)
+=======
+		/*
+		 * Possible race. Don't bother moving it if the
+		 * destination CPU is not running a lower priority task.
+		 */
+                if (target != -1 &&
+                    p->prio < cpu_rq(target)->rt.highest_prio.curr)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			cpu = target;
 	}
 	rcu_read_unlock();
@@ -1402,6 +1487,44 @@ static void check_preempt_curr_rt(struct rq *rq, struct task_struct *p, int flag
 #endif
 }
 
+<<<<<<< HEAD
+=======
+#ifdef CONFIG_SMP
+static void sched_rt_update_capacity_req(struct rq *rq)
+{
+	u64 total, used, age_stamp, avg;
+	s64 delta;
+
+	if (!sched_freq())
+		return;
+
+	sched_avg_update(rq);
+	/*
+	 * Since we're reading these variables without serialization make sure
+	 * we read them once before doing sanity checks on them.
+	 */
+	age_stamp = READ_ONCE(rq->age_stamp);
+	avg = READ_ONCE(rq->rt_avg);
+	delta = rq_clock(rq) - age_stamp;
+
+	if (unlikely(delta < 0))
+		delta = 0;
+
+	total = sched_avg_period() + delta;
+
+	used = div_u64(avg, total);
+	if (unlikely(used > SCHED_CAPACITY_SCALE))
+		used = SCHED_CAPACITY_SCALE;
+
+	set_rt_cpu_capacity(rq->cpu, 1, (unsigned long)(used));
+}
+#else
+static inline void sched_rt_update_capacity_req(struct rq *rq)
+{ }
+
+#endif
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static struct sched_rt_entity *pick_next_rt_entity(struct rq *rq,
 						   struct rt_rq *rt_rq)
 {
@@ -1462,8 +1585,22 @@ pick_next_task_rt(struct rq *rq, struct task_struct *prev)
 	if (prev->sched_class == &rt_sched_class)
 		update_curr_rt(rq);
 
+<<<<<<< HEAD
 	if (!rt_rq->rt_queued)
 		return NULL;
+=======
+	if (!rt_rq->rt_queued) {
+		/*
+		 * The next task to be picked on this rq will have a lower
+		 * priority than rt tasks so we can spend some time to update
+		 * the capacity used by rt tasks based on the last activity.
+		 * This value will be the used as an estimation of the next
+		 * activity.
+		 */
+		sched_rt_update_capacity_req(rq);
+		return NULL;
+	}
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	put_prev_task(rq, prev);
 
@@ -2053,6 +2190,12 @@ static void task_tick_rt(struct rq *rq, struct task_struct *p, int queued)
 
 	update_curr_rt(rq);
 
+<<<<<<< HEAD
+=======
+	if (rq->rt.rt_nr_running)
+		sched_rt_update_capacity_req(rq);
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	watchdog(rq, p);
 
 	/*

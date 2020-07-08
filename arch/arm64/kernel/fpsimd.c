@@ -127,15 +127,22 @@ void do_fpsimd_exc(unsigned int esr, struct pt_regs *regs)
 
 void fpsimd_thread_switch(struct task_struct *next)
 {
+<<<<<<< HEAD
 	struct fpsimd_state *st = &next->thread.fpsimd_state;
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/*
 	 * Save the current FPSIMD state to memory, but only if whatever is in
 	 * the registers is in fact the most recent userland FPSIMD state of
 	 * 'current'.
 	 */
+<<<<<<< HEAD
 	if ((current->mm && !test_thread_flag(TIF_FOREIGN_FPSTATE))
 	     || current->thread.fpsimd_state.preserve)
+=======
+	if (current->mm && !test_thread_flag(TIF_FOREIGN_FPSTATE))
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		fpsimd_save_state(&current->thread.fpsimd_state);
 
 	if (next->mm) {
@@ -146,6 +153,11 @@ void fpsimd_thread_switch(struct task_struct *next)
 		 * the TIF_FOREIGN_FPSTATE flag so the state will be loaded
 		 * upon the next return to userland.
 		 */
+<<<<<<< HEAD
+=======
+		struct fpsimd_state *st = &next->thread.fpsimd_state;
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		if (__this_cpu_read(fpsimd_last_state) == st
 		    && st->cpu == smp_processor_id())
 			clear_ti_thread_flag(task_thread_info(next),
@@ -154,6 +166,7 @@ void fpsimd_thread_switch(struct task_struct *next)
 			set_ti_thread_flag(task_thread_info(next),
 					   TIF_FOREIGN_FPSTATE);
 	}
+<<<<<<< HEAD
 
 	if (st->preserve) {
 		fpsimd_load_state(st);
@@ -163,13 +176,23 @@ void fpsimd_thread_switch(struct task_struct *next)
 			set_ti_thread_flag(task_thread_info(next),
 					   TIF_FOREIGN_FPSTATE);
 	}
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 void fpsimd_flush_thread(void)
 {
+<<<<<<< HEAD
 	memset(&current->thread.fpsimd_state, 0, sizeof(struct fpsimd_state));
 	fpsimd_flush_task_state(current);
 	set_thread_flag(TIF_FOREIGN_FPSTATE);
+=======
+	preempt_disable();
+	memset(&current->thread.fpsimd_state, 0, sizeof(struct fpsimd_state));
+	fpsimd_flush_task_state(current);
+	set_thread_flag(TIF_FOREIGN_FPSTATE);
+	preempt_enable();
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 /*
@@ -228,6 +251,7 @@ void fpsimd_flush_task_state(struct task_struct *t)
 	t->thread.fpsimd_state.cpu = NR_CPUS;
 }
 
+<<<<<<< HEAD
 void fpsimd_set_task_preserve(struct task_struct *t)
 {
 	t->thread.fpsimd_state.preserve = 1;
@@ -241,6 +265,8 @@ void fpsimd_set_as_user_current(int using)
 		st->preserve = using;
 }
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #ifdef CONFIG_KERNEL_MODE_NEON
 
 static DEFINE_PER_CPU(struct fpsimd_partial_state, hardirq_fpsimdstate);
@@ -265,9 +291,14 @@ void kernel_neon_begin_partial(u32 num_regs)
 		 * registers.
 		 */
 		preempt_disable();
+<<<<<<< HEAD
 		if ((current->mm &&
 		    !test_and_set_thread_flag(TIF_FOREIGN_FPSTATE))
 		    || current->thread.fpsimd_state.preserve)
+=======
+		if (current->mm &&
+		    !test_and_set_thread_flag(TIF_FOREIGN_FPSTATE))
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			fpsimd_save_state(&current->thread.fpsimd_state);
 		this_cpu_write(fpsimd_last_state, NULL);
 	}
@@ -294,20 +325,27 @@ static int fpsimd_cpu_pm_notifier(struct notifier_block *self,
 {
 	switch (cmd) {
 	case CPU_PM_ENTER:
+<<<<<<< HEAD
 		if ((current->mm && !test_thread_flag(TIF_FOREIGN_FPSTATE))
 		     || current->thread.fpsimd_state.preserve)
+=======
+		if (current->mm && !test_thread_flag(TIF_FOREIGN_FPSTATE))
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			fpsimd_save_state(&current->thread.fpsimd_state);
 		this_cpu_write(fpsimd_last_state, NULL);
 		break;
 	case CPU_PM_EXIT:
 		if (current->mm)
 			set_thread_flag(TIF_FOREIGN_FPSTATE);
+<<<<<<< HEAD
 
 		if (current->thread.fpsimd_state.preserve) {
 			fpsimd_load_state(&current->thread.fpsimd_state);
 			this_cpu_write(fpsimd_last_state, &current->thread.fpsimd_state);
 			current->thread.fpsimd_state.cpu = smp_processor_id();
 		}
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		break;
 	case CPU_PM_ENTER_FAILED:
 	default:
@@ -320,7 +358,11 @@ static struct notifier_block fpsimd_cpu_pm_notifier_block = {
 	.notifier_call = fpsimd_cpu_pm_notifier,
 };
 
+<<<<<<< HEAD
 static void fpsimd_pm_init(void)
+=======
+static void __init fpsimd_pm_init(void)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	cpu_pm_register_notifier(&fpsimd_cpu_pm_notifier_block);
 }
@@ -363,6 +405,7 @@ static inline void fpsimd_hotplug_init(void) { }
  */
 static int __init fpsimd_init(void)
 {
+<<<<<<< HEAD
 	u64 pfr = read_cpuid(ID_AA64PFR0_EL1);
 
 	if (pfr & (0xf << 16)) {
@@ -378,6 +421,17 @@ static int __init fpsimd_init(void)
 
 	fpsimd_pm_init();
 	fpsimd_hotplug_init();
+=======
+	if (elf_hwcap & HWCAP_FP) {
+		fpsimd_pm_init();
+		fpsimd_hotplug_init();
+	} else {
+		pr_notice("Floating-point is not implemented\n");
+	}
+
+	if (!(elf_hwcap & HWCAP_ASIMD))
+		pr_notice("Advanced SIMD is not implemented\n");
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	return 0;
 }

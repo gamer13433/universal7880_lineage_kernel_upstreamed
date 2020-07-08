@@ -2696,6 +2696,12 @@ int mpol_parse_str(char *str, struct mempolicy **mpol)
 	char *flags = strchr(str, '=');
 	int err = 1;
 
+<<<<<<< HEAD
+=======
+	if (flags)
+		*flags++ = '\0';	/* terminate mode string */
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (nodelist) {
 		/* NUL-terminate mode or flags string */
 		*nodelist++ = '\0';
@@ -2706,9 +2712,12 @@ int mpol_parse_str(char *str, struct mempolicy **mpol)
 	} else
 		nodes_clear(nodes);
 
+<<<<<<< HEAD
 	if (flags)
 		*flags++ = '\0';	/* terminate mode string */
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	for (mode = 0; mode < MPOL_MAX; mode++) {
 		if (!strcmp(str, policy_modes[mode])) {
 			break;
@@ -2720,7 +2729,13 @@ int mpol_parse_str(char *str, struct mempolicy **mpol)
 	switch (mode) {
 	case MPOL_PREFERRED:
 		/*
+<<<<<<< HEAD
 		 * Insist on a nodelist of one node only
+=======
+		 * Insist on a nodelist of one node only, although later
+		 * we use first_node(nodes) to grab a single node, so here
+		 * nodelist (or nodes) cannot be empty.
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		 */
 		if (nodelist) {
 			char *rest = nodelist;
@@ -2728,6 +2743,11 @@ int mpol_parse_str(char *str, struct mempolicy **mpol)
 				rest++;
 			if (*rest)
 				goto out;
+<<<<<<< HEAD
+=======
+			if (nodes_empty(nodes))
+				goto out;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		}
 		break;
 	case MPOL_INTERLEAVE:

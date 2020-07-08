@@ -1000,6 +1000,10 @@ int __must_check pci_assign_resource(struct pci_dev *dev, int i);
 int __must_check pci_reassign_resource(struct pci_dev *dev, int i, resource_size_t add_size, resource_size_t align);
 int pci_select_bars(struct pci_dev *dev, unsigned long flags);
 bool pci_device_is_present(struct pci_dev *pdev);
+<<<<<<< HEAD
+=======
+void pci_ignore_hotplug(struct pci_dev *dev);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /* ROM control related routines */
 int pci_enable_rom(struct pci_dev *pdev);
@@ -1013,7 +1017,10 @@ void __iomem __must_check *pci_platform_rom(struct pci_dev *pdev, size_t *size);
 int pci_save_state(struct pci_dev *dev);
 void pci_restore_state(struct pci_dev *dev);
 struct pci_saved_state *pci_store_saved_state(struct pci_dev *dev);
+<<<<<<< HEAD
 int pci_load_saved_state(struct pci_dev *dev, struct pci_saved_state *state);
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 int pci_load_and_free_saved_state(struct pci_dev *dev,
 				  struct pci_saved_state **state);
 struct pci_cap_saved_state *pci_find_saved_cap(struct pci_dev *dev, char cap);
@@ -1036,11 +1043,14 @@ bool pci_dev_run_wake(struct pci_dev *dev);
 bool pci_check_pme_status(struct pci_dev *dev);
 void pci_pme_wakeup_bus(struct pci_bus *bus);
 
+<<<<<<< HEAD
 static inline void pci_ignore_hotplug(struct pci_dev *dev)
 {
 	dev->ignore_hotplug = 1;
 }
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static inline int pci_enable_wake(struct pci_dev *dev, pci_power_t state,
 				  bool enable)
 {

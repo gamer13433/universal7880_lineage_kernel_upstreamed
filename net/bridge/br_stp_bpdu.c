@@ -140,7 +140,10 @@ void br_send_tcn_bpdu(struct net_bridge_port *p)
 void br_stp_rcv(const struct stp_proto *proto, struct sk_buff *skb,
 		struct net_device *dev)
 {
+<<<<<<< HEAD
 	const unsigned char *dest = eth_hdr(skb)->h_dest;
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	struct net_bridge_port *p;
 	struct net_bridge *br;
 	const unsigned char *buf;
@@ -169,7 +172,11 @@ void br_stp_rcv(const struct stp_proto *proto, struct sk_buff *skb,
 	if (p->state == BR_STATE_DISABLED)
 		goto out;
 
+<<<<<<< HEAD
 	if (!ether_addr_equal(dest, br->group_addr))
+=======
+	if (!ether_addr_equal(eth_hdr(skb)->h_dest, br->group_addr))
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		goto out;
 
 	if (p->flags & BR_BPDU_GUARD) {

@@ -160,7 +160,14 @@ void flush_tlb_current_task(void)
 	preempt_disable();
 
 	count_vm_tlb_event(NR_TLB_LOCAL_FLUSH_ALL);
+<<<<<<< HEAD
 	local_flush_tlb();
+=======
+
+	/* This is an implicit full barrier that synchronizes with switch_mm. */
+	local_flush_tlb();
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	trace_tlb_flush(TLB_LOCAL_SHOOTDOWN, TLB_FLUSH_ALL);
 	if (cpumask_any_but(mm_cpumask(mm), smp_processor_id()) < nr_cpu_ids)
 		flush_tlb_others(mm_cpumask(mm), mm, 0UL, TLB_FLUSH_ALL);
@@ -187,17 +194,40 @@ void flush_tlb_mm_range(struct mm_struct *mm, unsigned long start,
 	unsigned long base_pages_to_flush = TLB_FLUSH_ALL;
 
 	preempt_disable();
+<<<<<<< HEAD
 	if (current->active_mm != mm)
 		goto out;
 
 	if (!current->mm) {
 		leave_mm(smp_processor_id());
+=======
+	if (current->active_mm != mm) {
+		/* Synchronize with switch_mm. */
+		smp_mb();
+
+		goto out;
+	}
+
+	if (!current->mm) {
+		leave_mm(smp_processor_id());
+
+		/* Synchronize with switch_mm. */
+		smp_mb();
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		goto out;
 	}
 
 	if ((end != TLB_FLUSH_ALL) && !(vmflag & VM_HUGETLB))
 		base_pages_to_flush = (end - start) >> PAGE_SHIFT;
 
+<<<<<<< HEAD
+=======
+	/*
+	 * Both branches below are implicit full barriers (MOV to CR or
+	 * INVLPG) that synchronize with switch_mm.
+	 */
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (base_pages_to_flush > tlb_single_page_flush_ceiling) {
 		base_pages_to_flush = TLB_FLUSH_ALL;
 		count_vm_tlb_event(NR_TLB_LOCAL_FLUSH_ALL);
@@ -227,10 +257,25 @@ void flush_tlb_page(struct vm_area_struct *vma, unsigned long start)
 	preempt_disable();
 
 	if (current->active_mm == mm) {
+<<<<<<< HEAD
 		if (current->mm)
 			__flush_tlb_one(start);
 		else
 			leave_mm(smp_processor_id());
+=======
+		if (current->mm) {
+			/*
+			 * Implicit full barrier (INVLPG) that synchronizes
+			 * with switch_mm.
+			 */
+			__flush_tlb_one(start);
+		} else {
+			leave_mm(smp_processor_id());
+
+			/* Synchronize with switch_mm. */
+			smp_mb();
+		}
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 	if (cpumask_any_but(mm_cpumask(mm), smp_processor_id()) < nr_cpu_ids)

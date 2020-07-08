@@ -78,10 +78,15 @@ static int snirm710_probe(struct platform_device *dev)
 
 	base = res->start;
 	hostdata = kzalloc(sizeof(*hostdata), GFP_KERNEL);
+<<<<<<< HEAD
 	if (!hostdata) {
 		dev_printk(KERN_ERR, dev, "Failed to allocate host data\n");
 		return -ENOMEM;
 	}
+=======
+	if (!hostdata)
+		return -ENOMEM;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	hostdata->dev = &dev->dev;
 	dma_set_mask(&dev->dev, DMA_BIT_MASK(32));

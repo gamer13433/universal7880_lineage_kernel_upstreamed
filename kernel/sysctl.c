@@ -126,11 +126,18 @@ static int zero;
 static int __maybe_unused one = 1;
 static int __maybe_unused two = 2;
 static int __maybe_unused four = 4;
+<<<<<<< HEAD
 static unsigned long one_ul = 1;
 static int one_hundred = 100;
 #ifdef CONFIG_INCREASE_MAXIMUM_SWAPPINESS
 static int max_swappiness = 200;
 #endif
+=======
+static unsigned long zero_ul;
+static unsigned long one_ul = 1;
+static unsigned long long_max = LONG_MAX;
+static int one_hundred = 100;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #ifdef CONFIG_PRINTK
 static int ten_thousand = 10000;
 #endif
@@ -308,6 +315,16 @@ static struct ctl_table kern_table[] = {
 		.extra1		= &min_sched_granularity_ns,
 		.extra2		= &max_sched_granularity_ns,
 	},
+<<<<<<< HEAD
+=======
+	{
+		.procname	= "sched_is_big_little",
+		.data		= &sysctl_sched_is_big_little,
+		.maxlen		= sizeof(unsigned int),
+		.mode		= 0644,
+		.proc_handler	= proc_dointvec,
+	},
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #ifdef CONFIG_SCHED_WALT
 	{
 		.procname	= "sched_use_walt_cpu_util",
@@ -339,6 +356,30 @@ static struct ctl_table kern_table[] = {
 	},
 #endif
 	{
+<<<<<<< HEAD
+=======
+		.procname	= "sched_sync_hint_enable",
+		.data		= &sysctl_sched_sync_hint_enable,
+		.maxlen		= sizeof(unsigned int),
+		.mode		= 0644,
+		.proc_handler	= proc_dointvec,
+	},
+	{
+		.procname	= "sched_initial_task_util",
+		.data		= &sysctl_sched_initial_task_util,
+		.maxlen		= sizeof(unsigned int),
+		.mode		= 0644,
+		.proc_handler	= proc_dointvec,
+	},
+	{
+		.procname	= "sched_cstate_aware",
+		.data		= &sysctl_sched_cstate_aware,
+		.maxlen		= sizeof(unsigned int),
+		.mode		= 0644,
+		.proc_handler	= proc_dointvec,
+	},
+	{
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		.procname	= "sched_wakeup_granularity_ns",
 		.data		= &sysctl_sched_wakeup_granularity,
 		.maxlen		= sizeof(unsigned int),
@@ -376,7 +417,12 @@ static struct ctl_table kern_table[] = {
 		.data		= &sysctl_sched_time_avg,
 		.maxlen		= sizeof(unsigned int),
 		.mode		= 0644,
+<<<<<<< HEAD
 		.proc_handler	= proc_dointvec,
+=======
+		.proc_handler	= proc_dointvec_minmax,
+		.extra1		= &one,
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	},
 	{
 		.procname	= "sched_shares_window_ns",
@@ -1273,11 +1319,15 @@ static struct ctl_table vm_table[] = {
 		.mode		= 0644,
 		.proc_handler	= proc_dointvec_minmax,
 		.extra1		= &zero,
+<<<<<<< HEAD
 #ifdef CONFIG_INCREASE_MAXIMUM_SWAPPINESS
 		.extra2		= &max_swappiness,
 #else
 		.extra2		= &one_hundred,
 #endif
+=======
+		.extra2		= &one_hundred,
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	},
 #ifdef CONFIG_HUGETLB_PAGE
 	{
@@ -1329,7 +1379,11 @@ static struct ctl_table vm_table[] = {
 		.procname	= "drop_caches",
 		.data		= &sysctl_drop_caches,
 		.maxlen		= sizeof(int),
+<<<<<<< HEAD
 		.mode		= 0644,
+=======
+		.mode		= 0200,
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		.proc_handler	= drop_caches_sysctl_handler,
 		.extra1		= &one,
 		.extra2		= &four,
@@ -1339,7 +1393,11 @@ static struct ctl_table vm_table[] = {
 		.procname	= "compact_memory",
 		.data		= &sysctl_compact_memory,
 		.maxlen		= sizeof(int),
+<<<<<<< HEAD
 		.mode		= 0644,
+=======
+		.mode		= 0200,
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		.proc_handler	= sysctl_compaction_handler,
 	},
 	{
@@ -1353,6 +1411,7 @@ static struct ctl_table vm_table[] = {
 	},
 
 #endif /* CONFIG_COMPACTION */
+<<<<<<< HEAD
 #ifdef CONFIG_ZSWAP
 	{
 		.procname	= "zswap_compact",
@@ -1362,6 +1421,8 @@ static struct ctl_table vm_table[] = {
 		.proc_handler	= sysctl_zswap_compaction_handler,
 	},
 #endif
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	{
 		.procname	= "min_free_kbytes",
 		.data		= &min_free_kbytes,
@@ -1620,6 +1681,11 @@ static struct ctl_table fs_table[] = {
 		.maxlen		= sizeof(files_stat.max_files),
 		.mode		= 0644,
 		.proc_handler	= proc_doulongvec_minmax,
+<<<<<<< HEAD
+=======
+		.extra1		= &zero_ul,
+		.extra2		= &long_max,
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	},
 	{
 		.procname	= "nr_open",
@@ -2064,6 +2130,24 @@ static int do_proc_dointvec_conv(bool *negp, unsigned long *lvalp,
 	return 0;
 }
 
+<<<<<<< HEAD
+=======
+static int do_proc_douintvec_conv(bool *negp, unsigned long *lvalp,
+				 int *valp,
+				 int write, void *data)
+{
+	if (write) {
+		if (*negp)
+			return -EINVAL;
+		*valp = *lvalp;
+	} else {
+		unsigned int val = *valp;
+		*lvalp = (unsigned long)val;
+	}
+	return 0;
+}
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static const char proc_wspace_sep[] = { ' ', '\t', '\n' };
 
 static int __do_proc_dointvec(void *tbl_data, struct ctl_table *table,
@@ -2191,8 +2275,32 @@ static int do_proc_dointvec(struct ctl_table *table, int write,
 int proc_dointvec(struct ctl_table *table, int write,
 		     void __user *buffer, size_t *lenp, loff_t *ppos)
 {
+<<<<<<< HEAD
     return do_proc_dointvec(table,write,buffer,lenp,ppos,
 		    	    NULL,NULL);
+=======
+	return do_proc_dointvec(table, write, buffer, lenp, ppos, NULL, NULL);
+}
+
+/**
+ * proc_douintvec - read a vector of unsigned integers
+ * @table: the sysctl table
+ * @write: %TRUE if this is a write to the sysctl file
+ * @buffer: the user buffer
+ * @lenp: the size of the user buffer
+ * @ppos: file position
+ *
+ * Reads/writes up to table->maxlen/sizeof(unsigned int) unsigned integer
+ * values from/to the user buffer, treated as an ASCII string.
+ *
+ * Returns 0 on success.
+ */
+int proc_douintvec(struct ctl_table *table, int write,
+		     void __user *buffer, size_t *lenp, loff_t *ppos)
+{
+	return do_proc_dointvec(table, write, buffer, lenp, ppos,
+				do_proc_douintvec_conv, NULL);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 /*
@@ -2252,7 +2360,20 @@ static int do_proc_dointvec_minmax_conv(bool *negp, unsigned long *lvalp,
 {
 	struct do_proc_dointvec_minmax_conv_param *param = data;
 	if (write) {
+<<<<<<< HEAD
 		int val = *negp ? -*lvalp : *lvalp;
+=======
+		int val;
+		if (*negp) {
+			if (*lvalp > (unsigned long) INT_MAX + 1)
+				return -EINVAL;
+			val = -*lvalp;
+		} else {
+			if (*lvalp > (unsigned long) INT_MAX)
+				return -EINVAL;
+			val = *lvalp;
+		}
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		if ((param->min && *param->min > val) ||
 		    (param->max && *param->max < val))
 			return -EINVAL;
@@ -2393,8 +2514,15 @@ static int __do_proc_doulongvec_minmax(void *data, struct ctl_table *table, int 
 				break;
 			if (neg)
 				continue;
+<<<<<<< HEAD
 			if ((min && val < *min) || (max && val > *max))
 				continue;
+=======
+			if ((min && val < *min) || (max && val > *max)) {
+				err = -EINVAL;
+				break;
+			}
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			*i = val;
 		} else {
 			val = convdiv * (*i) / convmul;
@@ -2805,6 +2933,15 @@ int proc_dointvec(struct ctl_table *table, int write,
 	return -ENOSYS;
 }
 
+<<<<<<< HEAD
+=======
+int proc_douintvec(struct ctl_table *table, int write,
+		  void __user *buffer, size_t *lenp, loff_t *ppos)
+{
+	return -ENOSYS;
+}
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 int proc_dointvec_minmax(struct ctl_table *table, int write,
 		    void __user *buffer, size_t *lenp, loff_t *ppos)
 {
@@ -2850,6 +2987,10 @@ int proc_doulongvec_ms_jiffies_minmax(struct ctl_table *table, int write,
  * exception granted :-)
  */
 EXPORT_SYMBOL(proc_dointvec);
+<<<<<<< HEAD
+=======
+EXPORT_SYMBOL(proc_douintvec);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 EXPORT_SYMBOL(proc_dointvec_jiffies);
 EXPORT_SYMBOL(proc_dointvec_minmax);
 EXPORT_SYMBOL(proc_dointvec_userhz_jiffies);

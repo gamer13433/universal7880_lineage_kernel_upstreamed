@@ -49,7 +49,11 @@ static void *thread_fn(void *arg)
 {
 	struct thread_data *td = arg;
 	ssize_t ret;
+<<<<<<< HEAD
 	int go;
+=======
+	int go = 0;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if (thread_init(td))
 		return NULL;

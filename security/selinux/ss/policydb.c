@@ -266,6 +266,11 @@ static int rangetr_cmp(struct hashtab *h, const void *k1, const void *k2)
 	return v;
 }
 
+<<<<<<< HEAD
+=======
+static int (*destroy_f[SYM_NUM]) (void *key, void *datum, void *datap);
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /*
  * Initialize a policy database structure.
  */
@@ -309,8 +314,15 @@ static int policydb_init(struct policydb *p)
 out:
 	hashtab_destroy(p->filename_trans);
 	hashtab_destroy(p->range_tr);
+<<<<<<< HEAD
 	for (i = 0; i < SYM_NUM; i++)
 		hashtab_destroy(p->symtab[i].table);
+=======
+	for (i = 0; i < SYM_NUM; i++) {
+		hashtab_map(p->symtab[i].table, destroy_f[i], NULL);
+		hashtab_destroy(p->symtab[i].table);
+	}
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return rc;
 }
 
@@ -1501,11 +1513,14 @@ static int type_read(struct policydb *p, struct hashtab *h, void *fp)
 		goto bad;
 	return 0;
 bad:
+<<<<<<< HEAD
 // [ SEC_SELINUX_PORTING_COMMON
 #ifndef CONFIG_SECURITY_SELINUX_ALWAYS_ENFORCE
 	panic("SELinux:Failed to type read");
 #endif /*CONFIG_SECURITY_SELINUX_ALWAYS_ENFORCE*/
 // ] SEC_SELINUX_PORTING_COMMON
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	type_destroy(key, typdatum, NULL);
 	return rc;
 }
@@ -2514,11 +2529,14 @@ int policydb_read(struct policydb *p, void *fp)
 out:
 	return rc;
 bad:
+<<<<<<< HEAD
 // [ SEC_SELINUX_PORTING_COMMON
 #ifndef CONFIG_SECURITY_SELINUX_ALWAYS_ENFORCE
 	panic("SELinux:Failed to load policy");
 #endif /*CONFIG_SECURITY_SELINUX_ALWAYS_ENFORCE*/
 // ] SEC_SELINUX_PORTING_COMMON
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	policydb_destroy(p);
 	goto out;
 }

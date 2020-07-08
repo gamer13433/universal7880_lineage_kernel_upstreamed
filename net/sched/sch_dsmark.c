@@ -354,6 +354,11 @@ static int dsmark_init(struct Qdisc *sch, struct nlattr *opt)
 		goto errout;
 
 	err = -EINVAL;
+<<<<<<< HEAD
+=======
+	if (!tb[TCA_DSMARK_INDICES])
+		goto errout;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	indices = nla_get_u16(tb[TCA_DSMARK_INDICES]);
 
 	if (hweight32(indices) != 1)

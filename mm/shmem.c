@@ -911,10 +911,13 @@ static struct page *shmem_alloc_page(gfp_t gfp,
 	pvma.vm_policy = mpol_shared_policy_lookup(&info->policy, index);
 
 	page = alloc_page_vma(gfp, &pvma, 0);
+<<<<<<< HEAD
 	if (page && is_cma_pageblock(page)) {
 		 __free_page(page);
 		 page = alloc_pages(gfp & ~__GFP_MOVABLE, 0);
 	}
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	/* Drop reference taken by mpol_shared_policy_lookup() */
 	mpol_cond_put(pvma.vm_policy);
@@ -1845,6 +1848,7 @@ static void shmem_tag_pins(struct address_space *mapping)
 	void **slot;
 	pgoff_t start;
 	struct page *page;
+<<<<<<< HEAD
 
 	lru_add_drain();
 	start = 0;
@@ -1853,10 +1857,22 @@ static void shmem_tag_pins(struct address_space *mapping)
 restart:
 	radix_tree_for_each_slot(slot, &mapping->page_tree, &iter, start) {
 		page = radix_tree_deref_slot(slot);
+=======
+	unsigned int tagged = 0;
+
+	lru_add_drain();
+	start = 0;
+
+	spin_lock_irq(&mapping->tree_lock);
+restart:
+	radix_tree_for_each_slot(slot, &mapping->page_tree, &iter, start) {
+		page = radix_tree_deref_slot_protected(slot, &mapping->tree_lock);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		if (!page || radix_tree_exception(page)) {
 			if (radix_tree_deref_retry(page))
 				goto restart;
 		} else if (page_count(page) - page_mapcount(page) > 1) {
+<<<<<<< HEAD
 			spin_lock_irq(&mapping->tree_lock);
 			radix_tree_tag_set(&mapping->page_tree, iter.index,
 					   SHMEM_TAG_PINNED);
@@ -1870,6 +1886,22 @@ restart:
 		}
 	}
 	rcu_read_unlock();
+=======
+			radix_tree_tag_set(&mapping->page_tree, iter.index,
+					   SHMEM_TAG_PINNED);
+		}
+
+		if (++tagged % 1024)
+			continue;
+
+		spin_unlock_irq(&mapping->tree_lock);
+		cond_resched();
+		start = iter.index + 1;
+		spin_lock_irq(&mapping->tree_lock);
+		goto restart;
+	}
+	spin_unlock_irq(&mapping->tree_lock);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 /*
@@ -2081,7 +2113,11 @@ static long shmem_fallocate(struct file *file, int mode, loff_t offset,
 		}
 
 		shmem_falloc.waitq = &shmem_falloc_waitq;
+<<<<<<< HEAD
 		shmem_falloc.start = unmap_start >> PAGE_SHIFT;
+=======
+		shmem_falloc.start = (u64)unmap_start >> PAGE_SHIFT;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		shmem_falloc.next = (unmap_end + 1) >> PAGE_SHIFT;
 		spin_lock(&inode->i_lock);
 		inode->i_private = &shmem_falloc;

@@ -2431,12 +2431,21 @@ static int cpsw_probe(struct platform_device *pdev)
 		ret = cpsw_probe_dual_emac(pdev, priv);
 		if (ret) {
 			cpsw_err(priv, probe, "error probe slave 2 emac interface\n");
+<<<<<<< HEAD
 			goto clean_ale_ret;
+=======
+			goto clean_unregister_netdev_ret;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		}
 	}
 
 	return 0;
 
+<<<<<<< HEAD
+=======
+clean_unregister_netdev_ret:
+	unregister_netdev(ndev);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 clean_ale_ret:
 	cpsw_ale_destroy(priv->ale);
 clean_dma_ret:

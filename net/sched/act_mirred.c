@@ -31,16 +31,23 @@
 
 #define MIRRED_TAB_MASK     7
 static LIST_HEAD(mirred_list);
+<<<<<<< HEAD
 static DEFINE_SPINLOCK(mirred_list_lock);
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 static void tcf_mirred_release(struct tc_action *a, int bind)
 {
 	struct tcf_mirred *m = to_mirred(a);
+<<<<<<< HEAD
 
 	/* We could be called either in a RCU callback or with RTNL lock held. */
 	spin_lock_bh(&mirred_list_lock);
 	list_del(&m->tcfm_list);
 	spin_unlock_bh(&mirred_list_lock);
+=======
+	list_del(&m->tcfm_list);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (m->tcfm_dev)
 		dev_put(m->tcfm_dev);
 }
@@ -70,7 +77,10 @@ static int tcf_mirred_init(struct net *net, struct nlattr *nla,
 	switch (parm->eaction) {
 	case TCA_EGRESS_MIRROR:
 	case TCA_EGRESS_REDIR:
+<<<<<<< HEAD
 	case TCA_INGRESS_REDIR:
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		break;
 	default:
 		return -EINVAL;
@@ -124,9 +134,13 @@ static int tcf_mirred_init(struct net *net, struct nlattr *nla,
 	}
 	spin_unlock_bh(&m->tcf_lock);
 	if (ret == ACT_P_CREATED) {
+<<<<<<< HEAD
 		spin_lock_bh(&mirred_list_lock);
 		list_add(&m->tcfm_list, &mirred_list);
 		spin_unlock_bh(&mirred_list_lock);
+=======
+		list_add(&m->tcfm_list, &mirred_list);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		tcf_hash_insert(a);
 	}
 
@@ -158,10 +172,15 @@ static int tcf_mirred(struct sk_buff *skb, const struct tc_action *a,
 		goto out;
 	}
 
+<<<<<<< HEAD
+=======
+	at = G_TC_AT(skb->tc_verd);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	skb2 = skb_act_clone(skb, GFP_ATOMIC, m->tcf_action);
 	if (skb2 == NULL)
 		goto out;
 
+<<<<<<< HEAD
         if (m->tcfm_eaction == TCA_INGRESS_REDIR) {
                 /* Let's _hope_ the devices are of similar type.
                  * This is rather dangerous; with changed skb_iif, we
@@ -190,6 +209,21 @@ static int tcf_mirred(struct sk_buff *skb, const struct tc_action *a,
                 skb2->dev = dev;
                 err = dev_queue_xmit(skb2);
         }
+=======
+	if (!(at & AT_EGRESS)) {
+		if (m->tcfm_ok_push)
+			skb_push(skb2, skb2->dev->hard_header_len);
+	}
+
+	/* mirror is always swallowed */
+	if (m->tcfm_eaction != TCA_EGRESS_MIRROR)
+		skb2->tc_verd = SET_TC_FROM(skb2->tc_verd, at);
+
+	skb2->skb_iif = skb->dev->ifindex;
+	skb2->dev = dev;
+	err = dev_queue_xmit(skb2);
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 out:
 	if (err) {
 		m->tcf_qstats.overlimits++;
@@ -238,8 +272,12 @@ static int mirred_device_event(struct notifier_block *unused,
 	struct net_device *dev = netdev_notifier_info_to_dev(ptr);
 	struct tcf_mirred *m;
 
+<<<<<<< HEAD
 	if (event == NETDEV_UNREGISTER) {
 		spin_lock_bh(&mirred_list_lock);
+=======
+	if (event == NETDEV_UNREGISTER)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		list_for_each_entry(m, &mirred_list, tcfm_list) {
 			spin_lock_bh(&m->tcf_lock);
 			if (m->tcfm_dev == dev) {
@@ -248,8 +286,11 @@ static int mirred_device_event(struct notifier_block *unused,
 			}
 			spin_unlock_bh(&m->tcf_lock);
 		}
+<<<<<<< HEAD
 		spin_unlock_bh(&mirred_list_lock);
 	}
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	return NOTIFY_DONE;
 }

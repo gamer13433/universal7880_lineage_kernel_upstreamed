@@ -1196,10 +1196,17 @@ static void activate_path(struct work_struct *work)
 {
 	struct pgpath *pgpath =
 		container_of(work, struct pgpath, activate_path.work);
+<<<<<<< HEAD
 
 	if (pgpath->is_active)
 		scsi_dh_activate(bdev_get_queue(pgpath->path.dev->bdev),
 				 pg_init_done, pgpath);
+=======
+	struct request_queue *q = bdev_get_queue(pgpath->path.dev->bdev);
+
+	if (pgpath->is_active && !blk_queue_dying(q))
+		scsi_dh_activate(q, pg_init_done, pgpath);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	else
 		pg_init_done(pgpath, SCSI_DH_DEV_OFFLINED);
 }

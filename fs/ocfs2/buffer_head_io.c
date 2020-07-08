@@ -98,25 +98,47 @@ out:
 	return ret;
 }
 
+<<<<<<< HEAD
+=======
+/* Caller must provide a bhs[] with all NULL or non-NULL entries, so it
+ * will be easier to handle read failure.
+ */
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 int ocfs2_read_blocks_sync(struct ocfs2_super *osb, u64 block,
 			   unsigned int nr, struct buffer_head *bhs[])
 {
 	int status = 0;
 	unsigned int i;
 	struct buffer_head *bh;
+<<<<<<< HEAD
+=======
+	int new_bh = 0;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	trace_ocfs2_read_blocks_sync((unsigned long long)block, nr);
 
 	if (!nr)
 		goto bail;
 
+<<<<<<< HEAD
+=======
+	/* Don't put buffer head and re-assign it to NULL if it is allocated
+	 * outside since the caller can't be aware of this alternation!
+	 */
+	new_bh = (bhs[0] == NULL);
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	for (i = 0 ; i < nr ; i++) {
 		if (bhs[i] == NULL) {
 			bhs[i] = sb_getblk(osb->sb, block++);
 			if (bhs[i] == NULL) {
 				status = -ENOMEM;
 				mlog_errno(status);
+<<<<<<< HEAD
 				goto bail;
+=======
+				break;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			}
 		}
 		bh = bhs[i];
@@ -151,9 +173,32 @@ int ocfs2_read_blocks_sync(struct ocfs2_super *osb, u64 block,
 		submit_bh(READ, bh);
 	}
 
+<<<<<<< HEAD
 	for (i = nr; i > 0; i--) {
 		bh = bhs[i - 1];
 
+=======
+read_failure:
+	for (i = nr; i > 0; i--) {
+		bh = bhs[i - 1];
+
+		if (unlikely(status)) {
+			if (new_bh && bh) {
+				/* If middle bh fails, let previous bh
+				 * finish its read and then put it to
+				 * aovoid bh leak
+				 */
+				if (!buffer_jbd(bh))
+					wait_on_buffer(bh);
+				put_bh(bh);
+				bhs[i - 1] = NULL;
+			} else if (bh && buffer_uptodate(bh)) {
+				clear_buffer_uptodate(bh);
+			}
+			continue;
+		}
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		/* No need to wait on the buffer if it's managed by JBD. */
 		if (!buffer_jbd(bh))
 			wait_on_buffer(bh);
@@ -163,8 +208,12 @@ int ocfs2_read_blocks_sync(struct ocfs2_super *osb, u64 block,
 			 * so we can safely record this and loop back
 			 * to cleanup the other buffers. */
 			status = -EIO;
+<<<<<<< HEAD
 			put_bh(bh);
 			bhs[i - 1] = NULL;
+=======
+			goto read_failure;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		}
 	}
 
@@ -172,6 +221,12 @@ bail:
 	return status;
 }
 
+<<<<<<< HEAD
+=======
+/* Caller must provide a bhs[] with all NULL or non-NULL entries, so it
+ * will be easier to handle read failure.
+ */
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 int ocfs2_read_blocks(struct ocfs2_caching_info *ci, u64 block, int nr,
 		      struct buffer_head *bhs[], int flags,
 		      int (*validate)(struct super_block *sb,
@@ -181,6 +236,10 @@ int ocfs2_read_blocks(struct ocfs2_caching_info *ci, u64 block, int nr,
 	int i, ignore_cache = 0;
 	struct buffer_head *bh;
 	struct super_block *sb = ocfs2_metadata_cache_get_super(ci);
+<<<<<<< HEAD
+=======
+	int new_bh = 0;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	trace_ocfs2_read_blocks_begin(ci, (unsigned long long)block, nr, flags);
 
@@ -206,6 +265,14 @@ int ocfs2_read_blocks(struct ocfs2_caching_info *ci, u64 block, int nr,
 		goto bail;
 	}
 
+<<<<<<< HEAD
+=======
+	/* Don't put buffer head and re-assign it to NULL if it is allocated
+	 * outside since the caller can't be aware of this alternation!
+	 */
+	new_bh = (bhs[0] == NULL);
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	ocfs2_metadata_cache_io_lock(ci);
 	for (i = 0 ; i < nr ; i++) {
 		if (bhs[i] == NULL) {
@@ -214,7 +281,12 @@ int ocfs2_read_blocks(struct ocfs2_caching_info *ci, u64 block, int nr,
 				ocfs2_metadata_cache_io_unlock(ci);
 				status = -ENOMEM;
 				mlog_errno(status);
+<<<<<<< HEAD
 				goto bail;
+=======
+				/* Don't forget to put previous bh! */
+				break;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			}
 		}
 		bh = bhs[i];
@@ -308,12 +380,37 @@ int ocfs2_read_blocks(struct ocfs2_caching_info *ci, u64 block, int nr,
 		}
 	}
 
+<<<<<<< HEAD
 	status = 0;
 
+=======
+read_failure:
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	for (i = (nr - 1); i >= 0; i--) {
 		bh = bhs[i];
 
 		if (!(flags & OCFS2_BH_READAHEAD)) {
+<<<<<<< HEAD
+=======
+			if (unlikely(status)) {
+				/* Clear the buffers on error including those
+				 * ever succeeded in reading
+				 */
+				if (new_bh && bh) {
+					/* If middle bh fails, let previous bh
+					 * finish its read and then put it to
+					 * aovoid bh leak
+					 */
+					if (!buffer_jbd(bh))
+						wait_on_buffer(bh);
+					put_bh(bh);
+					bhs[i] = NULL;
+				} else if (bh && buffer_uptodate(bh)) {
+					clear_buffer_uptodate(bh);
+				}
+				continue;
+			}
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			/* We know this can't have changed as we hold the
 			 * owner sem. Avoid doing any work on the bh if the
 			 * journal has it. */
@@ -329,9 +426,13 @@ int ocfs2_read_blocks(struct ocfs2_caching_info *ci, u64 block, int nr,
 				 * uptodate. */
 				status = -EIO;
 				clear_buffer_needs_validate(bh);
+<<<<<<< HEAD
 				put_bh(bh);
 				bhs[i] = NULL;
 				continue;
+=======
+				goto read_failure;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			}
 
 			if (buffer_needs_validate(bh)) {
@@ -341,11 +442,16 @@ int ocfs2_read_blocks(struct ocfs2_caching_info *ci, u64 block, int nr,
 				BUG_ON(buffer_jbd(bh));
 				clear_buffer_needs_validate(bh);
 				status = validate(sb, bh);
+<<<<<<< HEAD
 				if (status) {
 					put_bh(bh);
 					bhs[i] = NULL;
 					continue;
 				}
+=======
+				if (status)
+					goto read_failure;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			}
 		}
 

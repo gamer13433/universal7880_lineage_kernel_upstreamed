@@ -98,6 +98,7 @@
 		{.reg = xreg, .rreg = xreg, .shift = xshift, \
 		 .rshift = xshift, .min = xmin, .max = xmax, \
 		 .platform_max = xmax, .invert = xinvert} }
+<<<<<<< HEAD
 #define SOC_SINGLE_RANGE_EXT_TLV(xname, xreg, xshift, xmin, xmax, xinvert,\
          xhandler_get, xhandler_put, tlv_array) \
 {       .iface = SNDRV_CTL_ELEM_IFACE_MIXER, .name = (xname),\
@@ -110,6 +111,8 @@
                 {.reg = xreg, .rreg = xreg, .shift = xshift, \
                  .rshift = xshift, .min = xmin, .max = xmax, \
                  .platform_max = xmax, .invert = xinvert} }
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #define SOC_DOUBLE(xname, reg, shift_left, shift_right, max, invert) \
 {	.iface = SNDRV_CTL_ELEM_IFACE_MIXER, .name = (xname),\
 	.info = snd_soc_info_volsw, .get = snd_soc_get_volsw, \

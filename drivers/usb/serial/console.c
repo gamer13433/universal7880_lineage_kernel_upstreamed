@@ -183,8 +183,13 @@ static int usb_console_setup(struct console *co, char *options)
 
  fail:
 	tty_port_tty_set(&port->port, NULL);
+<<<<<<< HEAD
  free_tty:
 	kfree(tty);
+=======
+ put_tty:
+	tty_kref_put(tty);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
  reset_open_count:
 	port->port.count = 0;
 	info->port = NULL;

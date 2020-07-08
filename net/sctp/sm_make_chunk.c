@@ -857,7 +857,15 @@ struct sctp_chunk *sctp_make_shutdown(const struct sctp_association *asoc,
 	sctp_shutdownhdr_t shut;
 	__u32 ctsn;
 
+<<<<<<< HEAD
 	ctsn = sctp_tsnmap_get_ctsn(&asoc->peer.tsn_map);
+=======
+	if (chunk && chunk->asoc)
+		ctsn = sctp_tsnmap_get_ctsn(&chunk->asoc->peer.tsn_map);
+	else
+		ctsn = sctp_tsnmap_get_ctsn(&asoc->peer.tsn_map);
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	shut.cum_tsn_ack = htonl(ctsn);
 
 	retval = sctp_make_control(asoc, SCTP_CID_SHUTDOWN, 0,

@@ -2244,7 +2244,11 @@ static struct pool *pool_create(struct mapped_device *pool_md,
 		return (struct pool *)pmd;
 	}
 
+<<<<<<< HEAD
 	pool = kmalloc(sizeof(*pool), GFP_KERNEL);
+=======
+	pool = kzalloc(sizeof(*pool), GFP_KERNEL);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (!pool) {
 		*error = "Error allocating memory for pool";
 		err_p = ERR_PTR(-ENOMEM);

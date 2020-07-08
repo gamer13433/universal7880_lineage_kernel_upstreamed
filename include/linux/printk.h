@@ -18,9 +18,12 @@ static inline int printk_get_level(const char *buffer)
 	if (buffer[0] == KERN_SOH_ASCII && buffer[1]) {
 		switch (buffer[1]) {
 		case '0' ... '7':
+<<<<<<< HEAD
 #ifdef CONFIG_SEC_DEBUG_AUTO_SUMMARY
 		case 'B' ... 'J':
 #endif
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		case 'd':	/* KERN_DEFAULT */
 			return buffer[1];
 		}
@@ -110,6 +113,7 @@ struct va_format {
 
 /*
  * Dummy printk for disabled debugging statements to use whilst maintaining
+<<<<<<< HEAD
  * gcc's format and side-effect checking.
  */
 static inline __printf(1, 2)
@@ -117,6 +121,15 @@ int no_printk(const char *fmt, ...)
 {
 	return 0;
 }
+=======
+ * gcc's format checking.
+ */
+#define no_printk(fmt, ...)			\
+do {						\
+	if (0)					\
+		printk(fmt, ##__VA_ARGS__);	\
+} while (0)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #ifdef CONFIG_EARLY_PRINTK
 extern asmlinkage __printf(1, 2)
@@ -251,6 +264,7 @@ extern asmlinkage void dump_stack(void) __cold;
 #define pr_cont(fmt, ...) \
 	printk(KERN_CONT fmt, ##__VA_ARGS__)
 
+<<<<<<< HEAD
 #ifdef CONFIG_SEC_DEBUG_AUTO_SUMMARY
 #define pr_auto(index, fmt, ...) \
 	printk(KERN_AUTO index pr_fmt(fmt), ##__VA_ARGS__)
@@ -276,6 +290,8 @@ extern asmlinkage void dump_stack(void) __cold;
 #define pr_auto_once(index)
 #endif
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /* pr_devel() should produce zero code unless DEBUG is defined */
 #ifdef DEBUG
 #define pr_devel(fmt, ...) \

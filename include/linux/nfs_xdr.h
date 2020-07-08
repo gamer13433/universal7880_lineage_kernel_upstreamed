@@ -1132,7 +1132,11 @@ struct nfs41_state_protection {
 	struct nfs4_op_map allow;
 };
 
+<<<<<<< HEAD
 #define NFS4_EXCHANGE_ID_LEN	(48)
+=======
+#define NFS4_EXCHANGE_ID_LEN	(127)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 struct nfs41_exchange_id_args {
 	struct nfs_client		*client;
 	nfs4_verifier			*verifier;

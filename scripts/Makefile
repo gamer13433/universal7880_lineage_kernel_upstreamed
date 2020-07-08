@@ -36,7 +36,10 @@ subdir-$(CONFIG_MODVERSIONS) += genksyms
 subdir-y                     += mod
 subdir-$(CONFIG_SECURITY_SELINUX) += selinux
 subdir-$(CONFIG_DTC)         += dtc
+<<<<<<< HEAD
 subdir-$(CONFIG_EXYNOS_DTBTOOL) += dtbtool_exynos
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 # Let clean descend into subdirs
 subdir-	+= basic kconfig package

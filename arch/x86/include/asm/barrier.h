@@ -138,8 +138,13 @@ do {									\
 #endif
 
 /* Atomic operations are already serializing on x86 */
+<<<<<<< HEAD
 #define smp_mb__before_atomic()	barrier()
 #define smp_mb__after_atomic()	barrier()
+=======
+#define smp_mb__before_atomic()	do { } while (0)
+#define smp_mb__after_atomic()	do { } while (0)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /*
  * Stop RDTSC speculation. This is needed when you need to use RDTSC

@@ -51,8 +51,11 @@ static const char *kobject_actions[] = {
 	[KOBJ_MOVE] =		"move",
 	[KOBJ_ONLINE] =		"online",
 	[KOBJ_OFFLINE] =	"offline",
+<<<<<<< HEAD
 	[KOBJ_POLICY_INIT] =	"policy_init",
 	[KOBJ_POLICY_EXIT] =	"policy_exit",
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 /**

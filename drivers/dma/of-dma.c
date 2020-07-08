@@ -139,6 +139,7 @@ static int of_dma_match_channel(struct device_node *np, const char *name,
 }
 
 /**
+<<<<<<< HEAD
  * of_dma_get_mcode_addr - Get the DMA micro code buffer address.
  * @np:		device node of DMA controller
  *
@@ -286,6 +287,8 @@ u64 of_dma_get_mask(struct device_node *np, char *name)
 EXPORT_SYMBOL_GPL(of_dma_get_mask);
 
 /**
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
  * of_dma_request_slave_channel - Get the DMA slave channel
  * @np:		device node to get DMA request from
  * @name:	name of desired channel
@@ -400,6 +403,7 @@ struct dma_chan *of_dma_xlate_by_chan_id(struct of_phandle_args *dma_spec,
 	return dma_get_slave_channel(candidate);
 }
 EXPORT_SYMBOL_GPL(of_dma_xlate_by_chan_id);
+<<<<<<< HEAD
 
 bool of_dma_multi_irq(struct device_node *np)
 {
@@ -413,3 +417,5 @@ bool of_dma_multi_irq(struct device_node *np)
 	return ret;
 }
 EXPORT_SYMBOL_GPL(of_dma_multi_irq);
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012

@@ -18,6 +18,10 @@ obj-$(CONFIG_MODULES)		+= proc-syms.o
 obj-$(CONFIG_ALIGNMENT_TRAP)	+= alignment.o
 obj-$(CONFIG_HIGHMEM)		+= highmem.o
 obj-$(CONFIG_HUGETLB_PAGE)	+= hugetlbpage.o
+<<<<<<< HEAD
+=======
+obj-$(CONFIG_ARM_PV_FIXUP)	+= pv-fixup-asm.o
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 obj-$(CONFIG_CPU_ABRT_NOMMU)	+= abort-nommu.o
 obj-$(CONFIG_CPU_ABRT_EV4)	+= abort-ev4.o

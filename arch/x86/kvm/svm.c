@@ -2295,7 +2295,11 @@ static inline void copy_vmcb_control_area(struct vmcb *dst_vmcb, struct vmcb *fr
 	dst->iopm_base_pa         = from->iopm_base_pa;
 	dst->msrpm_base_pa        = from->msrpm_base_pa;
 	dst->tsc_offset           = from->tsc_offset;
+<<<<<<< HEAD
 	dst->asid                 = from->asid;
+=======
+	/* asid not copied, it is handled manually for svm->vmcb.  */
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	dst->tlb_ctl              = from->tlb_ctl;
 	dst->int_ctl              = from->int_ctl;
 	dst->int_vector           = from->int_vector;

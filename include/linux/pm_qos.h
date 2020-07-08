@@ -14,6 +14,7 @@ enum {
 	PM_QOS_RESERVED = 0,
 	PM_QOS_CPU_DMA_LATENCY,
 	PM_QOS_NETWORK_LATENCY,
+<<<<<<< HEAD
 	PM_QOS_DEVICE_THROUGHPUT,
 	PM_QOS_BUS_THROUGHPUT,
 	PM_QOS_BUS_THROUGHPUT_MAX,
@@ -27,6 +28,10 @@ enum {
 	PM_QOS_CAM_THROUGHPUT,
 	PM_QOS_CPU_ONLINE_MIN,
 	PM_QOS_CPU_ONLINE_MAX,
+=======
+	PM_QOS_NETWORK_THROUGHPUT,
+	PM_QOS_MEMORY_BANDWIDTH,
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	/* insert new class ID */
 	PM_QOS_NUM_CLASSES,
@@ -43,17 +48,21 @@ enum pm_qos_flags_status {
 
 #define PM_QOS_CPU_DMA_LAT_DEFAULT_VALUE	(2000 * USEC_PER_SEC)
 #define PM_QOS_NETWORK_LAT_DEFAULT_VALUE	(2000 * USEC_PER_SEC)
+<<<<<<< HEAD
 #define PM_QOS_DEVICE_THROUGHPUT_DEFAULT_VALUE	0
 #define PM_QOS_BUS_THROUGHPUT_DEFAULT_VALUE	0
 #define PM_QOS_BUS_THROUGHPUT_MAX_DEFAULT_VALUE	INT_MAX
 #define PM_QOS_DISPLAY_THROUGHPUT_DEFAULT_VALUE	0
 #define PM_QOS_CAM_THROUGHPUT_DEFAULT_VALUE	0
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #define PM_QOS_NETWORK_THROUGHPUT_DEFAULT_VALUE	0
 #define PM_QOS_MEMORY_BANDWIDTH_DEFAULT_VALUE	0
 #define PM_QOS_RESUME_LATENCY_DEFAULT_VALUE	0
 #define PM_QOS_LATENCY_TOLERANCE_DEFAULT_VALUE	0
 #define PM_QOS_LATENCY_TOLERANCE_NO_CONSTRAINT	(-1)
 #define PM_QOS_LATENCY_ANY			((s32)(~(__u32)0 >> 1))
+<<<<<<< HEAD
 #define PM_QOS_DEV_LAT_DEFAULT_VALUE		0
 #define PM_QOS_CLUSTER1_FREQ_MIN_DEFAULT_VALUE	0
 #define PM_QOS_CLUSTER1_FREQ_MAX_DEFAULT_VALUE	INT_MAX
@@ -61,20 +70,28 @@ enum pm_qos_flags_status {
 #define PM_QOS_CLUSTER0_FREQ_MAX_DEFAULT_VALUE	INT_MAX
 #define PM_QOS_CPU_ONLINE_MIN_DEFAULT_VALUE	1
 #define PM_QOS_CPU_ONLINE_MAX_DEFAULT_VALUE	NR_CPUS
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #define PM_QOS_FLAG_NO_POWER_OFF	(1 << 0)
 #define PM_QOS_FLAG_REMOTE_WAKEUP	(1 << 1)
 
+<<<<<<< HEAD
 #define pm_qos_add_request(arg...)	do {				\
 	pm_qos_add_request_trace((char *)__func__, __LINE__, ##arg);	\
 } while(0)
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 struct pm_qos_request {
 	struct plist_node node;
 	int pm_qos_class;
 	struct delayed_work work; /* for pm_qos_update_request_timeout */
+<<<<<<< HEAD
 	char *func;
 	unsigned int line;
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 struct pm_qos_flags_request {
@@ -101,8 +118,12 @@ enum pm_qos_type {
 	PM_QOS_UNITIALIZED,
 	PM_QOS_MAX,		/* return the largest value */
 	PM_QOS_MIN,		/* return the smallest value */
+<<<<<<< HEAD
 	PM_QOS_SUM,		/* return sum of values greater than zero */
 	PM_QOS_FORCE_MAX,
+=======
+	PM_QOS_SUM		/* return the sum */
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 /*
@@ -147,6 +168,7 @@ static inline int dev_pm_qos_request_active(struct dev_pm_qos_request *req)
 
 int pm_qos_update_target(struct pm_qos_constraints *c, struct plist_node *node,
 			 enum pm_qos_req_action action, int value);
+<<<<<<< HEAD
 int pm_qos_update_constraints(int pm_qos_class,
 			struct pm_qos_constraints *constraints);
 bool pm_qos_update_flags(struct pm_qos_flags *pqf,
@@ -154,6 +176,12 @@ bool pm_qos_update_flags(struct pm_qos_flags *pqf,
 			 enum pm_qos_req_action action, s32 val);
 void pm_qos_add_request_trace(char *func, unsigned int line,
 			struct pm_qos_request *req, int pm_qos_class,
+=======
+bool pm_qos_update_flags(struct pm_qos_flags *pqf,
+			 struct pm_qos_flags_request *req,
+			 enum pm_qos_req_action action, s32 val);
+void pm_qos_add_request(struct pm_qos_request *req, int pm_qos_class,
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			s32 value);
 void pm_qos_update_request(struct pm_qos_request *req,
 			   s32 new_value);

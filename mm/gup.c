@@ -14,6 +14,7 @@
 #include <linux/rwsem.h>
 #include <asm/pgtable.h>
 
+<<<<<<< HEAD
 #ifdef CONFIG_CMA_PINPAGE_MIGRATION
 #include <linux/migrate.h>
 #include <linux/mm_inline.h>
@@ -94,6 +95,10 @@ static int __migrate_cma_pinpage(struct page *page, struct vm_area_struct *vma)
 }
 #endif
 
+=======
+#include "internal.h"
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static struct page *no_page_table(struct vm_area_struct *vma,
 		unsigned int flags)
 {
@@ -110,6 +115,19 @@ static struct page *no_page_table(struct vm_area_struct *vma,
 	return NULL;
 }
 
+<<<<<<< HEAD
+=======
+/*
+ * FOLL_FORCE can write to even unwritable pte's, but only
+ * after we've gone through a COW cycle and they are dirty.
+ */
+static inline bool can_follow_write_pte(pte_t pte, unsigned int flags)
+{
+	return pte_write(pte) ||
+		((flags & FOLL_FORCE) && (flags & FOLL_COW) && pte_dirty(pte));
+}
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static struct page *follow_page_pte(struct vm_area_struct *vma,
 		unsigned long address, pmd_t *pmd, unsigned int flags)
 {
@@ -144,7 +162,11 @@ retry:
 	}
 	if ((flags & FOLL_NUMA) && pte_numa(pte))
 		goto no_page;
+<<<<<<< HEAD
 	if ((flags & FOLL_WRITE) && !pte_write(pte)) {
+=======
+	if ((flags & FOLL_WRITE) && !can_follow_write_pte(pte, flags)) {
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		pte_unmap_unlock(ptep, ptl);
 		return NULL;
 	}
@@ -157,6 +179,7 @@ retry:
 		page = pte_page(pte);
 	}
 
+<<<<<<< HEAD
 #ifdef CONFIG_CMA_PINPAGE_MIGRATION
 	if (__need_migrate_cma_page(page, vma, address, flags)) {
 		pte_unmap_unlock(ptep, ptl);
@@ -180,6 +203,8 @@ retry:
 		}
 	}
 #endif
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (flags & FOLL_GET)
 		get_page_foll(page);
 	if (flags & FOLL_TOUCH) {
@@ -268,10 +293,17 @@ struct page *follow_page_mask(struct vm_area_struct *vma,
 	if (pud_none(*pud))
 		return no_page_table(vma, flags);
 	if (pud_huge(*pud) && vma->vm_flags & VM_HUGETLB) {
+<<<<<<< HEAD
 		if (flags & FOLL_GET)
 			return NULL;
 		page = follow_huge_pud(mm, address, pud, flags & FOLL_WRITE);
 		return page;
+=======
+		page = follow_huge_pud(mm, address, pud, flags);
+		if (page)
+			return page;
+		return no_page_table(vma, flags);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 	if (unlikely(pud_bad(*pud)))
 		return no_page_table(vma, flags);
@@ -280,6 +312,7 @@ struct page *follow_page_mask(struct vm_area_struct *vma,
 	if (pmd_none(*pmd))
 		return no_page_table(vma, flags);
 	if (pmd_huge(*pmd) && vma->vm_flags & VM_HUGETLB) {
+<<<<<<< HEAD
 		page = follow_huge_pmd(mm, address, pmd, flags & FOLL_WRITE);
 		if (flags & FOLL_GET) {
 			/*
@@ -293,6 +326,12 @@ struct page *follow_page_mask(struct vm_area_struct *vma,
 				page = NULL;
 		}
 		return page;
+=======
+		page = follow_huge_pmd(mm, address, pmd, flags);
+		if (page)
+			return page;
+		return no_page_table(vma, flags);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 	if ((flags & FOLL_NUMA) && pmd_numa(*pmd))
 		return no_page_table(vma, flags);
@@ -392,7 +431,11 @@ static int faultin_page(struct task_struct *tsk, struct vm_area_struct *vma,
 			return -ENOMEM;
 		if (ret & (VM_FAULT_HWPOISON | VM_FAULT_HWPOISON_LARGE))
 			return *flags & FOLL_HWPOISON ? -EHWPOISON : -EFAULT;
+<<<<<<< HEAD
 		if (ret & VM_FAULT_SIGBUS)
+=======
+		if (ret & (VM_FAULT_SIGBUS | VM_FAULT_SIGSEGV))
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			return -EFAULT;
 		BUG();
 	}
@@ -420,7 +463,11 @@ static int faultin_page(struct task_struct *tsk, struct vm_area_struct *vma,
 	 * reCOWed by userspace write).
 	 */
 	if ((ret & VM_FAULT_WRITE) && !(vma->vm_flags & VM_WRITE))
+<<<<<<< HEAD
 		*flags |= FOLL_COW;
+=======
+	        *flags |= FOLL_COW;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return 0;
 }
 
@@ -667,7 +714,11 @@ int fixup_user_fault(struct task_struct *tsk, struct mm_struct *mm,
 			return -ENOMEM;
 		if (ret & (VM_FAULT_HWPOISON | VM_FAULT_HWPOISON_LARGE))
 			return -EHWPOISON;
+<<<<<<< HEAD
 		if (ret & VM_FAULT_SIGBUS)
+=======
+		if (ret & (VM_FAULT_SIGBUS | VM_FAULT_SIGSEGV))
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			return -EFAULT;
 		BUG();
 	}

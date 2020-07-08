@@ -198,10 +198,22 @@ static struct mount *next_group(struct mount *m, struct mount *origin)
 
 /* all accesses are serialized by namespace_sem */
 static struct user_namespace *user_ns;
+<<<<<<< HEAD
 static struct mount *last_dest, *last_source, *dest_master;
 static struct mountpoint *mp;
 static struct hlist_head *list;
 
+=======
+static struct mount *last_dest, *first_source, *last_source, *dest_master;
+static struct mountpoint *mp;
+static struct hlist_head *list;
+
+static inline bool peers(struct mount *m1, struct mount *m2)
+{
+	return m1->mnt_group_id == m2->mnt_group_id && m1->mnt_group_id;
+}
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static int propagate_one(struct mount *m)
 {
 	struct mount *child;
@@ -212,6 +224,7 @@ static int propagate_one(struct mount *m)
 	/* skip if mountpoint isn't covered by it */
 	if (!is_subdir(mp->m_dentry, m->mnt.mnt_root))
 		return 0;
+<<<<<<< HEAD
 	if (m->mnt_group_id == last_dest->mnt_group_id) {
 		type = CL_MAKE_SHARED;
 	} else {
@@ -230,6 +243,28 @@ static int propagate_one(struct mount *m)
 				break;
 			}
 		}
+=======
+	if (peers(m, last_dest)) {
+		type = CL_MAKE_SHARED;
+	} else {
+		struct mount *n, *p;
+		bool done;
+		for (n = m; ; n = p) {
+			p = n->mnt_master;
+			if (p == dest_master || IS_MNT_MARKED(p))
+				break;
+		}
+		do {
+			struct mount *parent = last_source->mnt_parent;
+			if (last_source == first_source)
+				break;
+			done = parent->mnt_master == p;
+			if (done && peers(n, parent))
+				break;
+			last_source = last_source->mnt_master;
+		} while (!done);
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		type = CL_SLAVE;
 		/* beginning of peer group among the slaves? */
 		if (IS_MNT_SHARED(m))
@@ -242,6 +277,7 @@ static int propagate_one(struct mount *m)
 	child = copy_tree(last_source, last_source->mnt.mnt_root, type);
 	if (IS_ERR(child))
 		return PTR_ERR(child);
+<<<<<<< HEAD
 	mnt_set_mountpoint(m, mp, child);
 	last_dest = m;
 	last_source = child;
@@ -250,6 +286,15 @@ static int propagate_one(struct mount *m)
 		SET_MNT_MARK(m->mnt_master);
 		read_sequnlock_excl(&mount_lock);
 	}
+=======
+	read_seqlock_excl(&mount_lock);
+	mnt_set_mountpoint(m, mp, child);
+	if (m->mnt_master != dest_master)
+		SET_MNT_MARK(m->mnt_master);
+	read_sequnlock_excl(&mount_lock);
+	last_dest = m;
+	last_source = child;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	hlist_add_head(&child->mnt_hash, list);
 	return 0;
 }
@@ -280,6 +325,10 @@ int propagate_mnt(struct mount *dest_mnt, struct mountpoint *dest_mp,
 	 */
 	user_ns = current->nsproxy->mnt_ns->user_ns;
 	last_dest = dest_mnt;
+<<<<<<< HEAD
+=======
+	first_source = source_mnt;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	last_source = source_mnt;
 	mp = dest_mp;
 	list = tree_list;

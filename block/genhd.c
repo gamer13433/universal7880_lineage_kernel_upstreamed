@@ -20,12 +20,15 @@
 #include <linux/log2.h>
 #include <linux/pm_runtime.h>
 
+<<<<<<< HEAD
 #ifdef CONFIG_BLOCK_SUPPORT_STLOG
 #include <linux/stlog.h>
 #else
 #define ST_LOG(fmt,...)
 #endif
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #include "blk.h"
 
 static DEFINE_MUTEX(block_class_lock);
@@ -428,9 +431,15 @@ int blk_alloc_devt(struct hd_struct *part, dev_t *devt)
 	/* allocate ext devt */
 	idr_preload(GFP_KERNEL);
 
+<<<<<<< HEAD
 	spin_lock(&ext_devt_lock);
 	idx = idr_alloc(&ext_devt_idr, part, 0, NR_EXT_DEVT, GFP_NOWAIT);
 	spin_unlock(&ext_devt_lock);
+=======
+	spin_lock_bh(&ext_devt_lock);
+	idx = idr_alloc(&ext_devt_idr, part, 0, NR_EXT_DEVT, GFP_NOWAIT);
+	spin_unlock_bh(&ext_devt_lock);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	idr_preload_end();
 	if (idx < 0)
@@ -455,9 +464,15 @@ void blk_free_devt(dev_t devt)
 		return;
 
 	if (MAJOR(devt) == BLOCK_EXT_MAJOR) {
+<<<<<<< HEAD
 		spin_lock(&ext_devt_lock);
 		idr_remove(&ext_devt_idr, blk_mangle_minor(MINOR(devt)));
 		spin_unlock(&ext_devt_lock);
+=======
+		spin_lock_bh(&ext_devt_lock);
+		idr_remove(&ext_devt_idr, blk_mangle_minor(MINOR(devt)));
+		spin_unlock_bh(&ext_devt_lock);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 }
 
@@ -518,11 +533,14 @@ static void register_disk(struct gendisk *disk)
 	struct hd_struct *part;
 	int err;
 
+<<<<<<< HEAD
 #ifdef CONFIG_BLOCK_SUPPORT_STLOG
 	int major 		= disk->major;	
 	int first_minor 	= disk->first_minor;
 #endif
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	ddev->parent = disk->driverfs_dev;
 
 	dev_set_name(ddev, "%s", disk->disk_name);
@@ -573,6 +591,7 @@ exit:
 	/* announce disk after possible partitions are created */
 	dev_set_uevent_suppress(ddev, 0);
 	kobject_uevent(&ddev->kobj, KOBJ_ADD);
+<<<<<<< HEAD
 	ST_LOG("<%s> KOBJ_ADD %d:%d", __func__, major, first_minor);
 
 	/* announce possible partitions */
@@ -581,6 +600,13 @@ exit:
 		kobject_uevent(&part_to_dev(part)->kobj, KOBJ_ADD);
 		ST_LOG("<%s> KOBJ_ADD %d:%d", __func__, major, first_minor + part->partno);
 	}
+=======
+
+	/* announce possible partitions */
+	disk_part_iter_init(&piter, disk, 0);
+	while ((part = disk_part_iter_next(&piter)))
+		kobject_uevent(&part_to_dev(part)->kobj, KOBJ_ADD);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	disk_part_iter_exit(&piter);
 }
 
@@ -651,10 +677,13 @@ void del_gendisk(struct gendisk *disk)
 	struct disk_part_iter piter;
 	struct hd_struct *part;
 
+<<<<<<< HEAD
 #ifdef CONFIG_BLOCK_SUPPORT_STLOG
 	struct device *dev;
 #endif
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	disk_del_events(disk);
 
 	/* invalidate stuff */
@@ -684,12 +713,15 @@ void del_gendisk(struct gendisk *disk)
 	if (!sysfs_deprecated)
 		sysfs_remove_link(block_depr, dev_name(disk_to_dev(disk)));
 	pm_runtime_set_memalloc_noio(disk_to_dev(disk), false);
+<<<<<<< HEAD
 #ifdef CONFIG_BLOCK_SUPPORT_STLOG
 	dev = disk_to_dev(disk);
 	ST_LOG("<%s> KOBJ_REMOVE %d:%d %s",
 		__func__, MAJOR(dev->devt), MINOR(dev->devt), dev->kobj.name);
 #endif
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	device_del(disk_to_dev(disk));
 }
 EXPORT_SYMBOL(del_gendisk);
@@ -715,13 +747,21 @@ struct gendisk *get_gendisk(dev_t devt, int *partno)
 	} else {
 		struct hd_struct *part;
 
+<<<<<<< HEAD
 		spin_lock(&ext_devt_lock);
+=======
+		spin_lock_bh(&ext_devt_lock);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		part = idr_find(&ext_devt_idr, blk_mangle_minor(MINOR(devt)));
 		if (part && get_disk(part_to_disk(part))) {
 			*partno = part->partno;
 			disk = part_to_disk(part);
 		}
+<<<<<<< HEAD
 		spin_unlock(&ext_devt_lock);
+=======
+		spin_unlock_bh(&ext_devt_lock);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 	return disk;
@@ -1154,6 +1194,7 @@ static int disk_uevent(struct device *dev, struct kobj_uevent_env *env)
 		cnt++;
 	disk_part_iter_exit(&piter);
 	add_uevent_var(env, "NPARTS=%u", cnt);
+<<<<<<< HEAD
 #ifdef CONFIG_USB_STORAGE_DETECT
 	if (disk->flags & GENHD_FL_IF_USB) {
 		add_uevent_var(env, "MEDIAPRST=%d",
@@ -1163,6 +1204,8 @@ static int disk_uevent(struct device *dev, struct kobj_uevent_env *env)
 			(disk->flags & GENHD_FL_MEDIA_PRESENT), cnt);
 	}
 #endif
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return 0;
 }
 
@@ -1258,6 +1301,7 @@ static const struct file_operations proc_diskstats_operations = {
 	.release	= seq_release,
 };
 
+<<<<<<< HEAD
 #define PG2KB(x) ((unsigned long)((x) << (PAGE_SHIFT - 10)))
 static int iostats_show(struct seq_file *seqf, void *v)
 {
@@ -1350,6 +1394,10 @@ static const struct file_operations proc_iostats_operations = {
 static int __init proc_genhd_init(void)
 {
 	proc_create("iostats", 0, NULL, &proc_iostats_operations);
+=======
+static int __init proc_genhd_init(void)
+{
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	proc_create("diskstats", 0, NULL, &proc_diskstats_operations);
 	proc_create("partitions", 0, NULL, &proc_partitions_operations);
 	return 0;
@@ -1767,6 +1815,7 @@ static void disk_check_events(struct disk_events *ev,
 	unsigned long intv;
 	int nr_events = 0, i;
 
+<<<<<<< HEAD
 #ifdef CONFIG_USB_STORAGE_DETECT
 	if (!(disk->flags & GENHD_FL_IF_USB))
 		/* check events */
@@ -1776,6 +1825,10 @@ static void disk_check_events(struct disk_events *ev,
 #else
 	events = disk->fops->check_events(disk, clearing);
 #endif
+=======
+	/* check events */
+	events = disk->fops->check_events(disk, clearing);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	/* accumulate pending events and schedule next poll if necessary */
 	spin_lock_irq(&ev->lock);
@@ -1800,6 +1853,7 @@ static void disk_check_events(struct disk_events *ev,
 		if (events & disk->events & (1 << i))
 			envp[nr_events++] = disk_uevents[i];
 
+<<<<<<< HEAD
 #ifdef CONFIG_USB_STORAGE_DETECT
 	if (!(disk->flags & GENHD_FL_IF_USB)) {
 		if (nr_events)
@@ -1811,6 +1865,10 @@ static void disk_check_events(struct disk_events *ev,
 		kobject_uevent_env(&disk_to_dev(disk)->kobj,
 				KOBJ_CHANGE, envp);
 #endif
+=======
+	if (nr_events)
+		kobject_uevent_env(&disk_to_dev(disk)->kobj, KOBJ_CHANGE, envp);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 /*

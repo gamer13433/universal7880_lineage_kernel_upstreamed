@@ -701,7 +701,12 @@ err_uart:
 static void __exit ulite_exit(void)
 {
 	platform_driver_unregister(&ulite_platform_driver);
+<<<<<<< HEAD
 	uart_unregister_driver(&ulite_uart_driver);
+=======
+	if (ulite_uart_driver.state)
+		uart_unregister_driver(&ulite_uart_driver);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 module_init(ulite_init);

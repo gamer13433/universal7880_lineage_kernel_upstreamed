@@ -19,6 +19,7 @@ config MMC_DEBUG
 	  This is an option for use by developers; most people should
 	  say N here.  This enables MMC core and driver debugging.
 
+<<<<<<< HEAD
 
 config MMC_BLOCK_DEFERRED_RESUME
 	bool "Enable Deferred Resume"
@@ -30,6 +31,8 @@ config MMC_SUPPORT_STLOG
  	depends on MMC && PROC_STLOG
  	default y
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 if MMC
 
 source "drivers/mmc/core/Kconfig"

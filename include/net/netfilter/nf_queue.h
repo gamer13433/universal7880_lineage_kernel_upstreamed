@@ -28,6 +28,11 @@ struct nf_queue_entry {
 struct nf_queue_handler {
 	int			(*outfn)(struct nf_queue_entry *entry,
 					 unsigned int queuenum);
+<<<<<<< HEAD
+=======
+	void			(*nf_hook_drop)(struct net *net,
+						struct nf_hook_ops *ops);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 void nf_register_queue_handler(const struct nf_queue_handler *qh);

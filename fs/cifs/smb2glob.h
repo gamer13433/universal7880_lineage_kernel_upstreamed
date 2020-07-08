@@ -61,4 +61,17 @@
 /* Maximum buffer size value we can send with 1 credit */
 #define SMB2_MAX_BUFFER_SIZE 65536
 
+<<<<<<< HEAD
+=======
+/*
+ * Maximum number of credits to keep available.
+ * This value is chosen somewhat arbitrarily. The Windows client
+ * defaults to 128 credits, the Windows server allows clients up to
+ * 512 credits, and the NetApp server does not limit clients at all.
+ * Choose a high enough value such that the client shouldn't limit
+ * performance.
+ */
+#define SMB2_MAX_CREDITS_AVAILABLE 32000
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #endif	/* _SMB2_GLOB_H */

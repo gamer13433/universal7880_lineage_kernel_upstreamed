@@ -22,24 +22,58 @@ static inline void arch_spin_lock(arch_spinlock_t *lock)
 {
 	unsigned int tmp = __ARCH_SPIN_LOCK_LOCKED__;
 
+<<<<<<< HEAD
+=======
+	/*
+	 * This smp_mb() is technically superfluous, we only need the one
+	 * after the lock for providing the ACQUIRE semantics.
+	 * However doing the "right" thing was regressing hackbench
+	 * so keeping this, pending further investigation
+	 */
+	smp_mb();
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	__asm__ __volatile__(
 	"1:	ex  %0, [%1]		\n"
 	"	breq  %0, %2, 1b	\n"
 	: "+&r" (tmp)
 	: "r"(&(lock->slock)), "ir"(__ARCH_SPIN_LOCK_LOCKED__)
 	: "memory");
+<<<<<<< HEAD
+=======
+
+	/*
+	 * ACQUIRE barrier to ensure load/store after taking the lock
+	 * don't "bleed-up" out of the critical section (leak-in is allowed)
+	 * http://www.spinics.net/lists/kernel/msg2010409.html
+	 *
+	 * ARCv2 only has load-load, store-store and all-all barrier
+	 * thus need the full all-all barrier
+	 */
+	smp_mb();
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 static inline int arch_spin_trylock(arch_spinlock_t *lock)
 {
 	unsigned int tmp = __ARCH_SPIN_LOCK_LOCKED__;
 
+<<<<<<< HEAD
+=======
+	smp_mb();
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	__asm__ __volatile__(
 	"1:	ex  %0, [%1]		\n"
 	: "+r" (tmp)
 	: "r"(&(lock->slock))
 	: "memory");
 
+<<<<<<< HEAD
+=======
+	smp_mb();
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return (tmp == __ARCH_SPIN_LOCK_UNLOCKED__);
 }
 
@@ -47,12 +81,28 @@ static inline void arch_spin_unlock(arch_spinlock_t *lock)
 {
 	unsigned int tmp = __ARCH_SPIN_LOCK_UNLOCKED__;
 
+<<<<<<< HEAD
+=======
+	/*
+	 * RELEASE barrier: given the instructions avail on ARCv2, full barrier
+	 * is the only option
+	 */
+	smp_mb();
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	__asm__ __volatile__(
 	"	ex  %0, [%1]		\n"
 	: "+r" (tmp)
 	: "r"(&(lock->slock))
 	: "memory");
 
+<<<<<<< HEAD
+=======
+	/*
+	 * superfluous, but keeping for now - see pairing version in
+	 * arch_spin_lock above
+	 */
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	smp_mb();
 }
 

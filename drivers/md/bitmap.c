@@ -1572,7 +1572,11 @@ void bitmap_flush(struct mddev *mddev)
 /*
  * free memory that was allocated
  */
+<<<<<<< HEAD
 static void bitmap_free(struct bitmap *bitmap)
+=======
+static void md_bitmap_free(struct bitmap *bitmap)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	unsigned long k, pages;
 	struct bitmap_page *bp;
@@ -1616,7 +1620,11 @@ void bitmap_destroy(struct mddev *mddev)
 	if (bitmap->sysfs_can_clear)
 		sysfs_put(bitmap->sysfs_can_clear);
 
+<<<<<<< HEAD
 	bitmap_free(bitmap);
+=======
+	md_bitmap_free(bitmap);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 /*
@@ -1697,7 +1705,11 @@ int bitmap_create(struct mddev *mddev)
 	return test_bit(BITMAP_WRITE_ERROR, &bitmap->flags) ? -EIO : 0;
 
  error:
+<<<<<<< HEAD
 	bitmap_free(bitmap);
+=======
+	md_bitmap_free(bitmap);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return err;
 }
 

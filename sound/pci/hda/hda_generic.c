@@ -5392,7 +5392,12 @@ int snd_hda_gen_init(struct hda_codec *codec)
 	if (spec->init_hook)
 		spec->init_hook(codec);
 
+<<<<<<< HEAD
 	snd_hda_apply_verbs(codec);
+=======
+	if (!spec->skip_verbs)
+		snd_hda_apply_verbs(codec);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	codec->cached_write = 1;
 
@@ -5474,7 +5479,11 @@ int snd_hda_parse_generic_codec(struct hda_codec *codec)
 
 	err = snd_hda_parse_pin_defcfg(codec, &spec->autocfg, NULL, 0);
 	if (err < 0)
+<<<<<<< HEAD
 		return err;
+=======
+		goto error;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	err = snd_hda_gen_parse_auto_config(codec, &spec->autocfg);
 	if (err < 0)

@@ -2256,6 +2256,7 @@ void rtl8821ae_set_qos(struct ieee80211_hw *hw, int aci)
 static void rtl8821ae_clear_interrupt(struct ieee80211_hw *hw)
 {
 	struct rtl_priv *rtlpriv = rtl_priv(hw);
+<<<<<<< HEAD
 	u32 tmp;
 	tmp = rtl_read_dword(rtlpriv, REG_HISR);
 	/*printk("clear interrupt first:\n");
@@ -2268,6 +2269,16 @@ static void rtl8821ae_clear_interrupt(struct ieee80211_hw *hw)
 
 	tmp = rtl_read_dword(rtlpriv, REG_HSISR);
 	/*printk("0x%x = 0x%08x\n",REG_HSISR, tmp);*/
+=======
+	u32 tmp = rtl_read_dword(rtlpriv, REG_HISR);
+
+	rtl_write_dword(rtlpriv, REG_HISR, tmp);
+
+	tmp = rtl_read_dword(rtlpriv, REG_HISRE);
+	rtl_write_dword(rtlpriv, REG_HISRE, tmp);
+
+	tmp = rtl_read_dword(rtlpriv, REG_HSISR);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	rtl_write_dword(rtlpriv, REG_HSISR, tmp);
 }
 
@@ -2276,7 +2287,12 @@ void rtl8821ae_enable_interrupt(struct ieee80211_hw *hw)
 	struct rtl_priv *rtlpriv = rtl_priv(hw);
 	struct rtl_pci *rtlpci = rtl_pcidev(rtl_pcipriv(hw));
 
+<<<<<<< HEAD
 	rtl8821ae_clear_interrupt(hw);/*clear it here first*/
+=======
+	if (rtlpci->int_clear)
+		rtl8821ae_clear_interrupt(hw);/*clear it here first*/
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	rtl_write_dword(rtlpriv, REG_HIMR, rtlpci->irq_mask[0] & 0xFFFFFFFF);
 	rtl_write_dword(rtlpriv, REG_HIMRE, rtlpci->irq_mask[1] & 0xFFFFFFFF);

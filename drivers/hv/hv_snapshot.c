@@ -24,6 +24,11 @@
 #include <linux/workqueue.h>
 #include <linux/hyperv.h>
 
+<<<<<<< HEAD
+=======
+#include "hyperv_vmbus.h"
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #define VSS_MAJOR  5
 #define VSS_MINOR  0
 #define VSS_VERSION    (VSS_MAJOR << 16 | VSS_MINOR)
@@ -259,6 +264,15 @@ hv_vss_init(struct hv_util_service *srv)
 {
 	int err;
 
+<<<<<<< HEAD
+=======
+	if (vmbus_proto_version < VERSION_WIN8_1) {
+		pr_warn("Integration service 'Backup (volume snapshot)'"
+			" not supported on this host version.\n");
+		return -ENOTSUPP;
+	}
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	err = cn_add_callback(&vss_id, vss_name, vss_cn_callback);
 	if (err)
 		return err;

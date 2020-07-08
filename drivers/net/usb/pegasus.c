@@ -285,7 +285,11 @@ static void mdio_write(struct net_device *dev, int phy_id, int loc, int val)
 static int read_eprom_word(pegasus_t *pegasus, __u8 index, __u16 *retdata)
 {
 	int i;
+<<<<<<< HEAD
 	__u8 tmp;
+=======
+	__u8 tmp = 0;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	__le16 retdatai;
 	int ret;
 

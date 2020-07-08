@@ -149,8 +149,15 @@ static int get_task_ioprio(struct task_struct *p)
 	if (ret)
 		goto out;
 	ret = IOPRIO_PRIO_VALUE(IOPRIO_CLASS_NONE, IOPRIO_NORM);
+<<<<<<< HEAD
 	if (p->io_context)
 		ret = p->io_context->ioprio;
+=======
+	task_lock(p);
+	if (p->io_context)
+		ret = p->io_context->ioprio;
+	task_unlock(p);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 out:
 	return ret;
 }

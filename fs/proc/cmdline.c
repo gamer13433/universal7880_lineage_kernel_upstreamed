@@ -2,6 +2,7 @@
 #include <linux/init.h>
 #include <linux/proc_fs.h>
 #include <linux/seq_file.h>
+<<<<<<< HEAD
 #include <asm/setup.h>
 
 static char updated_command_line[COMMAND_LINE_SIZE];
@@ -9,6 +10,12 @@ static char updated_command_line[COMMAND_LINE_SIZE];
 static int cmdline_proc_show(struct seq_file *m, void *v)
 {
 	seq_printf(m, "%s\n", updated_command_line);
+=======
+
+static int cmdline_proc_show(struct seq_file *m, void *v)
+{
+	seq_printf(m, "%s\n", saved_command_line);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return 0;
 }
 
@@ -24,6 +31,7 @@ static const struct file_operations cmdline_proc_fops = {
 	.release	= single_release,
 };
 
+<<<<<<< HEAD
 static void proc_cmdline_set(char *name, char *value)
 {
 	char flag_str[COMMAND_LINE_SIZE];
@@ -50,6 +58,10 @@ static int __init proc_cmdline_init(void)
 	proc_cmdline_set("androidboot.verifiedbootstate", "green");
 	proc_cmdline_set("androidboot.warranty_bit", "0");
 
+=======
+static int __init proc_cmdline_init(void)
+{
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	proc_create("cmdline", 0, NULL, &cmdline_proc_fops);
 	return 0;
 }

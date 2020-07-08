@@ -142,7 +142,11 @@ static inline bool vt_force_oops_output(struct vc_data *vc)
 	return false;
 }
 
+<<<<<<< HEAD
 extern char vt_dont_switch;
+=======
+extern bool vt_dont_switch;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 extern int default_utf8;
 extern int global_cursor_default;
 

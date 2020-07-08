@@ -1711,8 +1711,14 @@ static int exynos_dsi_probe(struct platform_device *pdev)
 	ret = devm_regulator_bulk_get(&pdev->dev, ARRAY_SIZE(dsi->supplies),
 				      dsi->supplies);
 	if (ret) {
+<<<<<<< HEAD
 		dev_info(&pdev->dev, "failed to get regulators: %d\n", ret);
 		return -EPROBE_DEFER;
+=======
+		if (ret != -EPROBE_DEFER)
+			dev_info(&pdev->dev, "failed to get regulators: %d\n", ret);
+		return ret;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 	dsi->pll_clk = devm_clk_get(&pdev->dev, "pll_clk");

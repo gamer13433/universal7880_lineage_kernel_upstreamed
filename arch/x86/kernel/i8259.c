@@ -405,6 +405,10 @@ struct legacy_pic default_legacy_pic = {
 };
 
 struct legacy_pic *legacy_pic = &default_legacy_pic;
+<<<<<<< HEAD
+=======
+EXPORT_SYMBOL(legacy_pic);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 static int __init i8259A_init_ops(void)
 {

@@ -2107,7 +2107,10 @@ static struct eisa_driver de4x5_eisa_driver = {
 		.remove  = de4x5_eisa_remove,
         }
 };
+<<<<<<< HEAD
 MODULE_DEVICE_TABLE(eisa, de4x5_eisa_ids);
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #endif
 
 #ifdef CONFIG_PCI

@@ -263,7 +263,15 @@ static void lp5562_firmware_loaded(struct lp55xx_chip *chip)
 {
 	const struct firmware *fw = chip->fw;
 
+<<<<<<< HEAD
 	if (fw->size > LP5562_PROGRAM_LENGTH) {
+=======
+	/*
+	 * the firmware is encoded in ascii hex character, with 2 chars
+	 * per byte
+	 */
+	if (fw->size > (LP5562_PROGRAM_LENGTH * 2)) {
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		dev_err(&chip->cl->dev, "firmware data size overflow: %zu\n",
 			fw->size);
 		return;

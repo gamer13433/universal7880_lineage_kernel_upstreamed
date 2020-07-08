@@ -282,7 +282,11 @@ static bool is_blacklisted(unsigned int cpu)
 	 */
 	if (c->x86 == 6 &&
 	    c->x86_model == 79 &&
+<<<<<<< HEAD
 	    c->x86_mask == 0x01 &&
+=======
+	    c->x86_stepping == 0x01 &&
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	    llc_size_per_core > 2621440 &&
 	    c->microcode < 0x0b000021) {
 		pr_err_once("Erratum BDF90: late loading with revision < 0x0b000021 (0x%x) disabled.\n", c->microcode);
@@ -305,7 +309,11 @@ static enum ucode_state request_microcode_fw(int cpu, struct device *device,
 		return UCODE_NFOUND;
 
 	sprintf(name, "intel-ucode/%02x-%02x-%02x",
+<<<<<<< HEAD
 		c->x86, c->x86_model, c->x86_mask);
+=======
+		c->x86, c->x86_model, c->x86_stepping);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if (request_firmware_direct(&firmware, name, device)) {
 		pr_debug("data file %s load failed\n", name);

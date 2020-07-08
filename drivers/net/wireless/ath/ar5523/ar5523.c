@@ -255,7 +255,12 @@ static int ar5523_cmd(struct ar5523 *ar, u32 code, const void *idata,
 
 	if (flags & AR5523_CMD_FLAG_MAGIC)
 		hdr->magic = cpu_to_be32(1 << 24);
+<<<<<<< HEAD
 	memcpy(hdr + 1, idata, ilen);
+=======
+	if (ilen)
+		memcpy(hdr + 1, idata, ilen);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	cmd->odata = odata;
 	cmd->olen = olen;

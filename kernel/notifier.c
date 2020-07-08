@@ -5,9 +5,12 @@
 #include <linux/rcupdate.h>
 #include <linux/vmalloc.h>
 #include <linux/reboot.h>
+<<<<<<< HEAD
 #include <linux/suspend.h>
 #include <linux/exynos-ss.h>
 #include <trace/events/power.h>
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /*
  *	Notifier list for kernel code which wants to be called
@@ -93,6 +96,7 @@ static int notifier_call_chain(struct notifier_block **nl,
 			continue;
 		}
 #endif
+<<<<<<< HEAD
 		if (val == PM_SUSPEND_PREPARE || val == PM_POST_SUSPEND) {
 			exynos_ss_suspend(nb->notifier_call, NULL, ESS_FLAG_IN);
 			trace_notifier_pm_suspend(nb, val);
@@ -102,6 +106,9 @@ static int notifier_call_chain(struct notifier_block **nl,
 			exynos_ss_suspend(nb->notifier_call, NULL, ESS_FLAG_OUT);
 			trace_notifier_pm_suspend(nb, val);
 		}
+=======
+		ret = nb->notifier_call(nb, val, v);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 		if (nr_calls)
 			(*nr_calls)++;
@@ -558,7 +565,11 @@ NOKPROBE_SYMBOL(notify_die);
 
 int register_die_notifier(struct notifier_block *nb)
 {
+<<<<<<< HEAD
 	vmalloc_sync_all();
+=======
+	vmalloc_sync_mappings();
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return atomic_notifier_chain_register(&die_chain, nb);
 }
 EXPORT_SYMBOL_GPL(register_die_notifier);

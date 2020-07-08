@@ -289,7 +289,11 @@ static int ocfs2_info_scan_inode_alloc(struct ocfs2_super *osb,
 	if (inode_alloc)
 		mutex_lock(&inode_alloc->i_mutex);
 
+<<<<<<< HEAD
 	if (o2info_coherent(&fi->ifi_req)) {
+=======
+	if (inode_alloc && o2info_coherent(&fi->ifi_req)) {
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		status = ocfs2_inode_lock(inode_alloc, &bh, 0);
 		if (status < 0) {
 			mlog_errno(status);

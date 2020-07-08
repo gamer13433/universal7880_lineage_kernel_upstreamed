@@ -54,6 +54,10 @@
 #define PVR2_CVAL_INPUT_COMPOSITE 2
 #define PVR2_CVAL_INPUT_SVIDEO 3
 #define PVR2_CVAL_INPUT_RADIO 4
+<<<<<<< HEAD
+=======
+#define PVR2_CVAL_INPUT_MAX PVR2_CVAL_INPUT_RADIO
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 enum pvr2_config {
 	pvr2_config_empty,    /* No configuration */

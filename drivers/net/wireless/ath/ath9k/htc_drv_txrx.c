@@ -979,6 +979,11 @@ static bool ath9k_rx_prepare(struct ath9k_htc_priv *priv,
 	struct ath_htc_rx_status *rxstatus;
 	struct ath_rx_status rx_stats;
 	bool decrypt_error = false;
+<<<<<<< HEAD
+=======
+	__be16 rs_datalen;
+	bool is_phyerr;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if (skb->len < HTC_RX_FRAME_HEADER_SIZE) {
 		ath_err(common, "Corrupted RX frame, dropping (len: %d)\n",
@@ -988,11 +993,32 @@ static bool ath9k_rx_prepare(struct ath9k_htc_priv *priv,
 
 	rxstatus = (struct ath_htc_rx_status *)skb->data;
 
+<<<<<<< HEAD
 	if (be16_to_cpu(rxstatus->rs_datalen) -
 	    (skb->len - HTC_RX_FRAME_HEADER_SIZE) != 0) {
 		ath_err(common,
 			"Corrupted RX data len, dropping (dlen: %d, skblen: %d)\n",
 			rxstatus->rs_datalen, skb->len);
+=======
+	rs_datalen = be16_to_cpu(rxstatus->rs_datalen);
+	if (unlikely(rs_datalen -
+	    (skb->len - HTC_RX_FRAME_HEADER_SIZE) != 0)) {
+		ath_err(common,
+			"Corrupted RX data len, dropping (dlen: %d, skblen: %d)\n",
+			rs_datalen, skb->len);
+		goto rx_next;
+	}
+
+	is_phyerr = rxstatus->rs_status & ATH9K_RXERR_PHY;
+	/*
+	 * Discard zero-length packets and packets smaller than an ACK
+	 * which are not PHY_ERROR (short radar pulses have a length of 3)
+	 */
+	if (unlikely(!rs_datalen || (rs_datalen < 10 && !is_phyerr))) {
+		ath_dbg(common, ANY,
+			"Short RX data len, dropping (dlen: %d)\n",
+			rs_datalen);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		goto rx_next;
 	}
 

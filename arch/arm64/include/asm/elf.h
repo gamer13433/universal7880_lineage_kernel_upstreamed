@@ -137,6 +137,10 @@ extern unsigned long randomize_et_dyn(unsigned long base);
 
 #define SET_PERSONALITY(ex)		clear_thread_flag(TIF_32BIT);
 
+<<<<<<< HEAD
+=======
+/* update AT_VECTOR_SIZE_ARCH if the number of NEW_AUX_ENT entries changes */
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #define ARCH_DLINFO							\
 do {									\
 	NEW_AUX_ENT(AT_SYSINFO_EHDR,					\
@@ -161,14 +165,22 @@ struct mm_struct;
 extern unsigned long arch_randomize_brk(struct mm_struct *mm);
 #define arch_randomize_brk arch_randomize_brk
 
+<<<<<<< HEAD
 #ifdef CONFIG_COMPAT
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #ifdef __AARCH64EB__
 #define COMPAT_ELF_PLATFORM		("v8b")
 #else
 #define COMPAT_ELF_PLATFORM		("v8l")
 #endif
 
+<<<<<<< HEAD
+=======
+#ifdef CONFIG_COMPAT
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #define COMPAT_ELF_ET_DYN_BASE		(2 * TASK_SIZE_32 / 3)
 
 /* AArch32 registers. */

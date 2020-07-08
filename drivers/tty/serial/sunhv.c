@@ -391,7 +391,11 @@ static struct uart_ops sunhv_pops = {
 static struct uart_driver sunhv_reg = {
 	.owner			= THIS_MODULE,
 	.driver_name		= "sunhv",
+<<<<<<< HEAD
 	.dev_name		= "ttyS",
+=======
+	.dev_name		= "ttyHV",
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	.major			= TTY_MAJOR,
 };
 

@@ -1,5 +1,9 @@
 config WIRELESS_EXT
+<<<<<<< HEAD
 	def_bool y
+=======
+	bool
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 config WEXT_CORE
 	def_bool y
@@ -14,7 +18,11 @@ config WEXT_SPY
 	bool
 
 config WEXT_PRIV
+<<<<<<< HEAD
 	def_bool y
+=======
+	bool
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 config CFG80211
 	tristate "cfg80211 - wireless configuration API"
@@ -182,10 +190,13 @@ config CFG80211_WEXT
 	  Enable this option if you need old userspace for wireless
 	  extensions with cfg80211-based drivers.
 
+<<<<<<< HEAD
 config CONFIG_WLAN_SEC_REGULATORY_POLICY
 	bool "whether to use the db.txt_old or not"
 	default n 
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 config LIB80211
 	tristate
 	default n

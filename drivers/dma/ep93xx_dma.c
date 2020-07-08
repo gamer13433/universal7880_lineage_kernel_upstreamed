@@ -1094,7 +1094,10 @@ fail:
  * @period_len: length of a single period
  * @dir: direction of the operation
  * @flags: tx descriptor status flags
+<<<<<<< HEAD
  * @context: operation context (ignored)
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
  *
  * Prepares a descriptor for cyclic DMA operation. This means that once the
  * descriptor is submitted, we will be submitting in a @period_len sized
@@ -1107,8 +1110,12 @@ fail:
 static struct dma_async_tx_descriptor *
 ep93xx_dma_prep_dma_cyclic(struct dma_chan *chan, dma_addr_t dma_addr,
 			   size_t buf_len, size_t period_len,
+<<<<<<< HEAD
 			   enum dma_transfer_direction dir, unsigned long flags,
 			   void *context)
+=======
+			   enum dma_transfer_direction dir, unsigned long flags)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	struct ep93xx_dma_chan *edmac = to_ep93xx_dma_chan(chan);
 	struct ep93xx_dma_desc *desc, *first;

@@ -1399,8 +1399,14 @@ il3945_dump_nic_error_log(struct il_priv *il)
 }
 
 static void
+<<<<<<< HEAD
 il3945_irq_tasklet(struct il_priv *il)
 {
+=======
+il3945_irq_tasklet(unsigned long data)
+{
+	struct il_priv *il = (struct il_priv *)data;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	u32 inta, handled = 0;
 	u32 inta_fh;
 	unsigned long flags;
@@ -3434,7 +3440,11 @@ il3945_setup_deferred_work(struct il_priv *il)
 	il->watchdog.function = il_bg_watchdog;
 
 	tasklet_init(&il->irq_tasklet,
+<<<<<<< HEAD
 		     (void (*)(unsigned long))il3945_irq_tasklet,
+=======
+		     il3945_irq_tasklet,
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		     (unsigned long)il);
 }
 

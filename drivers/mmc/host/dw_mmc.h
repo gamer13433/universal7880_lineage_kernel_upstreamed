@@ -14,6 +14,7 @@
 #ifndef _DW_MMC_H_
 #define _DW_MMC_H_
 
+<<<<<<< HEAD
 #define DW_MMC_MAX_TRANSFER_SIZE	4096
 #define DW_MMC_SECTOR_SIZE		512
 
@@ -26,6 +27,9 @@
 
 #define DW_MMC_240A		0x240a
 #define DW_MMC_260A		0x260a
+=======
+#define DW_MMC_240A		0x240a
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #define SDMMC_CTRL		0x000
 #define SDMMC_PWREN		0x004
@@ -64,9 +68,13 @@
 #define SDMMC_IDINTEN		0x090
 #define SDMMC_DSCADDR		0x094
 #define SDMMC_BUFADDR		0x098
+<<<<<<< HEAD
 #define SDMMC_RESP_TAT		0x0AC
 #define SDMMC_CDTHRCTL		0x100
 #define SDMMC_EMMC_DDR_REG	0x10C
+=======
+#define SDMMC_CDTHRCTL		0x100
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #define SDMMC_DATA(x)		(x)
 
 /*
@@ -150,9 +158,12 @@
 #define SDMMC_SET_FIFOTH(m, r, t)	(((m) & 0x7) << 28 | \
 					 ((r) & 0xFFF) << 16 | \
 					 ((t) & 0xFFF))
+<<<<<<< HEAD
 
 #define SDMMC_FIFOTH_DMA_MULTI_TRANS_SIZE	28
 #define SDMMC_FIFOTH_RX_WMARK		16
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /* Internal DMAC interrupt defines */
 #define SDMMC_IDMAC_INT_AI		BIT(9)
 #define SDMMC_IDMAC_INT_NI		BIT(8)
@@ -180,9 +191,12 @@
 #define mci_writel(dev, reg, value)			\
 	__raw_writel((value), (dev)->regs + SDMMC_##reg)
 
+<<<<<<< HEAD
 /* timeout */
 #define dw_mci_set_timeout(host, value)	mci_writel(host, TMOUT, value)
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /* 16-bit FIFO access macros */
 #define mci_readw(dev, reg)			\
 	__raw_readw((dev)->regs + SDMMC_##reg)
@@ -191,6 +205,7 @@
 
 /* 64-bit FIFO access macros */
 #ifdef readq
+<<<<<<< HEAD
 #ifdef CONFIG_MMC_DW_FORCE_32BIT_SFR_RW
 #define mci_readq(dev, reg) ({\
 		u64 __ret = 0;\
@@ -205,11 +220,16 @@
 		__raw_writel(*ptr, (dev)->regs + SDMMC_##reg + 0x4);\
 	})
 #else
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #define mci_readq(dev, reg)			\
 	__raw_readq((dev)->regs + SDMMC_##reg)
 #define mci_writeq(dev, reg, value)			\
 	__raw_writeq((value), (dev)->regs + SDMMC_##reg)
+<<<<<<< HEAD
 #endif /* CONFIG_MMC_DW_FORCE_32BIT_SFR_RW */
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #else
 /*
  * Dummy readq implementation for architectures that don't define it.
@@ -225,6 +245,7 @@
 	(*(volatile u64 __force *)((dev)->regs + SDMMC_##reg) = (value))
 #endif
 
+<<<<<<< HEAD
 /*
  * platform-dependent miscellaneous control
  *
@@ -254,6 +275,8 @@ enum dw_mci_misc_control {
 
 extern u32 dw_mci_calc_timeout(struct dw_mci *host);
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 extern int dw_mci_probe(struct dw_mci *host);
 extern void dw_mci_remove(struct dw_mci *host);
 #ifdef CONFIG_PM_SLEEP
@@ -300,6 +323,7 @@ struct dw_mci_slot {
 	int			last_detect_state;
 };
 
+<<<<<<< HEAD
 /**
  * struct dw_mci_debug_data - DwMMC debugging infomation
  * @host_count: a number of all hosts
@@ -381,6 +405,8 @@ struct dw_mci_debug_data {
 	struct dw_mci_debug_info	debug_info[DWMCI_DBG_NUM_INFO];
 };
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 struct dw_mci_tuning_data {
 	const u8 *blk_pattern;
 	unsigned int blksz;
@@ -395,7 +421,10 @@ struct dw_mci_tuning_data {
  * @set_ios: handle bus specific extensions.
  * @parse_dt: parse implementation specific device tree properties.
  * @execute_tuning: implementation specific tuning procedure.
+<<<<<<< HEAD
  * @cfg_smu: to configure security management unit
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
  *
  * Provide controller implementation specific extensions. The usage of this
  * data structure is fully optional and usage of each member in this structure
@@ -410,6 +439,7 @@ struct dw_mci_drv_data {
 	int		(*parse_dt)(struct dw_mci *host);
 	int		(*execute_tuning)(struct dw_mci_slot *slot, u32 opcode,
 					struct dw_mci_tuning_data *tuning_data);
+<<<<<<< HEAD
 	void            (*cfg_smu)(struct dw_mci *host);
 	int             (*misc_control)(struct dw_mci *host,
 				enum dw_mci_misc_control control, void *priv);
@@ -471,5 +501,7 @@ struct dw_mci_sfe_ram_dump {
 	u32			data_3_state;
 	u32			fifo_tx_watermark;
 	u32			fifo_rx_watermark;
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 #endif /* _DW_MMC_H_ */

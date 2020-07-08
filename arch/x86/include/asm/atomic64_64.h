@@ -44,7 +44,11 @@ static inline void atomic64_add(long i, atomic64_t *v)
 {
 	asm volatile(LOCK_PREFIX "addq %1,%0"
 		     : "=m" (v->counter)
+<<<<<<< HEAD
 		     : "er" (i), "m" (v->counter));
+=======
+		     : "er" (i), "m" (v->counter) : "memory");
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 /**
@@ -58,7 +62,11 @@ static inline void atomic64_sub(long i, atomic64_t *v)
 {
 	asm volatile(LOCK_PREFIX "subq %1,%0"
 		     : "=m" (v->counter)
+<<<<<<< HEAD
 		     : "er" (i), "m" (v->counter));
+=======
+		     : "er" (i), "m" (v->counter) : "memory");
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 /**
@@ -85,7 +93,11 @@ static inline void atomic64_inc(atomic64_t *v)
 {
 	asm volatile(LOCK_PREFIX "incq %0"
 		     : "=m" (v->counter)
+<<<<<<< HEAD
 		     : "m" (v->counter));
+=======
+		     : "m" (v->counter) : "memory");
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 /**
@@ -98,7 +110,11 @@ static inline void atomic64_dec(atomic64_t *v)
 {
 	asm volatile(LOCK_PREFIX "decq %0"
 		     : "=m" (v->counter)
+<<<<<<< HEAD
 		     : "m" (v->counter));
+=======
+		     : "m" (v->counter) : "memory");
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 /**

@@ -17,7 +17,10 @@
 #include <linux/jbd2.h>
 #include <linux/quotaops.h>
 #include <linux/buffer_head.h>
+<<<<<<< HEAD
 #include <linux/android_aid.h>
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #include "ext4.h"
 #include "ext4_jbd2.h"
 #include "mballoc.h"
@@ -281,6 +284,10 @@ struct ext4_group_desc * ext4_get_group_desc(struct super_block *sb,
 	ext4_group_t ngroups = ext4_get_groups_count(sb);
 	struct ext4_group_desc *desc;
 	struct ext4_sb_info *sbi = EXT4_SB(sb);
+<<<<<<< HEAD
+=======
+	struct buffer_head *bh_p;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if (block_group >= ngroups) {
 		ext4_error(sb, "block_group >= groups_count - block_group = %u,"
@@ -291,7 +298,18 @@ struct ext4_group_desc * ext4_get_group_desc(struct super_block *sb,
 
 	group_desc = block_group >> EXT4_DESC_PER_BLOCK_BITS(sb);
 	offset = block_group & (EXT4_DESC_PER_BLOCK(sb) - 1);
+<<<<<<< HEAD
 	if (!sbi->s_group_desc[group_desc]) {
+=======
+	bh_p = sbi_array_rcu_deref(sbi, s_group_desc, group_desc);
+	/*
+	 * sbi_array_rcu_deref returns with rcu unlocked, this is ok since
+	 * the pointer being dereferenced won't be dereferenced again. By
+	 * looking at the usage in add_new_gdb() the value isn't modified,
+	 * just the pointer, and so it remains valid.
+	 */
+	if (!bh_p) {
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		ext4_error(sb, "Group descriptor not loaded - "
 			   "block_group = %u, group_desc = %u, desc = %u",
 			   block_group, group_desc, offset);
@@ -299,10 +317,17 @@ struct ext4_group_desc * ext4_get_group_desc(struct super_block *sb,
 	}
 
 	desc = (struct ext4_group_desc *)(
+<<<<<<< HEAD
 		(__u8 *)sbi->s_group_desc[group_desc]->b_data +
 		offset * EXT4_DESC_SIZE(sb));
 	if (bh)
 		*bh = sbi->s_group_desc[group_desc];
+=======
+		(__u8 *)bh_p->b_data +
+		offset * EXT4_DESC_SIZE(sb));
+	if (bh)
+		*bh = bh_p;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return desc;
 }
 
@@ -549,7 +574,11 @@ ext4_read_block_bitmap(struct super_block *sb, ext4_group_t block_group)
 static int ext4_has_free_clusters(struct ext4_sb_info *sbi,
 				  s64 nclusters, unsigned int flags)
 {
+<<<<<<< HEAD
 	s64 free_clusters, dirty_clusters, rsv, resv_clusters, sec_rsv;
+=======
+	s64 free_clusters, dirty_clusters, rsv, resv_clusters;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	struct percpu_counter *fcc = &sbi->s_freeclusters_counter;
 	struct percpu_counter *dcc = &sbi->s_dirtyclusters_counter;
 
@@ -561,12 +590,19 @@ static int ext4_has_free_clusters(struct ext4_sb_info *sbi,
 	 * r_blocks_count should always be multiple of the cluster ratio so
 	 * we are safe to do a plane bit shift only.
 	 */
+<<<<<<< HEAD
 	rsv = (atomic64_read(&sbi->s_r_blocks_count) >> sbi->s_cluster_bits) +
 	      resv_clusters;
 	sec_rsv = (ext4_sec_r_blocks_count(sbi->s_es) >> sbi->s_cluster_bits) +
 		rsv;
 
 	if (free_clusters - (nclusters + sec_rsv + dirty_clusters) <
+=======
+	rsv = (ext4_r_blocks_count(sbi->s_es) >> sbi->s_cluster_bits) +
+	      resv_clusters;
+
+	if (free_clusters - (nclusters + rsv + dirty_clusters) <
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 					EXT4_FREECLUSTERS_WATERMARK) {
 		free_clusters  = percpu_counter_sum_positive(fcc);
 		dirty_clusters = percpu_counter_sum_positive(dcc);
@@ -574,6 +610,7 @@ static int ext4_has_free_clusters(struct ext4_sb_info *sbi,
 	/* Check whether we have space after accounting for current
 	 * dirty clusters & root reserved clusters.
 	 */
+<<<<<<< HEAD
 	if (free_clusters >= (sec_rsv + nclusters + dirty_clusters))
 		return 1;
 
@@ -587,6 +624,15 @@ static int ext4_has_free_clusters(struct ext4_sb_info *sbi,
 	if (uid_eq(sbi->s_resuid, current_fsuid()) ||
 	    (!gid_eq(sbi->s_resgid, GLOBAL_ROOT_GID) && in_group_p(sbi->s_resgid)) ||
 	    capable(CAP_SYS_RESOURCE) || in_group_p(AID_USE_ROOT_RESERVED) ||
+=======
+	if (free_clusters >= (rsv + nclusters + dirty_clusters))
+		return 1;
+
+	/* Hm, nope.  Are (enough) root reserved clusters available? */
+	if (uid_eq(sbi->s_resuid, current_fsuid()) ||
+	    (!gid_eq(sbi->s_resgid, GLOBAL_ROOT_GID) && in_group_p(sbi->s_resgid)) ||
+	    capable(CAP_SYS_RESOURCE) ||
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	    (flags & EXT4_MB_USE_ROOT_BLOCKS)) {
 
 		if (free_clusters >= (nclusters + dirty_clusters +

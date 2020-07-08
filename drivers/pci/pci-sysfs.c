@@ -362,7 +362,11 @@ static ssize_t remove_store(struct device *dev, struct device_attribute *attr,
 		pci_stop_and_remove_bus_device_locked(to_pci_dev(dev));
 	return count;
 }
+<<<<<<< HEAD
 static struct device_attribute dev_remove_attr = __ATTR(remove,
+=======
+static struct device_attribute dev_remove_attr = __ATTR_IGNORE_LOCKDEP(remove,
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 							(S_IWUSR|S_IWGRP),
 							NULL, remove_store);
 
@@ -518,7 +522,12 @@ static ssize_t driver_override_store(struct device *dev,
 	struct pci_dev *pdev = to_pci_dev(dev);
 	char *driver_override, *old, *cp;
 
+<<<<<<< HEAD
 	if (count > PATH_MAX)
+=======
+	/* We need to keep extra room for a newline */
+	if (count >= (PAGE_SIZE - 1))
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		return -EINVAL;
 
 	driver_override = kstrndup(buf, count, GFP_KERNEL);
@@ -549,9 +558,15 @@ static ssize_t driver_override_show(struct device *dev,
 {
 	struct pci_dev *pdev = to_pci_dev(dev);
 	ssize_t len;
+<<<<<<< HEAD
 	
 	device_lock(dev);
 	len = sprintf(buf, "%s\n", pdev->driver_override);
+=======
+
+	device_lock(dev);
+	len = snprintf(buf, PAGE_SIZE, "%s\n", pdev->driver_override);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	device_unlock(dev);
 	return len;
 }
@@ -1017,6 +1032,12 @@ static int pci_mmap_resource(struct kobject *kobj, struct bin_attribute *attr,
 	if (i >= PCI_ROM_RESOURCE)
 		return -ENODEV;
 
+<<<<<<< HEAD
+=======
+	if (res->flags & IORESOURCE_MEM && iomem_is_exclusive(res->start))
+		return -EINVAL;
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (!pci_mmap_fits(pdev, i, vma, PCI_MMAP_SYSFS)) {
 		WARN(1, "process \"%s\" tried to map 0x%08lx bytes at page 0x%08lx on %s BAR %d (start 0x%16Lx, size 0x%16Lx)\n",
 			current->comm, vma->vm_end-vma->vm_start, vma->vm_pgoff,
@@ -1033,10 +1054,13 @@ static int pci_mmap_resource(struct kobject *kobj, struct bin_attribute *attr,
 	pci_resource_to_user(pdev, i, res, &start, &end);
 	vma->vm_pgoff += start >> PAGE_SHIFT;
 	mmap_type = res->flags & IORESOURCE_MEM ? pci_mmap_mem : pci_mmap_io;
+<<<<<<< HEAD
 
 	if (res->flags & IORESOURCE_MEM && iomem_is_exclusive(start))
 		return -EINVAL;
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return pci_mmap_page_range(pdev, vma, mmap_type, write_combine);
 }
 

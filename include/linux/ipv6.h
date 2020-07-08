@@ -306,13 +306,19 @@ static inline struct ipv6_pinfo * inet6_sk(const struct sock *__sk)
 	return NULL;
 }
 
+<<<<<<< HEAD
 #ifndef CONFIG_MPTCP
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static inline struct inet6_request_sock *
 			inet6_rsk(const struct request_sock *rsk)
 {
 	return NULL;
 }
+<<<<<<< HEAD
 #endif
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 static inline struct raw6_sock *raw6_sk(const struct sock *sk)
 {

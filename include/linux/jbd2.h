@@ -1036,7 +1036,11 @@ struct buffer_head *jbd2_journal_get_descriptor_buffer(journal_t *journal);
 int jbd2_journal_next_log_block(journal_t *, unsigned long long *);
 int jbd2_journal_get_log_tail(journal_t *journal, tid_t *tid,
 			      unsigned long *block);
+<<<<<<< HEAD
 void __jbd2_update_log_tail(journal_t *journal, tid_t tid, unsigned long block);
+=======
+int __jbd2_update_log_tail(journal_t *journal, tid_t tid, unsigned long block);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 void jbd2_update_log_tail(journal_t *journal, tid_t tid, unsigned long block);
 
 /* Commit management */
@@ -1159,7 +1163,11 @@ extern int	   jbd2_journal_recover    (journal_t *journal);
 extern int	   jbd2_journal_wipe       (journal_t *, int);
 extern int	   jbd2_journal_skip_recovery	(journal_t *);
 extern void	   jbd2_journal_update_sb_errno(journal_t *);
+<<<<<<< HEAD
 extern void	   jbd2_journal_update_sb_log_tail	(journal_t *, tid_t,
+=======
+extern int	   jbd2_journal_update_sb_log_tail	(journal_t *, tid_t,
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 				unsigned long, int);
 extern void	   __jbd2_journal_abort_hard	(journal_t *);
 extern void	   jbd2_journal_abort      (journal_t *, int);
@@ -1340,7 +1348,11 @@ static inline int jbd2_space_needed(journal_t *journal)
 static inline unsigned long jbd2_log_space_left(journal_t *journal)
 {
 	/* Allow for rounding errors */
+<<<<<<< HEAD
 	unsigned long free = journal->j_free - 32;
+=======
+	long free = journal->j_free - 32;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if (journal->j_committing_transaction) {
 		unsigned long committing = atomic_read(&journal->
@@ -1349,7 +1361,11 @@ static inline unsigned long jbd2_log_space_left(journal_t *journal)
 		/* Transaction + control blocks */
 		free -= committing + (committing >> JBD2_CONTROL_BLOCKS_SHIFT);
 	}
+<<<<<<< HEAD
 	return free;
+=======
+	return max_t(long, free, 0);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 /*

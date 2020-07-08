@@ -141,8 +141,11 @@ int rtl8821ae_init_sw_vars(struct ieee80211_hw *hw)
 	struct rtl_hal *rtlhal = rtl_hal(rtl_priv(hw));
 
 	rtl8821ae_bt_reg_init(hw);
+<<<<<<< HEAD
 	rtlpci->msi_support = rtlpriv->cfg->mod_params->msi_support;
 	rtlpci->int_clear = rtlpriv->cfg->mod_params->int_clear;
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	rtlpriv->btcoexist.btc_ops = rtl_btc_get_ops_pointer();
 
 	rtlpriv->dm.dm_initialgain_enable = 1;
@@ -214,12 +217,23 @@ int rtl8821ae_init_sw_vars(struct ieee80211_hw *hw)
 	rtlpriv->psc.swctrl_lps = rtlpriv->cfg->mod_params->swctrl_lps;
 	rtlpriv->psc.fwctrl_lps = rtlpriv->cfg->mod_params->fwctrl_lps;
 	rtlpci->msi_support = rtlpriv->cfg->mod_params->msi_support;
+<<<<<<< HEAD
 	rtlpci->msi_support = rtlpriv->cfg->mod_params->int_clear;
+=======
+	rtlpci->int_clear = rtlpriv->cfg->mod_params->int_clear;
+	rtlpriv->cfg->mod_params->sw_crypto =
+		rtlpriv->cfg->mod_params->sw_crypto;
+	rtlpriv->cfg->mod_params->disable_watchdog =
+		rtlpriv->cfg->mod_params->disable_watchdog;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (rtlpriv->cfg->mod_params->disable_watchdog)
 		pr_info("watchdog disabled\n");
 	rtlpriv->psc.reg_fwctrl_lps = 3;
 	rtlpriv->psc.reg_max_lps_awakeintvl = 5;
+<<<<<<< HEAD
 	rtlpci->msi_support = rtlpriv->cfg->mod_params->msi_support;
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	/* for ASPM, you can close aspm through
 	 * set const_support_pciaspm = 0

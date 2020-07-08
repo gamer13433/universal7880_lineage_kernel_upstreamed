@@ -12,15 +12,21 @@
 #include <linux/list.h>
 #include <linux/spinlock.h>
 
+<<<<<<< HEAD
 #define BINARY_SEMAPHORE_OWNER_INIT	((void *)-1L)
 #define NON_POSSESSIVE			(NULL)
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /* Please don't access any members of this structure directly */
 struct semaphore {
 	raw_spinlock_t		lock;
 	unsigned int		count;
 	struct list_head	wait_list;
+<<<<<<< HEAD
 	struct task_struct 	*b_sem_owner;
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 #define __SEMAPHORE_INITIALIZER(name, n)				\
@@ -28,7 +34,10 @@ struct semaphore {
 	.lock		= __RAW_SPIN_LOCK_UNLOCKED((name).lock),	\
 	.count		= n,						\
 	.wait_list	= LIST_HEAD_INIT((name).wait_list),		\
+<<<<<<< HEAD
 	.b_sem_owner	= BINARY_SEMAPHORE_OWNER_INIT,			\
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 #define DEFINE_SEMAPHORE(name)	\

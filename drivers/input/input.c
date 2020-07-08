@@ -29,10 +29,13 @@
 #include <linux/rcupdate.h>
 #include "input-compat.h"
 
+<<<<<<< HEAD
 #if !defined(CONFIG_INPUT_BOOSTER) // Input Booster +
 #include <linux/input/input.h>
 #endif // Input Booster -
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 MODULE_AUTHOR("Vojtech Pavlik <vojtech@suse.cz>");
 MODULE_DESCRIPTION("Input core");
 MODULE_LICENSE("GPL");
@@ -407,6 +410,7 @@ static void input_handle_event(struct input_dev *dev,
 
 }
 
+<<<<<<< HEAD
 
 #if !defined(CONFIG_INPUT_BOOSTER) // Input Booster +
 // ********** Define Timeout Functions ********** //
@@ -815,6 +819,8 @@ void input_booster_init()
 }
 #endif  // Input Booster -
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /**
  * input_event() - report new input event
  * @dev: device that generated the event
@@ -836,13 +842,17 @@ void input_event(struct input_dev *dev,
 		 unsigned int type, unsigned int code, int value)
 {
 	unsigned long flags;
+<<<<<<< HEAD
 	int idx;
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if (is_event_supported(type, dev->evbit, EV_MAX)) {
 
 		spin_lock_irqsave(&dev->event_lock, flags);
 		input_handle_event(dev, type, code, value);
 		spin_unlock_irqrestore(&dev->event_lock, flags);
+<<<<<<< HEAD
 
 #if !defined(CONFIG_INPUT_BOOSTER) // Input Booster +
 		if(device_tree_infor != NULL) {
@@ -864,6 +874,8 @@ void input_event(struct input_dev *dev,
 			}
 		}
 #endif  // Input Booster -
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 }
 EXPORT_SYMBOL(input_event);
@@ -1028,6 +1040,7 @@ int input_open_device(struct input_handle *handle)
 
 	handle->open++;
 
+<<<<<<< HEAD
 	dev->users_private++;
 	if (!dev->disabled && !dev->users++ && dev->open)
 		retval = dev->open(dev);
@@ -1036,6 +1049,13 @@ int input_open_device(struct input_handle *handle)
 		dev->users_private--;
 		if (!dev->disabled)
 			dev->users--;
+=======
+	if (!dev->users++ && dev->open)
+		retval = dev->open(dev);
+
+	if (retval) {
+		dev->users--;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		if (!--handle->open) {
 			/*
 			 * Make sure we are not delivering any more events
@@ -1083,8 +1103,12 @@ void input_close_device(struct input_handle *handle)
 
 	__input_release_device(handle);
 
+<<<<<<< HEAD
 	--dev->users_private;
 	if (!dev->disabled && !--dev->users && dev->close)
+=======
+	if (!--dev->users && dev->close)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		dev->close(dev);
 
 	if (!--handle->open) {
@@ -1100,6 +1124,7 @@ void input_close_device(struct input_handle *handle)
 }
 EXPORT_SYMBOL(input_close_device);
 
+<<<<<<< HEAD
 static int input_enable_device(struct input_dev *dev)
 {
 	int retval;
@@ -1144,14 +1169,21 @@ static int input_disable_device(struct input_dev *dev)
 	return 0;
 }
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /*
  * Simulate keyup events for all keys that are marked as pressed.
  * The function must be called with dev->event_lock held.
  */
 static void input_dev_release_keys(struct input_dev *dev)
 {
+<<<<<<< HEAD
 	int code;
 	bool need_sync = false;
+=======
+	bool need_sync = false;
+	int code;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if (is_event_supported(EV_KEY, dev->evbit, EV_MAX)) {
 		for (code = 0; code <= KEY_MAX; code++) {
@@ -1327,6 +1359,7 @@ static int input_default_setkeycode(struct input_dev *dev,
 		}
 	}
 
+<<<<<<< HEAD
 	__clear_bit(*old_keycode, dev->keybit);
 	__set_bit(ke->keycode, dev->keybit);
 
@@ -1337,6 +1370,20 @@ static int input_default_setkeycode(struct input_dev *dev,
 		}
 	}
 
+=======
+	if (*old_keycode <= KEY_MAX) {
+		__clear_bit(*old_keycode, dev->keybit);
+		for (i = 0; i < dev->keycodemax; i++) {
+			if (input_fetch_keycode(dev, i) == *old_keycode) {
+				__set_bit(*old_keycode, dev->keybit);
+				/* Setting the bit twice is useless, so break */
+				break;
+			}
+		}
+	}
+
+	__set_bit(ke->keycode, dev->keybit);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return 0;
 }
 
@@ -1392,9 +1439,19 @@ int input_set_keycode(struct input_dev *dev,
 	 * Simulate keyup event if keycode is not present
 	 * in the keymap anymore
 	 */
+<<<<<<< HEAD
 	if (test_bit(EV_KEY, dev->evbit) &&
 	    !is_event_supported(old_keycode, dev->keybit, KEY_MAX) &&
 	    __test_and_clear_bit(old_keycode, dev->key)) {
+=======
+	if (old_keycode > KEY_MAX) {
+		dev_warn(dev->dev.parent ?: &dev->dev,
+			 "%s: got too big old keycode %#x\n",
+			 __func__, old_keycode);
+	} else if (test_bit(EV_KEY, dev->evbit) &&
+		   !is_event_supported(old_keycode, dev->keybit, KEY_MAX) &&
+		   __test_and_clear_bit(old_keycode, dev->key)) {
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		struct input_value vals[] =  {
 			{ EV_KEY, old_keycode, 0 },
 			input_value_sync
@@ -1866,6 +1923,7 @@ static ssize_t input_dev_show_properties(struct device *dev,
 }
 static DEVICE_ATTR(properties, S_IRUGO, input_dev_show_properties, NULL);
 
+<<<<<<< HEAD
 static ssize_t input_dev_show_enabled(struct device *dev,
 					 struct device_attribute *attr,
 					 char *buf)
@@ -1899,13 +1957,18 @@ static ssize_t input_dev_store_enabled(struct device *dev,
 static DEVICE_ATTR(enabled, S_IRUGO | S_IWUSR,
 		   input_dev_show_enabled, input_dev_store_enabled);
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static struct attribute *input_dev_attrs[] = {
 	&dev_attr_name.attr,
 	&dev_attr_phys.attr,
 	&dev_attr_uniq.attr,
 	&dev_attr_modalias.attr,
 	&dev_attr_properties.attr,
+<<<<<<< HEAD
 	&dev_attr_enabled.attr,
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	NULL
 };
 
@@ -2188,7 +2251,11 @@ void input_reset_device(struct input_dev *dev)
 }
 EXPORT_SYMBOL(input_reset_device);
 
+<<<<<<< HEAD
 #ifdef CONFIG_PM
+=======
+#ifdef CONFIG_PM_SLEEP
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static int input_dev_suspend(struct device *dev)
 {
 	struct input_dev *input_dev = to_input_dev(dev);
@@ -2199,9 +2266,13 @@ static int input_dev_suspend(struct device *dev)
 	 * Keys that are pressed now are unlikely to be
 	 * still pressed when we resume.
 	 */
+<<<<<<< HEAD
 #ifndef CONFIG_TOUCHKEY_GRIP
 	input_dev_release_keys(input_dev);
 #endif
+=======
+	input_dev_release_keys(input_dev);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	/* Turn off LEDs and sounds, if any are active. */
 	input_dev_toggle(input_dev, false);
@@ -2269,7 +2340,11 @@ static struct device_type input_dev_type = {
 	.groups		= input_dev_attr_groups,
 	.release	= input_dev_release,
 	.uevent		= input_dev_uevent,
+<<<<<<< HEAD
 #ifdef CONFIG_PM
+=======
+#ifdef CONFIG_PM_SLEEP
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	.pm		= &input_dev_pm_ops,
 #endif
 };
@@ -2943,10 +3018,13 @@ static int __init input_init(void)
 		goto fail2;
 	}
 
+<<<<<<< HEAD
 #if !defined(CONFIG_INPUT_BOOSTER) // Input Booster +
 	input_booster_init();
 #endif  // Input Booster -
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return 0;
 
  fail2:	input_proc_exit();

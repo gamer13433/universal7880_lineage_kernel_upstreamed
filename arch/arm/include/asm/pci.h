@@ -18,6 +18,16 @@ static inline int pcibios_assign_all_busses(void)
 }
 
 #ifdef CONFIG_PCI_DOMAINS
+<<<<<<< HEAD
+=======
+static inline int pci_domain_nr(struct pci_bus *bus)
+{
+	struct pci_sys_data *root = bus->sysdata;
+
+	return root->domain;
+}
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static inline int pci_proc_domain(struct pci_bus *bus)
 {
 	return pci_domain_nr(bus);

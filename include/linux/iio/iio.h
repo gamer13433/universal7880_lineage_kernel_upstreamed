@@ -261,9 +261,12 @@ static inline bool iio_channel_has_info(const struct iio_chan_spec *chan,
 		(chan->info_mask_shared_by_all & BIT(type));
 }
 
+<<<<<<< HEAD
 #define IIO_ST(si, rb, sb, sh)						\
 	{ .sign = si, .realbits = rb, .storagebits = sb, .shift = sh }
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #define IIO_CHAN_SOFT_TIMESTAMP(_si) {					\
 	.type = IIO_TIMESTAMP,						\
 	.channel = -1,							\

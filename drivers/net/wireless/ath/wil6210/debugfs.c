@@ -875,7 +875,11 @@ static const struct file_operations fops_ssid = {
 };
 
 /*---------temp------------*/
+<<<<<<< HEAD
 static void print_temp(struct seq_file *s, const char *prefix, u32 t)
+=======
+static void print_temp(struct seq_file *s, const char *prefix, s32 t)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	switch (t) {
 	case 0:
@@ -883,7 +887,12 @@ static void print_temp(struct seq_file *s, const char *prefix, u32 t)
 		seq_printf(s, "%s N/A\n", prefix);
 	break;
 	default:
+<<<<<<< HEAD
 		seq_printf(s, "%s %d.%03d\n", prefix, t / 1000, t % 1000);
+=======
+		seq_printf(s, "%s %s%ld.%03ld\n", prefix, (t < 0 ? "-" : ""),
+			   abs(t / 1000), abs(t % 1000));
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		break;
 	}
 }
@@ -891,7 +900,11 @@ static void print_temp(struct seq_file *s, const char *prefix, u32 t)
 static int wil_temp_debugfs_show(struct seq_file *s, void *data)
 {
 	struct wil6210_priv *wil = s->private;
+<<<<<<< HEAD
 	u32 t_m, t_r;
+=======
+	s32 t_m, t_r;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	int rc = wmi_get_temperature(wil, &t_m, &t_r);
 
 	if (rc) {

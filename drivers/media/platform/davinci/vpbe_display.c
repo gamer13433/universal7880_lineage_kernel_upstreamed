@@ -574,7 +574,11 @@ vpbe_disp_calculate_scale_factor(struct vpbe_display *disp_dev,
 		else if (v_scale == 4)
 			layer_info->v_zoom = ZOOM_X4;
 		if (v_exp)
+<<<<<<< HEAD
 			layer_info->h_exp = V_EXP_6_OVER_5;
+=======
+			layer_info->v_exp = V_EXP_6_OVER_5;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	} else {
 		/* no scaling, only cropping. Set display area to crop area */
 		cfg->ysize = expected_ysize;

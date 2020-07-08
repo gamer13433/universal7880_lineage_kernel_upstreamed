@@ -193,6 +193,11 @@ static struct kmem_cache *scan_area_cache;
 
 /* set if tracing memory operations is enabled */
 static int kmemleak_enabled;
+<<<<<<< HEAD
+=======
+/* same as above but only for the kmemleak_free() callback */
+static int kmemleak_free_enabled;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /* set in the late_initcall if there were no errors */
 static int kmemleak_initialized;
 /* enables or disables early logging of the memory operations */
@@ -544,7 +549,11 @@ static struct kmemleak_object *create_object(unsigned long ptr, size_t size,
 	if (in_irq()) {
 		object->pid = 0;
 		strncpy(object->comm, "hardirq", sizeof(object->comm));
+<<<<<<< HEAD
 	} else if (in_softirq()) {
+=======
+	} else if (in_serving_softirq()) {
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		object->pid = 0;
 		strncpy(object->comm, "softirq", sizeof(object->comm));
 	} else {
@@ -905,12 +914,22 @@ EXPORT_SYMBOL_GPL(kmemleak_alloc);
  * kmemleak_alloc_percpu - register a newly allocated __percpu object
  * @ptr:	__percpu pointer to beginning of the object
  * @size:	size of the object
+<<<<<<< HEAD
  *
  * This function is called from the kernel percpu allocator when a new object
  * (memory block) is allocated (alloc_percpu). It assumes GFP_KERNEL
  * allocation.
  */
 void __ref kmemleak_alloc_percpu(const void __percpu *ptr, size_t size)
+=======
+ * @gfp:	flags used for kmemleak internal memory allocations
+ *
+ * This function is called from the kernel percpu allocator when a new object
+ * (memory block) is allocated (alloc_percpu).
+ */
+void __ref kmemleak_alloc_percpu(const void __percpu *ptr, size_t size,
+				 gfp_t gfp)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	unsigned int cpu;
 
@@ -923,7 +942,11 @@ void __ref kmemleak_alloc_percpu(const void __percpu *ptr, size_t size)
 	if (kmemleak_enabled && ptr && !IS_ERR(ptr))
 		for_each_possible_cpu(cpu)
 			create_object((unsigned long)per_cpu_ptr(ptr, cpu),
+<<<<<<< HEAD
 				      size, 0, GFP_KERNEL);
+=======
+				      size, 0, gfp);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	else if (kmemleak_early_log)
 		log_early(KMEMLEAK_ALLOC_PERCPU, ptr, size, 0);
 }
@@ -940,7 +963,11 @@ void __ref kmemleak_free(const void *ptr)
 {
 	pr_debug("%s(0x%p)\n", __func__, ptr);
 
+<<<<<<< HEAD
 	if (kmemleak_enabled && ptr && !IS_ERR(ptr))
+=======
+	if (kmemleak_free_enabled && ptr && !IS_ERR(ptr))
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		delete_object_full((unsigned long)ptr);
 	else if (kmemleak_early_log)
 		log_early(KMEMLEAK_FREE, ptr, 0, 0);
@@ -980,7 +1007,11 @@ void __ref kmemleak_free_percpu(const void __percpu *ptr)
 
 	pr_debug("%s(0x%p)\n", __func__, ptr);
 
+<<<<<<< HEAD
 	if (kmemleak_enabled && ptr && !IS_ERR(ptr))
+=======
+	if (kmemleak_free_enabled && ptr && !IS_ERR(ptr))
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		for_each_possible_cpu(cpu)
 			delete_object_full((unsigned long)per_cpu_ptr(ptr,
 								      cpu));
@@ -1743,6 +1774,16 @@ static void kmemleak_do_cleanup(struct work_struct *work)
 	mutex_lock(&scan_mutex);
 	stop_scan_thread();
 
+<<<<<<< HEAD
+=======
+	/*
+	 * Once the scan thread has stopped, it is safe to no longer track
+	 * object freeing. Ordering of the scan thread stopping and the memory
+	 * accesses below is guaranteed by the kthread_stop() function.
+	 */
+	kmemleak_free_enabled = 0;
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (!kmemleak_found_leaks)
 		__kmemleak_do_cleanup();
 	else
@@ -1769,6 +1810,11 @@ static void kmemleak_disable(void)
 	/* check whether it is too early for a kernel thread */
 	if (kmemleak_initialized)
 		schedule_work(&cleanup_work);
+<<<<<<< HEAD
+=======
+	else
+		kmemleak_free_enabled = 0;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	pr_info("Kernel memory leak detector disabled\n");
 }
@@ -1833,8 +1879,15 @@ void __init kmemleak_init(void)
 	if (kmemleak_error) {
 		local_irq_restore(flags);
 		return;
+<<<<<<< HEAD
 	} else
 		kmemleak_enabled = 1;
+=======
+	} else {
+		kmemleak_enabled = 1;
+		kmemleak_free_enabled = 1;
+	}
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	local_irq_restore(flags);
 
 	/*

@@ -12,8 +12,11 @@
 #include <scsi/scsi_device.h>
 #include <scsi/scsi_host.h>
 
+<<<<<<< HEAD
 static struct dma_attrs scsi_direct_attrs;
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /**
  * scsi_dma_map - perform DMA mapping against command's sg lists
  * @cmd:	scsi command
@@ -24,15 +27,23 @@ static struct dma_attrs scsi_direct_attrs;
 int scsi_dma_map(struct scsi_cmnd *cmd)
 {
 	int nseg = 0;
+<<<<<<< HEAD
 	struct dma_attrs *attrs = &scsi_direct_attrs;
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if (scsi_sg_count(cmd)) {
 		struct device *dev = cmd->device->host->dma_dev;
 
+<<<<<<< HEAD
 		if (dma_get_attr(DMA_ATTR_SKIP_CPU_SYNC, attrs))
 			attrs = (cmd->request->cmd_flags & REQ_KERNEL) ?
 				&scsi_direct_attrs : NULL;
 		nseg = dma_map_sg_attr(dev, scsi_sglist(cmd),scsi_sg_count(cmd), cmd->sc_data_direction, attrs);
+=======
+		nseg = dma_map_sg(dev, scsi_sglist(cmd), scsi_sg_count(cmd),
+				  cmd->sc_data_direction);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		if (unlikely(!nseg))
 			return -ENOMEM;
 	}
@@ -54,6 +65,7 @@ void scsi_dma_unmap(struct scsi_cmnd *cmd)
 	}
 }
 EXPORT_SYMBOL(scsi_dma_unmap);
+<<<<<<< HEAD
 
 /**
  * scsi_dma_set_skip_cpu_sync - skip operations for cache coherency
@@ -64,3 +76,5 @@ void scsi_dma_set_skip_cpu_sync(void)
 	dma_set_attr(DMA_ATTR_SKIP_CPU_SYNC, &scsi_direct_attrs);
 }
 EXPORT_SYMBOL(scsi_dma_set_skip_cpu_sync);
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012

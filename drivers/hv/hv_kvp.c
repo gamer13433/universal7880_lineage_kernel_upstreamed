@@ -28,6 +28,10 @@
 #include <linux/workqueue.h>
 #include <linux/hyperv.h>
 
+<<<<<<< HEAD
+=======
+#include "hyperv_vmbus.h"
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /*
  * Pre win8 version numbers used in ws2008 and ws 2008 r2 (win7)
@@ -670,7 +674,12 @@ void hv_kvp_onchannelcallback(void *context)
 			 * user-mode not responding.
 			 */
 			schedule_work(&kvp_sendkey_work);
+<<<<<<< HEAD
 			schedule_delayed_work(&kvp_work, 5*HZ);
+=======
+			schedule_delayed_work(&kvp_work,
+					      HV_UTIL_TIMEOUT * HZ);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 			return;
 

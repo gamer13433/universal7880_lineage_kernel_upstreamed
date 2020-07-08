@@ -28,10 +28,13 @@ config CPU_IDLE_GOV_MENU
 config DT_IDLE_STATES
 	bool
 
+<<<<<<< HEAD
 config CPU_IDLE_STOP_IDLE_DURING_HOTPLUG
 	bool "Stop idle during hotplug in/out"
 	depends on CPU_IDLE && HOTPLUG_CPU
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 menu "ARM CPU Idle Drivers"
 depends on ARM
 source "drivers/cpuidle/Kconfig.arm"

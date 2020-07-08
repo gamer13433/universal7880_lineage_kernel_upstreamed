@@ -241,7 +241,10 @@ struct atmel_spi {
 	struct atmel_spi_dma	dma;
 
 	bool			keep_cs;
+<<<<<<< HEAD
 	bool			cs_active;
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 /* Controller-specific per-slave state */
@@ -1182,11 +1185,17 @@ static int atmel_spi_one_transfer(struct spi_master *master,
 				 &msg->transfers)) {
 			as->keep_cs = true;
 		} else {
+<<<<<<< HEAD
 			as->cs_active = !as->cs_active;
 			if (as->cs_active)
 				cs_activate(as, msg->spi);
 			else
 				cs_deactivate(as, msg->spi);
+=======
+			cs_deactivate(as, msg->spi);
+			udelay(10);
+			cs_activate(as, msg->spi);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		}
 	}
 
@@ -1209,7 +1218,10 @@ static int atmel_spi_transfer_one_message(struct spi_master *master,
 	atmel_spi_lock(as);
 	cs_activate(as, spi);
 
+<<<<<<< HEAD
 	as->cs_active = true;
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	as->keep_cs = false;
 
 	msg->status = 0;

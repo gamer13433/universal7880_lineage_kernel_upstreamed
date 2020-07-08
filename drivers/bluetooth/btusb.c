@@ -172,6 +172,10 @@ static const struct usb_device_id blacklist_table[] = {
 	{ USB_DEVICE(0x0489, 0xe056), .driver_info = BTUSB_ATH3012 },
 	{ USB_DEVICE(0x0489, 0xe057), .driver_info = BTUSB_ATH3012 },
 	{ USB_DEVICE(0x0489, 0xe05f), .driver_info = BTUSB_ATH3012 },
+<<<<<<< HEAD
+=======
+	{ USB_DEVICE(0x0489, 0xe076), .driver_info = BTUSB_ATH3012 },
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	{ USB_DEVICE(0x0489, 0xe078), .driver_info = BTUSB_ATH3012 },
 	{ USB_DEVICE(0x0489, 0xe095), .driver_info = BTUSB_ATH3012 },
 	{ USB_DEVICE(0x04c5, 0x1330), .driver_info = BTUSB_ATH3012 },
@@ -181,6 +185,11 @@ static const struct usb_device_id blacklist_table[] = {
 	{ USB_DEVICE(0x04ca, 0x3007), .driver_info = BTUSB_ATH3012 },
 	{ USB_DEVICE(0x04ca, 0x3008), .driver_info = BTUSB_ATH3012 },
 	{ USB_DEVICE(0x04ca, 0x300b), .driver_info = BTUSB_ATH3012 },
+<<<<<<< HEAD
+=======
+	{ USB_DEVICE(0x04ca, 0x300d), .driver_info = BTUSB_ATH3012 },
+	{ USB_DEVICE(0x04ca, 0x300f), .driver_info = BTUSB_ATH3012 },
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	{ USB_DEVICE(0x04ca, 0x3010), .driver_info = BTUSB_ATH3012 },
 	{ USB_DEVICE(0x04ca, 0x3014), .driver_info = BTUSB_ATH3012 },
 	{ USB_DEVICE(0x04ca, 0x3018), .driver_info = BTUSB_ATH3012 },
@@ -1602,6 +1611,11 @@ static int btusb_setup_intel(struct hci_dev *hdev)
 	}
 	fw_ptr = fw->data;
 
+<<<<<<< HEAD
+=======
+	kfree_skb(skb);
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/* This Intel specific command enables the manufacturer mode of the
 	 * controller.
 	 *

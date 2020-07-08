@@ -617,6 +617,7 @@ void mark_buffer_dirty_inode(struct buffer_head *bh, struct inode *inode)
 }
 EXPORT_SYMBOL(mark_buffer_dirty_inode);
 
+<<<<<<< HEAD
 void mark_buffer_dirty_inode_sync(struct buffer_head *bh, struct inode *inode)
 {
 	set_buffer_sync_flush(bh);
@@ -624,6 +625,8 @@ void mark_buffer_dirty_inode_sync(struct buffer_head *bh, struct inode *inode)
 }
 EXPORT_SYMBOL(mark_buffer_dirty_inode_sync);
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /*
  * Mark the page dirty, and set it dirty in the radix tree, and mark the inode
  * dirty.
@@ -1174,6 +1177,7 @@ void mark_buffer_dirty(struct buffer_head *bh)
 }
 EXPORT_SYMBOL(mark_buffer_dirty);
 
+<<<<<<< HEAD
 void mark_buffer_dirty_sync(struct buffer_head *bh)
 {
 	WARN_ON_ONCE(!buffer_uptodate(bh));
@@ -1202,6 +1206,8 @@ void mark_buffer_dirty_sync(struct buffer_head *bh)
 }
 EXPORT_SYMBOL(mark_buffer_dirty_sync);
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /*
  * Decrement a buffer_head's reference count.  If all buffers against a page
  * have zero reference count, are clean and unlocked, and if the page is clean
@@ -3083,11 +3089,14 @@ int _submit_bh(int rw, struct buffer_head *bh, unsigned long bio_flags)
 	if (buffer_prio(bh))
 		rw |= REQ_PRIO;
 
+<<<<<<< HEAD
 	if(buffer_sync_flush(bh)) {
 		rw |= REQ_SYNC;
 		clear_buffer_sync_flush(bh);
 	}
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	bio_get(bio);
 	submit_bio(rw, bio);
 

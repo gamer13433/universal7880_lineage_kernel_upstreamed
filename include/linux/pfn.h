@@ -9,5 +9,9 @@
 #define PFN_UP(x)	(((x) + PAGE_SIZE-1) >> PAGE_SHIFT)
 #define PFN_DOWN(x)	((x) >> PAGE_SHIFT)
 #define PFN_PHYS(x)	((phys_addr_t)(x) << PAGE_SHIFT)
+<<<<<<< HEAD
+=======
+#define PHYS_PFN(x)	((unsigned long)((x) >> PAGE_SHIFT))
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #endif

@@ -1156,7 +1156,11 @@ ks8695_timeout(struct net_device *ndev)
  *	sk_buff and adds it to the TX ring. It then kicks the TX DMA
  *	engine to ensure transmission begins.
  */
+<<<<<<< HEAD
 static int
+=======
+static netdev_tx_t
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 ks8695_start_xmit(struct sk_buff *skb, struct net_device *ndev)
 {
 	struct ks8695_priv *ksp = netdev_priv(ndev);

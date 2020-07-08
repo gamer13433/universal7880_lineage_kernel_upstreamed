@@ -124,9 +124,12 @@ config BLOCK_COMPAT
 	depends on BLOCK && COMPAT
 	default y
 
+<<<<<<< HEAD
 config BLOCK_SUPPORT_STLOG
  	bool "Enable storage log"
  	depends on BLOCK && PROC_STLOG
  	default y
 	
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 source block/Kconfig.iosched

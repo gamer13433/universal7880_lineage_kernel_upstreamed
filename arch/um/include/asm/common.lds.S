@@ -81,7 +81,11 @@
   .altinstr_replacement : { *(.altinstr_replacement) }
   /* .exit.text is discard at runtime, not link time, to deal with references
      from .altinstructions and .eh_frame */
+<<<<<<< HEAD
   .exit.text : { *(.exit.text) }
+=======
+  .exit.text : { EXIT_TEXT }
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
   .exit.data : { *(.exit.data) }
 
   .preinit_array : {

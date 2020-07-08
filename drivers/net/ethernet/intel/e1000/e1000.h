@@ -213,8 +213,16 @@ struct e1000_rx_ring {
 };
 
 #define E1000_DESC_UNUSED(R)						\
+<<<<<<< HEAD
 	((((R)->next_to_clean > (R)->next_to_use)			\
 	  ? 0 : (R)->count) + (R)->next_to_clean - (R)->next_to_use - 1)
+=======
+({									\
+	unsigned int clean = smp_load_acquire(&(R)->next_to_clean);	\
+	unsigned int use = READ_ONCE((R)->next_to_use);			\
+	(clean > use ? 0 : (R)->count) + clean - use - 1;		\
+})
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #define E1000_RX_DESC_EXT(R, i)						\
 	(&(((union e1000_rx_desc_extended *)((R).desc))[i]))

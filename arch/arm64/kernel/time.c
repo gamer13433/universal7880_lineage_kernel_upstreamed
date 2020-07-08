@@ -41,7 +41,10 @@
 #include <asm/thread_info.h>
 #include <asm/stacktrace.h>
 
+<<<<<<< HEAD
 #ifdef CONFIG_SMP
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 unsigned long profile_pc(struct pt_regs *regs)
 {
 	struct stackframe frame;
@@ -61,7 +64,10 @@ unsigned long profile_pc(struct pt_regs *regs)
 	return frame.pc;
 }
 EXPORT_SYMBOL(profile_pc);
+<<<<<<< HEAD
 #endif
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 void __init time_init(void)
 {

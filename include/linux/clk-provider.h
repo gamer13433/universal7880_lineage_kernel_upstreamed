@@ -178,7 +178,11 @@ struct clk_ops {
 					unsigned long *best_parent_rate,
 					struct clk **best_parent_clk);
 	int		(*set_parent)(struct clk_hw *hw, u8 index);
+<<<<<<< HEAD
 	int		(*get_parent)(struct clk_hw *hw);
+=======
+	u8		(*get_parent)(struct clk_hw *hw);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	int		(*set_rate)(struct clk_hw *hw, unsigned long rate,
 				    unsigned long parent_rate);
 	int		(*set_rate_and_parent)(struct clk_hw *hw,

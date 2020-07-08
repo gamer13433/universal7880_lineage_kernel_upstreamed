@@ -81,6 +81,41 @@ ENTRY(native_usergs_sysret64)
 ENDPROC(native_usergs_sysret64)
 #endif /* CONFIG_PARAVIRT */
 
+<<<<<<< HEAD
+=======
+ENTRY(stub_ptregs_64)
+	/*
+	 * Syscalls marked as needing ptregs land here.
+	 * If we are on the fast path, we need to save the extra regs.
+	 * If we are on the slow path, the extra regs are already saved.
+	 *
+	 * RAX stores a pointer to the C function implementing the syscall.
+	 */
+	cmpq	$.Lentry_SYSCALL_64_after_fastpath_call, (%rsp)
+	jne	1f
+
+	/* Called from fast path -- pop return address and jump to slow path */
+	popq	%rax
+	jmp	tracesys	/* called from fast path */
+
+1:
+	/* Called from C */
+	jmp	*%rax				/* called from C */
+END(stub_ptregs_64)
+
+.macro ptregs_stub func
+ENTRY(ptregs_\func)
+	leaq	\func(%rip), %rax
+	jmp	stub_ptregs_64
+END(ptregs_\func)
+.endm
+
+/* Instantiate ptregs_stub for each ptregs-using syscall */
+#define __SYSCALL_64_QUAL_(sym)
+#define __SYSCALL_64_QUAL_ptregs(sym) ptregs_stub sym
+#define __SYSCALL_64(nr, sym, qual) __SYSCALL_64_QUAL_##qual(sym)
+#include <asm/syscalls_64.h>
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 .macro TRACE_IRQS_IRETQ offset=ARGOFFSET
 #ifdef CONFIG_TRACE_IRQFLAGS
@@ -422,7 +457,19 @@ system_call_fastpath:
 #endif
 	ja ret_from_sys_call  /* and return regs->ax */
 	movq %r10,%rcx
+<<<<<<< HEAD
 	call *sys_call_table(,%rax,8)  # XXX:	 rip relative
+=======
+
+	/*
+	 * This call instruction is handled specially in stub_ptregs_64.
+	 * It might end up jumping to the slow path.  If it jumps, RAX is
+	 * clobbered.
+	 */
+	call *sys_call_table(,%rax,8)  # XXX:	 rip relative
+.Lentry_SYSCALL_64_after_fastpath_call:
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	movq %rax,RAX-ARGOFFSET(%rsp)
 /*
  * Syscall return path ending with SYSRET (fast path)
@@ -497,6 +544,7 @@ sysret_audit:
 
 	/* Do syscall tracing */
 tracesys:
+<<<<<<< HEAD
 	leaq -REST_SKIP(%rsp), %rdi
 	movq $AUDIT_ARCH_X86_64, %rsi
 	call syscall_trace_enter_phase1
@@ -516,6 +564,16 @@ tracesys_phase2:
 	/*
 	 * Reload arg registers from stack in case ptrace changed them.
 	 * We don't reload %rax because syscall_trace_entry_phase2() returned
+=======
+	SAVE_REST
+	FIXUP_TOP_OF_STACK %rdi
+	movq %rsp, %rdi
+	call syscall_trace_enter
+
+	/*
+	 * Reload arg registers from stack in case ptrace changed them.
+	 * We don't reload %rax because syscall_trace_enter() returned
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	 * the value it wants us to use in the table lookup.
 	 */
 	LOAD_ARGS ARGOFFSET, 1

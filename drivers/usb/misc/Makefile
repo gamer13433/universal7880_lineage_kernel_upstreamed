@@ -17,7 +17,10 @@ obj-$(CONFIG_USB_LCD)			+= usblcd.o
 obj-$(CONFIG_USB_LD)			+= ldusb.o
 obj-$(CONFIG_USB_LED)			+= usbled.o
 obj-$(CONFIG_USB_LEGOTOWER)		+= legousbtower.o
+<<<<<<< HEAD
 obj-$(CONFIG_USB_RIO500)		+= rio500.o
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 obj-$(CONFIG_USB_TEST)			+= usbtest.o
 obj-$(CONFIG_USB_EHSET_TEST_FIXTURE)    += ehset.o
 obj-$(CONFIG_USB_TRANCEVIBRATOR)	+= trancevibrator.o

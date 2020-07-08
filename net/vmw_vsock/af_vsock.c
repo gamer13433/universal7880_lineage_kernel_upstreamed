@@ -88,6 +88,10 @@
 #include <linux/mutex.h>
 #include <linux/net.h>
 #include <linux/poll.h>
+<<<<<<< HEAD
+=======
+#include <linux/random.h>
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #include <linux/skbuff.h>
 #include <linux/smp.h>
 #include <linux/socket.h>
@@ -484,9 +488,19 @@ out:
 static int __vsock_bind_stream(struct vsock_sock *vsk,
 			       struct sockaddr_vm *addr)
 {
+<<<<<<< HEAD
 	static u32 port = LAST_RESERVED_PORT + 1;
 	struct sockaddr_vm new_addr;
 
+=======
+	static u32 port = 0;
+	struct sockaddr_vm new_addr;
+
+	if (!port)
+		port = LAST_RESERVED_PORT + 1 +
+			prandom_u32_max(U32_MAX - LAST_RESERVED_PORT);
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	vsock_addr_init(&new_addr, addr->svm_cid, addr->svm_port);
 
 	if (addr->svm_port == VMADDR_PORT_ANY) {
@@ -1265,7 +1279,11 @@ static int vsock_accept(struct socket *sock, struct socket *newsock, int flags)
 	/* Wait for children sockets to appear; these are the new sockets
 	 * created upon connection establishment.
 	 */
+<<<<<<< HEAD
 	timeout = sock_sndtimeo(listener, flags & O_NONBLOCK);
+=======
+	timeout = sock_rcvtimeo(listener, flags & O_NONBLOCK);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	prepare_to_wait(sk_sleep(listener), &wait, TASK_INTERRUPTIBLE);
 
 	while ((connected = vsock_dequeue_accept(listener)) == NULL &&

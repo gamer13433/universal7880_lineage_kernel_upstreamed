@@ -93,6 +93,10 @@ extern struct vfsmount *vfs_kern_mount(struct file_system_type *type,
 extern void mnt_set_expiry(struct vfsmount *mnt, struct list_head *expiry_list);
 extern void mark_mounts_for_expiry(struct list_head *mounts);
 
+<<<<<<< HEAD
 extern dev_t name_to_dev_t(char *name);
+=======
+extern dev_t name_to_dev_t(const char *name);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #endif /* _LINUX_MOUNT_H */

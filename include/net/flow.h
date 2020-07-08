@@ -89,7 +89,11 @@ static inline void flowi4_init_output(struct flowi4 *fl4, int oif,
 				      __u8 proto, __u8 flags,
 				      __be32 daddr, __be32 saddr,
 				      __be16 dport, __be16 sport,
+<<<<<<< HEAD
 					  kuid_t uid)
+=======
+				      kuid_t uid)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	fl4->flowi4_oif = oif;
 	fl4->flowi4_iif = LOOPBACK_IFINDEX;

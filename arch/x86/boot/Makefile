@@ -9,6 +9,7 @@
 # Changed by many, many contributors over the years.
 #
 
+<<<<<<< HEAD
 KASAN_SANITIZE			:= n
 OBJECT_FILES_NON_STANDARD	:= y
 
@@ -19,6 +20,8 @@ OBJECT_FILES_NON_STANDARD	:= y
 # so boot code is not interesting anyway.
 KCOV_INSTRUMENT		:= n
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 # If you want to preset the SVGA mode, uncomment the next line and
 # set SVGA_MODE to whatever number you want.
 # Set it to -DSVGA_MODE=NORMAL_VGA if you just want the EGA/VGA mode.

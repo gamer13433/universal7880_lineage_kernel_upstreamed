@@ -51,7 +51,10 @@ extern void device_pm_remove(struct device *);
 extern void device_pm_move_before(struct device *, struct device *);
 extern void device_pm_move_after(struct device *, struct device *);
 extern void device_pm_move_last(struct device *);
+<<<<<<< HEAD
 extern void device_pm_move_first(struct device *);
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #else /* !CONFIG_PM_SLEEP */
 
@@ -69,7 +72,10 @@ static inline void device_pm_move_before(struct device *deva,
 static inline void device_pm_move_after(struct device *deva,
 					struct device *devb) {}
 static inline void device_pm_move_last(struct device *dev) {}
+<<<<<<< HEAD
 static inline void device_pm_move_first(struct device *dev) {}
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #endif /* !CONFIG_PM_SLEEP */
 

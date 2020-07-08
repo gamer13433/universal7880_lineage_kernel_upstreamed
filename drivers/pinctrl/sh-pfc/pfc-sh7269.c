@@ -2119,7 +2119,11 @@ static const struct pinmux_cfg_reg pinmux_config_regs[] = {
 	},
 
 	{ PINMUX_CFG_REG("PCIOR0", 0xfffe3852, 16, 1) {
+<<<<<<< HEAD
 		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+=======
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		PC8_IN, PC8_OUT,
 		PC7_IN, PC7_OUT,
 		PC6_IN, PC6_OUT,

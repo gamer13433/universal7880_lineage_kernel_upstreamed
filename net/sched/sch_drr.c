@@ -375,6 +375,10 @@ static int drr_enqueue(struct sk_buff *skb, struct Qdisc *sch)
 		cl->deficit = cl->quantum;
 	}
 
+<<<<<<< HEAD
+=======
+	qdisc_qstats_backlog_inc(sch, skb);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	sch->q.qlen++;
 	return err;
 }
@@ -405,6 +409,10 @@ static struct sk_buff *drr_dequeue(struct Qdisc *sch)
 
 			bstats_update(&cl->bstats, skb);
 			qdisc_bstats_update(sch, skb);
+<<<<<<< HEAD
+=======
+			qdisc_qstats_backlog_dec(sch, skb);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			sch->q.qlen--;
 			return skb;
 		}
@@ -426,6 +434,10 @@ static unsigned int drr_drop(struct Qdisc *sch)
 		if (cl->qdisc->ops->drop) {
 			len = cl->qdisc->ops->drop(cl->qdisc);
 			if (len > 0) {
+<<<<<<< HEAD
+=======
+				sch->qstats.backlog -= len;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 				sch->q.qlen--;
 				if (cl->qdisc->q.qlen == 0)
 					list_del(&cl->alist);
@@ -461,6 +473,10 @@ static void drr_reset_qdisc(struct Qdisc *sch)
 			qdisc_reset(cl->qdisc);
 		}
 	}
+<<<<<<< HEAD
+=======
+	sch->qstats.backlog = 0;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	sch->q.qlen = 0;
 }
 

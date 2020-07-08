@@ -40,7 +40,12 @@ static bool ipv6_mapped_addr_any(const struct in6_addr *a)
 	return ipv6_addr_v4mapped(a) && (a->s6_addr32[3] == 0);
 }
 
+<<<<<<< HEAD
 static int __ip6_datagram_connect(struct sock *sk, struct sockaddr *uaddr, int addr_len)
+=======
+int __ip6_datagram_connect(struct sock *sk, struct sockaddr *uaddr,
+			   int addr_len)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	struct sockaddr_in6	*usin = (struct sockaddr_in6 *) uaddr;
 	struct inet_sock	*inet = inet_sk(sk);
@@ -167,6 +172,12 @@ ipv4_connected:
 	fl6.fl6_sport = inet->inet_sport;
 	fl6.flowi6_uid = sk->sk_uid;
 
+<<<<<<< HEAD
+=======
+	if (!fl6.flowi6_oif)
+		fl6.flowi6_oif = np->sticky_pktinfo.ipi6_ifindex;
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (!fl6.flowi6_oif && (addr_type&IPV6_ADDR_MULTICAST))
 		fl6.flowi6_oif = np->mcast_oif;
 
@@ -177,7 +188,11 @@ ipv4_connected:
 	final_p = fl6_update_dst(&fl6, opt, &final);
 	rcu_read_unlock();
 
+<<<<<<< HEAD
 	dst = ip6_dst_lookup_flow(sk, &fl6, final_p);
+=======
+	dst = ip6_dst_lookup_flow(sock_net(sk), sk, &fl6, final_p);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	err = 0;
 	if (IS_ERR(dst)) {
 		err = PTR_ERR(dst);
@@ -211,6 +226,10 @@ out:
 	fl6_sock_release(flowlabel);
 	return err;
 }
+<<<<<<< HEAD
+=======
+EXPORT_SYMBOL_GPL(__ip6_datagram_connect);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 int ip6_datagram_connect(struct sock *sk, struct sockaddr *uaddr, int addr_len)
 {

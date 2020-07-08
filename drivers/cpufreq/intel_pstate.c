@@ -443,7 +443,11 @@ static void byt_set_pstate(struct cpudata *cpudata, int pstate)
 
 	val |= vid;
 
+<<<<<<< HEAD
 	wrmsrl(MSR_IA32_PERF_CTL, val);
+=======
+	wrmsrl_on_cpu(cpudata->cpu, MSR_IA32_PERF_CTL, val);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 #define BYT_BCLK_FREQS 5

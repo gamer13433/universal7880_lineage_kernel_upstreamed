@@ -23,9 +23,12 @@
 #include <net/route.h>
 #include <net/tcp_states.h>
 #include <net/xfrm.h>
+<<<<<<< HEAD
 #ifdef CONFIG_MPTCP
 #include <net/mptcp.h>
 #endif
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #ifdef INET_CSK_DEBUG
 const char inet_csk_timer_bug_msg[] = "inet_csk BUG: unknown timer value\n";
@@ -470,6 +473,7 @@ no_route:
 }
 EXPORT_SYMBOL_GPL(inet_csk_route_child_sock);
 
+<<<<<<< HEAD
 #ifdef CONFIG_MPTCP
 u32 inet_synq_hash(const __be32 raddr, const __be16 rport, const u32 rnd,
 		   const u32 synq_hsize)
@@ -477,6 +481,10 @@ u32 inet_synq_hash(const __be32 raddr, const __be16 rport, const u32 rnd,
 static inline u32 inet_synq_hash(const __be32 raddr, const __be16 rport,
 				 const u32 rnd, const u32 synq_hsize)
 #endif
+=======
+static inline u32 inet_synq_hash(const __be32 raddr, const __be16 rport,
+				 const u32 rnd, const u32 synq_hsize)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	return jhash_2words((__force u32)raddr, (__force u32)rport, rnd) & (synq_hsize - 1);
 }
@@ -657,11 +665,15 @@ void inet_csk_reqsk_queue_prune(struct sock *parent,
 
 	lopt->clock_hand = i;
 
+<<<<<<< HEAD
 	if (lopt->qlen
 #ifdef CONFIG_MPTCP
 		 && !is_meta_sk(parent)
 #endif
 		 	)
+=======
+	if (lopt->qlen)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		inet_csk_reset_keepalive_timer(parent, interval);
 }
 EXPORT_SYMBOL_GPL(inet_csk_reqsk_queue_prune);
@@ -678,9 +690,13 @@ struct sock *inet_csk_clone_lock(const struct sock *sk,
 				 const struct request_sock *req,
 				 const gfp_t priority)
 {
+<<<<<<< HEAD
 	struct sock *newsk;
 
 	newsk = sk_clone_lock(sk, priority);
+=======
+	struct sock *newsk = sk_clone_lock(sk, priority);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if (newsk != NULL) {
 		struct inet_connection_sock *newicsk = inet_csk(newsk);
@@ -692,8 +708,11 @@ struct sock *inet_csk_clone_lock(const struct sock *sk,
 		inet_sk(newsk)->inet_num = inet_rsk(req)->ir_num;
 		inet_sk(newsk)->inet_sport = htons(inet_rsk(req)->ir_num);
 		newsk->sk_write_space = sk_stream_write_space;
+<<<<<<< HEAD
 		
 		inet_sk(newsk)->mc_list = NULL;
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 		inet_sk(newsk)->mc_list = NULL;
 
@@ -763,11 +782,15 @@ int inet_csk_listen_start(struct sock *sk, const int nr_table_entries)
 {
 	struct inet_sock *inet = inet_sk(sk);
 	struct inet_connection_sock *icsk = inet_csk(sk);
+<<<<<<< HEAD
 	int rc = reqsk_queue_alloc(&icsk->icsk_accept_queue, nr_table_entries
 #ifdef CONFIG_MPTCP
 								, GFP_KERNEL
 #endif
 								);
+=======
+	int rc = reqsk_queue_alloc(&icsk->icsk_accept_queue, nr_table_entries);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if (rc != 0)
 		return rc;
@@ -825,6 +848,7 @@ void inet_csk_listen_stop(struct sock *sk)
 
 	while ((req = acc_req) != NULL) {
 		struct sock *child = req->sk;
+<<<<<<< HEAD
 #ifdef CONFIG_MPTCP
 		bool mutex_taken = false;
 #endif
@@ -837,6 +861,11 @@ void inet_csk_listen_stop(struct sock *sk)
 			mutex_taken = true;
 		}
 #endif
+=======
+
+		acc_req = req->dl_next;
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		local_bh_disable();
 		bh_lock_sock(child);
 		WARN_ON(sock_owned_by_user(child));
@@ -865,10 +894,13 @@ void inet_csk_listen_stop(struct sock *sk)
 
 		bh_unlock_sock(child);
 		local_bh_enable();
+<<<<<<< HEAD
 #ifdef CONFIG_MPTCP
 		if (mutex_taken)
 			mutex_unlock(&tcp_sk(child)->mpcb->mpcb_mutex);
 #endif
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		sock_put(child);
 
 		sk_acceptq_removed(sk);

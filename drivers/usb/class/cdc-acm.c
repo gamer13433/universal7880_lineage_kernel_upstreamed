@@ -836,10 +836,17 @@ static int get_serial_info(struct acm *acm, struct serial_struct __user *info)
 	tmp.flags = ASYNC_LOW_LATENCY;
 	tmp.xmit_fifo_size = acm->writesize;
 	tmp.baud_base = le32_to_cpu(acm->line.dwDTERate);
+<<<<<<< HEAD
 	tmp.close_delay	= acm->port.close_delay / 10;
 	tmp.closing_wait = acm->port.closing_wait == ASYNC_CLOSING_WAIT_NONE ?
 				ASYNC_CLOSING_WAIT_NONE :
 				acm->port.closing_wait / 10;
+=======
+	tmp.close_delay	= jiffies_to_msecs(acm->port.close_delay) / 10;
+	tmp.closing_wait = acm->port.closing_wait == ASYNC_CLOSING_WAIT_NONE ?
+				ASYNC_CLOSING_WAIT_NONE :
+				jiffies_to_msecs(acm->port.closing_wait) / 10;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if (copy_to_user(info, &tmp, sizeof(tmp)))
 		return -EFAULT;
@@ -852,20 +859,42 @@ static int set_serial_info(struct acm *acm,
 {
 	struct serial_struct new_serial;
 	unsigned int closing_wait, close_delay;
+<<<<<<< HEAD
+=======
+	unsigned int old_closing_wait, old_close_delay;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	int retval = 0;
 
 	if (copy_from_user(&new_serial, newinfo, sizeof(new_serial)))
 		return -EFAULT;
 
+<<<<<<< HEAD
 	close_delay = new_serial.close_delay * 10;
 	closing_wait = new_serial.closing_wait == ASYNC_CLOSING_WAIT_NONE ?
 			ASYNC_CLOSING_WAIT_NONE : new_serial.closing_wait * 10;
+=======
+	close_delay = msecs_to_jiffies(new_serial.close_delay * 10);
+	closing_wait = new_serial.closing_wait == ASYNC_CLOSING_WAIT_NONE ?
+			ASYNC_CLOSING_WAIT_NONE :
+			msecs_to_jiffies(new_serial.closing_wait * 10);
+
+	/* we must redo the rounding here, so that the values match */
+	old_close_delay	= jiffies_to_msecs(acm->port.close_delay) / 10;
+	old_closing_wait = acm->port.closing_wait == ASYNC_CLOSING_WAIT_NONE ?
+				ASYNC_CLOSING_WAIT_NONE :
+				jiffies_to_msecs(acm->port.closing_wait) / 10;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	mutex_lock(&acm->port.mutex);
 
 	if (!capable(CAP_SYS_ADMIN)) {
+<<<<<<< HEAD
 		if ((close_delay != acm->port.close_delay) ||
 		    (closing_wait != acm->port.closing_wait))
+=======
+		if ((new_serial.close_delay != old_close_delay) ||
+	            (new_serial.closing_wait != old_closing_wait))
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			retval = -EPERM;
 		else
 			retval = -EOPNOTSUPP;
@@ -1078,6 +1107,7 @@ static int acm_write_buffers_alloc(struct acm *acm)
 	return 0;
 }
 
+<<<<<<< HEAD
 static int check_samsung_feature_ums_acm_device(struct usb_device *dev)
 {
 	int ret = 0;
@@ -1093,6 +1123,8 @@ static int check_samsung_feature_ums_acm_device(struct usb_device *dev)
 	return ret;
 }
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static int acm_probe(struct usb_interface *intf,
 		     const struct usb_device_id *id)
 {
@@ -1240,11 +1272,14 @@ next_desc:
 				goto look_for_collapsed_interface;
 			}
 		}
+<<<<<<< HEAD
 	} else if (check_samsung_feature_ums_acm_device(usb_dev)) {
 		data_interface = usb_ifnum_to_if(usb_dev, 2);
 		control_interface = usb_ifnum_to_if(usb_dev, 1);
 		pr_info("%s : manual set data_interface = 2, control_interface = 1\n", __func__);
 		goto skip_normal_probe;
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	} else {
 		control_interface = usb_ifnum_to_if(usb_dev, union_header->bMasterInterface0);
 		data_interface = usb_ifnum_to_if(usb_dev, (data_interface_num = union_header->bSlaveInterface0));
@@ -1345,6 +1380,7 @@ made_compressed_probe:
 		goto alloc_fail;
 	}
 
+<<<<<<< HEAD
 	minor = acm_alloc_minor(acm);
 	if (minor == ACM_TTY_MINORS) {
 		dev_err(&intf->dev, "no more free acm devices\n");
@@ -1352,6 +1388,8 @@ made_compressed_probe:
 		return -ENODEV;
 	}
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	ctrlsize = usb_endpoint_maxp(epctrl);
 	readsize = usb_endpoint_maxp(epread) *
 				(quirks == SINGLE_RX_URB ? 1 : 2);
@@ -1359,6 +1397,19 @@ made_compressed_probe:
 	acm->writesize = usb_endpoint_maxp(epwrite) * 20;
 	acm->control = control_interface;
 	acm->data = data_interface;
+<<<<<<< HEAD
+=======
+
+	usb_get_intf(acm->control); /* undone in destruct() */
+
+	minor = acm_alloc_minor(acm);
+	if (minor == ACM_TTY_MINORS) {
+		dev_err(&intf->dev, "no more free acm devices\n");
+		kfree(acm);
+		return -ENODEV;
+	}
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	acm->minor = minor;
 	acm->dev = usb_dev;
 	acm->ctrl_caps = ac_management_function;
@@ -1513,7 +1564,10 @@ skip_countries:
 	usb_driver_claim_interface(&acm_driver, data_interface, acm);
 	usb_set_intfdata(data_interface, acm);
 
+<<<<<<< HEAD
 	usb_get_intf(control_interface);
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	tty_dev = tty_port_register_device(&acm->port, acm_tty_driver, minor,
 			&control_interface->dev);
 	if (IS_ERR(tty_dev)) {
@@ -1521,6 +1575,14 @@ skip_countries:
 		goto alloc_fail8;
 	}
 
+<<<<<<< HEAD
+=======
+	if (quirks & CLEAR_HALT_CONDITIONS) {
+		usb_clear_halt(usb_dev, usb_rcvbulkpipe(usb_dev, epread->bEndpointAddress));
+		usb_clear_halt(usb_dev, usb_sndbulkpipe(usb_dev, epwrite->bEndpointAddress));
+	}
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return 0;
 alloc_fail8:
 	if (acm->country_codes) {
@@ -1787,9 +1849,12 @@ static const struct usb_device_id acm_ids[] = {
 	{ USB_DEVICE(0x22b8, 0x2d9a),   /* modem + AT port + diagnostics + NMEA */
 	.driver_info = NO_UNION_NORMAL, /* handle only modem interface          */
 	},
+<<<<<<< HEAD
 	{ USB_DEVICE(0x0ca6, 0xa050), /* Castles VEGA3000 */
 	.driver_info = NO_UNION_NORMAL, /* reports zero length descriptor */
 	},
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	{ USB_DEVICE(0x0572, 0x1329), /* Hummingbird huc56s (Conexant) */
 	.driver_info = NO_UNION_NORMAL, /* union descriptor misplaced on
@@ -1816,6 +1881,16 @@ static const struct usb_device_id acm_ids[] = {
 	{ USB_DEVICE(0x09d8, 0x0320), /* Elatec GmbH TWN3 */
 	.driver_info = NO_UNION_NORMAL, /* has misplaced union descriptor */
 	},
+<<<<<<< HEAD
+=======
+	{ USB_DEVICE(0x0ca6, 0xa050), /* Castles VEGA3000 */
+	.driver_info = NO_UNION_NORMAL, /* reports zero length descriptor */
+	},
+
+	{ USB_DEVICE(0x2912, 0x0001), /* ATOL FPrint */
+	.driver_info = CLEAR_HALT_CONDITIONS,
+	},
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	/* Nokia S60 phones expose two ACM channels. The first is
 	 * a modem and is picked up by the standard AT-command

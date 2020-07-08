@@ -58,6 +58,7 @@ struct page *selinux_kernel_status_page(void)
 
 			status->version = SELINUX_KERNEL_STATUS_VERSION;
 			status->sequence = 0;
+<<<<<<< HEAD
 // [ SEC_SELINUX_PORTING_COMMON
 #if defined(CONFIG_SECURITY_SELINUX_ALWAYS_ENFORCE)
  			status->enforcing = 1;
@@ -67,6 +68,9 @@ struct page *selinux_kernel_status_page(void)
 			status->enforcing = selinux_enforcing;
 #endif
 // ] SEC_SELINUX_PORTING_COMMON
+=======
+			status->enforcing = selinux_enforcing;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			/*
 			 * NOTE: the next policyload event shall set
 			 * a positive value on the status->policyload,

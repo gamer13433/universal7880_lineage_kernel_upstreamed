@@ -68,6 +68,7 @@ static inline struct dwc3_request *next_request(struct list_head *list)
 	return list_first_entry(list, struct dwc3_request, list);
 }
 
+<<<<<<< HEAD
 static inline void dwc3_gadget_move_request_list_front(struct dwc3_request *req)
 {
 	struct dwc3_ep		*dep = req->dep;
@@ -76,6 +77,8 @@ static inline void dwc3_gadget_move_request_list_front(struct dwc3_request *req)
 	list_move(&req->list, &dep->request_list);
 }
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static inline void dwc3_gadget_move_request_queued(struct dwc3_request *req)
 {
 	struct dwc3_ep		*dep = req->dep;

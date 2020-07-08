@@ -561,8 +561,13 @@ static int __ks8842_start_new_rx_dma(struct net_device *netdev)
 		sg_init_table(sg, 1);
 		sg_dma_address(sg) = dma_map_single(adapter->dev,
 			ctl->skb->data, DMA_BUFFER_SIZE, DMA_FROM_DEVICE);
+<<<<<<< HEAD
 		err = dma_mapping_error(adapter->dev, sg_dma_address(sg));
 		if (unlikely(err)) {
+=======
+		if (dma_mapping_error(adapter->dev, sg_dma_address(sg))) {
+			err = -ENOMEM;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			sg_dma_address(sg) = 0;
 			goto out;
 		}
@@ -572,8 +577,15 @@ static int __ks8842_start_new_rx_dma(struct net_device *netdev)
 		ctl->adesc = dmaengine_prep_slave_sg(ctl->chan,
 			sg, 1, DMA_DEV_TO_MEM, DMA_PREP_INTERRUPT);
 
+<<<<<<< HEAD
 		if (!ctl->adesc)
 			goto out;
+=======
+		if (!ctl->adesc) {
+			err = -ENOMEM;
+			goto out;
+		}
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 		ctl->adesc->callback_param = netdev;
 		ctl->adesc->callback = ks8842_dma_rx_cb;
@@ -584,7 +596,11 @@ static int __ks8842_start_new_rx_dma(struct net_device *netdev)
 		goto out;
 	}
 
+<<<<<<< HEAD
 	return err;
+=======
+	return 0;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 out:
 	if (sg_dma_address(sg))
 		dma_unmap_single(adapter->dev, sg_dma_address(sg),

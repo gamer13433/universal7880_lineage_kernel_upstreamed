@@ -447,6 +447,10 @@ static int kgdb_reenter_check(struct kgdb_state *ks)
 
 	if (exception_level > 1) {
 		dump_stack();
+<<<<<<< HEAD
+=======
+		kgdb_io_module_registered = false;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		panic("Recursive entry to debugger");
 	}
 

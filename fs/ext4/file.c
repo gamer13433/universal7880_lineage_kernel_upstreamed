@@ -79,7 +79,11 @@ ext4_unaligned_aio(struct inode *inode, struct iov_iter *from, loff_t pos)
 	struct super_block *sb = inode->i_sb;
 	int blockmask = sb->s_blocksize - 1;
 
+<<<<<<< HEAD
 	if (pos >= i_size_read(inode))
+=======
+	if (pos >= ALIGN(i_size_read(inode), sb->s_blocksize))
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		return 0;
 
 	if ((pos | iov_iter_alignment(from)) & blockmask)

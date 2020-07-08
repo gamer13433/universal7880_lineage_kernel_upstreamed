@@ -960,7 +960,10 @@ static int can_newlink(struct net *src_net, struct net_device *dev,
 
 static void can_dellink(struct net_device *dev, struct list_head *head)
 {
+<<<<<<< HEAD
 	return;
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 static struct rtnl_link_ops can_link_ops __read_mostly = {
@@ -984,6 +987,11 @@ static struct rtnl_link_ops can_link_ops __read_mostly = {
 int register_candev(struct net_device *dev)
 {
 	dev->rtnl_link_ops = &can_link_ops;
+<<<<<<< HEAD
+=======
+	netif_carrier_off(dev);
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return register_netdev(dev);
 }
 EXPORT_SYMBOL_GPL(register_candev);

@@ -3,6 +3,7 @@
 
 #include <uapi/linux/usb/functionfs.h>
 
+<<<<<<< HEAD
 struct ffs_data;
 struct usb_composite_dev;
 struct usb_configuration;
@@ -30,4 +31,6 @@ static void *functionfs_acquire_dev_callback(const char *dev_name)
 static void functionfs_release_dev_callback(struct ffs_data *ffs_data)
 		__attribute__((nonnull));
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #endif

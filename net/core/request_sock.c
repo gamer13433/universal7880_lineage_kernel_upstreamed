@@ -38,11 +38,15 @@ int sysctl_max_syn_backlog = 256;
 EXPORT_SYMBOL(sysctl_max_syn_backlog);
 
 int reqsk_queue_alloc(struct request_sock_queue *queue,
+<<<<<<< HEAD
 		      unsigned int nr_table_entries
 #ifdef CONFIG_MPTCP
 			  , gfp_t flags
 #endif
 			  )
+=======
+		      unsigned int nr_table_entries)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	size_t lopt_size = sizeof(struct listen_sock);
 	struct listen_sock *lopt = NULL;
@@ -53,6 +57,7 @@ int reqsk_queue_alloc(struct request_sock_queue *queue,
 	lopt_size += nr_table_entries * sizeof(struct request_sock *);
 
 	if (lopt_size <= (PAGE_SIZE << PAGE_ALLOC_COSTLY_ORDER))
+<<<<<<< HEAD
 #ifdef CONFIG_MPTCP
 		lopt = kzalloc(lopt_size, flags |
 #else
@@ -68,6 +73,13 @@ int reqsk_queue_alloc(struct request_sock_queue *queue,
 #else
 		lopt = vzalloc(lopt_size);
 #endif
+=======
+		lopt = kzalloc(lopt_size, GFP_KERNEL |
+					  __GFP_NOWARN |
+					  __GFP_NORETRY);
+	if (!lopt)
+		lopt = vzalloc(lopt_size);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (!lopt)
 		return -ENOMEM;
 

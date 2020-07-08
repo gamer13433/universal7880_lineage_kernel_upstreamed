@@ -280,6 +280,7 @@ void xhci_ring_cmd_db(struct xhci_hcd *xhci)
 	readl(&xhci->dba->doorbell[0]);
 }
 
+<<<<<<< HEAD
 #if defined(CONFIG_USB_HOST_SAMSUNG_FEATURE)
 static bool xhci_mod_cmd_timer(struct xhci_hcd *xhci, unsigned long delay)
 {
@@ -349,12 +350,16 @@ static int xhci_abort_cmd_ring(struct xhci_hcd *xhci, unsigned long flags)
 #else
 static int xhci_abort_cmd_ring(struct xhci_hcd *xhci)
 #endif
+=======
+static int xhci_abort_cmd_ring(struct xhci_hcd *xhci)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	u64 temp_64;
 	int ret;
 
 	xhci_dbg(xhci, "Abort command ring\n");
 
+<<<<<<< HEAD
 #if defined(CONFIG_USB_HOST_SAMSUNG_FEATURE)
 	reinit_completion(&xhci->cmd_ring_stop_completion);
 	temp_64 = xhci_read_64(xhci, &xhci->op_regs->cmd_ring);
@@ -362,6 +367,18 @@ static int xhci_abort_cmd_ring(struct xhci_hcd *xhci)
 	temp_64 = xhci_read_64(xhci, &xhci->op_regs->cmd_ring);
 	xhci->cmd_ring_state = CMD_RING_STATE_ABORTED;
 #endif
+=======
+	temp_64 = xhci_read_64(xhci, &xhci->op_regs->cmd_ring);
+	xhci->cmd_ring_state = CMD_RING_STATE_ABORTED;
+
+	/*
+	 * Writing the CMD_RING_ABORT bit should cause a cmd completion event,
+	 * however on some host hw the CMD_RING_RUNNING bit is correctly cleared
+	 * but the completion event in never sent. Use the cmd timeout timer to
+	 * handle those cases. Use twice the time to cover the bit polling retry
+	 */
+	mod_timer(&xhci->cmd_timer, jiffies + (2 * XHCI_CMD_DEFAULT_TIMEOUT));
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	xhci_write_64(xhci, temp_64 | CMD_RING_ABORT,
 			&xhci->op_regs->cmd_ring);
 
@@ -375,6 +392,7 @@ static int xhci_abort_cmd_ring(struct xhci_hcd *xhci)
 	ret = xhci_handshake(xhci, &xhci->op_regs->cmd_ring,
 			CMD_RING_RUNNING, 0, 5 * 1000 * 1000);
 	if (ret < 0) {
+<<<<<<< HEAD
 		/* we are about to kill xhci, give it one more chance */
 		xhci_write_64(xhci, temp_64 | CMD_RING_ABORT,
 			      &xhci->op_regs->cmd_ring);
@@ -410,6 +428,8 @@ static int xhci_abort_cmd_ring(struct xhci_hcd *xhci)
 		if (ret == 0)
 			return 0;
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		xhci_err(xhci, "Stopped the command ring failed, "
 				"maybe the host is dead\n");
 		del_timer(&xhci->cmd_timer);
@@ -417,7 +437,10 @@ static int xhci_abort_cmd_ring(struct xhci_hcd *xhci)
 		xhci_quiesce(xhci);
 		xhci_halt(xhci);
 		return -ESHUTDOWN;
+<<<<<<< HEAD
 #endif
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 	return 0;
@@ -943,6 +966,7 @@ void xhci_stop_endpoint_command_watchdog(unsigned long arg)
 	spin_lock_irqsave(&xhci->lock, flags);
 
 	ep->stop_cmds_pending--;
+<<<<<<< HEAD
 #ifndef CONFIG_USB_HOST_SAMSUNG_FEATURE
 	if (xhci->xhc_state & XHCI_STATE_DYING) {
 		xhci_dbg_trace(xhci, trace_xhci_dbg_cancel_urb,
@@ -952,6 +976,8 @@ void xhci_stop_endpoint_command_watchdog(unsigned long arg)
 		return;
 	}
 #endif
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (!(ep->stop_cmds_pending == 0 && (ep->ep_state & EP_HALT_PENDING))) {
 		xhci_dbg_trace(xhci, trace_xhci_dbg_cancel_urb,
 				"Stop EP timer ran, but no command pending, "
@@ -1303,7 +1329,10 @@ void xhci_cleanup_command_queue(struct xhci_hcd *xhci)
 		xhci_complete_del_and_free_cmd(cur_cmd, COMP_CMD_ABORT);
 }
 
+<<<<<<< HEAD
 #ifndef CONFIG_USB_HOST_SAMSUNG_FEATURE
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /*
  * Turn all commands on command ring with status set to "aborted" to no-op trbs.
  * If there are other commands waiting then restart the ring and kick the timer.
@@ -1353,6 +1382,7 @@ static void xhci_handle_stopped_cmd_ring(struct xhci_hcd *xhci,
 	}
 	return;
 }
+<<<<<<< HEAD
 #endif
 
 #if defined(CONFIG_USB_HOST_SAMSUNG_FEATURE)
@@ -1360,30 +1390,49 @@ void xhci_handle_command_timeout(struct work_struct *work)
 #else
 void xhci_handle_command_timeout(unsigned long data)
 #endif
+=======
+
+
+void xhci_handle_command_timeout(unsigned long data)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	struct xhci_hcd *xhci;
 	int ret;
 	unsigned long flags;
 	u64 hw_ring_state;
+<<<<<<< HEAD
 	struct xhci_command *cur_cmd = NULL;
 #if defined(CONFIG_USB_HOST_SAMSUNG_FEATURE)
 	xhci = container_of(to_delayed_work(work), struct xhci_hcd, cmd_timer);
 #else
 	xhci = (struct xhci_hcd *) data;
 #endif
+=======
+	bool second_timeout = false;
+	xhci = (struct xhci_hcd *) data;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	/* mark this command to be cancelled */
 	spin_lock_irqsave(&xhci->lock, flags);
 	if (xhci->current_cmd) {
+<<<<<<< HEAD
 		cur_cmd = xhci->current_cmd;
 		cur_cmd->status = COMP_CMD_ABORT;
 	}
 
 
+=======
+		if (xhci->current_cmd->status == COMP_CMD_ABORT)
+			second_timeout = true;
+		xhci->current_cmd->status = COMP_CMD_ABORT;
+	}
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/* Make sure command ring is running before aborting it */
 	hw_ring_state = xhci_read_64(xhci, &xhci->op_regs->cmd_ring);
 	if ((xhci->cmd_ring_state & CMD_RING_STATE_RUNNING) &&
 	    (hw_ring_state & CMD_RING_RUNNING))  {
+<<<<<<< HEAD
 #if defined(CONFIG_USB_HOST_SAMSUNG_FEATURE)
 		/* Prevent new doorbell, and start command abort */
 		xhci->cmd_ring_state = CMD_RING_STATE_ABORTED;
@@ -1412,6 +1461,8 @@ time_out_completed:
 	spin_unlock_irqrestore(&xhci->lock, flags);
 	return;
 #else
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		spin_unlock_irqrestore(&xhci->lock, flags);
 		xhci_dbg(xhci, "Command timeout\n");
 		ret = xhci_abort_cmd_ring(xhci);
@@ -1437,7 +1488,10 @@ time_out_completed:
 	xhci_handle_stopped_cmd_ring(xhci, xhci->current_cmd);
 	spin_unlock_irqrestore(&xhci->lock, flags);
 	return;
+<<<<<<< HEAD
 #endif
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 static void handle_cmd_completion(struct xhci_hcd *xhci,
@@ -1468,6 +1522,7 @@ static void handle_cmd_completion(struct xhci_hcd *xhci,
 
 	cmd = list_entry(xhci->cmd_list.next, struct xhci_command, cmd_list);
 
+<<<<<<< HEAD
 	if (cmd->command_trb != xhci->cmd_ring->dequeue) {
 		xhci_err(xhci,
 			 "Command completion event does not match command\n");
@@ -1479,6 +1534,9 @@ static void handle_cmd_completion(struct xhci_hcd *xhci,
 #else
 	del_timer(&xhci->cmd_timer);
 #endif
+=======
+	del_timer(&xhci->cmd_timer);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	trace_xhci_cmd_completion(cmd_trb, (struct xhci_generic_trb *) event);
 
@@ -1486,11 +1544,15 @@ static void handle_cmd_completion(struct xhci_hcd *xhci,
 
 	/* If CMD ring stopped we own the trbs between enqueue and dequeue */
 	if (cmd_comp_code == COMP_CMD_STOP) {
+<<<<<<< HEAD
 #if defined(CONFIG_USB_HOST_SAMSUNG_FEATURE)
 		complete_all(&xhci->cmd_ring_stop_completion);
 #else
 		xhci_handle_stopped_cmd_ring(xhci, cmd);
 #endif
+=======
+		xhci_handle_stopped_cmd_ring(xhci, cmd);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		return;
 	}
 
@@ -1570,11 +1632,15 @@ static void handle_cmd_completion(struct xhci_hcd *xhci,
 	if (cmd->cmd_list.next != &xhci->cmd_list) {
 		xhci->current_cmd = list_entry(cmd->cmd_list.next,
 					       struct xhci_command, cmd_list);
+<<<<<<< HEAD
 #if defined(CONFIG_USB_HOST_SAMSUNG_FEATURE)
 		xhci_mod_cmd_timer(xhci, XHCI_CMD_DEFAULT_TIMEOUT);
 #else
 		mod_timer(&xhci->cmd_timer, jiffies + XHCI_CMD_DEFAULT_TIMEOUT);
 #endif
+=======
+		mod_timer(&xhci->cmd_timer, jiffies + XHCI_CMD_DEFAULT_TIMEOUT);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 event_handled:
@@ -1746,6 +1812,10 @@ static void handle_port_status(struct xhci_hcd *xhci,
 			bus_state->port_remote_wakeup |= 1 << faked_port_index;
 			xhci_test_and_clear_bit(xhci, port_array,
 					faked_port_index, PORT_PLC);
+<<<<<<< HEAD
+=======
+			usb_hcd_start_port_resume(&hcd->self, faked_port_index);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			xhci_set_link_state(xhci, port_array, faked_port_index,
 						XDEV_U0);
 			/* Need to wait until the next link state change
@@ -1765,10 +1835,20 @@ static void handle_port_status(struct xhci_hcd *xhci,
 		}
 	}
 
+<<<<<<< HEAD
 	if ((temp & PORT_PLC) && (temp & PORT_PLS_MASK) == XDEV_U0 &&
 			DEV_SUPERSPEED(temp)) {
 		xhci_dbg(xhci, "resume SS port %d finished\n", port_id);
 		/* We've just brought the device into U0 through either the
+=======
+	if ((temp & PORT_PLC) &&
+	    DEV_SUPERSPEED(temp) &&
+	    ((temp & PORT_PLS_MASK) == XDEV_U0 ||
+	     (temp & PORT_PLS_MASK) == XDEV_U1 ||
+	     (temp & PORT_PLS_MASK) == XDEV_U2)) {
+		xhci_dbg(xhci, "resume SS port %d finished\n", port_id);
+		/* We've just brought the device into U0/1/2 through either the
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		 * Resume state after a device remote wakeup, or through the
 		 * U3Exit state after a host-initiated resume.  If it's a device
 		 * initiated remote wake, don't pass up the link state change,
@@ -1780,8 +1860,11 @@ static void handle_port_status(struct xhci_hcd *xhci,
 		if (slot_id && xhci->devs[slot_id])
 			xhci_ring_device(xhci, slot_id);
 		if (bus_state->port_remote_wakeup & (1 << faked_port_index)) {
+<<<<<<< HEAD
 			bus_state->port_remote_wakeup &=
 				~(1 << faked_port_index);
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			xhci_test_and_clear_bit(xhci, port_array,
 					faked_port_index, PORT_PLC);
 			usb_wakeup_notification(hcd->self.root_hub,
@@ -2724,6 +2807,7 @@ cleanup:
 						urb->transfer_buffer_length,
 						status);
 			spin_unlock(&xhci->lock);
+<<<<<<< HEAD
 #ifdef CONFIG_HOST_COMPLIANT_TEST
 			if (likely(urb->transfer_flags & URB_HCD_DRIVER_TEST)) {
 				xhci_info(xhci, "USB_TEST : URB_HCD_DRIVER_TEST\n");
@@ -2733,6 +2817,8 @@ cleanup:
 			}
 #endif
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			/* EHCI, UHCI, and OHCI always unconditionally set the
 			 * urb->status of an isochronous endpoint to 0.
 			 */
@@ -3689,6 +3775,7 @@ int xhci_queue_ctrl_tx(struct xhci_hcd *xhci, gfp_t mem_flags,
 	return 0;
 }
 
+<<<<<<< HEAD
 #ifdef CONFIG_HOST_COMPLIANT_TEST
 int xhci_queue_ctrl_tx_single_step(struct xhci_hcd *xhci,
 		gfp_t mem_flags, struct urb *urb, int slot_id,
@@ -3817,6 +3904,8 @@ int xhci_queue_ctrl_tx_single_step(struct xhci_hcd *xhci,
 }
 #endif/* CONFIG_HOST_COMPLIANT_TEST */
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static int count_isoc_trbs_needed(struct xhci_hcd *xhci,
 		struct urb *urb, int i)
 {
@@ -3848,7 +3937,11 @@ static unsigned int xhci_get_burst_count(struct xhci_hcd *xhci,
 {
 	unsigned int max_burst;
 
+<<<<<<< HEAD
 	if (xhci->hci_version < 0x100 || udev->speed != USB_SPEED_SUPER)
+=======
+	if (xhci->hci_version < 0x100 || udev->speed < USB_SPEED_SUPER)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		return 0;
 
 	max_burst = urb->ep->ss_ep_comp.bMaxBurst;
@@ -3874,6 +3967,10 @@ static unsigned int xhci_get_last_burst_packet_count(struct xhci_hcd *xhci,
 		return 0;
 
 	switch (udev->speed) {
+<<<<<<< HEAD
+=======
+	case USB_SPEED_SUPER_PLUS:
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	case USB_SPEED_SUPER:
 		/* bMaxBurst is zero based: 0 means 1 packet per burst */
 		max_burst = urb->ep->ss_ep_comp.bMaxBurst;
@@ -4161,7 +4258,11 @@ static int queue_command(struct xhci_hcd *xhci, struct xhci_command *cmd,
 
 	if ((xhci->xhc_state & XHCI_STATE_DYING) ||
 		(xhci->xhc_state & XHCI_STATE_HALTED)) {
+<<<<<<< HEAD
 		xhci_err(xhci, "xHCI dying or halted, can't queue_command\n");
+=======
+		xhci_dbg(xhci, "xHCI dying or halted, can't queue_command\n");
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		return -ESHUTDOWN;
 	}
 
@@ -4183,6 +4284,7 @@ static int queue_command(struct xhci_hcd *xhci, struct xhci_command *cmd,
 
 	/* if there are no other commands queued we start the timeout timer */
 	if (xhci->cmd_list.next == &cmd->cmd_list &&
+<<<<<<< HEAD
 #if defined(CONFIG_USB_HOST_SAMSUNG_FEATURE)
 	    !delayed_work_pending(&xhci->cmd_timer)) {
 #else
@@ -4194,6 +4296,11 @@ static int queue_command(struct xhci_hcd *xhci, struct xhci_command *cmd,
 #else
 		mod_timer(&xhci->cmd_timer, jiffies + XHCI_CMD_DEFAULT_TIMEOUT);
 #endif
+=======
+	    !timer_pending(&xhci->cmd_timer)) {
+		xhci->current_cmd = cmd;
+		mod_timer(&xhci->cmd_timer, jiffies + XHCI_CMD_DEFAULT_TIMEOUT);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 	queue_trb(xhci, xhci->cmd_ring, false, field1, field2, field3,

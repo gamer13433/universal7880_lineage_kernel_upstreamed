@@ -1979,8 +1979,15 @@ void try_offline_node(int nid)
 		 * wait_table may be allocated from boot memory,
 		 * here only free if it's allocated by vmalloc.
 		 */
+<<<<<<< HEAD
 		if (is_vmalloc_addr(zone->wait_table))
 			vfree(zone->wait_table);
+=======
+		if (is_vmalloc_addr(zone->wait_table)) {
+			vfree(zone->wait_table);
+			zone->wait_table = NULL;
+		}
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 }
 EXPORT_SYMBOL(try_offline_node);

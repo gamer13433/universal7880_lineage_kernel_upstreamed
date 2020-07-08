@@ -88,6 +88,10 @@ void nf_unregister_hook(struct nf_hook_ops *reg)
 	static_key_slow_dec(&nf_hooks_needed[reg->pf][reg->hooknum]);
 #endif
 	synchronize_net();
+<<<<<<< HEAD
+=======
+	nf_queue_nf_hook_drop(reg);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 EXPORT_SYMBOL(nf_unregister_hook);
 

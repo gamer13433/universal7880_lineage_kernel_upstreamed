@@ -199,11 +199,15 @@ struct usb_function {
 	 * we can't restructure things to avoid mismatching.
 	 * Related:  unbind() may kfree() but bind() won't...
 	 */
+<<<<<<< HEAD
 #ifdef CONFIG_USB_ANDROID_SAMSUNG_COMPOSITE
 	int (*set_intf_num)(struct usb_function *f,
 			int intf_num, int index_num);
 	int (*set_config_desc)(int conf_num);
 #endif
+=======
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/* configuration management:  bind/unbind */
 	int			(*bind)(struct usb_configuration *,
 					struct usb_function *);
@@ -493,6 +497,7 @@ struct usb_composite_dev {
 	 */
 	int				delayed_status;
 
+<<<<<<< HEAD
 #ifdef CONFIG_USB_ANDROID_SAMSUNG_COMPOSITE
 		/* used by enable_store function of android.c
 		 * to avoid signalling switch changes
@@ -501,6 +506,8 @@ struct usb_composite_dev {
 	bool				force_disconnect;
 #endif
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/* protects deactivations and delayed_status counts*/
 	spinlock_t			lock;
 };
@@ -631,4 +638,7 @@ void usb_remove_function(struct usb_configuration *c, struct usb_function *f);
 	dev_info(&(d)->gadget->dev , fmt , ## args)
 
 #endif	/* __LINUX_USB_COMPOSITE_H */
+<<<<<<< HEAD
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012

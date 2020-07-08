@@ -12,6 +12,7 @@ config ARM64_CPUIDLE
 	  at run-time through DT nodes. The CPUidle suspend backend is
 	  initialized by calling the CPU operations init idle hook
 	  provided by architecture code.
+<<<<<<< HEAD
 
 config ARM64_EXYNOS_CPUIDLE
 	bool "Cpu Idle Driver for the ARM64 Exynos processors"
@@ -21,3 +22,5 @@ config ARM64_EXYNOS_CPUIDLE
 	select DT_IDLE_STATES
 	help
 	  Select this to enable cpuidle for ARM64 Exynos processors.
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012

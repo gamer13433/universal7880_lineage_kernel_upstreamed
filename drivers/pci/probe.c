@@ -1179,7 +1179,11 @@ int pci_setup_device(struct pci_dev *dev)
 	/* device class may be changed after fixup */
 	class = dev->class >> 8;
 
+<<<<<<< HEAD
 	if (dev->non_compliant_bars) {
+=======
+	if (dev->non_compliant_bars && !dev->mmio_always_on) {
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		pci_read_config_word(dev, PCI_COMMAND, &cmd);
 		if (cmd & (PCI_COMMAND_IO | PCI_COMMAND_MEMORY)) {
 			dev_info(&dev->dev, "device has non-compliant BARs; disabling IO/MEM decoding\n");
@@ -1991,6 +1995,10 @@ struct pci_bus *pci_create_root_bus(struct device *parent, int bus,
 		goto err_out;
 	}
 	b->bridge = get_device(&bridge->dev);
+<<<<<<< HEAD
+=======
+	device_enable_async_suspend(b->bridge);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	pci_set_bus_of_node(b);
 
 	if (!parent)

@@ -987,14 +987,23 @@ static int pmbus_add_sensor_attrs_one(struct i2c_client *client,
 				      const struct pmbus_driver_info *info,
 				      const char *name,
 				      int index, int page,
+<<<<<<< HEAD
 				      const struct pmbus_sensor_attr *attr)
+=======
+				      const struct pmbus_sensor_attr *attr,
+				      bool paged)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	struct pmbus_sensor *base;
 	int ret;
 
 	if (attr->label) {
 		ret = pmbus_add_label(data, name, index, attr->label,
+<<<<<<< HEAD
 				      attr->paged ? page + 1 : 0);
+=======
+				      paged ? page + 1 : 0);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		if (ret)
 			return ret;
 	}
@@ -1026,6 +1035,33 @@ static int pmbus_add_sensor_attrs_one(struct i2c_client *client,
 	return 0;
 }
 
+<<<<<<< HEAD
+=======
+static bool pmbus_sensor_is_paged(const struct pmbus_driver_info *info,
+				  const struct pmbus_sensor_attr *attr)
+{
+	int p;
+
+	if (attr->paged)
+		return true;
+
+	/*
+	 * Some attributes may be present on more than one page despite
+	 * not being marked with the paged attribute. If that is the case,
+	 * then treat the sensor as being paged and add the page suffix to the
+	 * attribute name.
+	 * We don't just add the paged attribute to all such attributes, in
+	 * order to maintain the un-suffixed labels in the case where the
+	 * attribute is only on page 0.
+	 */
+	for (p = 1; p < info->pages; p++) {
+		if (info->func[p] & attr->func)
+			return true;
+	}
+	return false;
+}
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static int pmbus_add_sensor_attrs(struct i2c_client *client,
 				  struct pmbus_data *data,
 				  const char *name,
@@ -1039,14 +1075,24 @@ static int pmbus_add_sensor_attrs(struct i2c_client *client,
 	index = 1;
 	for (i = 0; i < nattrs; i++) {
 		int page, pages;
+<<<<<<< HEAD
 
 		pages = attrs->paged ? info->pages : 1;
+=======
+		bool paged = pmbus_sensor_is_paged(info, attrs);
+
+		pages = paged ? info->pages : 1;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		for (page = 0; page < pages; page++) {
 			if (!(info->func[page] & attrs->func))
 				continue;
 			ret = pmbus_add_sensor_attrs_one(client, data, info,
 							 name, index, page,
+<<<<<<< HEAD
 							 attrs);
+=======
+							 attrs, paged);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			if (ret)
 				return ret;
 			index++;

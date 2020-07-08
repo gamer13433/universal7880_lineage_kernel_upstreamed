@@ -82,9 +82,12 @@
 
 #define SO_BPF_EXTENSIONS	48
 
+<<<<<<< HEAD
 /* START_OF_KNOX_NPA */
 #define SO_SET_DOMAIN_NAME 55
 #define SO_SET_DNS_UID 56
 /* END_OF_KNOX_NPA */
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #endif /* __ASM_GENERIC_SOCKET_H */

@@ -76,5 +76,9 @@ int rodata_test(void)
 }
 
 MODULE_LICENSE("GPL");
+<<<<<<< HEAD
 MODULE_DESCRIPTION("Testcase for the DEBUG_RODATA infrastructure");
+=======
+MODULE_DESCRIPTION("Testcase for marking rodata as read-only");
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 MODULE_AUTHOR("Arjan van de Ven <arjan@linux.intel.com>");

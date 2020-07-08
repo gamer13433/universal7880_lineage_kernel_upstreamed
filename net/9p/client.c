@@ -1068,6 +1068,7 @@ struct p9_client *p9_client_create(const char *dev_name, char *options)
 		goto close_trans;
 	}
 
+<<<<<<< HEAD
 	if (clnt->msize < 4096) {
 		p9_debug(P9_DEBUG_ERROR,
 			 "Please specify a msize of at least 4k\n");
@@ -1075,6 +1076,8 @@ struct p9_client *p9_client_create(const char *dev_name, char *options)
 		goto free_client;
 	}
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	err = p9_client_version(clnt);
 	if (err)
 		goto close_trans;

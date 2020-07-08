@@ -350,7 +350,11 @@ static void init_chips(struct fb_info *p, unsigned long addr)
 static int chipsfb_pci_init(struct pci_dev *dp, const struct pci_device_id *ent)
 {
 	struct fb_info *p;
+<<<<<<< HEAD
 	unsigned long addr, size;
+=======
+	unsigned long addr;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	unsigned short cmd;
 	int rc = -ENODEV;
 
@@ -362,7 +366,10 @@ static int chipsfb_pci_init(struct pci_dev *dp, const struct pci_device_id *ent)
 	if ((dp->resource[0].flags & IORESOURCE_MEM) == 0)
 		goto err_disable;
 	addr = pci_resource_start(dp, 0);
+<<<<<<< HEAD
 	size = pci_resource_len(dp, 0);
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (addr == 0)
 		goto err_disable;
 

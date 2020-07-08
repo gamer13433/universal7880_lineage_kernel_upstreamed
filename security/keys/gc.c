@@ -46,7 +46,11 @@ static unsigned long key_gc_flags;
  * immediately unlinked.
  */
 struct key_type key_type_dead = {
+<<<<<<< HEAD
 	.name = "dead",
+=======
+	.name = ".dead",
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 /*
@@ -136,9 +140,15 @@ static noinline void key_gc_unused_keys(struct list_head *keys)
 
 		/* Throw away the key data if the key is instantiated */
 		if (test_bit(KEY_FLAG_INSTANTIATED, &key->flags) &&
+<<<<<<< HEAD
 			!test_bit(KEY_FLAG_NEGATIVE, &key->flags) &&
 			key->type->destroy)
 				key->type->destroy(key);
+=======
+		    !test_bit(KEY_FLAG_NEGATIVE, &key->flags) &&
+		    key->type->destroy)
+			key->type->destroy(key);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 		security_key_free(key);
 
@@ -156,10 +166,13 @@ static noinline void key_gc_unused_keys(struct list_head *keys)
 
 		key_user_put(key->user);
 
+<<<<<<< HEAD
 		/* now throw away the key memory */
 		if (key->type->destroy)
 			key->type->destroy(key);
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		kfree(key->description);
 
 #ifdef KEY_DEBUGGING

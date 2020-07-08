@@ -263,6 +263,10 @@ struct header_ops {
 	void	(*cache_update)(struct hh_cache *hh,
 				const struct net_device *dev,
 				const unsigned char *haddr);
+<<<<<<< HEAD
+=======
+	bool	(*validate)(const char *ll_header, unsigned int len);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 /* These flag bits are private to the generic network queueing
@@ -495,7 +499,10 @@ static inline void napi_enable(struct napi_struct *n)
 	clear_bit(NAPI_STATE_SCHED, &n->state);
 }
 
+<<<<<<< HEAD
 #ifdef CONFIG_SMP
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /**
  *	napi_synchronize - wait until NAPI is not running
  *	@n: napi context
@@ -506,12 +513,21 @@ static inline void napi_enable(struct napi_struct *n)
  */
 static inline void napi_synchronize(const struct napi_struct *n)
 {
+<<<<<<< HEAD
 	while (test_bit(NAPI_STATE_SCHED, &n->state))
 		msleep(1);
 }
 #else
 # define napi_synchronize(n)	barrier()
 #endif
+=======
+	if (IS_ENABLED(CONFIG_SMP))
+		while (test_bit(NAPI_STATE_SCHED, &n->state))
+			msleep(1);
+	else
+		barrier();
+}
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 enum netdev_queue_state_t {
 	__QUEUE_STATE_DRV_XOFF,
@@ -1329,7 +1345,11 @@ enum netdev_priv_flags {
  *	@dma:		DMA channel
  *	@mtu:		Interface MTU value
  *	@type:		Interface hardware type
+<<<<<<< HEAD
  *	@hard_header_len: Hardware header length
+=======
+ *	@hard_header_len: Maximum hardware header length.
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
  *
  *	@needed_headroom: Extra headroom the hardware may need, but not in all
  *			  cases can this be guaranteed
@@ -1537,6 +1557,14 @@ struct net_device {
 	unsigned char		if_port;
 	unsigned char		dma;
 
+<<<<<<< HEAD
+=======
+	/* Note : dev->mtu is often read without holding a lock.
+	 * Writers usually hold RTNL.
+	 * It is recommended to use READ_ONCE() to annotate the reads,
+	 * and to use WRITE_ONCE() to annotate the writes.
+	 */
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	unsigned int		mtu;
 	unsigned short		type;
 	unsigned short		hard_header_len;
@@ -1888,18 +1916,27 @@ struct napi_gro_cb {
 	/* Number of segments aggregated. */
 	u16	count;
 
+<<<<<<< HEAD
 	/* This is non-zero if the packet may be of the same flow. */
 	u8	same_flow;
 
 #define NAPI_GRO_FREE		  1
 #define NAPI_GRO_FREE_STOLEN_HEAD 2
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/* jiffies when first packet was created/queued */
 	unsigned long age;
 
 	/* Used in ipv6_gro_receive() and foo-over-udp */
 	u16	proto;
 
+<<<<<<< HEAD
+=======
+	/* This is non-zero if the packet may be of the same flow. */
+	u8	same_flow:1;
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/* Used in tunnel GRO receive */
 	u8	encap_mark:1;
 
@@ -1917,7 +1954,14 @@ struct napi_gro_cb {
 	/* Used in foo-over-udp, set in udp[46]_gro_receive */
 	u8	is_ipv6:1;
 
+<<<<<<< HEAD
 	/* 7 bit hole */
+=======
+	/* Used in GRE, set in fou/gue_gro_receive */
+	u8	is_fou:1;
+
+	/* 6 bit hole */
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	/* used to support CHECKSUM_COMPLETE for tunneling protocols */
 	__wsum	csum;
@@ -2315,6 +2359,27 @@ static inline int dev_rebuild_header(struct sk_buff *skb)
 	return dev->header_ops->rebuild(skb);
 }
 
+<<<<<<< HEAD
+=======
+/* ll_header must have at least hard_header_len allocated */
+static inline bool dev_validate_header(const struct net_device *dev,
+				       char *ll_header, int len)
+{
+	if (likely(len >= dev->hard_header_len))
+		return true;
+
+	if (capable(CAP_SYS_RAWIO)) {
+		memset(ll_header + len, 0, dev->hard_header_len - len);
+		return true;
+	}
+
+	if (dev->header_ops && dev->header_ops->validate)
+		return dev->header_ops->validate(ll_header, len);
+
+	return false;
+}
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 typedef int gifconf_func_t(struct net_device * dev, char __user * bufptr, int len);
 int register_gifconf(unsigned int family, gifconf_func_t *gifconf);
 static inline int unregister_gifconf(unsigned int family)
@@ -2866,6 +2931,10 @@ static inline void napi_free_frags(struct napi_struct *napi)
 	napi->skb = NULL;
 }
 
+<<<<<<< HEAD
+=======
+bool netdev_is_rx_handler_busy(struct net_device *dev);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 int netdev_rx_handler_register(struct net_device *dev,
 			       rx_handler_func_t *rx_handler,
 			       void *rx_handler_data);
@@ -3070,7 +3139,11 @@ static inline u32 netif_msg_init(int debug_value, int default_msg_enable_bits)
 	if (debug_value == 0)	/* no output */
 		return 0;
 	/* set low N bits */
+<<<<<<< HEAD
 	return (1 << debug_value) - 1;
+=======
+	return (1U << debug_value) - 1;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 static inline void __netif_tx_lock(struct netdev_queue *txq, int cpu)

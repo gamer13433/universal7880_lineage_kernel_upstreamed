@@ -538,15 +538,25 @@ static void imx_dma_tx(struct imx_port *sport)
 
 	sport->tx_bytes = uart_circ_chars_pending(xmit);
 
+<<<<<<< HEAD
 	if (xmit->tail > xmit->head && xmit->head > 0) {
+=======
+	if (xmit->tail < xmit->head || xmit->head == 0) {
+		sport->dma_tx_nents = 1;
+		sg_init_one(sgl, xmit->buf + xmit->tail, sport->tx_bytes);
+	} else {
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		sport->dma_tx_nents = 2;
 		sg_init_table(sgl, 2);
 		sg_set_buf(sgl, xmit->buf + xmit->tail,
 				UART_XMIT_SIZE - xmit->tail);
 		sg_set_buf(sgl + 1, xmit->buf, xmit->head);
+<<<<<<< HEAD
 	} else {
 		sport->dma_tx_nents = 1;
 		sg_init_one(sgl, xmit->buf + xmit->tail, sport->tx_bytes);
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 	ret = dma_map_sg(dev, sgl, sport->dma_tx_nents, DMA_TO_DEVICE);
@@ -554,7 +564,11 @@ static void imx_dma_tx(struct imx_port *sport)
 		dev_err(dev, "DMA mapping error for TX.\n");
 		return;
 	}
+<<<<<<< HEAD
 	desc = dmaengine_prep_slave_sg(chan, sgl, sport->dma_tx_nents,
+=======
+	desc = dmaengine_prep_slave_sg(chan, sgl, ret,
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 					DMA_MEM_TO_DEV, DMA_PREP_INTERRUPT);
 	if (!desc) {
 		dev_err(dev, "We cannot prepare for the TX slave dma!\n");
@@ -900,6 +914,17 @@ static void dma_rx_callback(void *data)
 
 	status = dmaengine_tx_status(chan, (dma_cookie_t)0, &state);
 	count = RX_BUF_SIZE - state.residue;
+<<<<<<< HEAD
+=======
+
+	if (readl(sport->port.membase + USR2) & USR2_IDLE) {
+		/* In condition [3] the SDMA counted up too early */
+		count--;
+
+		writel(USR2_IDLE, sport->port.membase + USR2);
+	}
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	dev_dbg(sport->port.dev, "We get %d bytes.\n", count);
 
 	if (count) {
@@ -1749,7 +1774,11 @@ imx_console_setup(struct console *co, char *options)
 
 	retval = clk_prepare(sport->clk_per);
 	if (retval)
+<<<<<<< HEAD
 		clk_disable_unprepare(sport->clk_ipg);
+=======
+		clk_unprepare(sport->clk_ipg);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 error_console:
 	return retval;

@@ -309,6 +309,10 @@ struct address_space *page_mapping(struct page *page)
 		mapping = NULL;
 	return mapping;
 }
+<<<<<<< HEAD
+=======
+EXPORT_SYMBOL(page_mapping);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 int overcommit_ratio_handler(struct ctl_table *table, int write,
 			     void __user *buffer, size_t *lenp,

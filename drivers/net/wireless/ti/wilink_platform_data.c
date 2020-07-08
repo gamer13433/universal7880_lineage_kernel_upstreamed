@@ -23,6 +23,7 @@
 #include <linux/err.h>
 #include <linux/wl12xx.h>
 
+<<<<<<< HEAD
 static struct wl12xx_platform_data *wl12xx_platform_data;
 
 int __init wl12xx_set_platform_data(const struct wl12xx_platform_data *data)
@@ -48,6 +49,8 @@ struct wl12xx_platform_data *wl12xx_get_platform_data(void)
 }
 EXPORT_SYMBOL(wl12xx_get_platform_data);
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static struct wl1251_platform_data *wl1251_platform_data;
 
 int __init wl1251_set_platform_data(const struct wl1251_platform_data *data)

@@ -98,6 +98,11 @@ nfnl_acct_new(struct sock *nfnl, struct sk_buff *skb,
 			return -EINVAL;
 		if (flags & NFACCT_F_OVERQUOTA)
 			return -EINVAL;
+<<<<<<< HEAD
+=======
+		if ((flags & NFACCT_F_QUOTA) && !tb[NFACCT_QUOTA])
+			return -EINVAL;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 		size += sizeof(u64);
 	}

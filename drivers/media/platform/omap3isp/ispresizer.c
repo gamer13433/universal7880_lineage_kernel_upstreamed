@@ -1680,6 +1680,10 @@ int omap3isp_resizer_register_entities(struct isp_res_device *res,
 	int ret;
 
 	/* Register the subdev and video nodes. */
+<<<<<<< HEAD
+=======
+	res->subdev.dev = vdev->mdev->dev;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	ret = v4l2_device_register_subdev(vdev, &res->subdev);
 	if (ret < 0)
 		goto error;

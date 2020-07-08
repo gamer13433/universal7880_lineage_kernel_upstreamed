@@ -159,7 +159,11 @@ static int stmmac_enable(struct ptp_clock_info *ptp,
 /* structure describing a PTP hardware clock */
 static struct ptp_clock_info stmmac_ptp_clock_ops = {
 	.owner = THIS_MODULE,
+<<<<<<< HEAD
 	.name = "stmmac_ptp_clock",
+=======
+	.name = "stmmac ptp",
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	.max_adj = 62500000,
 	.n_alarm = 0,
 	.n_ext_ts = 0,

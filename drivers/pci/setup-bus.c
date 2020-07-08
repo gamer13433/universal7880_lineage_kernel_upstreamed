@@ -1480,7 +1480,11 @@ static void pci_bus_dump_resources(struct pci_bus *bus)
 	}
 }
 
+<<<<<<< HEAD
 static int __maybe_unused pci_bus_get_depth(struct pci_bus *bus)
+=======
+static int pci_bus_get_depth(struct pci_bus *bus)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	int depth = 0;
 	struct pci_bus *child_bus;
@@ -1519,7 +1523,11 @@ void __init pci_realloc_get_opt(char *str)
 	else if (!strncmp(str, "on", 2))
 		pci_realloc_enable = user_enabled;
 }
+<<<<<<< HEAD
 static bool __maybe_unused pci_realloc_enabled(enum enable_type enable)
+=======
+static bool pci_realloc_enabled(enum enable_type enable)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	return enable >= user_enabled;
 }
@@ -1563,7 +1571,11 @@ static enum enable_type pci_realloc_detect(struct pci_bus *bus,
 	return enable_local;
 }
 #else
+<<<<<<< HEAD
 static enum enable_type __maybe_unused pci_realloc_detect(struct pci_bus *bus,
+=======
+static enum enable_type pci_realloc_detect(struct pci_bus *bus,
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			 enum enable_type enable_local)
 {
 	return enable_local;
@@ -1589,6 +1601,20 @@ void pci_assign_unassigned_root_bus_resources(struct pci_bus *bus)
 	int pci_try_num = 1;
 	enum enable_type enable_local;
 
+<<<<<<< HEAD
+=======
+	/* don't realloc if asked to do so */
+	enable_local = pci_realloc_detect(bus, pci_realloc_enable);
+	if (pci_realloc_enabled(enable_local)) {
+		int max_depth = pci_bus_get_depth(bus);
+
+		pci_try_num = max_depth + 1;
+		dev_printk(KERN_DEBUG, &bus->dev,
+			   "max bus depth: %d pci_try_num: %d\n",
+			   max_depth, pci_try_num);
+	}
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 again:
 	/*
 	 * last try will use add_list, otherwise will try good to have as
@@ -1639,12 +1665,26 @@ again:
 	/* restore size and flags */
 	list_for_each_entry(fail_res, &fail_head, list) {
 		struct resource *res = fail_res->res;
+<<<<<<< HEAD
+=======
+		int idx;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 		res->start = fail_res->start;
 		res->end = fail_res->end;
 		res->flags = fail_res->flags;
+<<<<<<< HEAD
 		if (fail_res->dev->subordinate)
 			res->flags = 0;
+=======
+
+		if (pci_is_bridge(fail_res->dev)) {
+			idx = res - &fail_res->dev->resource[0];
+			if (idx >= PCI_BRIDGE_RESOURCES &&
+			    idx <= PCI_BRIDGE_RESOURCE_END)
+				res->flags = 0;
+		}
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 	free_list(&fail_head);
 
@@ -1705,12 +1745,26 @@ again:
 	/* restore size and flags */
 	list_for_each_entry(fail_res, &fail_head, list) {
 		struct resource *res = fail_res->res;
+<<<<<<< HEAD
+=======
+		int idx;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 		res->start = fail_res->start;
 		res->end = fail_res->end;
 		res->flags = fail_res->flags;
+<<<<<<< HEAD
 		if (fail_res->dev->subordinate)
 			res->flags = 0;
+=======
+
+		if (pci_is_bridge(fail_res->dev)) {
+			idx = res - &fail_res->dev->resource[0];
+			if (idx >= PCI_BRIDGE_RESOURCES &&
+			    idx <= PCI_BRIDGE_RESOURCE_END)
+				res->flags = 0;
+		}
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 	free_list(&fail_head);
 

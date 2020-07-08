@@ -86,6 +86,7 @@ struct inet_request_sock {
 				wscale_ok  : 1,
 				ecn_ok	   : 1,
 				acked	   : 1,
+<<<<<<< HEAD
 #ifdef CONFIG_MPTCP
 				no_srccheck: 1,
 				mptcp_rqsk : 1,
@@ -93,6 +94,9 @@ struct inet_request_sock {
 #else
 				no_srccheck: 1;
 #endif
+=======
+				no_srccheck: 1;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	kmemcheck_bitfield_end(flags);
 	union {
 		struct ip_options_rcu	*opt;

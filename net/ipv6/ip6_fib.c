@@ -1484,10 +1484,13 @@ skip:
 		case FWS_U:
 			if (fn == w->root)
 				return 0;
+<<<<<<< HEAD
 			if (!fn->parent) {
 				pr_err("%s: parent is already removed\n", __func__);
 				return 0;
 			}
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			pn = fn->parent;
 			w->node = pn;
 #ifdef CONFIG_IPV6_SUBTREES

@@ -472,6 +472,12 @@ const char *perf_evsel__name(struct perf_evsel *evsel)
 {
 	char bf[128];
 
+<<<<<<< HEAD
+=======
+	if (!evsel)
+		goto out_unknown;
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (evsel->name)
 		return evsel->name;
 
@@ -508,7 +514,14 @@ const char *perf_evsel__name(struct perf_evsel *evsel)
 
 	evsel->name = strdup(bf);
 
+<<<<<<< HEAD
 	return evsel->name ?: "unknown";
+=======
+	if (evsel->name)
+		return evsel->name;
+out_unknown:
+	return "unknown";
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 const char *perf_evsel__group_name(struct perf_evsel *evsel)
@@ -2067,12 +2080,24 @@ int perf_evsel__open_strerror(struct perf_evsel *evsel, struct target *target,
 	case EPERM:
 	case EACCES:
 		return scnprintf(msg, size,
+<<<<<<< HEAD
 		 "You may not have permission to collect %sstats.\n"
 		 "Consider tweaking /proc/sys/kernel/perf_event_paranoid:\n"
 		 " -1 - Not paranoid at all\n"
 		 "  0 - Disallow raw tracepoint access for unpriv\n"
 		 "  1 - Disallow cpu events for unpriv\n"
 		 "  2 - Disallow kernel profiling for unpriv",
+=======
+		 "You may not have permission to collect %sstats.\n\n"
+		 "Consider tweaking /proc/sys/kernel/perf_event_paranoid,\n"
+		 "which controls use of the performance events system by\n"
+		 "unprivileged users (without CAP_SYS_ADMIN).\n\n"
+		 "The default value is 1:\n\n"
+		 "  -1: Allow use of (almost) all events by all users\n"
+		 ">= 0: Disallow raw tracepoint access by users without CAP_IOC_LOCK\n"
+		 ">= 1: Disallow CPU event access by users without CAP_SYS_ADMIN\n"
+		 ">= 2: Disallow kernel profiling by users without CAP_SYS_ADMIN",
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 				 target->system_wide ? "system-wide " : "");
 	case ENOENT:
 		return scnprintf(msg, size, "The %s event is not supported.",

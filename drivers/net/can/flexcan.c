@@ -992,6 +992,10 @@ static int flexcan_chip_start(struct net_device *dev)
 		reg_mecr = flexcan_read(&regs->mecr);
 		reg_mecr &= ~FLEXCAN_MECR_ECRWRDIS;
 		flexcan_write(reg_mecr, &regs->mecr);
+<<<<<<< HEAD
+=======
+		reg_mecr |= FLEXCAN_MECR_ECCDIS;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		reg_mecr &= ~(FLEXCAN_MECR_NCEFAFRZ | FLEXCAN_MECR_HANCEI_MSK |
 				FLEXCAN_MECR_FANCEI_MSK);
 		flexcan_write(reg_mecr, &regs->mecr);

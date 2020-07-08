@@ -173,6 +173,10 @@ void led_classdev_resume(struct led_classdev *led_cdev)
 }
 EXPORT_SYMBOL_GPL(led_classdev_resume);
 
+<<<<<<< HEAD
+=======
+#ifdef CONFIG_PM_SLEEP
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static int led_suspend(struct device *dev)
 {
 	struct led_classdev *led_cdev = dev_get_drvdata(dev);
@@ -192,11 +196,17 @@ static int led_resume(struct device *dev)
 
 	return 0;
 }
+<<<<<<< HEAD
 
 static const struct dev_pm_ops leds_class_dev_pm_ops = {
 	.suspend        = led_suspend,
 	.resume         = led_resume,
 };
+=======
+#endif
+
+static SIMPLE_DEV_PM_OPS(leds_class_dev_pm_ops, led_suspend, led_resume);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /**
  * led_classdev_register - register a new object of led_classdev class.

@@ -703,6 +703,13 @@ static void ata_pio_sector(struct ata_queued_cmd *qc)
 	unsigned int offset;
 	unsigned char *buf;
 
+<<<<<<< HEAD
+=======
+	if (!qc->cursg) {
+		qc->curbytes = qc->nbytes;
+		return;
+	}
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (qc->curbytes == qc->nbytes - qc->sect_size)
 		ap->hsm_task_state = HSM_ST_LAST;
 
@@ -742,6 +749,11 @@ static void ata_pio_sector(struct ata_queued_cmd *qc)
 
 	if (qc->cursg_ofs == qc->cursg->length) {
 		qc->cursg = sg_next(qc->cursg);
+<<<<<<< HEAD
+=======
+		if (!qc->cursg)
+			ap->hsm_task_state = HSM_ST_LAST;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		qc->cursg_ofs = 0;
 	}
 }

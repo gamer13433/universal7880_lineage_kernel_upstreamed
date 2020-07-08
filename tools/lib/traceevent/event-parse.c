@@ -264,10 +264,17 @@ static int add_new_comm(struct pevent *pevent, const char *comm, int pid)
 		errno = ENOMEM;
 		return -1;
 	}
+<<<<<<< HEAD
 
 	cmdlines[pevent->cmdline_count].comm = strdup(comm);
 	if (!cmdlines[pevent->cmdline_count].comm) {
 		free(cmdlines);
+=======
+	pevent->cmdlines = cmdlines;
+
+	cmdlines[pevent->cmdline_count].comm = strdup(comm);
+	if (!cmdlines[pevent->cmdline_count].comm) {
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		errno = ENOMEM;
 		return -1;
 	}
@@ -278,7 +285,10 @@ static int add_new_comm(struct pevent *pevent, const char *comm, int pid)
 		pevent->cmdline_count++;
 
 	qsort(cmdlines, pevent->cmdline_count, sizeof(*cmdlines), cmdline_cmp);
+<<<<<<< HEAD
 	pevent->cmdlines = cmdlines;
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	return 0;
 }

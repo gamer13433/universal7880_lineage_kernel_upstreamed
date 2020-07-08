@@ -25,7 +25,10 @@
 #include <linux/moduleparam.h>
 #include <linux/kernel.h>
 #include <linux/errno.h>
+<<<<<<< HEAD
 #include <linux/init.h>
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #include <linux/list.h>
 #include <linux/proc_fs.h>
 #include <linux/slab.h>
@@ -36,6 +39,10 @@
 #include <asm/byteorder.h>
 #include <asm/unaligned.h>
 
+<<<<<<< HEAD
+=======
+#include "u_rndis.h"
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #undef	VERBOSE_DEBUG
 
@@ -58,17 +65,30 @@ MODULE_PARM_DESC (rndis_debug, "enable debugging");
 #endif
 
 #define RNDIS_MAX_CONFIGS	1
+<<<<<<< HEAD
 #ifdef CONFIG_USB_RNDIS_MULTIPACKET
 int rndis_ul_max_pkt_per_xfer_rcvd;
 module_param(rndis_ul_max_pkt_per_xfer_rcvd, int, S_IRUGO);
 MODULE_PARM_DESC(rndis_ul_max_pkt_per_xfer_rcvd,
 	"Max num of REMOTE_NDIS_PACKET_MSGs received in a single transfer");
+=======
+
+int rndis_ul_max_pkt_per_xfer_rcvd;
+module_param(rndis_ul_max_pkt_per_xfer_rcvd, int, S_IRUGO);
+MODULE_PARM_DESC(rndis_ul_max_pkt_per_xfer_rcvd,
+		"Max num of REMOTE_NDIS_PACKET_MSGs received in a single transfer");
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 int rndis_ul_max_xfer_size_rcvd;
 module_param(rndis_ul_max_xfer_size_rcvd, int, S_IRUGO);
 MODULE_PARM_DESC(rndis_ul_max_xfer_size_rcvd,
+<<<<<<< HEAD
 	"Max size of bus transfer received");
 #endif
+=======
+		"Max size of bus transfer received");
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 static rndis_params rndis_per_dev_params[RNDIS_MAX_CONFIGS];
 
@@ -595,13 +615,17 @@ static int rndis_init_response(int configNr, rndis_init_msg_type *buf)
 	resp->MinorVersion = cpu_to_le32(RNDIS_MINOR_VERSION);
 	resp->DeviceFlags = cpu_to_le32(RNDIS_DF_CONNECTIONLESS);
 	resp->Medium = cpu_to_le32(RNDIS_MEDIUM_802_3);
+<<<<<<< HEAD
 #ifdef CONFIG_USB_RNDIS_MULTIPACKET
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	resp->MaxPacketsPerTransfer = cpu_to_le32(params->max_pkt_per_xfer);
 	resp->MaxTransferSize = cpu_to_le32(params->max_pkt_per_xfer *
 		(params->dev->mtu
 		+ sizeof(struct ethhdr)
 		+ sizeof(struct rndis_packet_msg_type)
 		+ 22));
+<<<<<<< HEAD
 	resp->PacketAlignmentFactor = cpu_to_le32(params->pkt_alignment_factor);
 #else
 	resp->MaxPacketsPerTransfer = cpu_to_le32(1);
@@ -612,6 +636,9 @@ static int rndis_init_response(int configNr, rndis_init_msg_type *buf)
 		+ 22);
 	resp->PacketAlignmentFactor = cpu_to_le32(0);
 #endif
+=======
+	resp->PacketAlignmentFactor = cpu_to_le32(0);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	resp->AFListOffset = cpu_to_le32(0);
 	resp->AFListSize = cpu_to_le32(0);
 
@@ -706,16 +733,25 @@ static int rndis_reset_response(int configNr, rndis_reset_msg_type *buf)
 	rndis_reset_cmplt_type *resp;
 	rndis_resp_t *r;
 	struct rndis_params *params = rndis_per_dev_params + configNr;
+<<<<<<< HEAD
 #ifdef CONFIG_USB_RNDIS_MULTIPACKET
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	u32 length;
 	u8 *xbuf;
 
 	/* drain the response queue */
+<<<<<<< HEAD
 	while ((xbuf = rndis_get_next_response(configNr, &length))) {
 		pr_info("%s: drain response queue\n", __func__);
 		rndis_free_response(configNr, xbuf);
 	}
 #endif
+=======
+	while ((xbuf = rndis_get_next_response(configNr, &length)))
+		rndis_free_response(configNr, xbuf);
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	r = rndis_add_response(configNr, sizeof(rndis_reset_cmplt_type));
 	if (!r)
 		return -ENOMEM;
@@ -790,6 +826,10 @@ int rndis_signal_connect(int configNr)
 	return rndis_indicate_status_msg(configNr,
 					  RNDIS_STATUS_MEDIA_CONNECT);
 }
+<<<<<<< HEAD
+=======
+EXPORT_SYMBOL_GPL(rndis_signal_connect);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 int rndis_signal_disconnect(int configNr)
 {
@@ -798,6 +838,10 @@ int rndis_signal_disconnect(int configNr)
 	return rndis_indicate_status_msg(configNr,
 					  RNDIS_STATUS_MEDIA_DISCONNECT);
 }
+<<<<<<< HEAD
+=======
+EXPORT_SYMBOL_GPL(rndis_signal_disconnect);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 void rndis_uninit(int configNr)
 {
@@ -812,11 +856,19 @@ void rndis_uninit(int configNr)
 	while ((buf = rndis_get_next_response(configNr, &length)))
 		rndis_free_response(configNr, buf);
 }
+<<<<<<< HEAD
+=======
+EXPORT_SYMBOL_GPL(rndis_uninit);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 void rndis_set_host_mac(int configNr, const u8 *addr)
 {
 	rndis_per_dev_params[configNr].host_mac = addr;
 }
+<<<<<<< HEAD
+=======
+EXPORT_SYMBOL_GPL(rndis_set_host_mac);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /*
  * Message Parser
@@ -892,15 +944,24 @@ int rndis_msg_parser(u8 configNr, u8 *buf)
 		 */
 		pr_warning("%s: unknown RNDIS message 0x%08X len %d\n",
 			__func__, MsgType, MsgLength);
+<<<<<<< HEAD
 		/* 
 		print_hex_dump_bytes(__func__, DUMP_PREFIX_OFFSET,
 				     buf, MsgLength);
 		*/
+=======
+		print_hex_dump_bytes(__func__, DUMP_PREFIX_OFFSET,
+				     buf, MsgLength);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		break;
 	}
 
 	return -ENOTSUPP;
 }
+<<<<<<< HEAD
+=======
+EXPORT_SYMBOL_GPL(rndis_msg_parser);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 int rndis_register(void (*resp_avail)(void *v), void *v)
 {
@@ -914,10 +975,13 @@ int rndis_register(void (*resp_avail)(void *v), void *v)
 			rndis_per_dev_params[i].used = 1;
 			rndis_per_dev_params[i].resp_avail = resp_avail;
 			rndis_per_dev_params[i].v = v;
+<<<<<<< HEAD
 #ifdef CONFIG_USB_RNDIS_MULTIPACKET
 			rndis_per_dev_params[i].max_pkt_per_xfer = 1;
 			rndis_per_dev_params[i].pkt_alignment_factor = 0;
 #endif
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			pr_debug("%s: configNr = %d\n", __func__, i);
 			return i;
 		}
@@ -926,6 +990,10 @@ int rndis_register(void (*resp_avail)(void *v), void *v)
 
 	return -ENODEV;
 }
+<<<<<<< HEAD
+=======
+EXPORT_SYMBOL_GPL(rndis_register);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 void rndis_deregister(int configNr)
 {
@@ -934,6 +1002,10 @@ void rndis_deregister(int configNr)
 	if (configNr >= RNDIS_MAX_CONFIGS) return;
 	rndis_per_dev_params[configNr].used = 0;
 }
+<<<<<<< HEAD
+=======
+EXPORT_SYMBOL_GPL(rndis_deregister);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 int rndis_set_param_dev(u8 configNr, struct net_device *dev, u16 *cdc_filter)
 {
@@ -945,6 +1017,7 @@ int rndis_set_param_dev(u8 configNr, struct net_device *dev, u16 *cdc_filter)
 	rndis_per_dev_params[configNr].dev = dev;
 	rndis_per_dev_params[configNr].filter = cdc_filter;
 
+<<<<<<< HEAD
 #ifdef CONFIG_USB_RNDIS_MULTIPACKET
 	/* reset aggregation stats for every set_alt */
 	rndis_ul_max_xfer_size_rcvd = 0;
@@ -952,6 +1025,13 @@ int rndis_set_param_dev(u8 configNr, struct net_device *dev, u16 *cdc_filter)
 #endif
 	return 0;
 }
+=======
+	rndis_ul_max_xfer_size_rcvd = 0;
+	rndis_ul_max_pkt_per_xfer_rcvd = 0;
+	return 0;
+}
+EXPORT_SYMBOL_GPL(rndis_set_param_dev);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 int rndis_set_param_vendor(u8 configNr, u32 vendorID, const char *vendorDescr)
 {
@@ -964,6 +1044,10 @@ int rndis_set_param_vendor(u8 configNr, u32 vendorID, const char *vendorDescr)
 
 	return 0;
 }
+<<<<<<< HEAD
+=======
+EXPORT_SYMBOL_GPL(rndis_set_param_vendor);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 int rndis_set_param_medium(u8 configNr, u32 medium, u32 speed)
 {
@@ -975,8 +1059,13 @@ int rndis_set_param_medium(u8 configNr, u32 medium, u32 speed)
 
 	return 0;
 }
+<<<<<<< HEAD
 
 #ifdef CONFIG_USB_RNDIS_MULTIPACKET
+=======
+EXPORT_SYMBOL_GPL(rndis_set_param_medium);
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 void rndis_set_max_pkt_xfer(u8 configNr, u8 max_pkt_per_xfer)
 {
 	pr_debug("%s:\n", __func__);
@@ -984,6 +1073,7 @@ void rndis_set_max_pkt_xfer(u8 configNr, u8 max_pkt_per_xfer)
 	rndis_per_dev_params[configNr].max_pkt_per_xfer = max_pkt_per_xfer;
 }
 
+<<<<<<< HEAD
 void rndis_set_pkt_alignment_factor(u8 configNr, u8 pkt_alignment_factor)
 {
 	pr_debug("%s:\n", __func__);
@@ -993,6 +1083,8 @@ void rndis_set_pkt_alignment_factor(u8 configNr, u8 pkt_alignment_factor)
 }
 #endif
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 void rndis_add_hdr(struct sk_buff *skb)
 {
 	struct rndis_packet_msg_type *header;
@@ -1006,6 +1098,10 @@ void rndis_add_hdr(struct sk_buff *skb)
 	header->DataOffset = cpu_to_le32(36);
 	header->DataLength = cpu_to_le32(skb->len - sizeof(*header));
 }
+<<<<<<< HEAD
+=======
+EXPORT_SYMBOL_GPL(rndis_add_hdr);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 void rndis_free_response(int configNr, u8 *buf)
 {
@@ -1022,6 +1118,10 @@ void rndis_free_response(int configNr, u8 *buf)
 		}
 	}
 }
+<<<<<<< HEAD
+=======
+EXPORT_SYMBOL_GPL(rndis_free_response);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 u8 *rndis_get_next_response(int configNr, u32 *length)
 {
@@ -1043,6 +1143,10 @@ u8 *rndis_get_next_response(int configNr, u32 *length)
 
 	return NULL;
 }
+<<<<<<< HEAD
+=======
+EXPORT_SYMBOL_GPL(rndis_get_next_response);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 static rndis_resp_t *rndis_add_response(int configNr, u32 length)
 {
@@ -1065,15 +1169,20 @@ int rndis_rm_hdr(struct gether *port,
 			struct sk_buff *skb,
 			struct sk_buff_head *list)
 {
+<<<<<<< HEAD
 
 #ifdef CONFIG_USB_RNDIS_MULTIPACKET
 	int num_pkts = 0;
+=======
+	int num_pkts = 1;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if (skb->len > rndis_ul_max_xfer_size_rcvd)
 		rndis_ul_max_xfer_size_rcvd = skb->len;
 
 	while (skb->len) {
 		struct rndis_packet_msg_type *hdr;
+<<<<<<< HEAD
 
 		struct sk_buff		*skb2;
 		u32		msg_len, data_offset, data_len;
@@ -1081,6 +1190,20 @@ int rndis_rm_hdr(struct gether *port,
 		if (skb->len < sizeof *hdr) {
 			pr_err("invalid rndis pkt: skblen:%u hdr_len:%u",
 					skb->len, (unsigned int)(sizeof *hdr));
+=======
+		struct sk_buff          *skb2;
+		u32             msg_len, data_offset, data_len;
+
+		/* some rndis hosts send extra byte to avoid zlp, ignore it */
+		if (skb->len == 1) {
+			dev_kfree_skb_any(skb);
+			return 0;
+		}
+
+		if (skb->len < sizeof *hdr) {
+			pr_err("invalid rndis pkt: skblen:%u hdr_len:%zu",
+					skb->len, sizeof *hdr);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			dev_kfree_skb_any(skb);
 			return -EINVAL;
 		}
@@ -1106,12 +1229,18 @@ int rndis_rm_hdr(struct gether *port,
 			return -EINVAL;
 		}
 
+<<<<<<< HEAD
 		num_pkts++;
 
 		skb_pull(skb, data_offset + 8);
 
 		if (msg_len == skb->len ||
 				data_len == (skb->len - 1)) {
+=======
+		skb_pull(skb, data_offset + 8);
+
+		if (msg_len == skb->len) {
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			skb_trim(skb, data_len);
 			break;
 		}
@@ -1126,11 +1255,17 @@ int rndis_rm_hdr(struct gether *port,
 		skb_pull(skb, msg_len - sizeof *hdr);
 		skb_trim(skb2, data_len);
 		skb_queue_tail(list, skb2);
+<<<<<<< HEAD
+=======
+
+		num_pkts++;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 	if (num_pkts > rndis_ul_max_pkt_per_xfer_rcvd)
 		rndis_ul_max_pkt_per_xfer_rcvd = num_pkts;
 
+<<<<<<< HEAD
 #else
 	/* tmp points to a struct rndis_packet_msg_type */
 	__le32 *tmp = (void *)skb->data;
@@ -1153,6 +1288,12 @@ int rndis_rm_hdr(struct gether *port,
 	skb_queue_tail(list, skb);
 	return 0;
 }
+=======
+	skb_queue_tail(list, skb);
+	return 0;
+}
+EXPORT_SYMBOL_GPL(rndis_rm_hdr);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #ifdef CONFIG_USB_GADGET_DEBUG_FILES
 
@@ -1168,6 +1309,7 @@ static int rndis_proc_show(struct seq_file *m, void *v)
 			 "speed     : %d\n"
 			 "cable     : %s\n"
 			 "vendor ID : 0x%08X\n"
+<<<<<<< HEAD
 #ifdef CONFIG_USB_RNDIS_MULTIPACKET
 			 "vendor    : %s\n"
 			 "ul-max-xfer-size:%d max-xfer-size-rcvd: %d\n"
@@ -1175,6 +1317,9 @@ static int rndis_proc_show(struct seq_file *m, void *v)
 #else
 			 "vendor    : %s\n",
 #endif
+=======
+			 "vendor    : %s\n",
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			 param->confignr, (param->used) ? "y" : "n",
 			 ({ char *s = "?";
 			 switch (param->state) {
@@ -1184,6 +1329,7 @@ static int rndis_proc_show(struct seq_file *m, void *v)
 				s = "RNDIS_INITIALIZED"; break;
 			 case RNDIS_DATA_INITIALIZED:
 				s = "RNDIS_DATA_INITIALIZED"; break;
+<<<<<<< HEAD
 			}; s; }),
 			 param->medium,
 			 (param->media_state) ? 0 : param->speed*100,
@@ -1199,6 +1345,13 @@ static int rndis_proc_show(struct seq_file *m, void *v)
 #else
 			 param->vendorID, param->vendorDescr);
 #endif
+=======
+			} s; }),
+			 param->medium,
+			 (param->media_state) ? 0 : param->speed*100,
+			 (param->media_state) ? "disconnected" : "connected",
+			 param->vendorID, param->vendorDescr);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return 0;
 }
 
@@ -1267,15 +1420,21 @@ static struct proc_dir_entry *rndis_connect_state [RNDIS_MAX_CONFIGS];
 
 #endif /* CONFIG_USB_GADGET_DEBUG_FILES */
 
+<<<<<<< HEAD
 static bool rndis_initialized;
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 int rndis_init(void)
 {
 	u8 i;
 
+<<<<<<< HEAD
 	if (rndis_initialized)
 		return 0;
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	for (i = 0; i < RNDIS_MAX_CONFIGS; i++) {
 #ifdef	CONFIG_USB_GADGET_DEBUG_FILES
 		char name [20];
@@ -1302,7 +1461,10 @@ int rndis_init(void)
 		INIT_LIST_HEAD(&(rndis_per_dev_params[i].resp_queue));
 	}
 
+<<<<<<< HEAD
 	rndis_initialized = true;
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return 0;
 }
 
@@ -1311,6 +1473,7 @@ void rndis_exit(void)
 #ifdef CONFIG_USB_GADGET_DEBUG_FILES
 	u8 i;
 	char name[20];
+<<<<<<< HEAD
 #endif
 
 	if (!rndis_initialized)
@@ -1318,9 +1481,16 @@ void rndis_exit(void)
 	rndis_initialized = false;
 
 #ifdef CONFIG_USB_GADGET_DEBUG_FILES
+=======
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	for (i = 0; i < RNDIS_MAX_CONFIGS; i++) {
 		sprintf(name, NAME_TEMPLATE, i);
 		remove_proc_entry(name, NULL);
 	}
 #endif
 }
+<<<<<<< HEAD
+=======
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012

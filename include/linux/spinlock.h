@@ -56,7 +56,11 @@
 #include <linux/stringify.h>
 #include <linux/bottom_half.h>
 #include <asm/barrier.h>
+<<<<<<< HEAD
 #include <linux/exynos-ss.h>
+=======
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /*
  * Must define these before including other files, inline functions need them

@@ -38,17 +38,27 @@
 #include <linux/of.h>
 
 #include "ufshcd.h"
+<<<<<<< HEAD
 #include "ufshcd-pltfrm.h"
 
 static const struct of_device_id ufs_of_match[];
 static struct ufs_hba_variant *get_variant(struct device *dev)
+=======
+
+static const struct of_device_id ufs_of_match[];
+static struct ufs_hba_variant_ops *get_variant_ops(struct device *dev)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	if (dev->of_node) {
 		const struct of_device_id *match;
 
 		match = of_match_node(ufs_of_match, dev->of_node);
 		if (match)
+<<<<<<< HEAD
 			return (struct ufs_hba_variant *)match->data;
+=======
+			return (struct ufs_hba_variant_ops *)match->data;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 	return NULL;
@@ -238,6 +248,7 @@ out:
 	return err;
 }
 
+<<<<<<< HEAD
 static int ufshcd_parse_pm_lvl_policy(struct ufs_hba *hba)
 {
 	struct device *dev = hba->dev;
@@ -286,6 +297,8 @@ static int ufshcd_parse_caps_info(struct ufs_hba *hba)
 	return 0;
 }
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #ifdef CONFIG_PM
 /**
  * ufshcd_pltfrm_suspend - suspend power management function
@@ -340,20 +353,31 @@ static void ufshcd_pltfrm_shutdown(struct platform_device *pdev)
 }
 
 /**
+<<<<<<< HEAD
  * ufshcd_pltfrm_init - initialize common routine of the driver
+=======
+ * ufshcd_pltfrm_probe - probe routine of the driver
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
  * @pdev: pointer to Platform device handle
  *
  * Returns 0 on success, non-zero value on failure
  */
+<<<<<<< HEAD
 int ufshcd_pltfrm_init(struct platform_device *pdev,
 			const struct ufs_hba_variant *var)
+=======
+static int ufshcd_pltfrm_probe(struct platform_device *pdev)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	struct ufs_hba *hba;
 	void __iomem *mmio_base;
 	struct resource *mem_res;
 	int irq, err;
 	struct device *dev = &pdev->dev;
+<<<<<<< HEAD
 	const struct ufs_hba_variant *_var;
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	mem_res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	mmio_base = devm_ioremap_resource(dev, mem_res);
@@ -374,11 +398,16 @@ int ufshcd_pltfrm_init(struct platform_device *pdev,
 		dev_err(&pdev->dev, "Allocation failed\n");
 		goto out;
 	}
+<<<<<<< HEAD
 	_var = (var != NULL) ? var : get_variant(&pdev->dev);
 	if (_var) {
 		hba->vops = _var->ops;
 		hba->quirks= _var->quirks;
 	}
+=======
+
+	hba->vops = get_variant_ops(&pdev->dev);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	err = ufshcd_parse_clock_info(hba);
 	if (err) {
@@ -393,9 +422,12 @@ int ufshcd_pltfrm_init(struct platform_device *pdev,
 		goto out;
 	}
 
+<<<<<<< HEAD
 	ufshcd_parse_pm_lvl_policy(hba);
 	ufshcd_parse_caps_info(hba);
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	pm_runtime_set_active(&pdev->dev);
 	pm_runtime_enable(&pdev->dev);
 
@@ -415,6 +447,7 @@ out_disable_rpm:
 out:
 	return err;
 }
+<<<<<<< HEAD
 EXPORT_SYMBOL_GPL(ufshcd_pltfrm_init);
 
 /**
@@ -439,6 +472,8 @@ static int ufshcd_pltfrm_probe(struct platform_device *pdev)
 {
 	return ufshcd_pltfrm_init(pdev, NULL);
 }
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /**
  * ufshcd_pltfrm_remove - remove platform driver routine
@@ -451,8 +486,11 @@ static int ufshcd_pltfrm_remove(struct platform_device *pdev)
 	struct ufs_hba *hba =  platform_get_drvdata(pdev);
 
 	pm_runtime_get_sync(&(pdev)->dev);
+<<<<<<< HEAD
 
 	disable_irq(hba->irq);
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	ufshcd_remove(hba);
 	return 0;
 }

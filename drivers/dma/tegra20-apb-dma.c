@@ -281,7 +281,11 @@ static struct tegra_dma_desc *tegra_dma_desc_get(
 
 	/* Do not allocate if desc are waiting for ack */
 	list_for_each_entry(dma_desc, &tdc->free_dma_desc, node) {
+<<<<<<< HEAD
 		if (async_tx_test_ack(&dma_desc->txd)) {
+=======
+		if (async_tx_test_ack(&dma_desc->txd) && !dma_desc->cb_count) {
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			list_del(&dma_desc->node);
 			spin_unlock_irqrestore(&tdc->lock, flags);
 			dma_desc->txd.flags = 0;
@@ -737,10 +741,13 @@ static void tegra_dma_terminate_all(struct dma_chan *dc)
 	bool was_busy;
 
 	spin_lock_irqsave(&tdc->lock, flags);
+<<<<<<< HEAD
 	if (list_empty(&tdc->pending_sg_req)) {
 		spin_unlock_irqrestore(&tdc->lock, flags);
 		return;
 	}
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if (!tdc->busy)
 		goto skip_dma_stop;
@@ -1058,7 +1065,11 @@ static struct dma_async_tx_descriptor *tegra_dma_prep_slave_sg(
 static struct dma_async_tx_descriptor *tegra_dma_prep_dma_cyclic(
 	struct dma_chan *dc, dma_addr_t buf_addr, size_t buf_len,
 	size_t period_len, enum dma_transfer_direction direction,
+<<<<<<< HEAD
 	unsigned long flags, void *context)
+=======
+	unsigned long flags)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	struct tegra_dma_channel *tdc = to_tegra_dma_chan(dc);
 	struct tegra_dma_desc *dma_desc = NULL;

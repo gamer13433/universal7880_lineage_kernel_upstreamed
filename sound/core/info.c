@@ -253,6 +253,10 @@ static ssize_t snd_info_entry_write(struct file *file, const char __user *buffer
 	struct snd_info_buffer *buf;
 	ssize_t size = 0;
 	loff_t pos;
+<<<<<<< HEAD
+=======
+	unsigned long realloc_size;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	data = file->private_data;
 	if (snd_BUG_ON(!data))
@@ -261,7 +265,12 @@ static ssize_t snd_info_entry_write(struct file *file, const char __user *buffer
 	pos = *offset;
 	if (pos < 0 || (long) pos != pos || (ssize_t) count < 0)
 		return -EIO;
+<<<<<<< HEAD
 	if ((unsigned long) pos + (unsigned long) count < (unsigned long) pos)
+=======
+	realloc_size = (unsigned long) pos + (unsigned long) count;
+	if (realloc_size < (unsigned long) pos || realloc_size > UINT_MAX)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		return -EIO;
 	switch (entry->content) {
 	case SNDRV_INFO_CONTENT_TEXT:

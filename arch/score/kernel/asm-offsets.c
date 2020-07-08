@@ -106,7 +106,10 @@ void output_thread_info_defines(void)
 	OFFSET(TI_CPU, thread_info, cpu);
 	OFFSET(TI_PRE_COUNT, thread_info, preempt_count);
 	OFFSET(TI_ADDR_LIMIT, thread_info, addr_limit);
+<<<<<<< HEAD
 	OFFSET(TI_RESTART_BLOCK, thread_info, restart_block);
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	OFFSET(TI_REGS, thread_info, regs);
 	DEFINE(KERNEL_STACK_SIZE, THREAD_SIZE);
 	DEFINE(KERNEL_STACK_MASK, THREAD_MASK);

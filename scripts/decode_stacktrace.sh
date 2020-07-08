@@ -61,7 +61,11 @@ parse_symbol() {
 	fi
 
 	# Strip out the base of the path
+<<<<<<< HEAD
 	code=${code//^$basepath/""}
+=======
+	code=${code#$basepath/}
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	# In the case of inlines, move everything to same line
 	code=${code//$'\n'/' '}

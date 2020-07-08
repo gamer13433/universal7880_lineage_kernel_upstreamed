@@ -118,9 +118,20 @@ static int llcp_sock_bind(struct socket *sock, struct sockaddr *addr, int alen)
 	llcp_sock->service_name = kmemdup(llcp_addr.service_name,
 					  llcp_sock->service_name_len,
 					  GFP_KERNEL);
+<<<<<<< HEAD
 
 	llcp_sock->ssap = nfc_llcp_get_sdp_ssap(local, llcp_sock);
 	if (llcp_sock->ssap == LLCP_SAP_MAX) {
+=======
+	if (!llcp_sock->service_name) {
+		ret = -ENOMEM;
+		goto put_dev;
+	}
+	llcp_sock->ssap = nfc_llcp_get_sdp_ssap(local, llcp_sock);
+	if (llcp_sock->ssap == LLCP_SAP_MAX) {
+		kfree(llcp_sock->service_name);
+		llcp_sock->service_name = NULL;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		ret = -EADDRINUSE;
 		goto put_dev;
 	}
@@ -1005,10 +1016,20 @@ static int llcp_sock_create(struct net *net, struct socket *sock,
 	    sock->type != SOCK_RAW)
 		return -ESOCKTNOSUPPORT;
 
+<<<<<<< HEAD
 	if (sock->type == SOCK_RAW)
 		sock->ops = &llcp_rawsock_ops;
 	else
 		sock->ops = &llcp_sock_ops;
+=======
+	if (sock->type == SOCK_RAW) {
+		if (!capable(CAP_NET_RAW))
+			return -EPERM;
+		sock->ops = &llcp_rawsock_ops;
+	} else {
+		sock->ops = &llcp_sock_ops;
+	}
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	sk = nfc_llcp_sock_alloc(sock, sock->type, GFP_ATOMIC);
 	if (sk == NULL)

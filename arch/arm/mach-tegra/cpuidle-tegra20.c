@@ -35,6 +35,10 @@
 #include "iomap.h"
 #include "irq.h"
 #include "pm.h"
+<<<<<<< HEAD
+=======
+#include "reset.h"
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #include "sleep.h"
 
 #ifdef CONFIG_PM_SLEEP
@@ -72,15 +76,22 @@ static struct cpuidle_driver tegra_idle_driver = {
 
 #ifdef CONFIG_PM_SLEEP
 #ifdef CONFIG_SMP
+<<<<<<< HEAD
 static void __iomem *pmc = IO_ADDRESS(TEGRA_PMC_BASE);
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static int tegra20_reset_sleeping_cpu_1(void)
 {
 	int ret = 0;
 
 	tegra_pen_lock();
 
+<<<<<<< HEAD
 	if (readl(pmc + PMC_SCRATCH41) == CPU_RESETTABLE)
+=======
+	if (readb(tegra20_cpu1_resettable_status) == CPU_RESETTABLE)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		tegra20_cpu_shutdown(1);
 	else
 		ret = -EINVAL;

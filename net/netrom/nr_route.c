@@ -200,6 +200,10 @@ static int __must_check nr_add_node(ax25_address *nr, const char *mnemonic,
 		/* refcount initialized at 1 */
 		spin_unlock_bh(&nr_node_list_lock);
 
+<<<<<<< HEAD
+=======
+		nr_neigh_put(nr_neigh);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		return 0;
 	}
 	nr_node_lock(nr_node);

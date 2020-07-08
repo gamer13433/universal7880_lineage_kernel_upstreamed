@@ -171,6 +171,11 @@ static int set_rq_size(struct mlx5_ib_dev *dev, struct ib_qp_cap *cap,
 		qp->rq.max_gs = 0;
 		qp->rq.wqe_cnt = 0;
 		qp->rq.wqe_shift = 0;
+<<<<<<< HEAD
+=======
+		cap->max_recv_wr = 0;
+		cap->max_recv_sge = 0;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	} else {
 		if (ucmd) {
 			qp->rq.wqe_cnt = ucmd->rq_wqe_count;
@@ -213,8 +218,15 @@ static int sq_overhead(enum ib_qp_type qp_type)
 		/* fall through */
 	case IB_QPT_RC:
 		size += sizeof(struct mlx5_wqe_ctrl_seg) +
+<<<<<<< HEAD
 			sizeof(struct mlx5_wqe_atomic_seg) +
 			sizeof(struct mlx5_wqe_raddr_seg);
+=======
+			max(sizeof(struct mlx5_wqe_atomic_seg) +
+			    sizeof(struct mlx5_wqe_raddr_seg),
+			    sizeof(struct mlx5_wqe_umr_ctrl_seg) +
+			    sizeof(struct mlx5_mkey_seg));
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		break;
 
 	case IB_QPT_XRC_TGT:
@@ -222,9 +234,15 @@ static int sq_overhead(enum ib_qp_type qp_type)
 
 	case IB_QPT_UC:
 		size += sizeof(struct mlx5_wqe_ctrl_seg) +
+<<<<<<< HEAD
 			sizeof(struct mlx5_wqe_raddr_seg) +
 			sizeof(struct mlx5_wqe_umr_ctrl_seg) +
 			sizeof(struct mlx5_mkey_seg);
+=======
+			max(sizeof(struct mlx5_wqe_raddr_seg),
+			    sizeof(struct mlx5_wqe_umr_ctrl_seg) +
+			    sizeof(struct mlx5_mkey_seg));
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		break;
 
 	case IB_QPT_UD:
@@ -1363,6 +1381,14 @@ static enum mlx5_qp_optpar opt_mask[MLX5_QP_NUM_STATE][MLX5_QP_NUM_STATE][MLX5_Q
 			[MLX5_QP_ST_UD] = MLX5_QP_OPTPAR_PKEY_INDEX	|
 					  MLX5_QP_OPTPAR_Q_KEY		|
 					  MLX5_QP_OPTPAR_PRI_PORT,
+<<<<<<< HEAD
+=======
+			[MLX5_QP_ST_XRC] = MLX5_QP_OPTPAR_RRE		|
+					  MLX5_QP_OPTPAR_RAE		|
+					  MLX5_QP_OPTPAR_RWE		|
+					  MLX5_QP_OPTPAR_PKEY_INDEX	|
+					  MLX5_QP_OPTPAR_PRI_PORT,
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		},
 		[MLX5_QP_STATE_RTR] = {
 			[MLX5_QP_ST_RC] = MLX5_QP_OPTPAR_ALT_ADDR_PATH  |
@@ -1396,6 +1422,15 @@ static enum mlx5_qp_optpar opt_mask[MLX5_QP_NUM_STATE][MLX5_QP_NUM_STATE][MLX5_Q
 					  MLX5_QP_OPTPAR_RWE		|
 					  MLX5_QP_OPTPAR_PM_STATE,
 			[MLX5_QP_ST_UD] = MLX5_QP_OPTPAR_Q_KEY,
+<<<<<<< HEAD
+=======
+			[MLX5_QP_ST_XRC] = MLX5_QP_OPTPAR_ALT_ADDR_PATH	|
+					  MLX5_QP_OPTPAR_RRE		|
+					  MLX5_QP_OPTPAR_RAE		|
+					  MLX5_QP_OPTPAR_RWE		|
+					  MLX5_QP_OPTPAR_PM_STATE	|
+					  MLX5_QP_OPTPAR_RNR_TIMEOUT,
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		},
 	},
 	[MLX5_QP_STATE_RTS] = {
@@ -1412,6 +1447,15 @@ static enum mlx5_qp_optpar opt_mask[MLX5_QP_NUM_STATE][MLX5_QP_NUM_STATE][MLX5_Q
 			[MLX5_QP_ST_UD] = MLX5_QP_OPTPAR_Q_KEY		|
 					  MLX5_QP_OPTPAR_SRQN		|
 					  MLX5_QP_OPTPAR_CQN_RCV,
+<<<<<<< HEAD
+=======
+			[MLX5_QP_ST_XRC] = MLX5_QP_OPTPAR_RRE		|
+					  MLX5_QP_OPTPAR_RAE		|
+					  MLX5_QP_OPTPAR_RWE		|
+					  MLX5_QP_OPTPAR_RNR_TIMEOUT	|
+					  MLX5_QP_OPTPAR_PM_STATE	|
+					  MLX5_QP_OPTPAR_ALT_ADDR_PATH,
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		},
 	},
 	[MLX5_QP_STATE_SQER] = {
@@ -1423,6 +1467,13 @@ static enum mlx5_qp_optpar opt_mask[MLX5_QP_NUM_STATE][MLX5_QP_NUM_STATE][MLX5_Q
 					   MLX5_QP_OPTPAR_RWE		|
 					   MLX5_QP_OPTPAR_RAE		|
 					   MLX5_QP_OPTPAR_RRE,
+<<<<<<< HEAD
+=======
+			[MLX5_QP_ST_XRC]  = MLX5_QP_OPTPAR_RNR_TIMEOUT	|
+					   MLX5_QP_OPTPAR_RWE		|
+					   MLX5_QP_OPTPAR_RAE		|
+					   MLX5_QP_OPTPAR_RRE,
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		},
 	},
 };
@@ -2407,10 +2458,18 @@ static u8 get_fence(u8 fence, struct ib_send_wr *wr)
 			return MLX5_FENCE_MODE_SMALL_AND_FENCE;
 		else
 			return fence;
+<<<<<<< HEAD
 
 	} else {
 		return 0;
 	}
+=======
+	} else if (unlikely(wr->send_flags & IB_SEND_FENCE)) {
+		return MLX5_FENCE_MODE_FENCE;
+	}
+
+	return 0;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 static int begin_wqe(struct mlx5_ib_qp *qp, void **seg,
@@ -2970,17 +3029,31 @@ int mlx5_ib_query_qp(struct ib_qp *ibqp, struct ib_qp_attr *qp_attr, int qp_attr
 	qp_attr->cap.max_recv_sge    = qp->rq.max_gs;
 
 	if (!ibqp->uobject) {
+<<<<<<< HEAD
 		qp_attr->cap.max_send_wr  = qp->sq.wqe_cnt;
 		qp_attr->cap.max_send_sge = qp->sq.max_gs;
+=======
+		qp_attr->cap.max_send_wr  = qp->sq.max_post;
+		qp_attr->cap.max_send_sge = qp->sq.max_gs;
+		qp_init_attr->qp_context = ibqp->qp_context;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	} else {
 		qp_attr->cap.max_send_wr  = 0;
 		qp_attr->cap.max_send_sge = 0;
 	}
 
+<<<<<<< HEAD
 	/* We don't support inline sends for kernel QPs (yet), and we
 	 * don't know what userspace's value should be.
 	 */
 	qp_attr->cap.max_inline_data = 0;
+=======
+	qp_init_attr->qp_type = ibqp->qp_type;
+	qp_init_attr->recv_cq = ibqp->recv_cq;
+	qp_init_attr->send_cq = ibqp->send_cq;
+	qp_init_attr->srq = ibqp->srq;
+	qp_attr->cap.max_inline_data = qp->max_inline_data;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	qp_init_attr->cap	     = qp_attr->cap;
 

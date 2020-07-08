@@ -598,6 +598,7 @@ static struct usb_gadget_strings *fn_strings[] = {
 	NULL,
 };
 
+<<<<<<< HEAD
 static struct usb_qualifier_descriptor devqual_desc = {
 	.bLength = sizeof devqual_desc,
 	.bDescriptorType = USB_DT_DEVICE_QUALIFIER,
@@ -610,6 +611,8 @@ static struct usb_qualifier_descriptor devqual_desc = {
 	.bRESERVED = 0,
 };
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static struct usb_interface_assoc_descriptor iad_desc = {
 	.bLength = sizeof iad_desc,
 	.bDescriptorType = USB_DT_INTERFACE_ASSOCIATION,
@@ -1272,6 +1275,10 @@ in_rq_cur(struct usb_function *fn, const struct usb_ctrlrequest *cr)
 
 	if (control_selector == UAC2_CS_CONTROL_SAM_FREQ) {
 		struct cntrl_cur_lay3 c;
+<<<<<<< HEAD
+=======
+		memset(&c, 0, sizeof(struct cntrl_cur_lay3));
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 		if (entity_id == USB_IN_CLK_ID)
 			c.dCUR = cpu_to_le32(p_srate);

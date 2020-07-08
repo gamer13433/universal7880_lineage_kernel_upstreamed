@@ -639,7 +639,12 @@ static int vlan_dev_init(struct net_device *dev)
 	return 0;
 }
 
+<<<<<<< HEAD
 static void vlan_dev_uninit(struct net_device *dev)
+=======
+/* Note: this function might be called multiple times for the same device. */
+void vlan_dev_uninit(struct net_device *dev)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	struct vlan_priority_tci_mapping *pm;
 	struct vlan_dev_priv *vlan = vlan_dev_priv(dev);

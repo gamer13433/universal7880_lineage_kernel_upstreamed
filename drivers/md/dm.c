@@ -1964,7 +1964,11 @@ requeued:
 	spin_lock(q->queue_lock);
 
 delay_and_out:
+<<<<<<< HEAD
 	blk_delay_queue(q, HZ / 10);
+=======
+	blk_delay_queue(q, 10);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 out:
 	dm_put_live_table(md, srcu_idx);
 }
@@ -2583,6 +2587,10 @@ EXPORT_SYMBOL_GPL(dm_device_name);
 
 static void __dm_destroy(struct mapped_device *md, bool wait)
 {
+<<<<<<< HEAD
+=======
+	struct request_queue *q = dm_get_md_queue(md);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	struct dm_table *map;
 	int srcu_idx;
 
@@ -2593,6 +2601,13 @@ static void __dm_destroy(struct mapped_device *md, bool wait)
 	set_bit(DMF_FREEING, &md->flags);
 	spin_unlock(&_minor_lock);
 
+<<<<<<< HEAD
+=======
+	spin_lock_irq(q->queue_lock);
+	queue_flag_set(QUEUE_FLAG_DYING, q);
+	spin_unlock_irq(q->queue_lock);
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/*
 	 * Take suspend_lock so that presuspend and postsuspend methods
 	 * do not race with internal suspend.
@@ -3020,6 +3035,10 @@ struct gendisk *dm_disk(struct mapped_device *md)
 {
 	return md->disk;
 }
+<<<<<<< HEAD
+=======
+EXPORT_SYMBOL_GPL(dm_disk);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 struct kobject *dm_kobject(struct mapped_device *md)
 {

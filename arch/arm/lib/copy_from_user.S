@@ -16,7 +16,11 @@
 /*
  * Prototype:
  *
+<<<<<<< HEAD
  *	size_t __copy_from_user(void *to, const void *from, size_t n)
+=======
+ *	size_t arm_copy_from_user(void *to, const void *from, size_t n)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
  *
  * Purpose:
  *
@@ -84,6 +88,7 @@
 
 	.text
 
+<<<<<<< HEAD
 ENTRY(__copy_from_user)
 
 #include "copy_template.S"
@@ -91,6 +96,15 @@ ENTRY(__copy_from_user)
 ENDPROC(__copy_from_user)
 
 	.pushsection .fixup,"ax"
+=======
+ENTRY(arm_copy_from_user)
+
+#include "copy_template.S"
+
+ENDPROC(arm_copy_from_user)
+
+	.pushsection .text.fixup,"ax"
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	.align 0
 	copy_abort_preamble
 	ldmfd	sp!, {r1, r2}

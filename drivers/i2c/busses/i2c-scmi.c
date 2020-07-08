@@ -18,6 +18,12 @@
 #define ACPI_SMBUS_HC_CLASS		"smbus"
 #define ACPI_SMBUS_HC_DEVICE_NAME	"cmi"
 
+<<<<<<< HEAD
+=======
+/* SMBUS HID definition as supported by Microsoft Windows */
+#define ACPI_SMBUS_MS_HID		"SMB0001"
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 ACPI_MODULE_NAME("smbus_cmi");
 
 struct smbus_methods_t {
@@ -51,6 +57,10 @@ static const struct smbus_methods_t ibm_smbus_methods = {
 static const struct acpi_device_id acpi_smbus_cmi_ids[] = {
 	{"SMBUS01", (kernel_ulong_t)&smbus_methods},
 	{ACPI_SMBUS_IBM_HID, (kernel_ulong_t)&ibm_smbus_methods},
+<<<<<<< HEAD
+=======
+	{ACPI_SMBUS_MS_HID, (kernel_ulong_t)&smbus_methods},
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	{"", 0}
 };
 MODULE_DEVICE_TABLE(acpi, acpi_smbus_cmi_ids);

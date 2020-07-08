@@ -213,6 +213,10 @@ extern struct bus_type cpu_subsys;
 extern void cpu_hotplug_begin(void);
 extern void cpu_hotplug_done(void);
 extern void get_online_cpus(void);
+<<<<<<< HEAD
+=======
+extern bool try_get_online_cpus(void);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 extern void put_online_cpus(void);
 extern void cpu_hotplug_disable(void);
 extern void cpu_hotplug_enable(void);
@@ -230,6 +234,10 @@ int cpu_down(unsigned int cpu);
 static inline void cpu_hotplug_begin(void) {}
 static inline void cpu_hotplug_done(void) {}
 #define get_online_cpus()	do { } while (0)
+<<<<<<< HEAD
+=======
+#define try_get_online_cpus()	true
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #define put_online_cpus()	do { } while (0)
 #define cpu_hotplug_disable()	do { } while (0)
 #define cpu_hotplug_enable()	do { } while (0)

@@ -372,9 +372,15 @@ static void mqueue_evict_inode(struct inode *inode)
 {
 	struct mqueue_inode_info *info;
 	struct user_struct *user;
+<<<<<<< HEAD
 	unsigned long mq_bytes, mq_treesize;
 	struct ipc_namespace *ipc_ns;
 	struct msg_msg *msg;
+=======
+	struct ipc_namespace *ipc_ns;
+	struct msg_msg *msg, *nmsg;
+	LIST_HEAD(tmp_msg);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	clear_inode(inode);
 
@@ -385,6 +391,7 @@ static void mqueue_evict_inode(struct inode *inode)
 	info = MQUEUE_I(inode);
 	spin_lock(&info->lock);
 	while ((msg = msg_get(info)) != NULL)
+<<<<<<< HEAD
 		free_msg(msg);
 	kfree(info->node_cache);
 	spin_unlock(&info->lock);
@@ -399,6 +406,29 @@ static void mqueue_evict_inode(struct inode *inode)
 
 	user = info->user;
 	if (user) {
+=======
+		list_add_tail(&msg->m_list, &tmp_msg);
+	kfree(info->node_cache);
+	spin_unlock(&info->lock);
+
+	list_for_each_entry_safe(msg, nmsg, &tmp_msg, m_list) {
+		list_del(&msg->m_list);
+		free_msg(msg);
+	}
+
+	user = info->user;
+	if (user) {
+		unsigned long mq_bytes, mq_treesize;
+
+		/* Total amount of bytes accounted for the mqueue */
+		mq_treesize = info->attr.mq_maxmsg * sizeof(struct msg_msg) +
+			min_t(unsigned int, info->attr.mq_maxmsg, MQ_PRIO_MAX) *
+			sizeof(struct posix_msg_tree_node);
+
+		mq_bytes = mq_treesize + (info->attr.mq_maxmsg *
+					  info->attr.mq_msgsize);
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		spin_lock(&mq_lock);
 		user->mq_bytes -= mq_bytes;
 		/*

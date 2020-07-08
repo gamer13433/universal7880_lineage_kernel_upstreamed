@@ -606,6 +606,10 @@ v9fs_mmap_file_mmap(struct file *filp, struct vm_area_struct *vma)
 	v9inode = V9FS_I(inode);
 	mutex_lock(&v9inode->v_mutex);
 	if (!v9inode->writeback_fid &&
+<<<<<<< HEAD
+=======
+	    (vma->vm_flags & VM_SHARED) &&
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	    (vma->vm_flags & VM_WRITE)) {
 		/*
 		 * clone a fid and add it to writeback_fid
@@ -818,6 +822,11 @@ static void v9fs_mmap_vm_close(struct vm_area_struct *vma)
 			(vma->vm_end - vma->vm_start - 1),
 	};
 
+<<<<<<< HEAD
+=======
+	if (!(vma->vm_flags & VM_SHARED))
+		return;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	p9_debug(P9_DEBUG_VFS, "9p VMA close, %p, flushing", vma);
 

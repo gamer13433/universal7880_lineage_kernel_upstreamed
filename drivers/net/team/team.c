@@ -472,6 +472,12 @@ static const struct team_mode *team_mode_get(const char *kind)
 	struct team_mode_item *mitem;
 	const struct team_mode *mode = NULL;
 
+<<<<<<< HEAD
+=======
+	if (!try_module_get(THIS_MODULE))
+		return NULL;
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	spin_lock(&mode_list_lock);
 	mitem = __find_mode(kind);
 	if (!mitem) {
@@ -487,6 +493,10 @@ static const struct team_mode *team_mode_get(const char *kind)
 	}
 
 	spin_unlock(&mode_list_lock);
+<<<<<<< HEAD
+=======
+	module_put(THIS_MODULE);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return mode;
 }
 
@@ -975,7 +985,11 @@ static void team_port_disable(struct team *team,
 			    NETIF_F_FRAGLIST | NETIF_F_ALL_TSO | \
 			    NETIF_F_HIGHDMA | NETIF_F_LRO)
 
+<<<<<<< HEAD
 static void __team_compute_features(struct team *team)
+=======
+static void ___team_compute_features(struct team *team)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	struct team_port *port;
 	netdev_features_t vlan_features = TEAM_VLAN_FEATURES &
@@ -1000,15 +1014,29 @@ static void __team_compute_features(struct team *team)
 	team->dev->priv_flags &= ~IFF_XMIT_DST_RELEASE;
 	if (dst_release_flag == (IFF_XMIT_DST_RELEASE | IFF_XMIT_DST_RELEASE_PERM))
 		team->dev->priv_flags |= IFF_XMIT_DST_RELEASE;
+<<<<<<< HEAD
 
+=======
+}
+
+static void __team_compute_features(struct team *team)
+{
+	___team_compute_features(team);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	netdev_change_features(team->dev);
 }
 
 static void team_compute_features(struct team *team)
 {
 	mutex_lock(&team->lock);
+<<<<<<< HEAD
 	__team_compute_features(team);
 	mutex_unlock(&team->lock);
+=======
+	___team_compute_features(team);
+	mutex_unlock(&team->lock);
+	netdev_change_features(team->dev);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 static int team_port_enter(struct team *team, struct team_port *port)
@@ -2079,12 +2107,19 @@ static void team_setup(struct net_device *dev)
 	dev->features |= NETIF_F_NETNS_LOCAL;
 
 	dev->hw_features = TEAM_VLAN_FEATURES |
+<<<<<<< HEAD
 			   NETIF_F_HW_VLAN_CTAG_TX |
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			   NETIF_F_HW_VLAN_CTAG_RX |
 			   NETIF_F_HW_VLAN_CTAG_FILTER;
 
 	dev->hw_features &= ~(NETIF_F_ALL_CSUM & ~NETIF_F_HW_CSUM);
 	dev->features |= dev->hw_features;
+<<<<<<< HEAD
+=======
+	dev->features |= NETIF_F_HW_VLAN_CTAG_TX;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 static int team_newlink(struct net *src_net, struct net_device *dev,
@@ -2157,6 +2192,11 @@ team_nl_option_policy[TEAM_ATTR_OPTION_MAX + 1] = {
 	[TEAM_ATTR_OPTION_CHANGED]		= { .type = NLA_FLAG },
 	[TEAM_ATTR_OPTION_TYPE]			= { .type = NLA_U8 },
 	[TEAM_ATTR_OPTION_DATA]			= { .type = NLA_BINARY },
+<<<<<<< HEAD
+=======
+	[TEAM_ATTR_OPTION_PORT_IFINDEX]		= { .type = NLA_U32 },
+	[TEAM_ATTR_OPTION_ARRAY_INDEX]		= { .type = NLA_U32 },
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 static int team_nl_cmd_noop(struct sk_buff *skb, struct genl_info *info)

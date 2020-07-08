@@ -188,8 +188,13 @@ static void reprogram_counter(struct kvm_pmc *pmc, u32 type,
 						 intr ? kvm_perf_overflow_intr :
 						 kvm_perf_overflow, pmc);
 	if (IS_ERR(event)) {
+<<<<<<< HEAD
 		printk_once("kvm: pmu event creation failed %ld\n",
 				PTR_ERR(event));
+=======
+		pr_debug_ratelimited("kvm_pmu: event creation failed %ld for pmc->idx = %d\n",
+			    PTR_ERR(event), pmc->idx);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		return;
 	}
 

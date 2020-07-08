@@ -2842,6 +2842,16 @@ int perf_session__read_header(struct perf_session *session)
 			   file->path);
 	}
 
+<<<<<<< HEAD
+=======
+	if (f_header.attr_size == 0) {
+		pr_err("ERROR: The %s file's attr size field is 0 which is unexpected.\n"
+		       "Was the 'perf record' command properly terminated?\n",
+		       file->path);
+		return -EINVAL;
+	}
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	nr_attrs = f_header.attrs.size / f_header.attr_size;
 	lseek(fd, f_header.attrs.offset, SEEK_SET);
 
@@ -2921,7 +2931,11 @@ int perf_event__synthesize_attr(struct perf_tool *tool,
 	size += sizeof(struct perf_event_header);
 	size += ids * sizeof(u64);
 
+<<<<<<< HEAD
 	ev = malloc(size);
+=======
+	ev = zalloc(size);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if (ev == NULL)
 		return -ENOMEM;

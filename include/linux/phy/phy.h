@@ -33,8 +33,11 @@ struct phy;
 struct phy_ops {
 	int	(*init)(struct phy *phy);
 	int	(*exit)(struct phy *phy);
+<<<<<<< HEAD
 	int	(*tune)(struct phy *phy, int phy_state);
 	int	(*set)(struct phy *phy, int option, void *info);
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	int	(*power_on)(struct phy *phy);
 	int	(*power_off)(struct phy *phy);
 	struct module *owner;
@@ -139,8 +142,11 @@ void phy_pm_runtime_allow(struct phy *phy);
 void phy_pm_runtime_forbid(struct phy *phy);
 int phy_init(struct phy *phy);
 int phy_exit(struct phy *phy);
+<<<<<<< HEAD
 int phy_tune(struct phy *phy, int phy_state);
 int phy_set(struct phy *phy, int option, void *info);
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 int phy_power_on(struct phy *phy);
 int phy_power_off(struct phy *phy);
 static inline int phy_get_bus_width(struct phy *phy)
@@ -231,6 +237,7 @@ static inline int phy_exit(struct phy *phy)
 	return -ENOSYS;
 }
 
+<<<<<<< HEAD
 static inline int phy_tune(struct phy *phy, int phy_state)
 {
 	if (!phy)
@@ -245,6 +252,8 @@ static inline int phy_set(struct phy *phy, int option, void *info)
 	return -ENOSYS;
 }
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static inline int phy_power_on(struct phy *phy)
 {
 	if (!phy)

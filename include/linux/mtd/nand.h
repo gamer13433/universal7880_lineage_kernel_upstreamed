@@ -274,7 +274,11 @@ struct nand_onfi_params {
 	__le16 t_r;
 	__le16 t_ccs;
 	__le16 src_sync_timing_mode;
+<<<<<<< HEAD
 	__le16 src_ssync_features;
+=======
+	u8 src_ssync_features;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	__le16 clk_pin_capacitance_typ;
 	__le16 io_pin_capacitance_typ;
 	__le16 input_pin_capacitance_typ;
@@ -282,7 +286,11 @@ struct nand_onfi_params {
 	u8 driver_strength_support;
 	__le16 t_int_r;
 	__le16 t_ald;
+<<<<<<< HEAD
 	u8 reserved4[7];
+=======
+	u8 reserved4[8];
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	/* vendor */
 	__le16 vendor_revision;

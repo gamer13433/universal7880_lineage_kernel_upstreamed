@@ -52,8 +52,15 @@ extern struct inet_hashinfo tcp_hashinfo;
 extern struct percpu_counter tcp_orphan_count;
 void tcp_time_wait(struct sock *sk, int state, int timeo);
 
+<<<<<<< HEAD
 #define MAX_TCP_HEADER	(128 + MAX_HEADER)
 #define MAX_TCP_OPTION_SPACE 40
+=======
+#define MAX_TCP_HEADER	L1_CACHE_ALIGN(128 + MAX_HEADER)
+#define MAX_TCP_OPTION_SPACE 40
+#define TCP_MIN_SND_MSS		48
+#define TCP_MIN_GSO_SIZE	(TCP_MIN_SND_MSS - MAX_TCP_OPTION_SPACE)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /* 
  * Never offer a window over 32767 without using window scaling. Some
@@ -138,9 +145,12 @@ void tcp_time_wait(struct sock *sk, int state, int timeo);
 						 * most likely due to retrans in 3WHS.
 						 */
 
+<<<<<<< HEAD
 /* Number of full MSS to receive before Acking RFC2581 */
 #define TCP_DELACK_SEG          1
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #define TCP_RESOURCE_PROBE_INTERVAL ((unsigned)(HZ/2U)) /* Maximal interval between probes
 					                 * for local resources.
 					                 */
@@ -179,9 +189,12 @@ void tcp_time_wait(struct sock *sk, int state, int timeo);
 #define TCPOPT_SACK             5       /* SACK Block */
 #define TCPOPT_TIMESTAMP	8	/* Better RTT estimations/PAWS */
 #define TCPOPT_MD5SIG		19	/* MD5 Signature (RFC2385) */
+<<<<<<< HEAD
 #ifdef CONFIG_MPTCP
 #define TCPOPT_MPTCP		30
 #endif
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #define TCPOPT_EXP		254	/* Experimental */
 /* Magic number to be after the option value for sharing TCP
  * experimental options. See draft-ietf-tcpm-experimental-options-00.txt
@@ -234,6 +247,7 @@ void tcp_time_wait(struct sock *sk, int state, int timeo);
 #define	TFO_SERVER_WO_SOCKOPT1	0x400
 #define	TFO_SERVER_WO_SOCKOPT2	0x800
 
+<<<<<<< HEAD
 #ifdef CONFIG_MPTCP
 /* Flags from tcp_input.c for tcp_ack */
 #define FLAG_DATA               0x01 /* Incoming frame contained data.          */
@@ -257,6 +271,8 @@ void tcp_time_wait(struct sock *sk, int state, int timeo);
 #define FLAG_FORWARD_PROGRESS   (FLAG_ACKED|FLAG_DATA_SACKED)
 #endif
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 extern struct inet_timewait_death_row tcp_death_row;
 
 /* sysctl variables for tcp */
@@ -308,11 +324,14 @@ extern int sysctl_tcp_autocorking;
 extern int sysctl_tcp_default_init_rwnd;
 
 extern atomic_long_t tcp_memory_allocated;
+<<<<<<< HEAD
 
 /* sysctl variables for controlling various tcp parameters */
 extern int sysctl_tcp_delack_seg;
 extern int sysctl_tcp_use_userconfig;
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 extern struct percpu_counter tcp_sockets_allocated;
 extern int tcp_memory_pressure;
 
@@ -377,6 +396,7 @@ extern struct proto tcp_prot;
 #define TCP_ADD_STATS_USER(net, field, val) SNMP_ADD_STATS_USER((net)->mib.tcp_statistics, field, val)
 #define TCP_ADD_STATS(net, field, val)	SNMP_ADD_STATS((net)->mib.tcp_statistics, field, val)
 
+<<<<<<< HEAD
 #ifdef CONFIG_MPTCP
 /**** START - Exports needed for MPTCP ****/
 extern const struct tcp_request_sock_ops tcp_request_sock_ipv4_ops;
@@ -475,6 +495,8 @@ bool tcp_try_coalesce(struct sock *sk, struct sk_buff *to,
 /**** END - Exports needed for MPTCP ****/
 #endif
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 void tcp_tasklet_init(void);
 
 void tcp_v4_err(struct sk_buff *skb, u32);
@@ -505,12 +527,15 @@ ssize_t tcp_splice_read(struct socket *sk, loff_t *ppos,
 			struct pipe_inode_info *pipe, size_t len,
 			unsigned int flags);
 
+<<<<<<< HEAD
 /* sysctl master controller */
 extern int tcp_use_userconfig_sysctl_handler(struct ctl_table *, int,
 				void __user *, size_t *, loff_t *);
 extern int tcp_proc_delayed_ack_control(struct ctl_table *, int,
 				void __user *, size_t *, loff_t *);
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 void tcp_enter_quickack_mode(struct sock *sk, unsigned int max_quickacks);
 static inline void tcp_dec_quickack_mode(struct sock *sk,
 					 const unsigned int pkts)
@@ -577,9 +602,12 @@ int tcp_recvmsg(struct kiocb *iocb, struct sock *sk, struct msghdr *msg,
 		size_t len, int nonblock, int flags, int *addr_len);
 void tcp_parse_options(const struct sk_buff *skb,
 		       struct tcp_options_received *opt_rx,
+<<<<<<< HEAD
 #ifdef CONFIG_MPTCP
 		       struct mptcp_options_received *mopt_rx,
 #endif
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		       int estab, struct tcp_fastopen_cookie *foc);
 const u8 *tcp_parse_md5sig_option(const struct tcphdr *th);
 
@@ -589,9 +617,12 @@ const u8 *tcp_parse_md5sig_option(const struct tcphdr *th);
 
 void tcp_v4_send_check(struct sock *sk, struct sk_buff *skb);
 void tcp_v4_mtu_reduced(struct sock *sk);
+<<<<<<< HEAD
 #ifdef CONFIG_MPTCP
 void tcp_v6_mtu_reduced(struct sock *sk);
 #endif
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 int tcp_v4_conn_request(struct sock *sk, struct sk_buff *skb);
 struct sock *tcp_create_openreq_child(struct sock *sk,
 				      struct request_sock *req,
@@ -682,21 +713,27 @@ void tcp_send_delayed_ack(struct sock *sk);
 void tcp_send_loss_probe(struct sock *sk);
 bool tcp_schedule_loss_probe(struct sock *sk);
 
+<<<<<<< HEAD
 #ifdef CONFIG_MPTCP
 u16 tcp_select_window(struct sock *sk);
 bool tcp_write_xmit(struct sock *sk, unsigned int mss_now, int nonagle,
 		int push_one, gfp_t gfp);
 #endif
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /* tcp_input.c */
 void tcp_resume_early_retransmit(struct sock *sk);
 void tcp_rearm_rto(struct sock *sk);
 void tcp_reset(struct sock *sk);
+<<<<<<< HEAD
 #ifdef CONFIG_MPTCP
 void tcp_set_rto(struct sock *sk);
 bool tcp_should_expand_sndbuf(const struct sock *sk);
 bool tcp_prune_ofo_queue(struct sock *sk);
 #endif
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /* tcp_timer.c */
 void tcp_init_xmit_timers(struct sock *);
@@ -862,12 +899,15 @@ struct tcp_skb_cb {
 		__u32		tcp_tw_isn;
 		__u32		tcp_gso_segs;
 	};
+<<<<<<< HEAD
 
 #ifdef CONFIG_MPTCP
 	__u8		mptcp_flags;	/* flags for the MPTCP layer    */
 	__u8		dss_off;	/* Number of 4-byte words until
 					 * seq-number */
 #endif
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	__u8		tcp_flags;	/* TCP header flags. (tcp[13])	*/
 
 	__u8		sacked;		/* State flags for SACK/FACK.	*/
@@ -883,6 +923,7 @@ struct tcp_skb_cb {
 	__u8		ip_dsfield;	/* IPv4 tos or IPv6 dsfield	*/
 	/* 1 byte hole */
 	__u32		ack_seq;	/* Sequence number ACK'd	*/
+<<<<<<< HEAD
 #ifdef CONFIG_MPTCP
 	union {
 #endif
@@ -899,6 +940,14 @@ struct tcp_skb_cb {
 		};
 	};
 #endif
+=======
+	union {
+		struct inet_skb_parm	h4;
+#if IS_ENABLED(CONFIG_IPV6)
+		struct inet6_skb_parm	h6;
+#endif
+	} header;	/* For incoming frames		*/
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 #define TCP_SKB_CB(__skb)	((struct tcp_skb_cb *)&((__skb)->cb[0]))
@@ -1271,11 +1320,15 @@ u32 tcp_default_init_rwnd(u32 mss);
 /* Determine a window scaling and initial window to offer. */
 void tcp_select_initial_window(int __space, __u32 mss, __u32 *rcv_wnd,
 			       __u32 *window_clamp, int wscale_ok,
+<<<<<<< HEAD
 			       __u8 *rcv_wscale, __u32 init_rcv_wnd
 #ifdef CONFIG_MPTCP
 			       ,const struct sock *sk
 #endif
 			       			       			);
+=======
+			       __u8 *rcv_wscale, __u32 init_rcv_wnd);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 static inline int tcp_win_from_space(int space)
 {
@@ -1286,6 +1339,7 @@ static inline int tcp_win_from_space(int space)
 		space - (space>>tcp_adv_win_scale);
 }
 
+<<<<<<< HEAD
 #ifdef CONFIG_MPTCP
 extern struct static_key mptcp_static_key;
 static inline bool mptcp(const struct tcp_sock *tp)
@@ -1299,6 +1353,8 @@ static inline bool mptcp(const struct tcp_sock *tp)
 }
 #endif
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /* Note: caller must be prepared to deal with negative returns */ 
 static inline int tcp_space(const struct sock *sk)
 {
@@ -1330,10 +1386,13 @@ static inline void tcp_openreq_init(struct request_sock *req,
 	ireq->wscale_ok = rx_opt->wscale_ok;
 	ireq->acked = 0;
 	ireq->ecn_ok = 0;
+<<<<<<< HEAD
 #ifdef CONFIG_MPTCP
 	ireq->mptcp_rqsk = 0;
 	ireq->saw_mpc = 0;
 #endif
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	ireq->ir_rmt_port = tcp_hdr(skb)->source;
 	ireq->ir_num = ntohs(tcp_hdr(skb)->dest);
 	ireq->ir_mark = inet_request_mark(sk, skb);
@@ -1558,6 +1617,14 @@ bool tcp_try_fastopen(struct sock *sk, struct sk_buff *skb,
 void tcp_fastopen_init_key_once(bool publish);
 #define TCP_FASTOPEN_KEY_LENGTH 16
 
+<<<<<<< HEAD
+=======
+static inline void tcp_init_send_head(struct sock *sk)
+{
+	sk->sk_send_head = NULL;
+}
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /* Fastopen key context */
 struct tcp_fastopen_context {
 	struct crypto_cipher	*tfm;
@@ -1565,6 +1632,11 @@ struct tcp_fastopen_context {
 	struct rcu_head		rcu;
 };
 
+<<<<<<< HEAD
+=======
+static inline void tcp_init_send_head(struct sock *sk);
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /* write queue abstraction */
 static inline void tcp_write_queue_purge(struct sock *sk)
 {
@@ -1572,8 +1644,15 @@ static inline void tcp_write_queue_purge(struct sock *sk)
 
 	while ((skb = __skb_dequeue(&sk->sk_write_queue)) != NULL)
 		sk_wmem_free_skb(sk, skb);
+<<<<<<< HEAD
 	sk_mem_reclaim(sk);
 	tcp_clear_all_retrans_hints(tcp_sk(sk));
+=======
+	tcp_init_send_head(sk);
+	sk_mem_reclaim(sk);
+	tcp_clear_all_retrans_hints(tcp_sk(sk));
+	tcp_init_send_head(sk);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	inet_csk(sk)->icsk_backoff = 0;
 }
 
@@ -1631,6 +1710,7 @@ static inline void tcp_check_send_head(struct sock *sk, struct sk_buff *skb_unli
 {
 	if (sk->sk_send_head == skb_unlinked)
 		sk->sk_send_head = NULL;
+<<<<<<< HEAD
         if (tcp_sk(sk)->highest_sack == skb_unlinked)
 		tcp_sk(sk)->highest_sack = NULL;
 }
@@ -1638,6 +1718,31 @@ static inline void tcp_check_send_head(struct sock *sk, struct sk_buff *skb_unli
 static inline void tcp_init_send_head(struct sock *sk)
 {
 	sk->sk_send_head = NULL;
+=======
+	if (tcp_sk(sk)->highest_sack == skb_unlinked)
+		tcp_sk(sk)->highest_sack = NULL;
+}
+
+static inline struct sk_buff *tcp_rtx_queue_head(const struct sock *sk)
+{
+	struct sk_buff *skb = tcp_write_queue_head(sk);
+
+	if (skb == tcp_send_head(sk))
+		skb = NULL;
+
+	return skb;
+}
+
+static inline struct sk_buff *tcp_rtx_queue_tail(const struct sock *sk)
+{
+	struct sk_buff *skb = tcp_send_head(sk);
+
+	/* empty retransmit queue, for example due to zero window */
+	if (skb == tcp_write_queue_head(sk))
+		return NULL;
+
+	return skb ? tcp_write_queue_prev(sk, skb) : tcp_write_queue_tail(sk);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 static inline void __tcp_add_write_queue_tail(struct sock *sk, struct sk_buff *skb)
@@ -1803,8 +1908,11 @@ static inline bool tcp_stream_memory_free(const struct sock *sk)
 	return notsent_bytes < tcp_notsent_lowat(tp);
 }
 
+<<<<<<< HEAD
 extern int tcp_nuke_addr(struct net *net, struct sockaddr *addr);
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #ifdef CONFIG_PROC_FS
 int tcp4_proc_init(void);
 void tcp4_proc_exit(void);
@@ -1831,6 +1939,7 @@ struct tcp_sock_af_ops {
 #endif
 };
 
+<<<<<<< HEAD
 #ifdef CONFIG_MPTCP
 /* TCP/MPTCP-specific functions */
 struct tcp_sock_ops {
@@ -1857,6 +1966,8 @@ struct tcp_sock_ops {
 extern const struct tcp_sock_ops tcp_specific;
 #endif
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 struct tcp_request_sock_ops {
 	u16 mss_clamp;
 #ifdef CONFIG_TCP_MD5SIG
@@ -1868,6 +1979,7 @@ struct tcp_request_sock_ops {
 						  const struct request_sock *req,
 						  const struct sk_buff *skb);
 #endif
+<<<<<<< HEAD
 #ifdef CONFIG_MPTCP
 	int (*init_req)(struct request_sock *req, struct sock *sk,
 			 struct sk_buff *skb, bool want_cookie);
@@ -1875,6 +1987,10 @@ struct tcp_request_sock_ops {
 	void (*init_req)(struct request_sock *req, struct sock *sk,
 			 struct sk_buff *skb);
 #endif
+=======
+	void (*init_req)(struct request_sock *req, struct sock *sk,
+			 struct sk_buff *skb);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #ifdef CONFIG_SYN_COOKIES
 	__u32 (*cookie_init_seq)(struct sock *sk, const struct sk_buff *skb,
 				 __u16 *mss);

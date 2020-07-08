@@ -35,6 +35,7 @@ static void seq_set_overflow(struct seq_file *m)
 static void *seq_buf_alloc(unsigned long size)
 {
 	void *buf;
+<<<<<<< HEAD
 	gfp_t gfp = GFP_KERNEL;
 	/*
 	 * For high order allocations, use __GFP_NORETRY to avoid oom-killing -
@@ -45,6 +46,10 @@ static void *seq_buf_alloc(unsigned long size)
 	if (size > PAGE_SIZE)
 		gfp |= __GFP_NORETRY | __GFP_NOWARN;
 	buf = kmalloc(size, gfp);
+=======
+
+	buf = kmalloc(size, GFP_KERNEL | __GFP_NOWARN);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (!buf && size > PAGE_SIZE)
 		buf = vmalloc(size);
 	return buf;

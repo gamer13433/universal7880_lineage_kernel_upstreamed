@@ -275,6 +275,12 @@ static int multipath_add_disk(struct mddev *mddev, struct md_rdev *rdev)
 							   PAGE_CACHE_SIZE - 1);
 			}
 
+<<<<<<< HEAD
+=======
+			err = md_integrity_add_rdev(rdev, mddev);
+			if (err)
+				break;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			spin_lock_irq(&conf->device_lock);
 			mddev->degraded--;
 			rdev->raid_disk = path;
@@ -282,7 +288,10 @@ static int multipath_add_disk(struct mddev *mddev, struct md_rdev *rdev)
 			spin_unlock_irq(&conf->device_lock);
 			rcu_assign_pointer(p->rdev, rdev);
 			err = 0;
+<<<<<<< HEAD
 			md_integrity_add_rdev(rdev, mddev);
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			break;
 		}
 

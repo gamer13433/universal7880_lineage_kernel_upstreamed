@@ -330,6 +330,7 @@ void pwmchip_sysfs_export(struct pwm_chip *chip)
 void pwmchip_sysfs_unexport(struct pwm_chip *chip)
 {
 	struct device *parent;
+<<<<<<< HEAD
 
 	parent = class_find_device(&pwm_class, NULL, chip,
 				   pwmchip_sysfs_match);
@@ -343,6 +344,8 @@ void pwmchip_sysfs_unexport(struct pwm_chip *chip)
 void pwmchip_sysfs_unexport_children(struct pwm_chip *chip)
 {
 	struct device *parent;
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	unsigned int i;
 
 	parent = class_find_device(&pwm_class, NULL, chip,

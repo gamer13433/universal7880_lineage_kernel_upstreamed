@@ -36,7 +36,10 @@
 #include <linux/completion.h>
 #include <linux/of.h>
 #include <linux/irq_work.h>
+<<<<<<< HEAD
 #include <linux/exynos-ss.h>
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #include <asm/alternative.h>
 #include <asm/atomic.h>
@@ -52,14 +55,20 @@
 #include <asm/sections.h>
 #include <asm/tlbflush.h>
 #include <asm/ptrace.h>
+<<<<<<< HEAD
 #include <asm/cputype.h>
 #include <asm/topology.h>
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #define CREATE_TRACE_POINTS
 #include <trace/events/ipi.h>
 
+<<<<<<< HEAD
 extern void machine_crash_nonpanic_core(void *unused);
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /*
  * as from 2.5, kernels no longer have an init_tasks structure
  * so we need some other way of telling a new secondary core
@@ -74,7 +83,10 @@ enum ipi_msg_type {
 	IPI_CPU_STOP,
 	IPI_TIMER,
 	IPI_IRQ_WORK,
+<<<<<<< HEAD
 	IPI_WAKEUP,
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 /*
@@ -120,6 +132,10 @@ int __cpu_up(unsigned int cpu, struct task_struct *idle)
 		}
 	} else {
 		pr_err("CPU%u: failed to boot: %d\n", cpu, ret);
+<<<<<<< HEAD
+=======
+		return ret;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 	secondary_data.stack = NULL;
@@ -147,21 +163,41 @@ asmlinkage notrace void secondary_start_kernel(void)
 	 */
 	atomic_inc(&mm->mm_count);
 	current->active_mm = mm;
+<<<<<<< HEAD
 	cpumask_set_cpu(cpu, mm_cpumask(mm));
 
 	set_my_cpu_offset(per_cpu_offset(smp_processor_id()));
 	printk("CPU%u: Booted secondary processor\n", cpu);
+=======
+
+	set_my_cpu_offset(per_cpu_offset(smp_processor_id()));
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	/*
 	 * TTBR0 is only used for the identity mapping at this stage. Make it
 	 * point to zero page to avoid speculatively fetching new entries.
 	 */
 	cpu_set_reserved_ttbr0();
+<<<<<<< HEAD
 	flush_tlb_all();
+=======
+	local_flush_tlb_all();
+	cpu_set_default_tcr_t0sz();
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	preempt_disable();
 	trace_hardirqs_off();
 
+<<<<<<< HEAD
+=======
+	/*
+	 * If the system has established the capabilities, make sure
+	 * this CPU ticks all of those. If it doesn't, the CPU will
+	 * fail to come online.
+	 */
+	verify_local_cpu_capabilities();
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (cpu_ops[cpu]->cpu_postboot)
 		cpu_ops[cpu]->cpu_postboot();
 
@@ -182,6 +218,11 @@ asmlinkage notrace void secondary_start_kernel(void)
 	 * the CPU migration code to notice that the CPU is online
 	 * before we continue.
 	 */
+<<<<<<< HEAD
+=======
+	pr_info("CPU%u: Booted secondary processor [%08x]\n",
+					 cpu, read_cpuid_id());
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	set_cpu_online(cpu, true);
 	complete(&cpu_running);
 
@@ -236,12 +277,15 @@ int __cpu_disable(void)
 	 * OK - migrate IRQs away from this CPU
 	 */
 	migrate_irqs();
+<<<<<<< HEAD
 
 	/*
 	 * Remove this CPU from the vm mask set of all processes.
 	 */
 	clear_tasks_mm_cpumask(cpu);
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return 0;
 }
 
@@ -315,12 +359,21 @@ void cpu_die(void)
 void __init smp_cpus_done(unsigned int max_cpus)
 {
 	pr_info("SMP: Total of %d processors activated.\n", num_online_cpus());
+<<<<<<< HEAD
 	apply_alternatives();
+=======
+	setup_cpu_features();
+	apply_alternatives_all();
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 void __init smp_prepare_boot_cpu(void)
 {
 	set_my_cpu_offset(per_cpu_offset(smp_processor_id()));
+<<<<<<< HEAD
+=======
+	cpuinfo_store_boot_cpu();
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 /*
@@ -492,7 +545,10 @@ static const char *ipi_types[NR_IPI] __tracepoint_string = {
 	S(IPI_CPU_STOP, "CPU stop interrupts"),
 	S(IPI_TIMER, "Timer broadcast interrupts"),
 	S(IPI_IRQ_WORK, "IRQ work interrupts"),
+<<<<<<< HEAD
 	S(IPI_WAKEUP, "CPU Wakeup by interrupts"),
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 static void smp_cross_call(const struct cpumask *target, unsigned int ipinr)
@@ -549,7 +605,11 @@ static DEFINE_RAW_SPINLOCK(stop_lock);
 /*
  * ipi_cpu_stop - handle IPI from smp_send_stop()
  */
+<<<<<<< HEAD
 static void ipi_cpu_stop(unsigned int cpu, struct pt_regs *regs)
+=======
+static void ipi_cpu_stop(unsigned int cpu)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	if (system_state == SYSTEM_BOOTING ||
 	    system_state == SYSTEM_RUNNING) {
@@ -563,10 +623,15 @@ static void ipi_cpu_stop(unsigned int cpu, struct pt_regs *regs)
 
 	local_irq_disable();
 
+<<<<<<< HEAD
 	exynos_ss_save_context(regs);
 
 	while (1)
 		wfi();
+=======
+	while (1)
+		cpu_relax();
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 /*
@@ -582,8 +647,11 @@ void handle_IPI(int ipinr, struct pt_regs *regs)
 		__inc_irq_stat(cpu, ipi_irqs[ipinr]);
 	}
 
+<<<<<<< HEAD
 	exynos_ss_irq(ipinr, handle_IPI, irqs_disabled(), ESS_FLAG_IN);
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	switch (ipinr) {
 	case IPI_RESCHEDULE:
 		scheduler_ipi();
@@ -603,7 +671,11 @@ void handle_IPI(int ipinr, struct pt_regs *regs)
 
 	case IPI_CPU_STOP:
 		irq_enter();
+<<<<<<< HEAD
 		ipi_cpu_stop(cpu, regs);
+=======
+		ipi_cpu_stop(cpu);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		irq_exit();
 		break;
 
@@ -622,9 +694,12 @@ void handle_IPI(int ipinr, struct pt_regs *regs)
 		irq_exit();
 		break;
 #endif
+<<<<<<< HEAD
 	case IPI_WAKEUP:
 		pr_debug("%s: IPI_WAKEUP\n", __func__);
 		break;
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	default:
 		pr_crit("CPU%u: Unknown IPI message 0x%x\n", cpu, ipinr);
@@ -633,8 +708,11 @@ void handle_IPI(int ipinr, struct pt_regs *regs)
 
 	if ((unsigned)ipinr < NR_IPI)
 		trace_ipi_exit(ipi_types[ipinr]);
+<<<<<<< HEAD
 
 	exynos_ss_irq(ipinr, handle_IPI, irqs_disabled(), ESS_FLAG_OUT);
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	set_irq_regs(old_regs);
 }
 
@@ -650,22 +728,44 @@ void tick_broadcast(const struct cpumask *mask)
 }
 #endif
 
+<<<<<<< HEAD
+=======
+/*
+ * The number of CPUs online, not counting this CPU (which may not be
+ * fully online and so not counted in num_online_cpus()).
+ */
+static inline unsigned int num_other_online_cpus(void)
+{
+	unsigned int this_cpu_online = cpu_online(smp_processor_id());
+
+	return num_online_cpus() - this_cpu_online;
+}
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 void smp_send_stop(void)
 {
 	unsigned long timeout;
 
+<<<<<<< HEAD
 	if (num_online_cpus() > 1) {
+=======
+	if (num_other_online_cpus()) {
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		cpumask_t mask;
 
 		cpumask_copy(&mask, cpu_online_mask);
 		cpu_clear(smp_processor_id(), mask);
+<<<<<<< HEAD
 		/* for debug */
 		pr_info("SMP: cpu_online_mask %lx , cpumask_t.bits %lx\n", 
 			cpu_online_mask->bits[0], mask.bits[0]);
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 		smp_cross_call(&mask, IPI_CPU_STOP);
 	}
 
+<<<<<<< HEAD
 	/* Wait up to 5 seconds for other CPUs to stop */
 	timeout = USEC_PER_SEC * 5;
 	while (num_online_cpus() > 1 && timeout--)
@@ -675,6 +775,15 @@ void smp_send_stop(void)
 		pr_warning("SMP: failed to stop secondary CPUs\n");
 	else
 		pr_info("SMP: completed to stop secondary CPUS\n");
+=======
+	/* Wait up to one second for other CPUs to stop */
+	timeout = USEC_PER_SEC;
+	while (num_other_online_cpus() && timeout--)
+		udelay(1);
+
+	if (num_other_online_cpus())
+		pr_warning("SMP: failed to stop secondary CPUs\n");
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 /*
@@ -684,6 +793,7 @@ int setup_profiling_timer(unsigned int multiplier)
 {
 	return -EINVAL;
 }
+<<<<<<< HEAD
 
 static void flush_all_cpu_cache(void *info)
 {
@@ -720,3 +830,5 @@ void flush_all_cpu_caches(void)
 
 	preempt_enable();
 }
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012

@@ -139,7 +139,10 @@ struct thermal_zone_device_ops {
 			  enum thermal_trend *);
 	int (*notify) (struct thermal_zone_device *, int,
 		       enum thermal_trip_type);
+<<<<<<< HEAD
 	int (*throttle_cpu_hotplug) (struct thermal_zone_device *);
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 struct thermal_cooling_device_ops {
@@ -230,9 +233,12 @@ struct thermal_zone_device {
 	struct mutex lock;
 	struct list_head node;
 	struct delayed_work poll_queue;
+<<<<<<< HEAD
 #ifdef CONFIG_SCHED_MC
 	unsigned int poll_queue_cpu;
 #endif
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 /**

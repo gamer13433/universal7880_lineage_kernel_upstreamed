@@ -39,7 +39,10 @@
 #define Q_XQUOTARM	XQM_CMD(6)	/* free disk space used by dquots */
 #define Q_XQUOTASYNC	XQM_CMD(7)	/* delalloc flush, updates dquots */
 #define Q_XGETQSTATV	XQM_CMD(8)	/* newer version of get quota */
+<<<<<<< HEAD
 #define Q_XGETNEXTQUOTA	XQM_CMD(9)	/* get disk limits and usage >= ID */
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /*
  * fs_disk_quota structure:

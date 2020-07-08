@@ -725,6 +725,7 @@ config I2C_S3C2410
 	  Say Y here to include support for I2C controller in the
 	  Samsung SoCs.
 
+<<<<<<< HEAD
 config FIX_I2C_BUS_NUM
 	bool "Fix I2C bus number"
 	depends on I2C_S3C2410
@@ -732,6 +733,8 @@ config FIX_I2C_BUS_NUM
 	help
 	   This will fix I2C bus number.
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 config I2C_SH7760
 	tristate "Renesas SH7760 I2C Controller"
 	depends on CPU_SUBTYPE_SH7760

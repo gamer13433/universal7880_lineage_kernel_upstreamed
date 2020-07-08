@@ -78,16 +78,27 @@ int __ext4_check_dir_entry(const char *function, unsigned int line,
 		error_msg = "rec_len is too small for name_len";
 	else if (unlikely(((char *) de - buf) + rlen > size))
 		error_msg = "directory entry overrun";
+<<<<<<< HEAD
+=======
+	else if (unlikely(((char *) de - buf) + rlen >
+			  size - EXT4_DIR_REC_LEN(1) &&
+			  ((char *) de - buf) + rlen != size)) {
+		error_msg = "directory entry too close to block end";
+	}
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	else if (unlikely(le32_to_cpu(de->inode) >
 			le32_to_cpu(EXT4_SB(dir->i_sb)->s_es->s_inodes_count)))
 		error_msg = "inode out of bounds";
 	else
 		return 0;
 
+<<<<<<< HEAD
 	/* for debugging, sangwoo2.lee */
 	print_bh(dir->i_sb, bh, 0, EXT4_BLOCK_SIZE(dir->i_sb));
 	/* for debugging */
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (filp)
 		ext4_error_file(filp, function, line, bh->b_blocknr,
 				"bad entry in directory: %s - offset=%u, "
@@ -116,6 +127,15 @@ static int ext4_readdir(struct file *file, struct dir_context *ctx)
 	int dir_has_error = 0;
 	struct ext4_str fname_crypto_str = {.name = NULL, .len = 0};
 
+<<<<<<< HEAD
+=======
+	if (ext4_encrypted_inode(inode)) {
+		err = ext4_get_encryption_info(inode);
+		if (err && err != -ENOKEY)
+			return err;
+	}
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (is_dx_dir(inode)) {
 		err = ext4_dx_readdir(file, ctx);
 		if (err != ERR_BAD_DX_DIR) {

@@ -3277,7 +3277,11 @@ static void mvpp2_cls_init(struct mvpp2 *priv)
 	mvpp2_write(priv, MVPP2_CLS_MODE_REG, MVPP2_CLS_MODE_ACTIVE_MASK);
 
 	/* Clear classifier flow table */
+<<<<<<< HEAD
 	memset(&fe.data, 0, MVPP2_CLS_FLOWS_TBL_DATA_WORDS);
+=======
+	memset(&fe.data, 0, sizeof(fe.data));
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	for (index = 0; index < MVPP2_CLS_FLOWS_TBL_SIZE; index++) {
 		fe.index = index;
 		mvpp2_cls_flow_write(priv, &fe);
@@ -3918,7 +3922,11 @@ static inline void mvpp2_gmac_max_rx_size_set(struct mvpp2_port *port)
 /* Set defaults to the MVPP2 port */
 static void mvpp2_defaults_set(struct mvpp2_port *port)
 {
+<<<<<<< HEAD
 	int tx_port_num, val, queue, ptxq, lrxq;
+=======
+	int tx_port_num, val, queue, lrxq;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	/* Configure port to loopback if needed */
 	if (port->flags & MVPP2_F_LOOPBACK)
@@ -3938,11 +3946,17 @@ static void mvpp2_defaults_set(struct mvpp2_port *port)
 	mvpp2_write(port->priv, MVPP2_TXP_SCHED_CMD_1_REG, 0);
 
 	/* Close bandwidth for all queues */
+<<<<<<< HEAD
 	for (queue = 0; queue < MVPP2_MAX_TXQ; queue++) {
 		ptxq = mvpp2_txq_phys(port->id, queue);
 		mvpp2_write(port->priv,
 			    MVPP2_TXQ_SCHED_TOKEN_CNTR_REG(ptxq), 0);
 	}
+=======
+	for (queue = 0; queue < MVPP2_MAX_TXQ; queue++)
+		mvpp2_write(port->priv,
+			    MVPP2_TXQ_SCHED_TOKEN_CNTR_REG(queue), 0);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	/* Set refill period to 1 usec, refill tokens
 	 * and bucket size to maximum
@@ -4689,7 +4703,11 @@ static void mvpp2_txq_deinit(struct mvpp2_port *port,
 	txq->descs_phys        = 0;
 
 	/* Set minimum bandwidth for disabled TXQs */
+<<<<<<< HEAD
 	mvpp2_write(port->priv, MVPP2_TXQ_SCHED_TOKEN_CNTR_REG(txq->id), 0);
+=======
+	mvpp2_write(port->priv, MVPP2_TXQ_SCHED_TOKEN_CNTR_REG(txq->log_id), 0);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	/* Set Tx descriptors queue starting address and size */
 	mvpp2_write(port->priv, MVPP2_TXQ_NUM_REG, txq->id);

@@ -821,7 +821,11 @@ static int cfg80211_wext_giwfreq(struct net_device *dev,
 {
 	struct wireless_dev *wdev = dev->ieee80211_ptr;
 	struct cfg80211_registered_device *rdev = wiphy_to_rdev(wdev->wiphy);
+<<<<<<< HEAD
 	struct cfg80211_chan_def chandef;
+=======
+	struct cfg80211_chan_def chandef = {};
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	int ret;
 
 	switch (wdev->iftype) {
@@ -1333,6 +1337,11 @@ static struct iw_statistics *cfg80211_wireless_stats(struct net_device *dev)
 	memcpy(bssid, wdev->current_bss->pub.bssid, ETH_ALEN);
 	wdev_unlock(wdev);
 
+<<<<<<< HEAD
+=======
+	memset(&sinfo, 0, sizeof(sinfo));
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (rdev_get_station(rdev, dev, bssid, &sinfo))
 		return NULL;
 

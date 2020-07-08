@@ -10,6 +10,11 @@
 #define __ASM_ARC_CMPXCHG_H
 
 #include <linux/types.h>
+<<<<<<< HEAD
+=======
+
+#include <asm/barrier.h>
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #include <asm/smp.h>
 
 #ifdef CONFIG_ARC_HAS_LLSC
@@ -19,16 +24,35 @@ __cmpxchg(volatile void *ptr, unsigned long expected, unsigned long new)
 {
 	unsigned long prev;
 
+<<<<<<< HEAD
+=======
+	/*
+	 * Explicit full memory barrier needed before/after as
+	 * LLOCK/SCOND thmeselves don't provide any such semantics
+	 */
+	smp_mb();
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	__asm__ __volatile__(
 	"1:	llock   %0, [%1]	\n"
 	"	brne    %0, %2, 2f	\n"
 	"	scond   %3, [%1]	\n"
 	"	bnz     1b		\n"
 	"2:				\n"
+<<<<<<< HEAD
 	: "=&r"(prev)
 	: "r"(ptr), "ir"(expected),
 	  "r"(new) /* can't be "ir". scond can't take limm for "b" */
 	: "cc");
+=======
+	: "=&r"(prev)	/* Early clobber, to prevent reg reuse */
+	: "r"(ptr),	/* Not "m": llock only supports reg direct addr mode */
+	  "ir"(expected),
+	  "r"(new)	/* can't be "ir". scond can't take LIMM for "b" */
+	: "cc", "memory"); /* so that gcc knows memory is being written here */
+
+	smp_mb();
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	return prev;
 }
@@ -42,6 +66,12 @@ __cmpxchg(volatile void *ptr, unsigned long expected, unsigned long new)
 	int prev;
 	volatile unsigned long *p = ptr;
 
+<<<<<<< HEAD
+=======
+	/*
+	 * spin lock/unlock provide the needed smp_mb() before/after
+	 */
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	atomic_ops_lock(flags);
 	prev = *p;
 	if (prev == expected)
@@ -77,12 +107,22 @@ static inline unsigned long __xchg(unsigned long val, volatile void *ptr,
 
 	switch (size) {
 	case 4:
+<<<<<<< HEAD
+=======
+		smp_mb();
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		__asm__ __volatile__(
 		"	ex  %0, [%1]	\n"
 		: "+r"(val)
 		: "r"(ptr)
 		: "memory");
 
+<<<<<<< HEAD
+=======
+		smp_mb();
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		return val;
 	}
 	return __xchg_bad_pointer();

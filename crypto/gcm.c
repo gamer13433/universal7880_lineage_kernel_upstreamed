@@ -742,11 +742,18 @@ static struct crypto_instance *crypto_gcm_alloc_common(struct rtattr **tb,
 	ctr = crypto_skcipher_spawn_alg(&ctx->ctr);
 
 	/* We only support 16-byte blocks. */
+<<<<<<< HEAD
+=======
+	err = -EINVAL;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (ctr->cra_ablkcipher.ivsize != 16)
 		goto out_put_ctr;
 
 	/* Not a stream cipher? */
+<<<<<<< HEAD
 	err = -EINVAL;
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (ctr->cra_blocksize != 1)
 		goto out_put_ctr;
 

@@ -62,7 +62,11 @@ static void free_fdtable_rcu(struct rcu_head *rcu)
  */
 static void copy_fdtable(struct fdtable *nfdt, struct fdtable *ofdt)
 {
+<<<<<<< HEAD
 	unsigned int cpy, set;
+=======
+	size_t cpy, set;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	BUG_ON(nfdt->max_fds < ofdt->max_fds);
 

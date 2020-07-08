@@ -4215,7 +4215,11 @@ static struct scsi_host_template qla1280_driver_template = {
 	.eh_bus_reset_handler	= qla1280_eh_bus_reset,
 	.eh_host_reset_handler	= qla1280_eh_adapter_reset,
 	.bios_param		= qla1280_biosparam,
+<<<<<<< HEAD
 	.can_queue		= 0xfffff,
+=======
+	.can_queue		= MAX_OUTSTANDING_COMMANDS,
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	.this_id		= -1,
 	.sg_tablesize		= SG_ALL,
 	.cmd_per_lun		= 1,

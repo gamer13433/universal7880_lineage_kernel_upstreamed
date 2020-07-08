@@ -667,8 +667,12 @@ static ssize_t mem_rw(struct file *file, char __user *buf,
 	ssize_t copied;
 	char *page;
 
+<<<<<<< HEAD
 	/* Ensure the process spawned far enough to have an environment. */
 	if (!mm || !mm->env_end)
+=======
+	if (!mm)
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		return 0;
 
 	page = (char *)__get_free_page(GFP_TEMPORARY);
@@ -1368,18 +1372,26 @@ static const struct file_operations proc_pid_set_comm_operations = {
 static int proc_exe_link(struct dentry *dentry, struct path *exe_path)
 {
 	struct task_struct *task;
+<<<<<<< HEAD
 	struct mm_struct *mm;
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	struct file *exe_file;
 
 	task = get_proc_task(dentry->d_inode);
 	if (!task)
 		return -ENOENT;
+<<<<<<< HEAD
 	mm = get_task_mm(task);
 	put_task_struct(task);
 	if (!mm)
 		return -ENOENT;
 	exe_file = get_mm_exe_file(mm);
 	mmput(mm);
+=======
+	exe_file = get_task_exe_file(task);
+	put_task_struct(task);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (exe_file) {
 		*exe_path = exe_file->f_path;
 		path_get(&exe_file->f_path);
@@ -2620,7 +2632,10 @@ static const struct pid_entry tgid_base_stuff[] = {
 #ifdef CONFIG_PROC_PAGE_MONITOR
 	REG("clear_refs", S_IWUSR, proc_clear_refs_operations),
 	REG("smaps",      S_IRUGO, proc_pid_smaps_operations),
+<<<<<<< HEAD
 	REG("smaps_simple", S_IRUGO, proc_pid_smaps_simple_operations),
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	REG("pagemap",    S_IRUSR, proc_pagemap_operations),
 #endif
 #ifdef CONFIG_SECURITY
@@ -2645,8 +2660,13 @@ static const struct pid_entry tgid_base_stuff[] = {
 	ONE("cgroup",  S_IRUGO, proc_cgroup_show),
 #endif
 	ONE("oom_score",  S_IRUGO, proc_oom_score),
+<<<<<<< HEAD
 	REG("oom_adj",    S_IRUSR, proc_oom_adj_operations),
 	REG("oom_score_adj", S_IRUSR, proc_oom_score_adj_operations),
+=======
+	REG("oom_adj",    S_IRUGO|S_IWUSR, proc_oom_adj_operations),
+	REG("oom_score_adj", S_IRUGO|S_IWUSR, proc_oom_score_adj_operations),
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #ifdef CONFIG_AUDITSYSCALL
 	REG("loginuid",   S_IWUSR|S_IRUGO, proc_loginuid_operations),
 	REG("sessionid",  S_IRUGO, proc_sessionid_operations),
@@ -3030,8 +3050,13 @@ static const struct pid_entry tid_base_stuff[] = {
 	ONE("cgroup",  S_IRUGO, proc_cgroup_show),
 #endif
 	ONE("oom_score", S_IRUGO, proc_oom_score),
+<<<<<<< HEAD
 	REG("oom_adj",   S_IRUSR, proc_oom_adj_operations),
 	REG("oom_score_adj", S_IRUSR, proc_oom_score_adj_operations),
+=======
+	REG("oom_adj",   S_IRUGO|S_IWUSR, proc_oom_adj_operations),
+	REG("oom_score_adj", S_IRUGO|S_IWUSR, proc_oom_score_adj_operations),
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #ifdef CONFIG_AUDITSYSCALL
 	REG("loginuid",  S_IWUSR|S_IRUGO, proc_loginuid_operations),
 	REG("sessionid",  S_IRUGO, proc_sessionid_operations),

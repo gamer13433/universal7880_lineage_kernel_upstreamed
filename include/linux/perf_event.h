@@ -755,6 +755,14 @@ extern int perf_cpu_time_max_percent_handler(struct ctl_table *table, int write,
 		loff_t *ppos);
 
 
+<<<<<<< HEAD
+=======
+static inline bool perf_paranoid_any(void)
+{
+	return sysctl_perf_event_paranoid > 2;
+}
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static inline bool perf_paranoid_tracepoint_raw(void)
 {
 	return sysctl_perf_event_paranoid > -1;

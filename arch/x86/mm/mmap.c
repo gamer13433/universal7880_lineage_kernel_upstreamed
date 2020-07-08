@@ -95,6 +95,7 @@ static unsigned long mmap_base(void)
 }
 
 /*
+<<<<<<< HEAD
  * Bottom-up (legacy) layout on X86_32 did not support randomization, X86_64
  * does, but not when emulating X86_32
  */
@@ -107,18 +108,33 @@ static unsigned long mmap_legacy_base(void)
 }
 
 /*
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
  * This function, called very early during the creation of a new
  * process VM image, sets up which VM layout function to use:
  */
 void arch_pick_mmap_layout(struct mm_struct *mm)
 {
+<<<<<<< HEAD
 	mm->mmap_legacy_base = mmap_legacy_base();
 	mm->mmap_base = mmap_base();
+=======
+	unsigned long random_factor = 0UL;
+
+	if (current->flags & PF_RANDOMIZE)
+		random_factor = mmap_rnd();
+
+	mm->mmap_legacy_base = TASK_UNMAPPED_BASE + random_factor;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if (mmap_is_legacy()) {
 		mm->mmap_base = mm->mmap_legacy_base;
 		mm->get_unmapped_area = arch_get_unmapped_area;
 	} else {
+<<<<<<< HEAD
+=======
+		mm->mmap_base = mmap_base();
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		mm->get_unmapped_area = arch_get_unmapped_area_topdown;
 	}
 }

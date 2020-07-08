@@ -10,10 +10,17 @@
 
 int _braille_console_setup(char **str, char **brl_options)
 {
+<<<<<<< HEAD
 	if (!memcmp(*str, "brl,", 4)) {
 		*brl_options = "";
 		*str += 4;
 	} else if (!memcmp(str, "brl=", 4)) {
+=======
+	if (!strncmp(*str, "brl,", 4)) {
+		*brl_options = "";
+		*str += 4;
+	} else if (!strncmp(*str, "brl=", 4)) {
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		*brl_options = *str + 4;
 		*str = strchr(*brl_options, ',');
 		if (!*str) {

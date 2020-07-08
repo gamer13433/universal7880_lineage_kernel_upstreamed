@@ -590,8 +590,12 @@ static void *l2t_seq_start(struct seq_file *seq, loff_t *pos)
 static void *l2t_seq_next(struct seq_file *seq, void *v, loff_t *pos)
 {
 	v = l2t_get_idx(seq, *pos);
+<<<<<<< HEAD
 	if (v)
 		++*pos;
+=======
+	++(*pos);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return v;
 }
 

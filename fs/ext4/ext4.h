@@ -125,8 +125,11 @@ typedef unsigned int ext4_group_t;
 #define EXT4_MB_USE_ROOT_BLOCKS		0x1000
 /* Use blocks from reserved pool */
 #define EXT4_MB_USE_RESERVED		0x2000
+<<<<<<< HEAD
 /* Use extra reserved root blocks if needed */
 #define EXT4_MB_USE_EXTRA_ROOT_BLOCKS	0x4000
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 struct ext4_allocation_request {
 	/* target inode for block we're allocating */
@@ -390,11 +393,18 @@ struct flex_groups {
 #define EXT4_EA_INODE_FL	        0x00200000 /* Inode used for large EA */
 #define EXT4_EOFBLOCKS_FL		0x00400000 /* Blocks allocated beyond EOF */
 #define EXT4_INLINE_DATA_FL		0x10000000 /* Inode has inline data. */
+<<<<<<< HEAD
 #define EXT4_CORE_FILE_FL		0x40000000 /* allow use of reserved space */
 #define EXT4_RESERVED_FL		0x80000000 /* reserved for ext4 lib */
 
 #define EXT4_FL_USER_VISIBLE		0x404BDFFF /* User visible flags */
 #define EXT4_FL_USER_MODIFIABLE		0x404380FF /* User modifiable flags */
+=======
+#define EXT4_RESERVED_FL		0x80000000 /* reserved for ext4 lib */
+
+#define EXT4_FL_USER_VISIBLE		0x004BDFFF /* User visible flags */
+#define EXT4_FL_USER_MODIFIABLE		0x004380FF /* User modifiable flags */
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /* Flags that should be inherited by new inodes from their parent. */
 #define EXT4_FL_INHERITED (EXT4_SECRM_FL | EXT4_UNRM_FL | EXT4_COMPR_FL |\
@@ -448,7 +458,10 @@ enum {
 	EXT4_INODE_EA_INODE	= 21,	/* Inode used for large EA */
 	EXT4_INODE_EOFBLOCKS	= 22,	/* Blocks allocated beyond EOF */
 	EXT4_INODE_INLINE_DATA	= 28,	/* Data in inode. */
+<<<<<<< HEAD
 	EXT4_INODE_CORE_FILE	= 30,	/* allow use of reserved space */
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	EXT4_INODE_RESERVED	= 31,	/* reserved for ext4 lib */
 };
 
@@ -493,7 +506,10 @@ static inline void ext4_check_flag_values(void)
 	CHECK_FLAG_VALUE(EA_INODE);
 	CHECK_FLAG_VALUE(EOFBLOCKS);
 	CHECK_FLAG_VALUE(INLINE_DATA);
+<<<<<<< HEAD
 	CHECK_FLAG_VALUE(CORE_FILE);
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	CHECK_FLAG_VALUE(RESERVED);
 }
 
@@ -1187,7 +1203,10 @@ struct ext4_super_block {
 	__le64	s_kbytes_written;	/* nr of lifetime kilobytes written */
 	__le32	s_snapshot_inum;	/* Inode number of active snapshot */
 	__le32	s_snapshot_id;		/* sequential ID of active snapshot */
+<<<<<<< HEAD
 #define ext4_sec_r_blocks_count(es)	(le64_to_cpu(es->s_snapshot_r_blocks_count))
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	__le64	s_snapshot_r_blocks_count; /* reserved blocks for active
 					      snapshot's future use */
 	__le32	s_snapshot_list;	/* inode number of the head of the
@@ -1213,9 +1232,13 @@ struct ext4_super_block {
 	__u8	s_encrypt_algos[4];	/* Encryption algorithms in use  */
 	__u8	s_encrypt_pw_salt[16];	/* Salt used for string2key algorithm */
 	__le32	s_lpf_ino;		/* Location of the lost+found inode */
+<<<<<<< HEAD
 	__le32	s_reserved[94];	/* Padding to the end of the block */
 	__le32	s_sec_magic;		/* flag for reserved inodes */
 	__le32	s_reserved2[5];		/* Padding to the end of the block */
+=======
+	__le32	s_reserved[100];	/* Padding to the end of the block */
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	__le32	s_checksum;		/* crc32c(superblock) */
 };
 
@@ -1260,13 +1283,20 @@ struct ext4_sb_info {
 	loff_t s_bitmap_maxbytes;	/* max bytes for bitmap files */
 	struct buffer_head * s_sbh;	/* Buffer containing the super block */
 	struct ext4_super_block *s_es;	/* Pointer to the super block in the buffer */
+<<<<<<< HEAD
 	struct buffer_head **s_group_desc;
+=======
+	struct buffer_head * __rcu *s_group_desc;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	unsigned int s_mount_opt;
 	unsigned int s_mount_opt2;
 	unsigned int s_mount_flags;
 	unsigned int s_def_mount_opt;
 	ext4_fsblk_t s_sb_block;
+<<<<<<< HEAD
 	atomic64_t s_r_blocks_count;
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	atomic64_t s_resv_clusters;
 	kuid_t s_resuid;
 	kgid_t s_resgid;
@@ -1320,18 +1350,26 @@ struct ext4_sb_info {
 	unsigned long s_ext_extents;
 #endif
 
+<<<<<<< HEAD
 	/* Reserved inodes count */
 	s64 s_r_inodes_count;
 
 	/* for buddy allocator */
 	struct ext4_group_info ***s_group_info;
+=======
+	/* for buddy allocator */
+	struct ext4_group_info ** __rcu *s_group_info;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	struct inode *s_buddy_cache;
 	spinlock_t s_md_lock;
 	unsigned short *s_mb_offsets;
 	unsigned int *s_mb_maxs;
 	unsigned int s_group_info_size;
+<<<<<<< HEAD
 	struct list_head s_freed_data_list;	/* List of blocks to be freed
 						   after commit completed */
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	/* tunables */
 	unsigned long s_stripe;
@@ -1373,7 +1411,11 @@ struct ext4_sb_info {
 	unsigned int s_extent_max_zeroout_kb;
 
 	unsigned int s_log_groups_per_flex;
+<<<<<<< HEAD
 	struct flex_groups *s_flex_groups;
+=======
+	struct flex_groups * __rcu *s_flex_groups;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	ext4_group_t s_flex_groups_allocated;
 
 	/* workqueue for reserved extent conversions (buffered io) */
@@ -1454,6 +1496,26 @@ static inline void ext4_inode_aio_set(struct inode *inode, ext4_io_end_t *io)
 }
 
 /*
+<<<<<<< HEAD
+=======
+ * Returns: sbi->field[index]
+ * Used to access an array element from the following sbi fields which require
+ * rcu protection to avoid dereferencing an invalid pointer due to reassignment
+ * - s_group_desc
+ * - s_group_info
+ * - s_flex_group
+ */
+#define sbi_array_rcu_deref(sbi, field, index)				   \
+({									   \
+	typeof(*((sbi)->field)) _v;					   \
+	rcu_read_lock();						   \
+	_v = ((typeof(_v)*)rcu_dereference((sbi)->field))[index];	   \
+	rcu_read_unlock();						   \
+	_v;								   \
+})
+
+/*
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
  * Inode dynamic state flags
  */
 enum {
@@ -1686,12 +1748,15 @@ static inline int ext4_encrypted_inode(struct inode *inode)
 #define EXT4_DEF_MAX_BATCH_TIME	15000 /* 15ms */
 
 /*
+<<<<<<< HEAD
  * Default reserved inode count
  */
 #define EXT4_DEF_RESERVE_INODE 4096
 #define EXT4_SEC_DATA_MAGIC 0xBAB0CAFE /* data partition magic */
 
 /*
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
  * Minimum number of groups in a flexgroup before we separate out
  * directories into the first block group of a flexgroup
  */
@@ -2099,6 +2164,7 @@ extern struct kmem_cache *ext4_crypt_info_cachep;
 bool ext4_valid_contents_enc_mode(uint32_t mode);
 uint32_t ext4_validate_encryption_key_size(uint32_t mode, uint32_t size);
 extern struct workqueue_struct *ext4_read_workqueue;
+<<<<<<< HEAD
 struct ext4_crypto_ctx *ext4_get_crypto_ctx(struct inode *inode);
 void ext4_release_crypto_ctx(struct ext4_crypto_ctx *ctx);
 void ext4_restore_control_page(struct page *data_page);
@@ -2106,6 +2172,18 @@ struct page *ext4_encrypt(struct inode *inode,
 			  struct page *plaintext_page);
 int ext4_decrypt(struct page *page);
 int ext4_encrypted_zeroout(struct inode *inode, struct ext4_extent *ex);
+=======
+struct ext4_crypto_ctx *ext4_get_crypto_ctx(struct inode *inode,
+					    gfp_t gfp_flags);
+void ext4_release_crypto_ctx(struct ext4_crypto_ctx *ctx);
+void ext4_restore_control_page(struct page *data_page);
+struct page *ext4_encrypt(struct inode *inode,
+			  struct page *plaintext_page,
+			  gfp_t gfp_flags);
+int ext4_decrypt(struct page *page);
+int ext4_encrypted_zeroout(struct inode *inode, struct ext4_extent *ex);
+extern const struct dentry_operations ext4_encrypted_d_ops;
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #ifdef CONFIG_EXT4_FS_ENCRYPTION
 int ext4_init_crypto(void);
@@ -2168,11 +2246,15 @@ static inline void ext4_fname_free_filename(struct ext4_filename *fname) { }
 /* crypto_key.c */
 void ext4_free_crypt_info(struct ext4_crypt_info *ci);
 void ext4_free_encryption_info(struct inode *inode, struct ext4_crypt_info *ci);
+<<<<<<< HEAD
 int _ext4_get_encryption_info(struct inode *inode);
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #ifdef CONFIG_EXT4_FS_ENCRYPTION
 int ext4_has_encryption_key(struct inode *inode);
 
+<<<<<<< HEAD
 static inline int ext4_get_encryption_info(struct inode *inode)
 {
 	struct ext4_crypt_info *ci = EXT4_I(inode)->i_crypt_info;
@@ -2185,6 +2267,9 @@ static inline int ext4_get_encryption_info(struct inode *inode)
 		return _ext4_get_encryption_info(inode);
 	return 0;
 }
+=======
+int ext4_get_encryption_info(struct inode *inode);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 static inline struct ext4_crypt_info *ext4_encryption_info(struct inode *inode)
 {
@@ -2306,8 +2391,11 @@ extern int ext4_group_add_blocks(handle_t *handle, struct super_block *sb,
 				ext4_fsblk_t block, unsigned long count);
 extern int ext4_trim_fs(struct super_block *, struct fstrim_range *,
 				unsigned long blkdev_flags);
+<<<<<<< HEAD
 extern void ext4_process_freed_data(struct super_block *sb, tid_t commit_tid);
 extern ssize_t ext4_mb_freefrag_show(struct ext4_sb_info *sbi, char *buf);
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /* inode.c */
 int ext4_inode_is_fast_symlink(struct inode *inode);
@@ -2394,8 +2482,12 @@ extern int ext4_search_dir(struct buffer_head *bh,
 			   struct ext4_filename *fname,
 			   const struct qstr *d_name,
 			   unsigned int offset,
+<<<<<<< HEAD
 			   struct ext4_dir_entry_2 **res_dir,
 			   char *ci_name_buf);
+=======
+			   struct ext4_dir_entry_2 **res_dir);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 extern int ext4_generic_delete_entry(handle_t *handle,
 				     struct inode *dir,
 				     struct ext4_dir_entry_2 *de_del,
@@ -2406,6 +2498,10 @@ extern int ext4_generic_delete_entry(handle_t *handle,
 extern int ext4_empty_dir(struct inode *inode);
 
 /* resize.c */
+<<<<<<< HEAD
+=======
+extern void ext4_kvfree_array_rcu(void *to_free);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 extern int ext4_group_add(struct super_block *sb,
 				struct ext4_new_group_data *input);
 extern int ext4_group_extend(struct super_block *sb,
@@ -2555,6 +2651,7 @@ extern void ext4_group_desc_csum_set(struct super_block *sb, __u32 group,
 				     struct ext4_group_desc *gdp);
 extern int ext4_register_li_request(struct super_block *sb,
 				    ext4_group_t first_not_zeroed);
+<<<<<<< HEAD
 /* for debugging, sangwoo2.lee */
 extern void print_iloc_info(struct super_block *sb,
 				struct ext4_iloc iloc);
@@ -2563,6 +2660,8 @@ extern void print_bh(struct super_block *sb,
 extern void print_block_data(struct super_block *sb, sector_t blocknr,
                   unsigned char *data_to_dump, int start, int len);
 /* for debugging */
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 static inline int ext4_has_group_desc_csum(struct super_block *sb)
 {
@@ -2637,6 +2736,7 @@ static inline
 struct ext4_group_info *ext4_get_group_info(struct super_block *sb,
 					    ext4_group_t group)
 {
+<<<<<<< HEAD
 	 struct ext4_group_info ***grp_info;
 	 long indexv, indexh;
 	 BUG_ON(group >= EXT4_SB(sb)->s_groups_count);
@@ -2644,6 +2744,15 @@ struct ext4_group_info *ext4_get_group_info(struct super_block *sb,
 	 indexv = group >> (EXT4_DESC_PER_BLOCK_BITS(sb));
 	 indexh = group & ((EXT4_DESC_PER_BLOCK(sb)) - 1);
 	 return grp_info[indexv][indexh];
+=======
+	 struct ext4_group_info **grp_info;
+	 long indexv, indexh;
+	 BUG_ON(group >= EXT4_SB(sb)->s_groups_count);
+	 indexv = group >> (EXT4_DESC_PER_BLOCK_BITS(sb));
+	 indexh = group & ((EXT4_DESC_PER_BLOCK(sb)) - 1);
+	 grp_info = sbi_array_rcu_deref(EXT4_SB(sb), s_group_info, indexv);
+	 return grp_info[indexh];
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 /*
@@ -2693,7 +2802,11 @@ static inline void ext4_update_i_disksize(struct inode *inode, loff_t newsize)
 		     !mutex_is_locked(&inode->i_mutex));
 	down_write(&EXT4_I(inode)->i_data_sem);
 	if (newsize > EXT4_I(inode)->i_disksize)
+<<<<<<< HEAD
 		EXT4_I(inode)->i_disksize = newsize;
+=======
+		WRITE_ONCE(EXT4_I(inode)->i_disksize, newsize);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	up_write(&EXT4_I(inode)->i_data_sem);
 }
 
@@ -2713,6 +2826,12 @@ static inline int ext4_update_inode_size(struct inode *inode, loff_t newsize)
 	return changed;
 }
 
+<<<<<<< HEAD
+=======
+int ext4_update_disksize_before_punch(struct inode *inode, loff_t offset,
+				      loff_t len);
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 struct ext4_group_info {
 	unsigned long   bb_state;
 	struct rb_root  bb_free_root;
@@ -3087,4 +3206,10 @@ extern void ext4_resize_end(struct super_block *sb);
 
 #endif	/* __KERNEL__ */
 
+<<<<<<< HEAD
+=======
+#define EFSBADCRC	EBADMSG		/* Bad CRC detected */
+#define EFSCORRUPTED	EUCLEAN		/* Filesystem is corrupted */
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #endif	/* _EXT4_H */

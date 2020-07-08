@@ -524,7 +524,11 @@ static struct clockdomain pcie_7xx_clkdm = {
 	.dep_bit	  = DRA7XX_PCIE_STATDEP_SHIFT,
 	.wkdep_srcs	  = pcie_wkup_sleep_deps,
 	.sleepdep_srcs	  = pcie_wkup_sleep_deps,
+<<<<<<< HEAD
 	.flags		  = CLKDM_CAN_HWSUP_SWSUP,
+=======
+	.flags		  = CLKDM_CAN_SWSUP,
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 static struct clockdomain atl_7xx_clkdm = {

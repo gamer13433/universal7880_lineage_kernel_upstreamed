@@ -90,7 +90,11 @@ struct bios_args {
 	u32 command;
 	u32 commandtype;
 	u32 datasize;
+<<<<<<< HEAD
 	u32 data;
+=======
+	u8 data[128];
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 struct bios_return {
@@ -199,7 +203,11 @@ static int hp_wmi_perform_query(int query, int write, void *buffer,
 		.command = write ? 0x2 : 0x1,
 		.commandtype = query,
 		.datasize = insize,
+<<<<<<< HEAD
 		.data = 0,
+=======
+		.data = { 0 },
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	};
 	struct acpi_buffer input = { sizeof(struct bios_args), &args };
 	struct acpi_buffer output = { ACPI_ALLOCATE_BUFFER, NULL };
@@ -207,7 +215,11 @@ static int hp_wmi_perform_query(int query, int write, void *buffer,
 
 	if (WARN_ON(insize > sizeof(args.data)))
 		return -EINVAL;
+<<<<<<< HEAD
 	memcpy(&args.data, buffer, insize);
+=======
+	memcpy(&args.data[0], buffer, insize);
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	wmi_evaluate_method(HPWMI_BIOS_GUID, 0, 0x3, &input, &output);
 
@@ -309,7 +321,11 @@ static int __init hp_wmi_bios_2008_later(void)
 
 static int __init hp_wmi_bios_2009_later(void)
 {
+<<<<<<< HEAD
 	int state = 0;
+=======
+	u8 state[128];
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	int ret = hp_wmi_perform_query(HPWMI_FEATURE2_QUERY, 0, &state,
 				       sizeof(state), sizeof(state));
 	if (!ret)

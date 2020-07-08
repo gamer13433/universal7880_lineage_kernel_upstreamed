@@ -469,6 +469,13 @@ static inline int
 rdev_set_wiphy_params(struct cfg80211_registered_device *rdev, u32 changed)
 {
 	int ret;
+<<<<<<< HEAD
+=======
+
+	if (!rdev->ops->set_wiphy_params)
+		return -EOPNOTSUPP;
+
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	trace_rdev_set_wiphy_params(&rdev->wiphy, changed);
 	ret = rdev->ops->set_wiphy_params(&rdev->wiphy, changed);
 	trace_rdev_return_int(&rdev->wiphy, ret);

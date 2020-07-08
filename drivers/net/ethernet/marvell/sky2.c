@@ -4929,6 +4929,23 @@ static const struct dmi_system_id msi_blacklist[] = {
 			DMI_MATCH(DMI_PRODUCT_NAME, "P-79"),
 		},
 	},
+<<<<<<< HEAD
+=======
+	{
+		.ident = "ASUS P6T",
+		.matches = {
+			DMI_MATCH(DMI_BOARD_VENDOR, "ASUSTeK Computer INC."),
+			DMI_MATCH(DMI_BOARD_NAME, "P6T"),
+		},
+	},
+	{
+		.ident = "ASUS P6X",
+		.matches = {
+			DMI_MATCH(DMI_BOARD_VENDOR, "ASUSTeK Computer INC."),
+			DMI_MATCH(DMI_BOARD_NAME, "P6X"),
+		},
+	},
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	{}
 };
 

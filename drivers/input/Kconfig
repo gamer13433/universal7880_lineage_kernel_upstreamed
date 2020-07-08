@@ -175,12 +175,17 @@ config INPUT_APMPOWER
 	  module will be called apm-power.
 
 config INPUT_KEYRESET
+<<<<<<< HEAD
 	tristate "Reset key"
+=======
+	bool "Reset key"
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	depends on INPUT
 	select INPUT_KEYCOMBO
 	---help---
 	  Say Y here if you want to reboot when some keys are pressed;
 
+<<<<<<< HEAD
 	  To compile this driver as a module, choose M here: the
 	  module will be called keyreset.
 
@@ -189,6 +194,8 @@ config GLOVE_TOUCH
 	help
 	  Say Y here if you want glove touch.
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 config INPUT_KEYCOMBO
 	tristate "Key combo"
 	depends on INPUT
@@ -198,6 +205,7 @@ config INPUT_KEYCOMBO
 	  To compile this driver as a module, choose M here: the
 	  module will be called keycombo.
 
+<<<<<<< HEAD
 config HALL
 	tristate "Enable HALL"
 	default n
@@ -236,6 +244,8 @@ config SENSORS_HALL_FOLDER
 	help
 	  Say Y here to use HALL IC for FOLDER.
 
+=======
+>>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 comment "Input Device Drivers"
 
 source "drivers/input/keyboard/Kconfig"
