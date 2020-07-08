@@ -1116,11 +1116,6 @@ static struct dmi_system_id __initdata pciirq_dmi_table[] = {
 
 void __init pcibios_irq_init(void)
 {
-<<<<<<< HEAD
-=======
-	struct irq_routing_table *rtable = NULL;
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	DBG(KERN_DEBUG "PCI: IRQ init\n");
 
 	if (raw_pci_ops == NULL)
@@ -1131,15 +1126,8 @@ void __init pcibios_irq_init(void)
 	pirq_table = pirq_find_routing_table();
 
 #ifdef CONFIG_PCI_BIOS
-<<<<<<< HEAD
 	if (!pirq_table && (pci_probe & PCI_BIOS_IRQ_SCAN))
 		pirq_table = pcibios_get_irq_routing_table();
-=======
-	if (!pirq_table && (pci_probe & PCI_BIOS_IRQ_SCAN)) {
-		pirq_table = pcibios_get_irq_routing_table();
-		rtable = pirq_table;
-	}
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #endif
 	if (pirq_table) {
 		pirq_peer_trick();
@@ -1154,15 +1142,8 @@ void __init pcibios_irq_init(void)
 		 * If we're using the I/O APIC, avoid using the PCI IRQ
 		 * routing table
 		 */
-<<<<<<< HEAD
 		if (io_apic_assign_pci_irqs)
 			pirq_table = NULL;
-=======
-		if (io_apic_assign_pci_irqs) {
-			kfree(rtable);
-			pirq_table = NULL;
-		}
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 	x86_init.pci.fixup_irqs();

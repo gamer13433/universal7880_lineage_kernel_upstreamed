@@ -25,11 +25,8 @@ struct mbox_chan;
  *			if the client receives some ACK packet for transmission.
  *			Unused if the controller already has TX_Done/RTR IRQ.
  * @rx_callback:	Atomic callback to provide client the data received
-<<<<<<< HEAD
  * @tx_prepare: 	Atomic callback to ask client to prepare the payload
  *			before initiating the transmission if required.
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
  * @tx_done:		Atomic callback to tell client of data transmission
  */
 struct mbox_client {
@@ -39,10 +36,7 @@ struct mbox_client {
 	bool knows_txdone;
 
 	void (*rx_callback)(struct mbox_client *cl, void *mssg);
-<<<<<<< HEAD
 	void (*tx_prepare)(struct mbox_client *cl, void *mssg);
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	void (*tx_done)(struct mbox_client *cl, void *mssg, int r);
 };
 

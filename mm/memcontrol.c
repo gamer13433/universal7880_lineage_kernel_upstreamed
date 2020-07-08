@@ -1057,11 +1057,7 @@ static struct mem_cgroup *get_mem_cgroup_from_mm(struct mm_struct *mm)
 			if (unlikely(!memcg))
 				memcg = root_mem_cgroup;
 		}
-<<<<<<< HEAD
 	} while (!css_tryget_online(&memcg->css));
-=======
-	} while (!css_tryget(&memcg->css));
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	rcu_read_unlock();
 	return memcg;
 }
@@ -4694,11 +4690,7 @@ static void __mem_cgroup_usage_unregister_event(struct mem_cgroup *memcg,
 	struct mem_cgroup_thresholds *thresholds;
 	struct mem_cgroup_threshold_ary *new;
 	u64 usage;
-<<<<<<< HEAD
 	int i, j, size;
-=======
-	int i, j, size, entries;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	mutex_lock(&memcg->thresholds_lock);
 
@@ -4718,30 +4710,14 @@ static void __mem_cgroup_usage_unregister_event(struct mem_cgroup *memcg,
 	__mem_cgroup_threshold(memcg, type == _MEMSWAP);
 
 	/* Calculate new number of threshold */
-<<<<<<< HEAD
 	size = 0;
 	for (i = 0; i < thresholds->primary->size; i++) {
 		if (thresholds->primary->entries[i].eventfd != eventfd)
 			size++;
-=======
-	size = entries = 0;
-	for (i = 0; i < thresholds->primary->size; i++) {
-		if (thresholds->primary->entries[i].eventfd != eventfd)
-			size++;
-		else
-			entries++;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 	new = thresholds->spare;
 
-<<<<<<< HEAD
-=======
-	/* If no items related to eventfd have been cleared, nothing to do */
-	if (!entries)
-		goto unlock;
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/* Set thresholds array to NULL if we don't have thresholds */
 	if (!size) {
 		kfree(new);
@@ -6026,15 +6002,12 @@ static int mem_cgroup_can_attach(struct cgroup_subsys_state *css,
 	return ret;
 }
 
-<<<<<<< HEAD
 static int mem_cgroup_allow_attach(struct cgroup_subsys_state *css,
 				   struct cgroup_taskset *tset)
 {
 	return subsys_cgroup_allow_attach(css, tset);
 }
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static void mem_cgroup_cancel_attach(struct cgroup_subsys_state *css,
 				     struct cgroup_taskset *tset)
 {
@@ -6203,14 +6176,11 @@ static int mem_cgroup_can_attach(struct cgroup_subsys_state *css,
 {
 	return 0;
 }
-<<<<<<< HEAD
 static int mem_cgroup_allow_attach(struct cgroup_subsys_state *css,
 				   struct cgroup_taskset *tset)
 {
 	return 0;
 }
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static void mem_cgroup_cancel_attach(struct cgroup_subsys_state *css,
 				     struct cgroup_taskset *tset)
 {
@@ -6246,10 +6216,7 @@ struct cgroup_subsys memory_cgrp_subsys = {
 	.can_attach = mem_cgroup_can_attach,
 	.cancel_attach = mem_cgroup_cancel_attach,
 	.attach = mem_cgroup_move_task,
-<<<<<<< HEAD
 	.allow_attach = mem_cgroup_allow_attach,
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	.bind = mem_cgroup_bind,
 	.legacy_cftypes = mem_cgroup_files,
 	.early_init = 0,

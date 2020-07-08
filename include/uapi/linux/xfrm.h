@@ -300,12 +300,6 @@ enum xfrm_attr_type_t {
 	XFRMA_SA_EXTRA_FLAGS,	/* __u32 */
 	XFRMA_PROTO,		/* __u8 */
 	XFRMA_ADDRESS_FILTER,	/* struct xfrm_address_filter */
-<<<<<<< HEAD
-=======
-	XFRMA_PAD,
-	XFRMA_OFFLOAD_DEV,	/* struct xfrm_state_offload */
-	XFRMA_OUTPUT_MARK,	/* __u32 */
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	__XFRMA_MAX
 
 #define XFRMA_MAX (__XFRMA_MAX - 1)

@@ -40,10 +40,6 @@ void usb_init_urb(struct urb *urb)
 	if (urb) {
 		memset(urb, 0, sizeof(*urb));
 		kref_init(&urb->kref);
-<<<<<<< HEAD
-=======
-		INIT_LIST_HEAD(&urb->urb_list);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		INIT_LIST_HEAD(&urb->anchor_list);
 	}
 }
@@ -406,11 +402,7 @@ int usb_submit_urb(struct urb *urb, gfp_t mem_flags)
 		/* SuperSpeed isoc endpoints have up to 16 bursts of up to
 		 * 3 packets each
 		 */
-<<<<<<< HEAD
 		if (dev->speed == USB_SPEED_SUPER) {
-=======
-		if (dev->speed >= USB_SPEED_SUPER) {
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			int     burst = 1 + ep->ss_ep_comp.bMaxBurst;
 			int     mult = USB_SS_MULT(ep->ss_ep_comp.bmAttributes);
 			max *= burst;
@@ -508,10 +500,6 @@ int usb_submit_urb(struct urb *urb, gfp_t mem_flags)
 		}
 		/* too big? */
 		switch (dev->speed) {
-<<<<<<< HEAD
-=======
-		case USB_SPEED_SUPER_PLUS:
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		case USB_SPEED_SUPER:	/* units are 125us */
 			/* Handle up to 2^(16-1) microframes */
 			if (urb->interval > (1 << 15))

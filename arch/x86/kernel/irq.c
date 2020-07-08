@@ -404,18 +404,6 @@ void fixup_irqs(void)
 		}
 
 		chip = irq_data_get_irq_chip(data);
-<<<<<<< HEAD
-=======
-		/*
-		 * The interrupt descriptor might have been cleaned up
-		 * already, but it is not yet removed from the radix tree
-		 */
-		if (!chip) {
-			raw_spin_unlock(&desc->lock);
-			continue;
-		}
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		if (!irqd_can_move_in_process_context(data) && chip->irq_mask)
 			chip->irq_mask(data);
 

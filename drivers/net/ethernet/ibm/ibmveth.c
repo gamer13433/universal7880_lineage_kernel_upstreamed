@@ -1351,11 +1351,7 @@ static int ibmveth_probe(struct vio_dev *dev, const struct vio_device_id *id)
 	struct net_device *netdev;
 	struct ibmveth_adapter *adapter;
 	unsigned char *mac_addr_p;
-<<<<<<< HEAD
 	unsigned int *mcastFilterSize_p;
-=======
-	__be32 *mcastFilterSize_p;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	dev_dbg(&dev->dev, "entering ibmveth_probe for UA 0x%x\n",
 		dev->unit_address);
@@ -1375,14 +1371,8 @@ static int ibmveth_probe(struct vio_dev *dev, const struct vio_device_id *id)
 		return -EINVAL;
 	}
 
-<<<<<<< HEAD
 	mcastFilterSize_p = (unsigned int *)vio_get_attribute(dev,
 						VETH_MCAST_FILTER_SIZE, NULL);
-=======
-	mcastFilterSize_p = (__be32 *)vio_get_attribute(dev,
-							VETH_MCAST_FILTER_SIZE,
-							NULL);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (!mcastFilterSize_p) {
 		dev_err(&dev->dev, "Can't find VETH_MCAST_FILTER_SIZE "
 			"attribute\n");
@@ -1399,11 +1389,7 @@ static int ibmveth_probe(struct vio_dev *dev, const struct vio_device_id *id)
 
 	adapter->vdev = dev;
 	adapter->netdev = netdev;
-<<<<<<< HEAD
 	adapter->mcastFilterSize = *mcastFilterSize_p;
-=======
-	adapter->mcastFilterSize = be32_to_cpu(*mcastFilterSize_p);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	adapter->pool_config = 0;
 
 	netif_napi_add(netdev, &adapter->napi, ibmveth_poll, 16);

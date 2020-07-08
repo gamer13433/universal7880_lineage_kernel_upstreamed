@@ -43,11 +43,7 @@ static int ext4_journal_check_start(struct super_block *sb)
 	journal_t *journal;
 
 	might_sleep();
-<<<<<<< HEAD
 	if (sb->s_flags & MS_RDONLY && !ext4_journal_current_handle())
-=======
-	if (sb->s_flags & MS_RDONLY)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		return -EROFS;
 	WARN_ON(sb->s_writers.frozen == SB_FREEZE_COMPLETE);
 	journal = EXT4_SB(sb)->s_journal;
@@ -319,7 +315,6 @@ int __ext4_handle_dirty_super(const char *where, unsigned int line,
 	struct buffer_head *bh = EXT4_SB(sb)->s_sbh;
 	int err = 0;
 
-<<<<<<< HEAD
 	if (unlikely(le16_to_cpu(EXT4_SB(sb)->s_es->s_magic) !=
 			EXT4_SUPER_MAGIC)) {
 		print_bh(sb, bh, 0, EXT4_BLOCK_SIZE(sb));
@@ -328,8 +323,6 @@ int __ext4_handle_dirty_super(const char *where, unsigned int line,
 		return -EIO;
 	}
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	ext4_superblock_csum_set(sb);
 	if (ext4_handle_valid(handle)) {
 		err = jbd2_journal_dirty_metadata(handle, bh);

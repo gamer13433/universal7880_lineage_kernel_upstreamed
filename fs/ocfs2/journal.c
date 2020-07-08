@@ -983,12 +983,7 @@ void ocfs2_journal_shutdown(struct ocfs2_super *osb)
 			mlog_errno(status);
 	}
 
-<<<<<<< HEAD
 	if (status == 0) {
-=======
-	/* Shutdown the kernel journal system */
-	if (!jbd2_journal_destroy(journal->j_journal) && !status) {
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		/*
 		 * Do not toggle if flush was unsuccessful otherwise
 		 * will leave dirty metadata in a "clean" journal
@@ -997,12 +992,9 @@ void ocfs2_journal_shutdown(struct ocfs2_super *osb)
 		if (status < 0)
 			mlog_errno(status);
 	}
-<<<<<<< HEAD
 
 	/* Shutdown the kernel journal system */
 	jbd2_journal_destroy(journal->j_journal);
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	journal->j_journal = NULL;
 
 	OCFS2_I(inode)->ip_open_count--;
@@ -1056,17 +1048,6 @@ int ocfs2_journal_load(struct ocfs2_journal *journal, int local, int replayed)
 
 	ocfs2_clear_journal_error(osb->sb, journal->j_journal, osb->slot_num);
 
-<<<<<<< HEAD
-=======
-	if (replayed) {
-		jbd2_journal_lock_updates(journal->j_journal);
-		status = jbd2_journal_flush(journal->j_journal);
-		jbd2_journal_unlock_updates(journal->j_journal);
-		if (status < 0)
-			mlog_errno(status);
-	}
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	status = ocfs2_journal_toggle_dirty(osb, 1, replayed);
 	if (status < 0) {
 		mlog_errno(status);

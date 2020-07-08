@@ -1,11 +1,4 @@
 
-<<<<<<< HEAD
-=======
-# We are fully aware of the dangers of __builtin_return_address()
-FRAME_CFLAGS := $(call cc-disable-warning,frame-address)
-KBUILD_CFLAGS += $(FRAME_CFLAGS)
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 # Do not instrument the tracer itself:
 
 ifdef CONFIG_FUNCTION_TRACER

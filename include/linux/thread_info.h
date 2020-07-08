@@ -13,13 +13,6 @@
 struct timespec;
 struct compat_timespec;
 
-<<<<<<< HEAD
-=======
-#ifdef CONFIG_THREAD_INFO_IN_TASK
-#define current_thread_info() ((struct thread_info *)current)
-#endif
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /*
  * System call restart block.
  */

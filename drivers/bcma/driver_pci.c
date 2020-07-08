@@ -78,11 +78,7 @@ static u16 bcma_pcie_mdio_read(struct bcma_drv_pci *pc, u16 device, u8 address)
 		v |= (address << BCMA_CORE_PCI_MDIODATA_REGADDR_SHF_OLD);
 	}
 
-<<<<<<< HEAD
 	v = BCMA_CORE_PCI_MDIODATA_START;
-=======
-	v |= BCMA_CORE_PCI_MDIODATA_START;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	v |= BCMA_CORE_PCI_MDIODATA_READ;
 	v |= BCMA_CORE_PCI_MDIODATA_TA;
 
@@ -125,11 +121,7 @@ static void bcma_pcie_mdio_write(struct bcma_drv_pci *pc, u16 device,
 		v |= (address << BCMA_CORE_PCI_MDIODATA_REGADDR_SHF_OLD);
 	}
 
-<<<<<<< HEAD
 	v = BCMA_CORE_PCI_MDIODATA_START;
-=======
-	v |= BCMA_CORE_PCI_MDIODATA_START;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	v |= BCMA_CORE_PCI_MDIODATA_WRITE;
 	v |= BCMA_CORE_PCI_MDIODATA_TA;
 	v |= data;

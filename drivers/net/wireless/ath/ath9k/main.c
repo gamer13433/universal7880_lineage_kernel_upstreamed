@@ -212,21 +212,11 @@ static bool ath_prepare_reset(struct ath_softc *sc)
 	ath_stop_ani(sc);
 	ath9k_hw_disable_interrupts(ah);
 
-<<<<<<< HEAD
 	if (!ath_drain_all_txq(sc))
 		ret = false;
 
 	if (!ath_stoprecv(sc))
 		ret = false;
-=======
-	if (AR_SREV_9300_20_OR_LATER(ah)) {
-		ret &= ath_stoprecv(sc);
-		ret &= ath_drain_all_txq(sc);
-	} else {
-		ret &= ath_drain_all_txq(sc);
-		ret &= ath_stoprecv(sc);
-	}
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	return ret;
 }

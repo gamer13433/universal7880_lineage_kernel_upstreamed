@@ -33,7 +33,6 @@ config OMAP_MBOX_KFIFO_SIZE
 	  Specify the default size of mailbox's kfifo buffers (bytes).
 	  This can also be changed at runtime (via the mbox_kfifo_size
 	  module parameter).
-<<<<<<< HEAD
 
 config PCC
 	bool "Platform Communication Channel Driver"
@@ -46,6 +45,4 @@ config PCC
 	  states). Select this driver if your platform implements the
 	  PCC clients mentioned above.
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 endif

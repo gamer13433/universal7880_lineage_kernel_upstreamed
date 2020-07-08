@@ -310,11 +310,7 @@ static rx_handler_result_t macvtap_handle_frame(struct sk_buff **pskb)
 			goto wake_up;
 		}
 
-<<<<<<< HEAD
 		kfree_skb(skb);
-=======
-		consume_skb(skb);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		while (segs) {
 			struct sk_buff *nskb = segs->next;
 
@@ -578,11 +574,7 @@ static int macvtap_skb_from_vnet_hdr(struct sk_buff *skb,
 				     current->comm);
 			gso_type = SKB_GSO_UDP;
 			if (skb->protocol == htons(ETH_P_IPV6))
-<<<<<<< HEAD
 				ipv6_proxy_select_ident(skb);
-=======
-				ipv6_proxy_select_ident(dev_net(skb->dev), skb);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			break;
 		default:
 			return -EINVAL;

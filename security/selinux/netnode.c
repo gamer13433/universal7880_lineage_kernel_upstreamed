@@ -303,15 +303,12 @@ void sel_netnode_flush(void)
 static __init int sel_netnode_init(void)
 {
 	int iter;
-<<<<<<< HEAD
 	
 // [ SEC_SELINUX_PORTING_COMMON
 #ifdef CONFIG_SECURITY_SELINUX_ALWAYS_ENFORCE
 	selinux_enabled = 1;
 #endif
 // ] SEC_SELINUX_PORTING_COMMON
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if (!selinux_enabled)
 		return 0;

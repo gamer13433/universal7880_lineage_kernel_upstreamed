@@ -163,10 +163,7 @@ extern int scsi_init_io(struct scsi_cmnd *cmd, gfp_t gfp_mask);
 
 extern int scsi_dma_map(struct scsi_cmnd *cmd);
 extern void scsi_dma_unmap(struct scsi_cmnd *cmd);
-<<<<<<< HEAD
 extern void scsi_dma_set_skip_cpu_sync(void);
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 static inline unsigned scsi_sg_count(struct scsi_cmnd *cmd)
 {

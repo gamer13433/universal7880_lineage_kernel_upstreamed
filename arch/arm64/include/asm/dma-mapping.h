@@ -20,10 +20,7 @@
 
 #include <linux/types.h>
 #include <linux/vmalloc.h>
-<<<<<<< HEAD
 #include <linux/dma-debug.h>
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #include <asm-generic/dma-coherent.h>
 
@@ -34,10 +31,7 @@
 extern struct dma_map_ops *dma_ops;
 extern struct dma_map_ops coherent_swiotlb_dma_ops;
 extern struct dma_map_ops noncoherent_swiotlb_dma_ops;
-<<<<<<< HEAD
 extern struct dma_map_ops arm_exynos_dma_mcode_ops;
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 static inline struct dma_map_ops *__generic_dma_ops(struct device *dev)
 {

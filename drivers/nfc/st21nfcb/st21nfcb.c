@@ -122,16 +122,11 @@ EXPORT_SYMBOL_GPL(st21nfcb_nci_probe);
 
 void st21nfcb_nci_remove(struct nci_dev *ndev)
 {
-<<<<<<< HEAD
 	struct st21nfcb_nci_info *info = nci_get_drvdata(ndev);
 
 	nci_unregister_device(ndev);
 	nci_free_device(ndev);
 	kfree(info);
-=======
-	nci_unregister_device(ndev);
-	nci_free_device(ndev);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 EXPORT_SYMBOL_GPL(st21nfcb_nci_remove);
 

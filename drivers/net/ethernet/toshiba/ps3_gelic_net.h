@@ -370,11 +370,7 @@ void gelic_card_up(struct gelic_card *card);
 void gelic_card_down(struct gelic_card *card);
 int gelic_net_open(struct net_device *netdev);
 int gelic_net_stop(struct net_device *netdev);
-<<<<<<< HEAD
 int gelic_net_xmit(struct sk_buff *skb, struct net_device *netdev);
-=======
-netdev_tx_t gelic_net_xmit(struct sk_buff *skb, struct net_device *netdev);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 void gelic_net_set_multi(struct net_device *netdev);
 void gelic_net_tx_timeout(struct net_device *netdev);
 int gelic_net_change_mtu(struct net_device *netdev, int new_mtu);

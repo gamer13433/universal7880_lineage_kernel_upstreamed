@@ -122,15 +122,8 @@ static struct qxl_bo *qxlhw_handle_to_bo(struct qxl_device *qdev,
 	qobj = gem_to_qxl_bo(gobj);
 
 	ret = qxl_release_list_add(release, qobj);
-<<<<<<< HEAD
 	if (ret)
 		return NULL;
-=======
-	if (ret) {
-		drm_gem_object_unreference_unlocked(gobj);
-		return NULL;
-	}
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	return qobj;
 }
@@ -270,16 +263,11 @@ static int qxl_process_single_command(struct qxl_device *qdev,
 			apply_surf_reloc(qdev, &reloc_info[i]);
 	}
 
-<<<<<<< HEAD
 	ret = qxl_push_command_ring_release(qdev, release, cmd->type, true);
 	if (ret)
 		qxl_release_backoff_reserve_list(release);
 	else
 		qxl_release_fence_buffer_objects(release);
-=======
-	qxl_release_fence_buffer_objects(release);
-	ret = qxl_push_command_ring_release(qdev, release, cmd->type, true);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 out_free_bos:
 	for (j = 0; j < num_relocs; j++) {

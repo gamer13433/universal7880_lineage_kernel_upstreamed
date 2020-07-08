@@ -738,11 +738,7 @@ static int sr_probe(struct device *dev)
 	cd->cdi.disk = disk;
 
 	if (register_cdrom(&cd->cdi))
-<<<<<<< HEAD
 		goto fail_put;
-=======
-		goto fail_minor;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	/*
 	 * Initialize block layer runtime PM stuffs before the
@@ -760,13 +756,6 @@ static int sr_probe(struct device *dev)
 
 	return 0;
 
-<<<<<<< HEAD
-=======
-fail_minor:
-	spin_lock(&sr_index_lock);
-	clear_bit(minor, sr_index_bits);
-	spin_unlock(&sr_index_lock);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 fail_put:
 	put_disk(disk);
 fail_free:

@@ -16,7 +16,6 @@
 #include <linux/slab.h>
 #include "vmci_handle_array.h"
 
-<<<<<<< HEAD
 static size_t handle_arr_calc_size(size_t capacity)
 {
 	return sizeof(struct vmci_handle_arr) +
@@ -29,34 +28,12 @@ struct vmci_handle_arr *vmci_handle_arr_create(size_t capacity)
 
 	if (capacity == 0)
 		capacity = VMCI_HANDLE_ARRAY_DEFAULT_SIZE;
-=======
-static size_t handle_arr_calc_size(u32 capacity)
-{
-	return VMCI_HANDLE_ARRAY_HEADER_SIZE +
-	    capacity * sizeof(struct vmci_handle);
-}
-
-struct vmci_handle_arr *vmci_handle_arr_create(u32 capacity, u32 max_capacity)
-{
-	struct vmci_handle_arr *array;
-
-	if (max_capacity == 0 || capacity > max_capacity)
-		return NULL;
-
-	if (capacity == 0)
-		capacity = min((u32)VMCI_HANDLE_ARRAY_DEFAULT_CAPACITY,
-			       max_capacity);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	array = kmalloc(handle_arr_calc_size(capacity), GFP_ATOMIC);
 	if (!array)
 		return NULL;
 
 	array->capacity = capacity;
-<<<<<<< HEAD
-=======
-	array->max_capacity = max_capacity;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	array->size = 0;
 
 	return array;
@@ -67,20 +44,14 @@ void vmci_handle_arr_destroy(struct vmci_handle_arr *array)
 	kfree(array);
 }
 
-<<<<<<< HEAD
 void vmci_handle_arr_append_entry(struct vmci_handle_arr **array_ptr,
 				  struct vmci_handle handle)
-=======
-int vmci_handle_arr_append_entry(struct vmci_handle_arr **array_ptr,
-				 struct vmci_handle handle)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	struct vmci_handle_arr *array = *array_ptr;
 
 	if (unlikely(array->size >= array->capacity)) {
 		/* reallocate. */
 		struct vmci_handle_arr *new_array;
-<<<<<<< HEAD
 		size_t new_capacity = array->capacity * VMCI_ARR_CAP_MULT;
 		size_t new_size = handle_arr_calc_size(new_capacity);
 
@@ -89,31 +60,11 @@ int vmci_handle_arr_append_entry(struct vmci_handle_arr **array_ptr,
 			return;
 
 		new_array->capacity = new_capacity;
-=======
-		u32 capacity_bump = min(array->max_capacity - array->capacity,
-					array->capacity);
-		size_t new_size = handle_arr_calc_size(array->capacity +
-						       capacity_bump);
-
-		if (array->size >= array->max_capacity)
-			return VMCI_ERROR_NO_MEM;
-
-		new_array = krealloc(array, new_size, GFP_ATOMIC);
-		if (!new_array)
-			return VMCI_ERROR_NO_MEM;
-
-		new_array->capacity += capacity_bump;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		*array_ptr = array = new_array;
 	}
 
 	array->entries[array->size] = handle;
 	array->size++;
-<<<<<<< HEAD
-=======
-
-	return VMCI_SUCCESS;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 /*
@@ -123,11 +74,7 @@ struct vmci_handle vmci_handle_arr_remove_entry(struct vmci_handle_arr *array,
 						struct vmci_handle entry_handle)
 {
 	struct vmci_handle handle = VMCI_INVALID_HANDLE;
-<<<<<<< HEAD
 	size_t i;
-=======
-	u32 i;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	for (i = 0; i < array->size; i++) {
 		if (vmci_handle_is_equal(array->entries[i], entry_handle)) {
@@ -162,11 +109,7 @@ struct vmci_handle vmci_handle_arr_remove_tail(struct vmci_handle_arr *array)
  * Handle at given index, VMCI_INVALID_HANDLE if invalid index.
  */
 struct vmci_handle
-<<<<<<< HEAD
 vmci_handle_arr_get_entry(const struct vmci_handle_arr *array, size_t index)
-=======
-vmci_handle_arr_get_entry(const struct vmci_handle_arr *array, u32 index)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	if (unlikely(index >= array->size))
 		return VMCI_INVALID_HANDLE;
@@ -177,11 +120,7 @@ vmci_handle_arr_get_entry(const struct vmci_handle_arr *array, u32 index)
 bool vmci_handle_arr_has_entry(const struct vmci_handle_arr *array,
 			       struct vmci_handle entry_handle)
 {
-<<<<<<< HEAD
 	size_t i;
-=======
-	u32 i;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	for (i = 0; i < array->size; i++)
 		if (vmci_handle_is_equal(array->entries[i], entry_handle))

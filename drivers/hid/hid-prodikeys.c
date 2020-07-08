@@ -557,21 +557,10 @@ static void pcmidi_setup_extra_keys(
 
 static int pcmidi_set_operational(struct pcmidi_snd *pm)
 {
-<<<<<<< HEAD
 	if (pm->ifnum != 1)
 		return 0; /* only set up ONCE for interace 1 */
 
 	pcmidi_get_output_report(pm);
-=======
-	int rc;
-
-	if (pm->ifnum != 1)
-		return 0; /* only set up ONCE for interace 1 */
-
-	rc = pcmidi_get_output_report(pm);
-	if (rc < 0)
-		return rc;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	pcmidi_submit_output_report(pm, 0xc1);
 	return 0;
 }
@@ -700,15 +689,7 @@ static int pcmidi_snd_initialise(struct pcmidi_snd *pm)
 	spin_lock_init(&pm->rawmidi_in_lock);
 
 	init_sustain_timers(pm);
-<<<<<<< HEAD
 	pcmidi_set_operational(pm);
-=======
-	err = pcmidi_set_operational(pm);
-	if (err < 0) {
-		pk_error("failed to find output report\n");
-		goto fail_register;
-	}
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	/* register it */
 	err = snd_card_register(card);

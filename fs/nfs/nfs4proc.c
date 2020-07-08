@@ -38,10 +38,6 @@
 #include <linux/mm.h>
 #include <linux/delay.h>
 #include <linux/errno.h>
-<<<<<<< HEAD
-=======
-#include <linux/file.h>
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #include <linux/string.h>
 #include <linux/ratelimit.h>
 #include <linux/printk.h>
@@ -928,15 +924,6 @@ struct nfs4_opendata {
 	int cancelled;
 };
 
-<<<<<<< HEAD
-=======
-struct nfs4_open_createattrs {
-	struct nfs4_label *label;
-	struct iattr *sattr;
-	const __u32 verf[2];
-};
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static bool nfs4_clear_cap_atomic_open_v1(struct nfs_server *server,
 		int err, struct nfs4_exception *exception)
 {
@@ -981,22 +968,14 @@ static void nfs4_init_opendata_res(struct nfs4_opendata *p)
 
 static struct nfs4_opendata *nfs4_opendata_alloc(struct dentry *dentry,
 		struct nfs4_state_owner *sp, fmode_t fmode, int flags,
-<<<<<<< HEAD
 		const struct iattr *attrs,
 		struct nfs4_label *label,
-=======
-		const struct nfs4_open_createattrs *c,
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		enum open_claim_type4 claim,
 		gfp_t gfp_mask)
 {
 	struct dentry *parent = dget_parent(dentry);
 	struct inode *dir = parent->d_inode;
 	struct nfs_server *server = NFS_SERVER(dir);
-<<<<<<< HEAD
-=======
-	struct nfs4_label *label = (c != NULL) ? c->label : NULL;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	struct nfs4_opendata *p;
 
 	p = kzalloc(sizeof(*p), gfp_mask);
@@ -1046,7 +1025,6 @@ static struct nfs4_opendata *nfs4_opendata_alloc(struct dentry *dentry,
 	case NFS4_OPEN_CLAIM_DELEG_PREV_FH:
 		p->o_arg.fh = NFS_FH(dentry->d_inode);
 	}
-<<<<<<< HEAD
 	if (attrs != NULL && attrs->ia_valid != 0) {
 		__u32 verf[2];
 
@@ -1056,13 +1034,6 @@ static struct nfs4_opendata *nfs4_opendata_alloc(struct dentry *dentry,
 		verf[0] = jiffies;
 		verf[1] = current->pid;
 		memcpy(p->o_arg.u.verifier.data, verf,
-=======
-	if (c != NULL && c->sattr != NULL && c->sattr->ia_valid != 0) {
-		p->o_arg.u.attrs = &p->attrs;
-		memcpy(&p->attrs, c->sattr, sizeof(p->attrs));
-
-		memcpy(p->o_arg.u.verifier.data, c->verf,
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 				sizeof(p->o_arg.u.verifier.data));
 	}
 	p->c_arg.fh = &p->o_res.fh;
@@ -1502,11 +1473,7 @@ static struct nfs4_opendata *nfs4_open_recoverdata_alloc(struct nfs_open_context
 	struct nfs4_opendata *opendata;
 
 	opendata = nfs4_opendata_alloc(ctx->dentry, state->owner, 0, 0,
-<<<<<<< HEAD
 			NULL, NULL, claim, GFP_NOFS);
-=======
-			NULL, claim, GFP_NOFS);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (opendata == NULL)
 		return ERR_PTR(-ENOMEM);
 	opendata->state = state;
@@ -2313,12 +2280,8 @@ out:
 static int _nfs4_do_open(struct inode *dir,
 			struct nfs_open_context *ctx,
 			int flags,
-<<<<<<< HEAD
 			struct iattr *sattr,
 			struct nfs4_label *label,
-=======
-			const struct nfs4_open_createattrs *c,
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			int *opened)
 {
 	struct nfs4_state_owner  *sp;
@@ -2330,11 +2293,6 @@ static int _nfs4_do_open(struct inode *dir,
 	struct nfs4_threshold **ctx_th = &ctx->mdsthreshold;
 	fmode_t fmode = ctx->mode & (FMODE_READ|FMODE_WRITE|FMODE_EXEC);
 	enum open_claim_type4 claim = NFS4_OPEN_CLAIM_NULL;
-<<<<<<< HEAD
-=======
-	struct iattr *sattr = c->sattr;
-	struct nfs4_label *label = c->label;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	struct nfs4_label *olabel = NULL;
 	int status;
 
@@ -2353,13 +2311,8 @@ static int _nfs4_do_open(struct inode *dir,
 	status = -ENOMEM;
 	if (dentry->d_inode)
 		claim = NFS4_OPEN_CLAIM_FH;
-<<<<<<< HEAD
 	opendata = nfs4_opendata_alloc(dentry, sp, fmode, flags, sattr,
 			label, claim, GFP_KERNEL);
-=======
-	opendata = nfs4_opendata_alloc(dentry, sp, fmode, flags,
-			c, claim, GFP_KERNEL);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (opendata == NULL)
 		goto err_put_state_owner;
 
@@ -2435,25 +2388,10 @@ static struct nfs4_state *nfs4_do_open(struct inode *dir,
 	struct nfs_server *server = NFS_SERVER(dir);
 	struct nfs4_exception exception = { };
 	struct nfs4_state *res;
-<<<<<<< HEAD
 	int status;
 
 	do {
 		status = _nfs4_do_open(dir, ctx, flags, sattr, label, opened);
-=======
-	struct nfs4_open_createattrs c = {
-		.label = label,
-		.sattr = sattr,
-		.verf = {
-			[0] = (__u32)jiffies,
-			[1] = (__u32)current->pid,
-		},
-	};
-	int status;
-
-	do {
-		status = _nfs4_do_open(dir, ctx, flags, &c, opened);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		res = ctx->state;
 		trace_nfs4_open_file(ctx, flags, status);
 		if (status == 0)
@@ -5109,10 +5047,6 @@ int nfs4_proc_setclientid(struct nfs_client *clp, u32 program,
 	}
 	status = task->tk_status;
 	if (setclientid.sc_cred) {
-<<<<<<< HEAD
-=======
-		kfree(clp->cl_acceptor);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		clp->cl_acceptor = rpcauth_stringify_acceptor(setclientid.sc_cred);
 		put_rpccred(setclientid.sc_cred);
 	}
@@ -5618,10 +5552,6 @@ static struct nfs4_lockdata *nfs4_alloc_lockdata(struct file_lock *fl,
 	p->server = server;
 	atomic_inc(&lsp->ls_count);
 	p->ctx = get_nfs_open_context(ctx);
-<<<<<<< HEAD
-=======
-	get_file(fl->fl_file);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	memcpy(&p->fl, fl, sizeof(p->fl));
 	return p;
 out_free_seqid:
@@ -5711,10 +5641,6 @@ static void nfs4_lock_release(void *calldata)
 		nfs_free_seqid(data->arg.lock_seqid);
 	nfs4_put_lock_state(data->lsp);
 	put_nfs_open_context(data->ctx);
-<<<<<<< HEAD
-=======
-	fput(data->fl.fl_file);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	kfree(data);
 	dprintk("%s: done!\n", __func__);
 }
@@ -7260,31 +7186,13 @@ static int _nfs4_proc_create_session(struct nfs_client *clp,
 	status = rpc_call_sync(session->clp->cl_rpcclient, &msg, RPC_TASK_TIMEOUT);
 	trace_nfs4_create_session(clp, status);
 
-<<<<<<< HEAD
-=======
-	switch (status) {
-	case -NFS4ERR_STALE_CLIENTID:
-	case -NFS4ERR_DELAY:
-	case -ETIMEDOUT:
-	case -EACCES:
-	case -EAGAIN:
-		goto out;
-	};
-
-	clp->cl_seqid++;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (!status) {
 		/* Verify the session's negotiated channel_attrs values */
 		status = nfs4_verify_channel_attrs(&args, session);
 		/* Increment the clientid slot sequence id */
-<<<<<<< HEAD
 		clp->cl_seqid++;
 	}
 
-=======
-	}
-out:
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return status;
 }
 

@@ -579,23 +579,12 @@ struct kobject *kobject_get(struct kobject *kobj)
 	return kobj;
 }
 
-<<<<<<< HEAD
 static struct kobject * __must_check kobject_get_unless_zero(struct kobject *kobj)
 {
-=======
-struct kobject * __must_check kobject_get_unless_zero(struct kobject *kobj)
-{
-	if (!kobj)
-		return NULL;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (!kref_get_unless_zero(&kobj->kref))
 		kobj = NULL;
 	return kobj;
 }
-<<<<<<< HEAD
-=======
-EXPORT_SYMBOL(kobject_get_unless_zero);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /*
  * kobject_cleanup - free kobject resources.

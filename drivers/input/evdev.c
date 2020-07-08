@@ -190,14 +190,11 @@ static void evdev_pass_values(struct evdev_client *client,
 		__pass_event(client, &event);
 		if (v->type == EV_SYN && v->code == SYN_REPORT)
 			wakeup = true;
-<<<<<<< HEAD
 #ifdef CONFIG_USB_HMT_SAMSUNG_INPUT
 		if (v->type== EV_KEY && v->code >= KEY_HMT_CMD_START)
 			pr_info("%s type:KEY code:0x%x value:%x\n", __func__,
 					v->code, v->value);
 #endif
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 	spin_unlock(&client->buffer_lock);
@@ -251,7 +248,6 @@ static int evdev_fasync(int fd, struct file *file, int on)
 	return fasync_helper(fd, file, on, &client->fasync);
 }
 
-<<<<<<< HEAD
 static int evdev_flush(struct file *file, fl_owner_t id)
 {
 	struct evdev_client *client = file->private_data;
@@ -266,8 +262,6 @@ static int evdev_flush(struct file *file, fl_owner_t id)
 	return 0;
 }
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static void evdev_free(struct device *dev)
 {
 	struct evdev *evdev = container_of(dev, struct evdev, dev);
@@ -380,13 +374,6 @@ static int evdev_release(struct inode *inode, struct file *file)
 	struct evdev *evdev = client->evdev;
 
 	mutex_lock(&evdev->mutex);
-<<<<<<< HEAD
-=======
-
-	if (evdev->exist && !client->revoked)
-		input_flush_device(&evdev->handle, file);
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	evdev_ungrab(evdev, client);
 	mutex_unlock(&evdev->mutex);
 
@@ -864,13 +851,8 @@ static int evdev_disable_suspend_block(struct evdev *evdev,
 
 	spin_lock_irq(&client->buffer_lock);
 	client->use_wake_lock = false;
-<<<<<<< HEAD
 	wake_lock_destroy(&client->wake_lock);
 	spin_unlock_irq(&client->buffer_lock);
-=======
-	spin_unlock_irq(&client->buffer_lock);
-	wake_lock_destroy(&client->wake_lock);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	return 0;
 }
@@ -1141,10 +1123,7 @@ static const struct file_operations evdev_fops = {
 	.compat_ioctl	= evdev_ioctl_compat,
 #endif
 	.fasync		= evdev_fasync,
-<<<<<<< HEAD
 	.flush		= evdev_flush,
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	.llseek		= no_llseek,
 };
 

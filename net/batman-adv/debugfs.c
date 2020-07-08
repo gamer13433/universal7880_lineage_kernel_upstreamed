@@ -17,10 +17,6 @@
 
 #include "main.h"
 
-<<<<<<< HEAD
-=======
-#include <linux/dcache.h>
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #include <linux/debugfs.h>
 
 #include "debugfs.h"
@@ -494,28 +490,6 @@ out:
 }
 
 /**
-<<<<<<< HEAD
-=======
- * batadv_debugfs_rename_hardif() - Fix debugfs path for renamed hardif
- * @hard_iface: hard interface which was renamed
- */
-void batadv_debugfs_rename_hardif(struct batadv_hard_iface *hard_iface)
-{
-	const char *name = hard_iface->net_dev->name;
-	struct dentry *dir;
-	struct dentry *d;
-
-	dir = hard_iface->debug_dir;
-	if (!dir)
-		return;
-
-	d = debugfs_rename(dir->d_parent, dir, dir->d_parent, name);
-	if (!d)
-		pr_err("Can't rename debugfs dir to %s\n", name);
-}
-
-/**
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
  * batadv_debugfs_del_hardif - delete the base directory for a hard interface
  *  in debugfs.
  * @hard_iface: hard interface which is deleted.
@@ -574,29 +548,6 @@ out:
 #endif /* CONFIG_DEBUG_FS */
 }
 
-<<<<<<< HEAD
-=======
-/**
- * batadv_debugfs_rename_meshif() - Fix debugfs path for renamed softif
- * @dev: net_device which was renamed
- */
-void batadv_debugfs_rename_meshif(struct net_device *dev)
-{
-	struct batadv_priv *bat_priv = netdev_priv(dev);
-	const char *name = dev->name;
-	struct dentry *dir;
-	struct dentry *d;
-
-	dir = bat_priv->debug_dir;
-	if (!dir)
-		return;
-
-	d = debugfs_rename(dir->d_parent, dir, dir->d_parent, name);
-	if (!d)
-		pr_err("Can't rename debugfs dir to %s\n", name);
-}
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 void batadv_debugfs_del_meshif(struct net_device *dev)
 {
 	struct batadv_priv *bat_priv = netdev_priv(dev);

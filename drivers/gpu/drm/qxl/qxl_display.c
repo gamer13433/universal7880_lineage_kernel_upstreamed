@@ -260,13 +260,8 @@ qxl_hide_cursor(struct qxl_device *qdev)
 	cmd->type = QXL_CURSOR_HIDE;
 	qxl_release_unmap(qdev, release, &cmd->release_info);
 
-<<<<<<< HEAD
 	qxl_push_cursor_ring_release(qdev, release, QXL_CMD_CURSOR, false);
 	qxl_release_fence_buffer_objects(release);
-=======
-	qxl_release_fence_buffer_objects(release);
-	qxl_push_cursor_ring_release(qdev, release, QXL_CMD_CURSOR, false);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return 0;
 }
 
@@ -363,13 +358,8 @@ static int qxl_crtc_cursor_set2(struct drm_crtc *crtc,
 	cmd->u.set.visible = 1;
 	qxl_release_unmap(qdev, release, &cmd->release_info);
 
-<<<<<<< HEAD
 	qxl_push_cursor_ring_release(qdev, release, QXL_CMD_CURSOR, false);
 	qxl_release_fence_buffer_objects(release);
-=======
-	qxl_release_fence_buffer_objects(release);
-	qxl_push_cursor_ring_release(qdev, release, QXL_CMD_CURSOR, false);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	/* finish with the userspace bo */
 	ret = qxl_bo_reserve(user_bo, false);
@@ -428,13 +418,8 @@ static int qxl_crtc_cursor_move(struct drm_crtc *crtc,
 	cmd->u.position.y = qcrtc->cur_y + qcrtc->hot_spot_y;
 	qxl_release_unmap(qdev, release, &cmd->release_info);
 
-<<<<<<< HEAD
 	qxl_push_cursor_ring_release(qdev, release, QXL_CMD_CURSOR, false);
 	qxl_release_fence_buffer_objects(release);
-=======
-	qxl_release_fence_buffer_objects(release);
-	qxl_push_cursor_ring_release(qdev, release, QXL_CMD_CURSOR, false);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	return 0;
 }

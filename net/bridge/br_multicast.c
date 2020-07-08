@@ -450,16 +450,8 @@ static struct sk_buff *br_ip6_multicast_alloc_query(struct net_bridge *br,
 	if (ipv6_dev_get_saddr(dev_net(br->dev), br->dev, &ip6h->daddr, 0,
 			       &ip6h->saddr)) {
 		kfree_skb(skb);
-<<<<<<< HEAD
 		return NULL;
 	}
-=======
-		br->has_ipv6_addr = 0;
-		return NULL;
-	}
-
-	br->has_ipv6_addr = 1;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	ipv6_eth_mc_map(&ip6h->daddr, eth->h_dest);
 
 	hopopt = (u8 *)(ip6h + 1);
@@ -1174,12 +1166,6 @@ static void br_multicast_add_router(struct net_bridge *br,
 	struct net_bridge_port *p;
 	struct hlist_node *slot = NULL;
 
-<<<<<<< HEAD
-=======
-	if (!hlist_unhashed(&port->rlist))
-		return;
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	hlist_for_each_entry(p, &br->router_list, rlist) {
 		if ((unsigned long) port >= (unsigned long) p)
 			break;
@@ -1207,17 +1193,12 @@ static void br_multicast_mark_router(struct net_bridge *br,
 	if (port->multicast_router != 1)
 		return;
 
-<<<<<<< HEAD
 	if (!hlist_unhashed(&port->rlist))
 		goto timer;
 
 	br_multicast_add_router(br, port);
 
 timer:
-=======
-	br_multicast_add_router(br, port);
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	mod_timer(&port->multicast_router_timer,
 		  now + br->multicast_querier_interval);
 }
@@ -1329,10 +1310,7 @@ static int br_ip6_multicast_query(struct net_bridge *br,
 				  struct sk_buff *skb,
 				  u16 vid)
 {
-<<<<<<< HEAD
 	const struct ipv6hdr *ip6h = ipv6_hdr(skb);
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	struct mld_msg *mld;
 	struct net_bridge_mdb_entry *mp;
 	struct mld2_query *mld2q;
@@ -1351,11 +1329,7 @@ static int br_ip6_multicast_query(struct net_bridge *br,
 		goto out;
 
 	/* RFC2710+RFC3810 (MLDv1+MLDv2) require link-local source addresses */
-<<<<<<< HEAD
 	if (!(ipv6_addr_type(&ip6h->saddr) & IPV6_ADDR_LINKLOCAL)) {
-=======
-	if (!(ipv6_addr_type(&ipv6_hdr(skb)->saddr) & IPV6_ADDR_LINKLOCAL)) {
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		err = -EINVAL;
 		goto out;
 	}
@@ -1386,22 +1360,14 @@ static int br_ip6_multicast_query(struct net_bridge *br,
 	/* RFC2710+RFC3810 (MLDv1+MLDv2) require the multicast link layer
 	 * all-nodes destination address (ff02::1) for general queries
 	 */
-<<<<<<< HEAD
 	if (is_general_query && !ipv6_addr_is_ll_all_nodes(&ip6h->daddr)) {
-=======
-	if (is_general_query && !ipv6_addr_is_ll_all_nodes(&ipv6_hdr(skb)->daddr)) {
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		err = -EINVAL;
 		goto out;
 	}
 
 	if (is_general_query) {
 		saddr.proto = htons(ETH_P_IPV6);
-<<<<<<< HEAD
 		saddr.u.ip6 = ip6h->saddr;
-=======
-		saddr.u.ip6 = ipv6_hdr(skb)->saddr;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 		br_multicast_query_received(br, port, &br->ip6_other_query,
 					    &saddr, max_delay);
@@ -1900,10 +1866,6 @@ void br_multicast_init(struct net_bridge *br)
 	br->ip6_other_query.delay_time = 0;
 	br->ip6_querier.port = NULL;
 #endif
-<<<<<<< HEAD
-=======
-	br->has_ipv6_addr = 1;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	spin_lock_init(&br->multicast_lock);
 	setup_timer(&br->multicast_router_timer,

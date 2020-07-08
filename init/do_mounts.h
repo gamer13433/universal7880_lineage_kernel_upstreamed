@@ -74,16 +74,3 @@ void md_run_setup(void);
 static inline void md_run_setup(void) {}
 
 #endif
-<<<<<<< HEAD
-=======
-
-#ifdef CONFIG_BLK_DEV_DM
-
-void dm_run_setup(void);
-
-#else
-
-static inline void dm_run_setup(void) {}
-
-#endif
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012

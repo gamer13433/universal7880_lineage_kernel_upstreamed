@@ -146,12 +146,6 @@ static void rds_ib_add_one(struct ib_device *device)
 	atomic_set(&rds_ibdev->refcount, 1);
 	INIT_WORK(&rds_ibdev->free_work, rds_ib_dev_free);
 
-<<<<<<< HEAD
-=======
-	INIT_LIST_HEAD(&rds_ibdev->ipaddr_list);
-	INIT_LIST_HEAD(&rds_ibdev->conn_list);
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	rds_ibdev->max_wrs = dev_attr->max_qp_wr;
 	rds_ibdev->max_sge = min(dev_attr->max_sge, RDS_IB_MAX_SGE);
 
@@ -182,12 +176,9 @@ static void rds_ib_add_one(struct ib_device *device)
 		goto put_dev;
 	}
 
-<<<<<<< HEAD
 	INIT_LIST_HEAD(&rds_ibdev->ipaddr_list);
 	INIT_LIST_HEAD(&rds_ibdev->conn_list);
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	down_write(&rds_ib_devices_lock);
 	list_add_tail_rcu(&rds_ibdev->list, &rds_ib_devices);
 	up_write(&rds_ib_devices_lock);

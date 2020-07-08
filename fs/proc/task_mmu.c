@@ -332,11 +332,7 @@ show_map_vma(struct seq_file *m, struct vm_area_struct *vma, int is_pid)
 	/* We don't show the stack guard page in /proc/maps */
 	start = vma->vm_start;
 	end = vma->vm_end;
-<<<<<<< HEAD
 	
-=======
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	seq_setwidth(m, 25 + sizeof(void *) * 6 - 1);
 	seq_printf(m, "%08lx-%08lx %c%c%c%c %08llx %02x:%02x %lu ",
 			start,
@@ -377,23 +373,13 @@ show_map_vma(struct seq_file *m, struct vm_area_struct *vma, int is_pid)
 			goto done;
 		}
 
-<<<<<<< HEAD
 		if (is_stack(priv, vma))
 			name = "[stack]";
-=======
-		if (is_stack(priv, vma)) {
-			name = "[stack]";
-			goto done;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		}
 
 		if (vma_get_anon_name(vma)) {
 			seq_pad(m, ' ');
 			seq_print_vma_name(m, vma);
-<<<<<<< HEAD
-=======
-		}
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 done:
@@ -544,18 +530,6 @@ static void smaps_pte_entry(pte_t *pte, unsigned long addr,
 			int mapcount;
 
 			mss->swap += PAGE_SIZE;
-<<<<<<< HEAD
-=======
-			mapcount = swp_swapcount(swpent);
-			if (mapcount >= 2) {
-				u64 pss_delta = (u64)PAGE_SIZE << PSS_SHIFT;
-
-				do_div(pss_delta, mapcount);
-				mss->swap_pss += pss_delta;
-			} else {
-				mss->swap_pss += (u64)PAGE_SIZE << PSS_SHIFT;
-			}
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		} else if (is_migration_entry(swpent))
 			page = migration_entry_to_page(swpent);
 	} else if (pte_file(*pte)) {
@@ -567,11 +541,7 @@ static void smaps_pte_entry(pte_t *pte, unsigned long addr,
 		return;
 
 	if (page->index != pgoff)
-<<<<<<< HEAD
 		mss->nonlinear +=  PAGE_SIZE;
-=======
-		mss->nonlinear += PAGE_SIZE;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	smaps_account(mss, page, PAGE_SIZE, pte_young(*pte), pte_dirty(*pte));
 }
@@ -591,11 +561,7 @@ static void smaps_pmd_entry(pmd_t *pmd, unsigned long addr,
 	mss->anonymous_thp += HPAGE_PMD_SIZE;
 	smaps_account(mss, page, HPAGE_PMD_SIZE,
 			pmd_young(*pmd), pmd_dirty(*pmd));
-<<<<<<< HEAD
  }
-=======
-}
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #else
 static void smaps_pmd_entry(pmd_t *pmd, unsigned long addr,
 		struct mm_walk *walk)
@@ -793,7 +759,6 @@ const struct file_operations proc_pid_smaps_operations = {
 	.release	= proc_map_release,
 };
 
-<<<<<<< HEAD
 static int proc_pid_smaps_simple_show(struct seq_file *m, void *v)
 {
 	struct pid *pid = (struct pid *)m->private;
@@ -864,8 +829,6 @@ const struct file_operations proc_pid_smaps_simple_operations = {
 	.release	= single_release,
 };
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 const struct file_operations proc_tid_smaps_operations = {
 	.open		= tid_smaps_open,
 	.read		= seq_read,
@@ -1573,35 +1536,6 @@ static struct page *can_gather_numa_stats(pte_t pte, struct vm_area_struct *vma,
 	return page;
 }
 
-<<<<<<< HEAD
-=======
-#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-static struct page *can_gather_numa_stats_pmd(pmd_t pmd,
-					      struct vm_area_struct *vma,
-					      unsigned long addr)
-{
-	struct page *page;
-	int nid;
-
-	if (!pmd_present(pmd))
-		return NULL;
-
-	page = vm_normal_page_pmd(vma, addr, pmd);
-	if (!page)
-		return NULL;
-
-	if (PageReserved(page))
-		return NULL;
-
-	nid = page_to_nid(page);
-	if (!node_isset(nid, node_states[N_MEMORY]))
-		return NULL;
-
-	return page;
-}
-#endif
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static int gather_pte_stats(pmd_t *pmd, unsigned long addr,
 		unsigned long end, struct mm_walk *walk)
 {
@@ -1612,7 +1546,6 @@ static int gather_pte_stats(pmd_t *pmd, unsigned long addr,
 
 	md = walk->private;
 
-<<<<<<< HEAD
 	if (pmd_trans_huge_lock(pmd, md->vma, &ptl) == 1) {
 		pte_t huge_pte = *(pte_t *)pmd;
 		struct page *page;
@@ -1620,15 +1553,6 @@ static int gather_pte_stats(pmd_t *pmd, unsigned long addr,
 		page = can_gather_numa_stats(huge_pte, md->vma, addr);
 		if (page)
 			gather_stats(page, md, pte_dirty(huge_pte),
-=======
-#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-	if (pmd_trans_huge_lock(pmd, md->vma, &ptl) == 1) {
-		struct page *page;
-
-		page = can_gather_numa_stats_pmd(*pmd, md->vma, addr);
-		if (page)
-			gather_stats(page, md, pmd_dirty(*pmd),
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 				     HPAGE_PMD_SIZE/PAGE_SIZE);
 		spin_unlock(ptl);
 		return 0;
@@ -1636,10 +1560,6 @@ static int gather_pte_stats(pmd_t *pmd, unsigned long addr,
 
 	if (pmd_trans_unstable(pmd))
 		return 0;
-<<<<<<< HEAD
-=======
-#endif
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	orig_pte = pte = pte_offset_map_lock(walk->mm, pmd, addr, &ptl);
 	do {
 		struct page *page = can_gather_numa_stats(*pte, md->vma, addr);
@@ -1655,7 +1575,6 @@ static int gather_pte_stats(pmd_t *pmd, unsigned long addr,
 static int gather_hugetbl_stats(pte_t *pte, unsigned long hmask,
 		unsigned long addr, unsigned long end, struct mm_walk *walk)
 {
-<<<<<<< HEAD
 	struct numa_maps *md;
 	struct page *page;
 
@@ -1663,25 +1582,11 @@ static int gather_hugetbl_stats(pte_t *pte, unsigned long hmask,
 		return 0;
 
 	page = pte_page(*pte);
-=======
-	pte_t huge_pte = huge_ptep_get(pte);
-	struct numa_maps *md;
-	struct page *page;
-
-	if (!pte_present(huge_pte))
-		return 0;
-
-	page = pte_page(huge_pte);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (!page)
 		return 0;
 
 	md = walk->private;
-<<<<<<< HEAD
 	gather_stats(page, md, pte_dirty(*pte), 1);
-=======
-	gather_stats(page, md, pte_dirty(huge_pte), 1);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return 0;
 }
 

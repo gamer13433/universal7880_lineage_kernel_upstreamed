@@ -599,13 +599,7 @@ out:
 	return err;
 no_route:
 	kfree_skb(nskb);
-<<<<<<< HEAD
 	IP_INC_STATS(sock_net(asoc->base.sk), IPSTATS_MIB_OUTNOROUTES);
-=======
-
-	if (asoc)
-		IP_INC_STATS(sock_net(asoc->base.sk), IPSTATS_MIB_OUTNOROUTES);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	/* FIXME: Returning the 'err' will effect all the associations
 	 * associated with a socket, although only one of the paths of the

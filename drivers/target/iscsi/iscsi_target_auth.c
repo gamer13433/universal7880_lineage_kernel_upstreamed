@@ -74,11 +74,7 @@ static int chap_check_algorithm(const char *a_str)
 		if (!token)
 			goto out;
 
-<<<<<<< HEAD
 		if (!strncmp(token, "5", 1)) {
-=======
-		if (!strcmp(token, "5")) {
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			pr_debug("Selected MD5 Algorithm\n");
 			kfree(orig);
 			return CHAP_DIGEST_MD5;

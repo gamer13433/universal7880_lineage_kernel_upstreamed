@@ -642,14 +642,6 @@ static u8 ov534_reg_read(struct gspca_dev *gspca_dev, u16 reg)
 	if (ret < 0) {
 		pr_err("read failed %d\n", ret);
 		gspca_dev->usb_err = ret;
-<<<<<<< HEAD
-=======
-		/*
-		 * Make sure the result is zeroed to avoid uninitialized
-		 * values.
-		 */
-		gspca_dev->usb_buf[0] = 0;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 	return gspca_dev->usb_buf[0];
 }

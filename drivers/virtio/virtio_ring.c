@@ -196,11 +196,6 @@ static inline int virtqueue_add(struct virtqueue *_vq,
 		 * host should service the ring ASAP. */
 		if (out_sgs)
 			vq->notify(&vq->vq);
-<<<<<<< HEAD
-=======
-		if (indirect)
-			kfree(desc);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		END_USE(vq);
 		return -ENOSPC;
 	}

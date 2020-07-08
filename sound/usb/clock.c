@@ -288,11 +288,6 @@ static int set_sample_rate_v1(struct snd_usb_audio *chip, int iface,
 	unsigned char data[3];
 	int err, crate;
 
-<<<<<<< HEAD
-=======
-	if (get_iface_desc(alts)->bNumEndpoints < 1)
-		return -EINVAL;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	ep = get_endpoint(alts, 0)->bEndpointAddress;
 
 	/* if endpoint doesn't have sampling rate control, bail out */

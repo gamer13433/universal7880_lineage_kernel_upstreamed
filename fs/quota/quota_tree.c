@@ -22,16 +22,9 @@ MODULE_LICENSE("GPL");
 
 #define __QUOTA_QT_PARANOIA
 
-<<<<<<< HEAD
 static int __get_index(struct qtree_mem_dqinfo *info, qid_t id, int depth)
 {
 	unsigned int epb = info->dqi_usable_bs >> 2;
-=======
-static int get_index(struct qtree_mem_dqinfo *info, struct kqid qid, int depth)
-{
-	unsigned int epb = info->dqi_usable_bs >> 2;
-	qid_t id = from_kqid(&init_user_ns, qid);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	depth = info->dqi_qtree_depth - depth - 1;
 	while (depth--)
@@ -39,7 +32,6 @@ static int get_index(struct qtree_mem_dqinfo *info, struct kqid qid, int depth)
 	return id % epb;
 }
 
-<<<<<<< HEAD
 static int get_index(struct qtree_mem_dqinfo *info, struct kqid qid, int depth)
 {
 	qid_t id = from_kqid(&init_user_ns, qid);
@@ -47,8 +39,6 @@ static int get_index(struct qtree_mem_dqinfo *info, struct kqid qid, int depth)
 	return __get_index(info, id, depth);
 }
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /* Number of entries in one blocks */
 static int qtree_dqstr_in_blk(struct qtree_mem_dqinfo *info)
 {
@@ -677,7 +667,6 @@ int qtree_release_dquot(struct qtree_mem_dqinfo *info, struct dquot *dquot)
 	return 0;
 }
 EXPORT_SYMBOL(qtree_release_dquot);
-<<<<<<< HEAD
 
 static int find_next_id(struct qtree_mem_dqinfo *info, qid_t *id,
 			unsigned int blk, int depth)
@@ -735,5 +724,3 @@ int qtree_get_next_id(struct qtree_mem_dqinfo *info, struct kqid *qid)
 	return 0;
 }
 EXPORT_SYMBOL(qtree_get_next_id);
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012

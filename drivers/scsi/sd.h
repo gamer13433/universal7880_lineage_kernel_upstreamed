@@ -93,7 +93,6 @@ struct scsi_disk {
 	unsigned	lbpvpd : 1;
 	unsigned	ws10 : 1;
 	unsigned	ws16 : 1;
-<<<<<<< HEAD
 #ifdef CONFIG_USB_STORAGE_DETECT
 	wait_queue_head_t	delay_wait;
 	struct completion	scanning_done;
@@ -102,8 +101,6 @@ struct scsi_disk {
 	int		async_end;
 	int		prv_media_present;
 #endif
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 #define to_scsi_disk(obj) container_of(obj,struct scsi_disk,dev)
 

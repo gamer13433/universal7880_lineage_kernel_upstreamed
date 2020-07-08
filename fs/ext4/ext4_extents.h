@@ -169,20 +169,10 @@ struct ext4_ext_path {
 	(EXT_FIRST_EXTENT((__hdr__)) + le16_to_cpu((__hdr__)->eh_entries) - 1)
 #define EXT_LAST_INDEX(__hdr__) \
 	(EXT_FIRST_INDEX((__hdr__)) + le16_to_cpu((__hdr__)->eh_entries) - 1)
-<<<<<<< HEAD
 #define EXT_MAX_EXTENT(__hdr__) \
 	(EXT_FIRST_EXTENT((__hdr__)) + le16_to_cpu((__hdr__)->eh_max) - 1)
 #define EXT_MAX_INDEX(__hdr__) \
 	(EXT_FIRST_INDEX((__hdr__)) + le16_to_cpu((__hdr__)->eh_max) - 1)
-=======
-#define EXT_MAX_EXTENT(__hdr__)	\
-	((le16_to_cpu((__hdr__)->eh_max)) ? \
-	((EXT_FIRST_EXTENT((__hdr__)) + le16_to_cpu((__hdr__)->eh_max) - 1)) \
-					: 0)
-#define EXT_MAX_INDEX(__hdr__) \
-	((le16_to_cpu((__hdr__)->eh_max)) ? \
-	((EXT_FIRST_INDEX((__hdr__)) + le16_to_cpu((__hdr__)->eh_max) - 1)) : 0)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 static inline struct ext4_extent_header *ext_inode_hdr(struct inode *inode)
 {

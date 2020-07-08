@@ -6581,17 +6581,6 @@ search:
 			 */
 			if ((flags & extra) && !(block_group->flags & extra))
 				goto loop;
-<<<<<<< HEAD
-=======
-
-			/*
-			 * This block group has different flags than we want.
-			 * It's possible that we have MIXED_GROUP flag but no
-			 * block group is mixed.  Just skip such block group.
-			 */
-			btrfs_release_block_group(block_group, delalloc);
-			continue;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		}
 
 have_block_group:
@@ -9571,11 +9560,7 @@ int btrfs_init_space_info(struct btrfs_fs_info *fs_info)
 
 	disk_super = fs_info->super_copy;
 	if (!btrfs_super_root(disk_super))
-<<<<<<< HEAD
 		return 1;
-=======
-		return -EINVAL;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	features = btrfs_super_incompat_flags(disk_super);
 	if (features & BTRFS_FEATURE_INCOMPAT_MIXED_GROUPS)

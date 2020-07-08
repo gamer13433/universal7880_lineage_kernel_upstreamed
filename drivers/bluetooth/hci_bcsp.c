@@ -568,10 +568,6 @@ static int bcsp_recv(struct hci_uart *hu, void *data, int count)
 			if (*ptr == 0xc0) {
 				BT_ERR("Short BCSP packet");
 				kfree_skb(bcsp->rx_skb);
-<<<<<<< HEAD
-=======
-				bcsp->rx_skb = NULL;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 				bcsp->rx_state = BCSP_W4_PKT_START;
 				bcsp->rx_count = 0;
 			} else
@@ -587,10 +583,6 @@ static int bcsp_recv(struct hci_uart *hu, void *data, int count)
 					bcsp->rx_skb->data[2])) != bcsp->rx_skb->data[3]) {
 				BT_ERR("Error in BCSP hdr checksum");
 				kfree_skb(bcsp->rx_skb);
-<<<<<<< HEAD
-=======
-				bcsp->rx_skb = NULL;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 				bcsp->rx_state = BCSP_W4_PKT_DELIMITER;
 				bcsp->rx_count = 0;
 				continue;
@@ -625,10 +617,6 @@ static int bcsp_recv(struct hci_uart *hu, void *data, int count)
 					bscp_get_crc(bcsp));
 
 				kfree_skb(bcsp->rx_skb);
-<<<<<<< HEAD
-=======
-				bcsp->rx_skb = NULL;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 				bcsp->rx_state = BCSP_W4_PKT_DELIMITER;
 				bcsp->rx_count = 0;
 				continue;
@@ -743,14 +731,6 @@ static int bcsp_close(struct hci_uart *hu)
 	skb_queue_purge(&bcsp->rel);
 	skb_queue_purge(&bcsp->unrel);
 
-<<<<<<< HEAD
-=======
-	if (bcsp->rx_skb) {
-		kfree_skb(bcsp->rx_skb);
-		bcsp->rx_skb = NULL;
-	}
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	kfree(bcsp);
 	return 0;
 }

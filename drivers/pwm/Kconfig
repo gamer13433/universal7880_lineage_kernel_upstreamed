@@ -235,11 +235,7 @@ config PWM_ROCKCHIP
 
 config PWM_SAMSUNG
 	tristate "Samsung PWM support"
-<<<<<<< HEAD
 	depends on ARCH_EXYNOS
-=======
-	depends on PLAT_SAMSUNG
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	help
 	  Generic PWM framework driver for Samsung.
 

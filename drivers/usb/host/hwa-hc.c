@@ -173,11 +173,7 @@ out:
 	return result;
 
 error_set_cluster_id:
-<<<<<<< HEAD
 	wusb_cluster_id_put(wusbhc->cluster_id);
-=======
-	wusb_cluster_id_put(addr);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 error_cluster_id_get:
 	goto out;
 

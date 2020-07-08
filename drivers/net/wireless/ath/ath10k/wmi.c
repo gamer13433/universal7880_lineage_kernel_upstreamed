@@ -1199,12 +1199,7 @@ static int ath10k_wmi_event_mgmt_rx(struct ath10k *ar, struct sk_buff *skb)
 	 */
 	skb_trim(skb, buf_len);
 
-<<<<<<< HEAD
 	ieee80211_rx(ar->hw, skb);
-=======
-	ieee80211_rx_ni(ar->hw, skb);
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return 0;
 }
 

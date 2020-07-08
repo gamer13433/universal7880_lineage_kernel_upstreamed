@@ -54,13 +54,10 @@ struct wakeup_source {
 	ktime_t last_time;
 	ktime_t start_prevent_time;
 	ktime_t prevent_sleep_time;
-<<<<<<< HEAD
 #ifdef CONFIG_SEC_PM_DEBUG
 	ktime_t start_screen_off;
 	ktime_t time_while_screen_off;
 #endif
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	unsigned long		event_count;
 	unsigned long		active_count;
 	unsigned long		relax_count;
@@ -68,12 +65,9 @@ struct wakeup_source {
 	unsigned long		wakeup_count;
 	bool			active:1;
 	bool			autosleep_enabled:1;
-<<<<<<< HEAD
 #ifdef CONFIG_SEC_PM_DEBUG
 	bool			is_screen_off:1;
 #endif
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 #ifdef CONFIG_PM_SLEEP

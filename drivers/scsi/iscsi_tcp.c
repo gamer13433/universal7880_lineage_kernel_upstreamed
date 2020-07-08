@@ -788,12 +788,7 @@ static int iscsi_sw_tcp_host_get_param(struct Scsi_Host *shost,
 			return rc;
 
 		return iscsi_conn_get_addr_param((struct sockaddr_storage *)
-<<<<<<< HEAD
 						 &addr, param, buf);
-=======
-						 &addr,
-						 (enum iscsi_param)param, buf);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	default:
 		return iscsi_host_get_param(shost, param, buf);
 	}
@@ -876,13 +871,6 @@ free_host:
 static void iscsi_sw_tcp_session_destroy(struct iscsi_cls_session *cls_session)
 {
 	struct Scsi_Host *shost = iscsi_session_to_shost(cls_session);
-<<<<<<< HEAD
-=======
-	struct iscsi_session *session = cls_session->dd_data;
-
-	if (WARN_ON_ONCE(session->leadconn))
-		return;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	iscsi_tcp_r2tpool_free(cls_session->dd_data);
 	iscsi_session_teardown(cls_session);

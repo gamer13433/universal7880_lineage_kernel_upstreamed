@@ -769,11 +769,7 @@ u32 svcauth_gss_flavor(struct auth_domain *dom)
 
 EXPORT_SYMBOL_GPL(svcauth_gss_flavor);
 
-<<<<<<< HEAD
 int
-=======
-struct auth_domain *
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 svcauth_gss_register_pseudoflavor(u32 pseudoflavor, char * name)
 {
 	struct gss_domain	*new;
@@ -790,7 +786,6 @@ svcauth_gss_register_pseudoflavor(u32 pseudoflavor, char * name)
 	new->h.flavour = &svcauthops_gss;
 	new->pseudoflavor = pseudoflavor;
 
-<<<<<<< HEAD
 	stat = 0;
 	test = auth_domain_lookup(name, &new->h);
 	if (test != &new->h) { /* Duplicate registration */
@@ -806,25 +801,6 @@ out:
 	return stat;
 }
 
-=======
-	test = auth_domain_lookup(name, &new->h);
-	if (test != &new->h) {
-		pr_warn("svc: duplicate registration of gss pseudo flavour %s.\n",
-			name);
-		stat = -EADDRINUSE;
-		auth_domain_put(test);
-		goto out_free_name;
-	}
-	return test;
-
-out_free_name:
-	kfree(new->h.name);
-out_free_dom:
-	kfree(new);
-out:
-	return ERR_PTR(stat);
-}
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 EXPORT_SYMBOL_GPL(svcauth_gss_register_pseudoflavor);
 
 static inline int

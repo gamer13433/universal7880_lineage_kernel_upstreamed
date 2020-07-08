@@ -304,11 +304,7 @@ int reboot_pid_ns(struct pid_namespace *pid_ns, int cmd)
 	}
 
 	read_lock(&tasklist_lock);
-<<<<<<< HEAD
 	force_sig(SIGKILL, pid_ns->child_reaper);
-=======
-	send_sig(SIGKILL, pid_ns->child_reaper, 1);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	read_unlock(&tasklist_lock);
 
 	do_exit(0);

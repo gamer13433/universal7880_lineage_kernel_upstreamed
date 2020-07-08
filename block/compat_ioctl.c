@@ -4,10 +4,7 @@
 #include <linux/cdrom.h>
 #include <linux/compat.h>
 #include <linux/elevator.h>
-<<<<<<< HEAD
 #include <linux/fd.h>
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #include <linux/hdreg.h>
 #include <linux/slab.h>
 #include <linux/syscalls.h>
@@ -212,7 +209,6 @@ static int compat_blkpg_ioctl(struct block_device *bdev, fmode_t mode,
 #define BLKBSZSET_32		_IOW(0x12, 113, int)
 #define BLKGETSIZE64_32		_IOR(0x12, 114, int)
 
-<<<<<<< HEAD
 struct compat_floppy_drive_params {
 	char		cmos;
 	compat_ulong_t	max_dtr;
@@ -525,8 +521,6 @@ out:
 	return err;
 }
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static int compat_blkdev_driver_ioctl(struct block_device *bdev, fmode_t mode,
 			unsigned cmd, unsigned long arg)
 {
@@ -543,7 +537,6 @@ static int compat_blkdev_driver_ioctl(struct block_device *bdev, fmode_t mode,
 	case HDIO_GET_ADDRESS:
 	case HDIO_GET_BUSSTATE:
 		return compat_hdio_ioctl(bdev, mode, cmd, arg);
-<<<<<<< HEAD
 	case FDSETPRM32:
 	case FDDEFPRM32:
 	case FDGETPRM32:
@@ -554,8 +547,6 @@ static int compat_blkdev_driver_ioctl(struct block_device *bdev, fmode_t mode,
 	case FDGETFDCSTAT32:
 	case FDWERRORGET32:
 		return compat_fd_ioctl(bdev, mode, cmd, arg);
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	case CDROMREADAUDIO:
 		return compat_cdrom_read_audio(bdev, mode, cmd, arg);
 	case CDROM_SEND_PACKET:
@@ -575,7 +566,6 @@ static int compat_blkdev_driver_ioctl(struct block_device *bdev, fmode_t mode,
 	case HDIO_DRIVE_CMD:
 	/* 0x330 is reserved -- it used to be HDIO_GETGEO_BIG */
 	case 0x330:
-<<<<<<< HEAD
 	/* 0x02 -- Floppy ioctls */
 	case FDMSGON:
 	case FDMSGOFF:
@@ -593,8 +583,6 @@ static int compat_blkdev_driver_ioctl(struct block_device *bdev, fmode_t mode,
 	case FDTWADDLE:
 	case FDFMTTRK:
 	case FDRAWCMD:
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/* CDROM stuff */
 	case CDROMPAUSE:
 	case CDROMRESUME:

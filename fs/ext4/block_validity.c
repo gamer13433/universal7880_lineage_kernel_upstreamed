@@ -137,7 +137,6 @@ static void debug_print_tree(struct ext4_sb_info *sbi)
 	printk("\n");
 }
 
-<<<<<<< HEAD
 #ifdef VERIFY_META_ONLY
 struct rb_root *ext4_system_zone_root(struct super_block *sb)
 {
@@ -145,8 +144,6 @@ struct rb_root *ext4_system_zone_root(struct super_block *sb)
 }
 #endif
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 int ext4_setup_system_zone(struct super_block *sb)
 {
 	ext4_group_t ngroups = ext4_get_groups_count(sb);
@@ -207,26 +204,17 @@ void ext4_release_system_zone(struct super_block *sb)
 int ext4_data_block_valid(struct ext4_sb_info *sbi, ext4_fsblk_t start_blk,
 			  unsigned int count)
 {
-<<<<<<< HEAD
 #ifndef VERIFY_META_ONLY
 	struct ext4_system_zone *entry;
 	struct rb_node *n = sbi->system_blks.rb_node;
 #endif
-=======
-	struct ext4_system_zone *entry;
-	struct rb_node *n = sbi->system_blks.rb_node;
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if ((start_blk <= le32_to_cpu(sbi->s_es->s_first_data_block)) ||
 	    (start_blk + count < start_blk) ||
 	    (start_blk + count > ext4_blocks_count(sbi->s_es))) {
 		sbi->s_es->s_last_error_block = cpu_to_le64(start_blk);
 		return 0;
 	}
-<<<<<<< HEAD
 #ifndef VERIFY_META_ONLY
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	while (n) {
 		entry = rb_entry(n, struct ext4_system_zone, node);
 		if (start_blk + count - 1 < entry->start_blk)
@@ -238,10 +226,7 @@ int ext4_data_block_valid(struct ext4_sb_info *sbi, ext4_fsblk_t start_blk,
 			return 0;
 		}
 	}
-<<<<<<< HEAD
 #endif
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return 1;
 }
 

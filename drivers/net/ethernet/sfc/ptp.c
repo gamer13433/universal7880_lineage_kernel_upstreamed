@@ -1310,12 +1310,7 @@ void efx_ptp_remove(struct efx_nic *efx)
 	(void)efx_ptp_disable(efx);
 
 	cancel_work_sync(&efx->ptp_data->work);
-<<<<<<< HEAD
 	cancel_work_sync(&efx->ptp_data->pps_work);
-=======
-	if (efx->ptp_data->pps_workwq)
-		cancel_work_sync(&efx->ptp_data->pps_work);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	skb_queue_purge(&efx->ptp_data->rxq);
 	skb_queue_purge(&efx->ptp_data->txq);

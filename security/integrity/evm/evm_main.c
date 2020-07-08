@@ -22,10 +22,6 @@
 #include <linux/xattr.h>
 #include <linux/integrity.h>
 #include <linux/evm.h>
-<<<<<<< HEAD
-=======
-#include <linux/magic.h>
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #include <crypto/hash.h>
 #include <crypto/algapi.h>
 #include "evm.h"

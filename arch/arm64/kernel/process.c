@@ -43,13 +43,8 @@
 #include <linux/hw_breakpoint.h>
 #include <linux/personality.h>
 #include <linux/notifier.h>
-<<<<<<< HEAD
 #include <linux/exynos-ss.h>
 
-=======
-
-#include <asm/alternative.h>
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #include <asm/compat.h>
 #include <asm/cacheflush.h>
 #include <asm/fpsimd.h>
@@ -63,7 +58,6 @@ unsigned long __stack_chk_guard __read_mostly;
 EXPORT_SYMBOL(__stack_chk_guard);
 #endif
 
-<<<<<<< HEAD
 void soft_restart(unsigned long addr)
 {
 	setup_mm_for_reboot();
@@ -72,8 +66,6 @@ void soft_restart(unsigned long addr)
 	BUG();
 }
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /*
  * Function pointers to optional machine specific functions
  */
@@ -144,13 +136,9 @@ void machine_power_off(void)
 
 /*
  * Restart requires that the secondary CPUs stop performing any activity
-<<<<<<< HEAD
  * while the primary CPU resets the system. Systems with a single CPU can
  * use soft_restart() as their machine descriptor's .restart hook, since that
  * will cause the only available CPU to reset. Systems with multiple CPUs must
-=======
- * while the primary CPU resets the system. Systems with multiple CPUs must
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
  * provide a HW restart implementation, to ensure that all CPUs reset at once.
  * This is required so that any code running after reset on the primary CPU
  * doesn't have to co-ordinate with other CPUs to ensure they aren't still
@@ -254,7 +242,6 @@ void __show_regs(struct pt_regs *regs)
 		sp = regs->sp;
 		top_reg = 29;
 	}
-<<<<<<< HEAD
 	if (!user_mode(regs)) {
 		exynos_ss_save_context(regs);
 		/*
@@ -264,8 +251,6 @@ void __show_regs(struct pt_regs *regs)
 		 */
 		exynos_ss_set_enable("log_kevents", false);
 	}
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	show_regs_print_info(KERN_DEFAULT);
 	print_symbol("PC is at %s\n", instruction_pointer(regs));
@@ -326,12 +311,7 @@ void release_thread(struct task_struct *dead_task)
 
 int arch_dup_task_struct(struct task_struct *dst, struct task_struct *src)
 {
-<<<<<<< HEAD
 	fpsimd_preserve_current_state();
-=======
-	if (current->mm)
-		fpsimd_preserve_current_state();
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	*dst = *src;
 	return 0;
 }
@@ -383,12 +363,6 @@ int copy_thread(unsigned long clone_flags, unsigned long stack_start,
 	} else {
 		memset(childregs, 0, sizeof(struct pt_regs));
 		childregs->pstate = PSR_MODE_EL1h;
-<<<<<<< HEAD
-=======
-		if (IS_ENABLED(CONFIG_ARM64_UAO) &&
-		    cpus_have_cap(ARM64_HAS_UAO))
-			childregs->pstate |= PSR_UAO_BIT;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		p->thread.cpu_context.x19 = stack_start;
 		p->thread.cpu_context.x20 = stk_sz;
 	}
@@ -403,19 +377,13 @@ int copy_thread(unsigned long clone_flags, unsigned long stack_start,
 
 static void tls_thread_switch(struct task_struct *next)
 {
-<<<<<<< HEAD
 	unsigned long tpidr, tpidrro;
 
 	if (!is_compat_task()) {
-=======
-	if (!is_compat_task()) {
-		unsigned long tpidr;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		asm("mrs %0, tpidr_el0" : "=r" (tpidr));
 		current->thread.tp_value = tpidr;
 	}
 
-<<<<<<< HEAD
 	if (is_compat_thread(task_thread_info(next))) {
 		tpidr = 0;
 		tpidrro = next->thread.tp_value;
@@ -428,25 +396,6 @@ static void tls_thread_switch(struct task_struct *next)
 	"	msr	tpidr_el0, %0\n"
 	"	msr	tpidrro_el0, %1"
 	: : "r" (tpidr), "r" (tpidrro));
-=======
-	if (is_compat_thread(task_thread_info(next)))
-		write_sysreg(next->thread.tp_value, tpidrro_el0);
-	else if (!arm64_kernel_unmapped_at_el0())
-		write_sysreg(0, tpidrro_el0);
-
-	write_sysreg(next->thread.tp_value, tpidr_el0);
-}
-
-/* Restore the UAO state depending on next's addr_limit */
-static void uao_thread_switch(struct task_struct *next)
-{
-	if (IS_ENABLED(CONFIG_ARM64_UAO)) {
-		if (task_thread_info(next)->addr_limit == KERNEL_DS)
-			asm(ALTERNATIVE("nop", SET_PSTATE_UAO(1), ARM64_HAS_UAO));
-		else
-			asm(ALTERNATIVE("nop", SET_PSTATE_UAO(0), ARM64_HAS_UAO));
-	}
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 /*
@@ -461,10 +410,6 @@ struct task_struct *__switch_to(struct task_struct *prev,
 	tls_thread_switch(next);
 	hw_breakpoint_thread_switch(next);
 	contextidr_thread_switch(next);
-<<<<<<< HEAD
-=======
-	uao_thread_switch(next);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	/*
 	 * Complete any pending TLB or cache maintenance on this CPU in case

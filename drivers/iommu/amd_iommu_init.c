@@ -359,12 +359,6 @@ static void iommu_enable(struct amd_iommu *iommu)
 
 static void iommu_disable(struct amd_iommu *iommu)
 {
-<<<<<<< HEAD
-=======
-	if (!iommu->mmio_base)
-		return;
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/* Disable command buffer */
 	iommu_feature_disable(iommu, CONTROL_CMDBUF_EN);
 

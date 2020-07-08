@@ -759,10 +759,6 @@ static int pvscsi_queue_lck(struct scsi_cmnd *cmd, void (*done)(struct scsi_cmnd
 	struct pvscsi_adapter *adapter = shost_priv(host);
 	struct pvscsi_ctx *ctx;
 	unsigned long flags;
-<<<<<<< HEAD
-=======
-	unsigned char op;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	spin_lock_irqsave(&adapter->hw_lock, flags);
 
@@ -775,7 +771,6 @@ static int pvscsi_queue_lck(struct scsi_cmnd *cmd, void (*done)(struct scsi_cmnd
 	}
 
 	cmd->scsi_done = done;
-<<<<<<< HEAD
 
 	dev_dbg(&cmd->device->sdev_gendev,
 		"queued cmd %p, ctx %p, op=%x\n", cmd, ctx, cmd->cmnd[0]);
@@ -783,16 +778,6 @@ static int pvscsi_queue_lck(struct scsi_cmnd *cmd, void (*done)(struct scsi_cmnd
 	spin_unlock_irqrestore(&adapter->hw_lock, flags);
 
 	pvscsi_kick_io(adapter, cmd->cmnd[0]);
-=======
-	op = cmd->cmnd[0];
-
-	dev_dbg(&cmd->device->sdev_gendev,
-		"queued cmd %p, ctx %p, op=%x\n", cmd, ctx, op);
-
-	spin_unlock_irqrestore(&adapter->hw_lock, flags);
-
-	pvscsi_kick_io(adapter, op);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	return 0;
 }

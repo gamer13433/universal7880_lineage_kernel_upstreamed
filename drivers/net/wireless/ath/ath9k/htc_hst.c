@@ -114,12 +114,6 @@ static void htc_process_conn_rsp(struct htc_target *target,
 
 	if (svc_rspmsg->status == HTC_SERVICE_SUCCESS) {
 		epid = svc_rspmsg->endpoint_id;
-<<<<<<< HEAD
-=======
-		if (epid < 0 || epid >= ENDPOINT_MAX)
-			return;
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		service_id = be16_to_cpu(svc_rspmsg->service_id);
 		max_msglen = be16_to_cpu(svc_rspmsg->max_msg_len);
 		endpoint = &target->endpoint[epid];
@@ -421,11 +415,7 @@ void ath9k_htc_rx_msg(struct htc_target *htc_handle,
 		return;
 	}
 
-<<<<<<< HEAD
 	if (epid >= ENDPOINT_MAX) {
-=======
-	if (epid < 0 || epid >= ENDPOINT_MAX) {
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		if (pipe_id != USB_REG_IN_PIPE)
 			dev_kfree_skb_any(skb);
 		else

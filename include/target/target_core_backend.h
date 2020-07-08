@@ -96,11 +96,4 @@ sense_reason_t	transport_generic_map_mem_to_cmd(struct se_cmd *,
 
 void	array_free(void *array, int n);
 
-<<<<<<< HEAD
-=======
-sector_t target_to_linux_sector(struct se_device *dev, sector_t lb);
-bool target_configure_unmap_from_queue(struct se_dev_attrib *attrib,
-				       struct request_queue *q);
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #endif /* TARGET_CORE_BACKEND_H */

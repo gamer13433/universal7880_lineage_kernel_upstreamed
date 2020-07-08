@@ -226,17 +226,6 @@
 	*(.data..init_task)
 
 /*
-<<<<<<< HEAD
-=======
- * Allow architectures to handle ro_after_init data on their
- * own by defining an empty RO_AFTER_INIT_DATA.
- */
-#ifndef RO_AFTER_INIT_DATA
-#define RO_AFTER_INIT_DATA *(.data..ro_after_init)
-#endif
-
-/*
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
  * Read only Data
  */
 #define RO_DATA_SECTION(align)						\
@@ -244,11 +233,7 @@
 	.rodata           : AT(ADDR(.rodata) - LOAD_OFFSET) {		\
 		VMLINUX_SYMBOL(__start_rodata) = .;			\
 		*(.rodata) *(.rodata.*)					\
-<<<<<<< HEAD
 		*(.data.rel.ro.local* .gnu.linkonce.d.rel.ro.local.*) *(.data.rel.ro .data.rel.ro.* .gnu.linkonce.d.rel.ro.*) \
-=======
-		RO_AFTER_INIT_DATA	/* Read only after init */	\
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		*(__vermagic)		/* Kernel version magic */	\
 		. = ALIGN(8);						\
 		VMLINUX_SYMBOL(__start___tracepoints_ptrs) = .;		\
@@ -520,28 +505,15 @@
 
 #define INIT_TEXT							\
 	*(.init.text)							\
-<<<<<<< HEAD
-=======
-	*(.text.startup)						\
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	MEM_DISCARD(init.text)
 
 #define EXIT_DATA							\
 	*(.exit.data)							\
-<<<<<<< HEAD
-=======
-	*(.fini_array)							\
-	*(.dtors)							\
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	MEM_DISCARD(exit.data)						\
 	MEM_DISCARD(exit.rodata)
 
 #define EXIT_TEXT							\
 	*(.exit.text)							\
-<<<<<<< HEAD
-=======
-	*(.text.exit)							\
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	MEM_DISCARD(exit.text)
 
 #define EXIT_CALL							\
@@ -658,7 +630,6 @@
 		*(.initcall##level##.init)				\
 		*(.initcall##level##s.init)				\
 
-<<<<<<< HEAD
 #ifdef CONFIG_DEFERRED_INITCALLS
 #define DEFERRED_INITCALLS(level)						\
 		VMLINUX_SYMBOL(__deferred_initcall_start) = .;		\
@@ -683,8 +654,6 @@
 		VMLINUX_SYMBOL(__initcall_end) = .;	\
 		DEFERRED_INITCALLS(0)
 #else
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #define INIT_CALLS							\
 		VMLINUX_SYMBOL(__initcall_start) = .;			\
 		*(.initcallearly.init)					\
@@ -698,10 +667,7 @@
 		INIT_CALLS_LEVEL(6)					\
 		INIT_CALLS_LEVEL(7)					\
 		VMLINUX_SYMBOL(__initcall_end) = .;
-<<<<<<< HEAD
 #endif
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #define CON_INITCALL							\
 		VMLINUX_SYMBOL(__con_initcall_start) = .;		\

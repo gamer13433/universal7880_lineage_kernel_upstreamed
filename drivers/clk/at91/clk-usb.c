@@ -81,12 +81,6 @@ static long at91sam9x5_clk_usb_determine_rate(struct clk_hw *hw,
 			tmp_parent_rate = rate * div;
 			tmp_parent_rate = __clk_round_rate(parent,
 							   tmp_parent_rate);
-<<<<<<< HEAD
-=======
-			if (!tmp_parent_rate)
-				continue;
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			tmp_rate = DIV_ROUND_CLOSEST(tmp_parent_rate, div);
 			if (tmp_rate < rate)
 				tmp_diff = rate - tmp_rate;

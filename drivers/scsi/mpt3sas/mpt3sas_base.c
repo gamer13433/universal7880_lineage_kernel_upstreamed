@@ -1937,15 +1937,6 @@ mpt3sas_base_get_reply_virt_addr(struct MPT3SAS_ADAPTER *ioc, u32 phys_addr)
 	return ioc->reply + (phys_addr - (u32)ioc->reply_dma);
 }
 
-<<<<<<< HEAD
-=======
-static inline u8
-_base_get_msix_index(struct MPT3SAS_ADAPTER *ioc)
-{
-	return ioc->cpu_msix_table[raw_smp_processor_id()];
-}
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /**
  * mpt3sas_base_get_smid - obtain a free smid from internal queue
  * @ioc: per adapter object
@@ -2006,10 +1997,6 @@ mpt3sas_base_get_smid_scsiio(struct MPT3SAS_ADAPTER *ioc, u8 cb_idx,
 	request->scmd = scmd;
 	request->cb_idx = cb_idx;
 	smid = request->smid;
-<<<<<<< HEAD
-=======
-	request->msix_io = _base_get_msix_index(ioc);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	list_del(&request->tracker_list);
 	spin_unlock_irqrestore(&ioc->scsi_lookup_lock, flags);
 	return smid;
@@ -2131,15 +2118,12 @@ _base_writeq(__u64 b, volatile void __iomem *addr, spinlock_t *writeq_lock)
 }
 #endif
 
-<<<<<<< HEAD
 static inline u8
 _base_get_msix_index(struct MPT3SAS_ADAPTER *ioc)
 {
 	return ioc->cpu_msix_table[raw_smp_processor_id()];
 }
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /**
  * mpt3sas_base_put_smid_scsi_io - send SCSI_IO request to firmware
  * @ioc: per adapter object
@@ -2193,31 +2177,18 @@ mpt3sas_base_put_smid_fast_path(struct MPT3SAS_ADAPTER *ioc, u16 smid,
  * mpt3sas_base_put_smid_hi_priority - send Task Managment request to firmware
  * @ioc: per adapter object
  * @smid: system request message index
-<<<<<<< HEAD
  *
  * Return nothing.
  */
 void
 mpt3sas_base_put_smid_hi_priority(struct MPT3SAS_ADAPTER *ioc, u16 smid)
-=======
- * @msix_task: msix_task will be same as msix of IO incase of task abort else 0.
- * Return nothing.
- */
-void
-mpt3sas_base_put_smid_hi_priority(struct MPT3SAS_ADAPTER *ioc, u16 smid,
-	u16 msix_task)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	Mpi2RequestDescriptorUnion_t descriptor;
 	u64 *request = (u64 *)&descriptor;
 
 	descriptor.HighPriority.RequestFlags =
 	    MPI2_REQ_DESCRIPT_FLAGS_HIGH_PRIORITY;
-<<<<<<< HEAD
 	descriptor.HighPriority.MSIxIndex =  0;
-=======
-	descriptor.HighPriority.MSIxIndex =  msix_task;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	descriptor.HighPriority.SMID = cpu_to_le16(smid);
 	descriptor.HighPriority.LMID = 0;
 	descriptor.HighPriority.Reserved1 = 0;

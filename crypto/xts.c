@@ -334,11 +334,7 @@ out_put_alg:
 	return inst;
 }
 
-<<<<<<< HEAD
 static void free(struct crypto_instance *inst)
-=======
-static void free_inst(struct crypto_instance *inst)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	crypto_drop_spawn(crypto_instance_ctx(inst));
 	kfree(inst);
@@ -347,11 +343,7 @@ static void free_inst(struct crypto_instance *inst)
 static struct crypto_template crypto_tmpl = {
 	.name = "xts",
 	.alloc = alloc,
-<<<<<<< HEAD
 	.free = free,
-=======
-	.free = free_inst,
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	.module = THIS_MODULE,
 };
 

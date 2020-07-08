@@ -1053,12 +1053,6 @@ static void parse_init(struct filter_parse_state *ps,
 
 static char infix_next(struct filter_parse_state *ps)
 {
-<<<<<<< HEAD
-=======
-	if (!ps->infix.cnt)
-		return 0;
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	ps->infix.cnt--;
 
 	return ps->infix.string[ps->infix.tail++];
@@ -1074,12 +1068,6 @@ static char infix_peek(struct filter_parse_state *ps)
 
 static void infix_advance(struct filter_parse_state *ps)
 {
-<<<<<<< HEAD
-=======
-	if (!ps->infix.cnt)
-		return;
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	ps->infix.cnt--;
 	ps->infix.tail++;
 }

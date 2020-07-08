@@ -20,7 +20,6 @@ config PCIE_DW
 
 config PCI_EXYNOS
 	bool "Samsung Exynos PCIe controller"
-<<<<<<< HEAD
 	depends on SOC_EXYNOS8890
 	select PCIEPORTBUS
 	select PCIE_DW
@@ -29,12 +28,6 @@ config PCI_EXYNOS_TEST
 	bool "EXYNOS PCIe driver test"
 	depends on PCI_EXYNOS
 
-=======
-	depends on SOC_EXYNOS5440
-	select PCIEPORTBUS
-	select PCIE_DW
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 config PCI_IMX6
 	bool "Freescale i.MX6 PCIe controller"
 	depends on SOC_IMX6Q

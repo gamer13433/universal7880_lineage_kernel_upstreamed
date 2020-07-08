@@ -1248,12 +1248,8 @@ static int __init cpia2_init(void)
 	LOG("%s v%s\n",
 	    ABOUT, CPIA_VERSION);
 	check_parameters();
-<<<<<<< HEAD
 	cpia2_usb_init();
 	return 0;
-=======
-	return cpia2_usb_init();
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 

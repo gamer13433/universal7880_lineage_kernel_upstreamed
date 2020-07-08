@@ -12,11 +12,6 @@
 #ifdef __ASSEMBLY__
 
 #define ASM_NL		 `	/* use '`' to mark new line in macro */
-<<<<<<< HEAD
-=======
-#define __ALIGN		.align 4
-#define __ALIGN_STR	__stringify(__ALIGN)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /* annotation for data we want in DCCM - if enabled in .config */
 .macro ARCFP_DATA nm

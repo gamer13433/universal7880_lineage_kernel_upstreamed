@@ -4130,11 +4130,7 @@ static int myri10ge_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 	 * setup (if available). */
 	status = myri10ge_request_irq(mgp);
 	if (status != 0)
-<<<<<<< HEAD
 		goto abort_with_firmware;
-=======
-		goto abort_with_slices;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	myri10ge_free_irq(mgp);
 
 	/* Save configuration space to be restored if the

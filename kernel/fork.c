@@ -74,11 +74,8 @@
 #include <linux/uprobes.h>
 #include <linux/aio.h>
 #include <linux/compiler.h>
-<<<<<<< HEAD
 #include <linux/kcov.h>
 #include <linux/workqueue.h>
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #include <asm/pgtable.h>
 #include <asm/pgalloc.h>
@@ -375,11 +372,8 @@ static struct task_struct *dup_task_struct(struct task_struct *orig)
 
 	account_kernel_stack(ti, 1);
 
-<<<<<<< HEAD
 	kcov_task_init(tsk);
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return tsk;
 
 free_ti:
@@ -542,7 +536,6 @@ static inline void mm_free_pgd(struct mm_struct *mm)
 
 __cacheline_aligned_in_smp DEFINE_SPINLOCK(mmlist_lock);
 
-<<<<<<< HEAD
 struct mm_work {
 	struct work_struct work;
 	struct mm_struct *mm;
@@ -574,10 +567,6 @@ static void free_mm(struct mm_struct *mm)
 	kfree(mm->async_put_work);
 	kmem_cache_free(mm_cachep, mm);
 }
-=======
-#define allocate_mm()	(kmem_cache_alloc(mm_cachep, GFP_KERNEL))
-#define free_mm(mm)	(kmem_cache_free(mm_cachep, (mm)))
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 static unsigned long default_dump_filter = MMF_DUMP_FILTER_DEFAULT;
 
@@ -737,27 +726,17 @@ EXPORT_SYMBOL_GPL(mmput);
 
 static void mmput_async_fn(struct work_struct *work)
 {
-<<<<<<< HEAD
 	struct mm_work *mmw = container_of(work, struct mm_work, work);
 	__mmput(mmw->mm);
-=======
-	struct mm_struct *mm = container_of(work, struct mm_struct, async_put_work);
-	__mmput(mm);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 void mmput_async(struct mm_struct *mm)
 {
 	if (atomic_dec_and_test(&mm->mm_users)) {
-<<<<<<< HEAD
 		struct mm_work *mmw = mm->async_put_work;
 
 		INIT_WORK(&mmw->work, mmput_async_fn);
 		schedule_work(&mmw->work);
-=======
-		INIT_WORK(&mm->async_put_work, mmput_async_fn);
-		schedule_work(&mm->async_put_work);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 }
 
@@ -791,32 +770,6 @@ static void dup_mm_exe_file(struct mm_struct *oldmm, struct mm_struct *newmm)
 }
 
 /**
-<<<<<<< HEAD
-=======
- * get_task_exe_file - acquire a reference to the task's executable file
- *
- * Returns %NULL if task's mm (if any) has no associated executable file or
- * this is a kernel thread with borrowed mm (see the comment above get_task_mm).
- * User must release file via fput().
- */
-struct file *get_task_exe_file(struct task_struct *task)
-{
-	struct file *exe_file = NULL;
-	struct mm_struct *mm;
-
-	task_lock(task);
-	mm = task->mm;
-	if (mm) {
-		if (!(task->flags & PF_KTHREAD))
-			exe_file = get_mm_exe_file(mm);
-	}
-	task_unlock(task);
-	return exe_file;
-}
-EXPORT_SYMBOL(get_task_exe_file);
-
-/**
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
  * get_task_mm - acquire a reference to the task's mm
  *
  * Returns %NULL if the task has no mm.  Checks PF_KTHREAD (meaning
@@ -931,7 +884,6 @@ void mm_release(struct task_struct *tsk, struct mm_struct *mm)
 	deactivate_mm(tsk, mm);
 
 	/*
-<<<<<<< HEAD
 	 * If we're exiting normally, clear a user-space tid field if
 	 * requested.  We leave this alone when dying by signal, to leave
 	 * the value intact in a core dump, and to save the unnecessary
@@ -940,14 +892,6 @@ void mm_release(struct task_struct *tsk, struct mm_struct *mm)
 	 */
 	if (tsk->clear_child_tid) {
 		if (!(tsk->flags & PF_SIGNALED) &&
-=======
-	 * Signal userspace if we're not exiting with a core dump
-	 * because we want to leave the value intact for debugging
-	 * purposes.
-	 */
-	if (tsk->clear_child_tid) {
-		if (!(tsk->signal->flags & SIGNAL_GROUP_COREDUMP) &&
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		    atomic_read(&mm->mm_users) > 1) {
 			/*
 			 * We don't check the error code - if userspace has
@@ -1166,11 +1110,7 @@ static void posix_cpu_timers_init_group(struct signal_struct *sig)
 	/* Thread group counters. */
 	thread_group_cputime_init(sig);
 
-<<<<<<< HEAD
 	cpu_limit = ACCESS_ONCE(sig->rlim[RLIMIT_CPU].rlim_cur);
-=======
-	cpu_limit = READ_ONCE(sig->rlim[RLIMIT_CPU].rlim_cur);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (cpu_limit != RLIM_INFINITY) {
 		sig->cputime_expires.prof_exp = secs_to_cputime(cpu_limit);
 		sig->cputimer.running = 1;
@@ -1455,11 +1395,8 @@ static struct task_struct *copy_process(unsigned long clone_flags,
 
 	p->io_context = NULL;
 	p->audit_context = NULL;
-<<<<<<< HEAD
 	if (clone_flags & CLONE_THREAD)
 		threadgroup_change_begin(current);
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	cgroup_fork(p);
 #ifdef CONFIG_NUMA
 	p->mempolicy = mpol_dup(p->mempolicy);
@@ -1602,11 +1539,6 @@ static struct task_struct *copy_process(unsigned long clone_flags,
 	INIT_LIST_HEAD(&p->thread_group);
 	p->task_works = NULL;
 
-<<<<<<< HEAD
-=======
-	if (clone_flags & CLONE_THREAD)
-		threadgroup_change_begin(current);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/*
 	 * Make it visible to the rest of the system, but dont wake it up yet.
 	 * Need tasklist lock for parent etc handling!
@@ -1707,11 +1639,6 @@ static struct task_struct *copy_process(unsigned long clone_flags,
 	return p;
 
 bad_fork_free_pid:
-<<<<<<< HEAD
-=======
-	if (clone_flags & CLONE_THREAD)
-		threadgroup_change_end(current);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (pid != &init_struct_pid)
 		free_pid(pid);
 bad_fork_cleanup_io:
@@ -1742,11 +1669,8 @@ bad_fork_cleanup_policy:
 	mpol_put(p->mempolicy);
 bad_fork_cleanup_threadgroup_lock:
 #endif
-<<<<<<< HEAD
 	if (clone_flags & CLONE_THREAD)
 		threadgroup_change_end(current);
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	delayacct_tsk_free(p);
 	module_put(task_thread_info(p)->exec_domain->module);
 bad_fork_cleanup_count:

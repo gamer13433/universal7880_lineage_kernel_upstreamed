@@ -4,10 +4,7 @@
 
 obj-y				+= firmware.o
 
-<<<<<<< HEAD
 obj-$(CONFIG_FIQ_GLUE)		+= fiq_glue.o fiq_glue_setup.o
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 obj-$(CONFIG_ICST)		+= icst.o
 obj-$(CONFIG_SA1111)		+= sa1111.o
 obj-$(CONFIG_DMABOUNCE)		+= dmabounce.o

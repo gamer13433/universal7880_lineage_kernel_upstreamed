@@ -468,12 +468,6 @@ static void pcibios_init_hw(struct device *parent, struct hw_pci *hw,
 		if (!sys)
 			panic("PCI: unable to allocate sys data!");
 
-<<<<<<< HEAD
-=======
-#ifdef CONFIG_PCI_DOMAINS
-		sys->domain  = hw->domain;
-#endif
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		sys->busnr   = busnr;
 		sys->swizzle = hw->swizzle;
 		sys->map_irq = hw->map_irq;

@@ -18,16 +18,12 @@
 #include <linux/pm_domain.h>
 #include <linux/amba/bus.h>
 #include <linux/sizes.h>
-<<<<<<< HEAD
 #include <linux/of.h>
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #include <asm/irq.h>
 
 #define to_amba_driver(d)	container_of(d, struct amba_driver, drv)
 
-<<<<<<< HEAD
 static void adma_hw_reset(struct device *dev)
 {
 	struct device_node *np = dev->of_node;
@@ -82,8 +78,6 @@ static void adma_hw_reset(struct device *dev)
 	iounmap(lpass_dma_reset);
 }
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static const struct amba_id *
 amba_lookup(const struct amba_id *table, struct amba_device *dev)
 {
@@ -361,12 +355,9 @@ int amba_device_add(struct amba_device *dev, struct resource *parent)
 	WARN_ON(dev->irq[0] == (unsigned int)-1);
 	WARN_ON(dev->irq[1] == (unsigned int)-1);
 
-<<<<<<< HEAD
 	if (strstr(dev_name(&dev->dev), "adma"))
 		adma_hw_reset(&dev->dev);
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	ret = request_resource(parent, &dev->res);
 	if (ret)
 		goto err_out;

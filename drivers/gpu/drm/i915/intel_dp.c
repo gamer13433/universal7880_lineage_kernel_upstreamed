@@ -778,15 +778,10 @@ intel_dp_aux_ch(struct intel_dp *intel_dp,
 				      DP_AUX_CH_CTL_RECEIVE_ERROR))
 				continue;
 			if (status & DP_AUX_CH_CTL_DONE)
-<<<<<<< HEAD
 				break;
 		}
 		if (status & DP_AUX_CH_CTL_DONE)
 			break;
-=======
-				goto done;
-		}
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 	if ((status & DP_AUX_CH_CTL_DONE) == 0) {
@@ -795,10 +790,6 @@ intel_dp_aux_ch(struct intel_dp *intel_dp,
 		goto out;
 	}
 
-<<<<<<< HEAD
-=======
-done:
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/* Check for timeout or receive error.
 	 * Timeouts occur when the sink is not connected
 	 */
@@ -4477,24 +4468,13 @@ static void intel_edp_panel_vdd_sanitize(struct intel_dp *intel_dp)
 
 void intel_dp_encoder_reset(struct drm_encoder *encoder)
 {
-<<<<<<< HEAD
 	struct intel_dp *intel_dp;
-=======
-	struct drm_i915_private *dev_priv = to_i915(encoder->dev);
-	struct intel_dp *intel_dp = enc_to_intel_dp(encoder);
-
-	if (!HAS_DDI(dev_priv))
-		intel_dp->DP = I915_READ(intel_dp->output_reg);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if (to_intel_encoder(encoder)->type != INTEL_OUTPUT_EDP)
 		return;
 
-<<<<<<< HEAD
 	intel_dp = enc_to_intel_dp(encoder);
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	pps_lock(intel_dp);
 
 	/*

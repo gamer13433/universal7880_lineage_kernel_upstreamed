@@ -396,11 +396,8 @@ int __init psci_init(void)
 	return init_fn(np);
 }
 
-<<<<<<< HEAD
 #ifdef CONFIG_SMP
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static int __init cpu_psci_cpu_init(struct device_node *dn, unsigned int cpu)
 {
 	return 0;
@@ -452,12 +449,7 @@ static void cpu_psci_cpu_die(unsigned int cpu)
 
 static int cpu_psci_cpu_kill(unsigned int cpu)
 {
-<<<<<<< HEAD
 	int err, i;
-=======
-	int err;
-	unsigned long start, end;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if (!psci_ops.affinity_info)
 		return 1;
@@ -467,7 +459,6 @@ static int cpu_psci_cpu_kill(unsigned int cpu)
 	 * while it is dying. So, try again a few times.
 	 */
 
-<<<<<<< HEAD
 	for (i = 0; i < 10; i++) {
 		err = psci_ops.affinity_info(cpu_logical_map(cpu), 0);
 		if (err == PSCI_0_2_AFFINITY_LEVEL_OFF) {
@@ -478,20 +469,6 @@ static int cpu_psci_cpu_kill(unsigned int cpu)
 		msleep(10);
 		pr_info("Retrying again to check for CPU kill\n");
 	}
-=======
-	start = jiffies;
-	end = start + msecs_to_jiffies(100);
-	do {
-		err = psci_ops.affinity_info(cpu_logical_map(cpu), 0);
-		if (err == PSCI_0_2_AFFINITY_LEVEL_OFF) {
-			pr_info("CPU%d killed (polled %d ms)\n", cpu,
-				jiffies_to_msecs(jiffies - start));
-			return 1;
-		}
-
-		usleep_range(100, 1000);
-	} while (time_before(jiffies, end));
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	pr_warn("CPU%d may not have shut down cleanly (AFFINITY_INFO reports %d)\n",
 			cpu, err);
@@ -499,10 +476,7 @@ static int cpu_psci_cpu_kill(unsigned int cpu)
 	return 0;
 }
 #endif
-<<<<<<< HEAD
 #endif
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 static int psci_suspend_finisher(unsigned long index)
 {
@@ -512,7 +486,6 @@ static int psci_suspend_finisher(unsigned long index)
 				    virt_to_phys(cpu_resume));
 }
 
-<<<<<<< HEAD
 /**
  * Ideally, we hope that PSCI framework cover the all power states, but it
  * is not correspond on some platforms. Below function supports extra power
@@ -554,16 +527,11 @@ static int psci_suspend_customized_finisher(unsigned long index)
 	return psci_ops.cpu_suspend(state, virt_to_phys(cpu_resume));
 }
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static int __maybe_unused cpu_psci_cpu_suspend(unsigned long index)
 {
 	int ret;
 	struct psci_power_state *state = __get_cpu_var(psci_power_state);
-<<<<<<< HEAD
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/*
 	 * idle state index 0 corresponds to wfi, should never be called
 	 * from the cpu_suspend operations
@@ -571,12 +539,9 @@ static int __maybe_unused cpu_psci_cpu_suspend(unsigned long index)
 	if (WARN_ON_ONCE(!index))
 		return -EINVAL;
 
-<<<<<<< HEAD
 	if (unlikely(index >= PSCI_UNUSED_INDEX))
 		return __cpu_suspend(index, psci_suspend_customized_finisher);
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (state[index - 1].type == PSCI_POWER_STATE_TYPE_STANDBY)
 		ret = psci_ops.cpu_suspend(state[index - 1], 0);
 	else
@@ -589,16 +554,11 @@ const struct cpu_operations cpu_psci_ops = {
 	.name		= "psci",
 #ifdef CONFIG_CPU_IDLE
 	.cpu_init_idle	= cpu_psci_cpu_init_idle,
-<<<<<<< HEAD
 #endif
 #ifdef CONFIG_ARM64_CPU_SUSPEND
 	.cpu_suspend	= cpu_psci_cpu_suspend,
 #endif
 #ifdef CONFIG_SMP
-=======
-	.cpu_suspend	= cpu_psci_cpu_suspend,
-#endif
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	.cpu_init	= cpu_psci_cpu_init,
 	.cpu_prepare	= cpu_psci_cpu_prepare,
 	.cpu_boot	= cpu_psci_cpu_boot,
@@ -607,9 +567,6 @@ const struct cpu_operations cpu_psci_ops = {
 	.cpu_die	= cpu_psci_cpu_die,
 	.cpu_kill	= cpu_psci_cpu_kill,
 #endif
-<<<<<<< HEAD
 #endif
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 

@@ -78,11 +78,7 @@
 
 #define CCK_GROUP						\
 	[MINSTREL_MAX_STREAMS * MINSTREL_STREAM_GROUPS] = {	\
-<<<<<<< HEAD
 		.streams = 0,					\
-=======
-		.streams = 1,					\
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		.duration = {					\
 			CCK_DURATION_LIST(false),		\
 			CCK_DURATION_LIST(true)			\
@@ -417,11 +413,7 @@ minstrel_ht_update_stats(struct minstrel_priv *mp, struct minstrel_ht_sta *mi)
 
 		/* (re)Initialize group rate indexes */
 		for(j = 0; j < MAX_THR_RATES; j++)
-<<<<<<< HEAD
 			tmp_group_tp_rate[j] = group;
-=======
-			tmp_group_tp_rate[j] = MCS_GROUP_RATES * group;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 		for (i = 0; i < MCS_GROUP_RATES; i++) {
 			if (!(mg->supported & BIT(i)))

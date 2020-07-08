@@ -2258,11 +2258,6 @@ static int mxt_suspend(struct device *dev)
 
 	mutex_unlock(&input_dev->mutex);
 
-<<<<<<< HEAD
-=======
-	disable_irq(data->irq);
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return 0;
 }
 
@@ -2272,11 +2267,6 @@ static int mxt_resume(struct device *dev)
 	struct mxt_data *data = i2c_get_clientdata(client);
 	struct input_dev *input_dev = data->input_dev;
 
-<<<<<<< HEAD
-=======
-	enable_irq(data->irq);
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	mutex_lock(&input_dev->mutex);
 
 	if (input_dev->users)

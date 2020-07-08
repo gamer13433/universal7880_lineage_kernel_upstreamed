@@ -10,11 +10,6 @@
 #include <linux/kernel.h>
 #include <linux/delay.h>
 #include <linux/init.h>
-<<<<<<< HEAD
-=======
-#include <linux/of.h>
-#include <linux/of_pci.h>
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #include <linux/pci.h>
 #include <linux/pm.h>
 #include <linux/slab.h>
@@ -662,7 +657,6 @@ void pci_update_current_state(struct pci_dev *dev, pci_power_t state)
 }
 
 /**
-<<<<<<< HEAD
  * pci_power_up - Put the given device into D0 forcibly
  * @dev: PCI device to power up
  */
@@ -676,8 +670,6 @@ void pci_power_up(struct pci_dev *dev)
 }
 
 /**
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
  * pci_platform_power_transition - Use platform to change device power state
  * @dev: PCI device to handle.
  * @state: State to put the device into.
@@ -853,20 +845,6 @@ int pci_set_power_state(struct pci_dev *dev, pci_power_t state)
 EXPORT_SYMBOL(pci_set_power_state);
 
 /**
-<<<<<<< HEAD
-=======
- * pci_power_up - Put the given device into D0 forcibly
- * @dev: PCI device to power up
- */
-void pci_power_up(struct pci_dev *dev)
-{
-	__pci_start_power_transition(dev, PCI_D0);
-	pci_raw_set_power_state(dev, PCI_D0);
-	pci_update_current_state(dev, PCI_D0);
-}
-
-/**
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
  * pci_choose_state - Choose the power state of a PCI device
  * @dev: PCI device to be suspended
  * @state: target sleep state for the whole system. This is the value
@@ -1175,13 +1153,8 @@ EXPORT_SYMBOL_GPL(pci_store_saved_state);
  * @dev: PCI device that we're dealing with
  * @state: Saved state returned from pci_store_saved_state()
  */
-<<<<<<< HEAD
 int pci_load_saved_state(struct pci_dev *dev,
 			 struct pci_saved_state *state)
-=======
-static int pci_load_saved_state(struct pci_dev *dev,
-				struct pci_saved_state *state)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	struct pci_cap_saved_data *cap;
 
@@ -1209,10 +1182,7 @@ static int pci_load_saved_state(struct pci_dev *dev,
 	dev->state_saved = true;
 	return 0;
 }
-<<<<<<< HEAD
 EXPORT_SYMBOL_GPL(pci_load_saved_state);
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /**
  * pci_load_and_free_saved_state - Reload the save state pointed to by state,
@@ -1718,16 +1688,6 @@ static void pci_pme_list_scan(struct work_struct *work)
 			 */
 			if (bridge && bridge->current_state != PCI_D0)
 				continue;
-<<<<<<< HEAD
-=======
-			/*
-			 * If the device is in D3cold it should not be
-			 * polled either.
-			 */
-			if (pme_dev->dev->current_state == PCI_D3cold)
-				continue;
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			pci_pme_wakeup(pme_dev->dev, NULL);
 		} else {
 			list_del(&pme_dev->list);
@@ -1735,13 +1695,8 @@ static void pci_pme_list_scan(struct work_struct *work)
 		}
 	}
 	if (!list_empty(&pci_pme_list))
-<<<<<<< HEAD
 		schedule_delayed_work(&pci_pme_work,
 				      msecs_to_jiffies(PME_TIMEOUT));
-=======
-		queue_delayed_work(system_freezable_wq, &pci_pme_work,
-				   msecs_to_jiffies(PME_TIMEOUT));
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	mutex_unlock(&pci_pme_list_mutex);
 }
 
@@ -1801,14 +1756,8 @@ void pci_pme_active(struct pci_dev *dev, bool enable)
 			mutex_lock(&pci_pme_list_mutex);
 			list_add(&pme_dev->list, &pci_pme_list);
 			if (list_is_singular(&pci_pme_list))
-<<<<<<< HEAD
 				schedule_delayed_work(&pci_pme_work,
 						      msecs_to_jiffies(PME_TIMEOUT));
-=======
-				queue_delayed_work(system_freezable_wq,
-						   &pci_pme_work,
-						   msecs_to_jiffies(PME_TIMEOUT));
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			mutex_unlock(&pci_pme_list_mutex);
 		} else {
 			mutex_lock(&pci_pme_list_mutex);
@@ -2048,13 +1997,6 @@ bool pci_dev_run_wake(struct pci_dev *dev)
 	if (!dev->pme_support)
 		return false;
 
-<<<<<<< HEAD
-=======
-	/* PME-capable in principle, but not from the intended sleep state */
-	if (!pci_pme_capable(dev, pci_target_state(dev)))
-		return false;
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	while (bus->parent) {
 		struct pci_dev *bridge = bus->self;
 
@@ -2116,10 +2058,6 @@ void pci_pm_init(struct pci_dev *dev)
 	pm_runtime_forbid(&dev->dev);
 	pm_runtime_set_active(&dev->dev);
 	pm_runtime_enable(&dev->dev);
-<<<<<<< HEAD
-=======
-	device_enable_async_suspend(&dev->dev);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	dev->wakeup_prepared = false;
 
 	dev->pm_cap = 0;
@@ -3279,11 +3217,7 @@ static int pci_pm_reset(struct pci_dev *dev, int probe)
 {
 	u16 csr;
 
-<<<<<<< HEAD
 	if (!dev->pm_cap)
-=======
-	if (!dev->pm_cap || dev->dev_flags & PCI_DEV_FLAGS_NO_PM_RESET)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		return -ENOTTY;
 
 	pci_read_config_word(dev, dev->pm_cap + PCI_PM_CTRL, &csr);
@@ -3357,12 +3291,7 @@ static int pci_parent_bus_reset(struct pci_dev *dev, int probe)
 {
 	struct pci_dev *pdev;
 
-<<<<<<< HEAD
 	if (pci_is_root_bus(dev->bus) || dev->subordinate || !dev->bus->self)
-=======
-	if (pci_is_root_bus(dev->bus) || dev->subordinate ||
-	    !dev->bus->self || dev->dev_flags & PCI_DEV_FLAGS_NO_BUS_RESET)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		return -ENOTTY;
 
 	list_for_each_entry(pdev, &dev->bus->devices, bus_list)
@@ -3396,12 +3325,7 @@ static int pci_dev_reset_slot_function(struct pci_dev *dev, int probe)
 {
 	struct pci_dev *pdev;
 
-<<<<<<< HEAD
 	if (dev->subordinate || !dev->slot)
-=======
-	if (dev->subordinate || !dev->slot ||
-	    dev->dev_flags & PCI_DEV_FLAGS_NO_BUS_RESET)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		return -ENOTTY;
 
 	list_for_each_entry(pdev, &dev->bus->devices, bus_list)
@@ -3653,27 +3577,6 @@ int pci_try_reset_function(struct pci_dev *dev)
 }
 EXPORT_SYMBOL_GPL(pci_try_reset_function);
 
-<<<<<<< HEAD
-=======
-/* Do any devices on or below this bus prevent a bus reset? */
-static bool pci_bus_resetable(struct pci_bus *bus)
-{
-	struct pci_dev *dev;
-
-
-	if (bus->self && (bus->self->dev_flags & PCI_DEV_FLAGS_NO_BUS_RESET))
-		return false;
-
-	list_for_each_entry(dev, &bus->devices, bus_list) {
-		if (dev->dev_flags & PCI_DEV_FLAGS_NO_BUS_RESET ||
-		    (dev->subordinate && !pci_bus_resetable(dev->subordinate)))
-			return false;
-	}
-
-	return true;
-}
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /* Lock devices from the top of the tree down */
 static void pci_bus_lock(struct pci_bus *bus)
 {
@@ -3724,25 +3627,6 @@ unlock:
 	return 0;
 }
 
-<<<<<<< HEAD
-=======
-/* Do any devices on or below this slot prevent a bus reset? */
-static bool pci_slot_resetable(struct pci_slot *slot)
-{
-	struct pci_dev *dev;
-
-	list_for_each_entry(dev, &slot->bus->devices, bus_list) {
-		if (!dev->slot || dev->slot != slot)
-			continue;
-		if (dev->dev_flags & PCI_DEV_FLAGS_NO_BUS_RESET ||
-		    (dev->subordinate && !pci_bus_resetable(dev->subordinate)))
-			return false;
-	}
-
-	return true;
-}
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /* Lock devices from the top of the tree down */
 static void pci_slot_lock(struct pci_slot *slot)
 {
@@ -3864,11 +3748,7 @@ static int pci_slot_reset(struct pci_slot *slot, int probe)
 {
 	int rc;
 
-<<<<<<< HEAD
 	if (!slot)
-=======
-	if (!slot || !pci_slot_resetable(slot))
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		return -ENOTTY;
 
 	if (!probe)
@@ -3960,11 +3840,7 @@ EXPORT_SYMBOL_GPL(pci_try_reset_slot);
 
 static int pci_bus_reset(struct pci_bus *bus, int probe)
 {
-<<<<<<< HEAD
 	if (!bus->self)
-=======
-	if (!bus->self || !pci_bus_resetable(bus))
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		return -ENOTTY;
 
 	if (probe)
@@ -4402,20 +4278,6 @@ bool pci_device_is_present(struct pci_dev *pdev)
 }
 EXPORT_SYMBOL_GPL(pci_device_is_present);
 
-<<<<<<< HEAD
-=======
-void pci_ignore_hotplug(struct pci_dev *dev)
-{
-	struct pci_dev *bridge = dev->bus->self;
-
-	dev->ignore_hotplug = 1;
-	/* Propagate the "ignore hotplug" setting to the parent bridge. */
-	if (bridge)
-		bridge->ignore_hotplug = 1;
-}
-EXPORT_SYMBOL_GPL(pci_ignore_hotplug);
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #define RESOURCE_ALIGNMENT_PARAM_SIZE COMMAND_LINE_SIZE
 static char resource_alignment_param[RESOURCE_ALIGNMENT_PARAM_SIZE] = {0};
 static DEFINE_SPINLOCK(resource_alignment_lock);
@@ -4601,15 +4463,8 @@ int pci_get_new_domain_nr(void)
 void pci_bus_assign_domain_nr(struct pci_bus *bus, struct device *parent)
 {
 	static int use_dt_domains = -1;
-<<<<<<< HEAD
 	int domain = of_get_pci_domain_nr(parent->of_node);
 
-=======
-	int domain = -1;
-
-	if (parent)
-		domain = of_get_pci_domain_nr(parent->of_node);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/*
 	 * Check DT domain and use_dt_domains values.
 	 *

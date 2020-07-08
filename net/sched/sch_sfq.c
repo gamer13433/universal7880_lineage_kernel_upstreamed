@@ -18,19 +18,12 @@
 #include <linux/errno.h>
 #include <linux/init.h>
 #include <linux/skbuff.h>
-<<<<<<< HEAD
 #include <linux/jhash.h>
-=======
-#include <linux/siphash.h>
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #include <linux/slab.h>
 #include <linux/vmalloc.h>
 #include <net/netlink.h>
 #include <net/pkt_sched.h>
-<<<<<<< HEAD
 #include <net/flow_keys.h>
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #include <net/red.h>
 
 
@@ -128,11 +121,7 @@ struct sfq_sched_data {
 	u8		headdrop;
 	u8		maxdepth;	/* limit of packets per flow */
 
-<<<<<<< HEAD
 	u32		perturbation;
-=======
-	siphash_key_t 	perturbation;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	u8		cur_depth;	/* depth of longest slot */
 	u8		flags;
 	unsigned short  scaled_quantum; /* SFQ_ALLOT_SIZE(quantum) */
@@ -167,7 +156,6 @@ static inline struct sfq_head *sfq_dep_head(struct sfq_sched_data *q, sfq_index 
 	return &q->dep[val - SFQ_MAX_FLOWS];
 }
 
-<<<<<<< HEAD
 /*
  * In order to be able to quickly rehash our queue when timer changes
  * q->perturbation, we store flow_keys in skb->cb[]
@@ -192,12 +180,6 @@ static unsigned int sfq_hash(const struct sfq_sched_data *q,
 			    (__force u32)keys->src ^ keys->ip_proto,
 			    (__force u32)keys->ports, q->perturbation);
 	return hash & (q->divisor - 1);
-=======
-static unsigned int sfq_hash(const struct sfq_sched_data *q,
-			     const struct sk_buff *skb)
-{
-	return skb_get_hash_perturb(skb, &q->perturbation) & (q->divisor - 1);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 static unsigned int sfq_classify(struct sk_buff *skb, struct Qdisc *sch,
@@ -214,15 +196,10 @@ static unsigned int sfq_classify(struct sk_buff *skb, struct Qdisc *sch,
 		return TC_H_MIN(skb->priority);
 
 	fl = rcu_dereference_bh(q->filter_list);
-<<<<<<< HEAD
 	if (!fl) {
 		skb_flow_dissect(skb, &sfq_skb_cb(skb)->keys);
 		return sfq_hash(q, skb) + 1;
 	}
-=======
-	if (!fl)
-		return sfq_hash(q, skb) + 1;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	*qerr = NET_XMIT_SUCCESS | __NET_XMIT_BYPASS;
 	result = tc_classify(skb, fl, &res);
@@ -650,17 +627,9 @@ static void sfq_perturbation(unsigned long arg)
 	struct Qdisc *sch = (struct Qdisc *)arg;
 	struct sfq_sched_data *q = qdisc_priv(sch);
 	spinlock_t *root_lock = qdisc_lock(qdisc_root_sleeping(sch));
-<<<<<<< HEAD
 
 	spin_lock(root_lock);
 	q->perturbation = prandom_u32();
-=======
-	siphash_key_t nkey;
-
-	get_random_bytes(&nkey, sizeof(nkey));
-	spin_lock(root_lock);
-	q->perturbation = nkey;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (!q->filter_list && q->tail)
 		sfq_rehash(sch);
 	spin_unlock(root_lock);
@@ -684,18 +653,6 @@ static int sfq_change(struct Qdisc *sch, struct nlattr *opt)
 	if (ctl->divisor &&
 	    (!is_power_of_2(ctl->divisor) || ctl->divisor > 65536))
 		return -EINVAL;
-<<<<<<< HEAD
-=======
-
-	/* slot->allot is a short, make sure quantum is not too big. */
-	if (ctl->quantum) {
-		unsigned int scaled = SFQ_ALLOT_SIZE(ctl->quantum);
-
-		if (scaled <= 0 || scaled > SHRT_MAX)
-			return -EINVAL;
-	}
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (ctl_v1 && !red_check_params(ctl_v1->qth_min, ctl_v1->qth_max,
 					ctl_v1->Wlog))
 		return -EINVAL;
@@ -744,11 +701,7 @@ static int sfq_change(struct Qdisc *sch, struct nlattr *opt)
 	del_timer(&q->perturb_timer);
 	if (q->perturb_period) {
 		mod_timer(&q->perturb_timer, jiffies + q->perturb_period);
-<<<<<<< HEAD
 		q->perturbation = prandom_u32();
-=======
-		get_random_bytes(&q->perturbation, sizeof(q->perturbation));
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 	sch_tree_unlock(sch);
 	kfree(p);
@@ -804,11 +757,7 @@ static int sfq_init(struct Qdisc *sch, struct nlattr *opt)
 	q->quantum = psched_mtu(qdisc_dev(sch));
 	q->scaled_quantum = SFQ_ALLOT_SIZE(q->quantum);
 	q->perturb_period = 0;
-<<<<<<< HEAD
 	q->perturbation = prandom_u32();
-=======
-	get_random_bytes(&q->perturbation, sizeof(q->perturbation));
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if (opt) {
 		int err = sfq_change(sch, opt);

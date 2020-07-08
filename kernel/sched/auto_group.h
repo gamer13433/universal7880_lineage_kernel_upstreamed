@@ -29,11 +29,7 @@ extern bool task_wants_autogroup(struct task_struct *p, struct task_group *tg);
 static inline struct task_group *
 autogroup_task_group(struct task_struct *p, struct task_group *tg)
 {
-<<<<<<< HEAD
 	int enabled = ACCESS_ONCE(sysctl_sched_autogroup_enabled);
-=======
-	int enabled = READ_ONCE(sysctl_sched_autogroup_enabled);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if (enabled && task_wants_autogroup(p, tg))
 		return p->signal->autogroup->tg;

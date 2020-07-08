@@ -32,11 +32,7 @@ extern int edac_mc_get_log_ue(void);
 extern int edac_mc_get_log_ce(void);
 extern int edac_mc_get_panic_on_ue(void);
 extern int edac_get_poll_msec(void);
-<<<<<<< HEAD
 extern int edac_mc_get_poll_msec(void);
-=======
-extern unsigned int edac_mc_get_poll_msec(void);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 unsigned edac_dimm_info_location(struct dimm_info *dimm, char *buf,
 				 unsigned len);

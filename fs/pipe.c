@@ -179,15 +179,9 @@ EXPORT_SYMBOL(generic_pipe_buf_steal);
  *	in the tee() system call, when we duplicate the buffers in one
  *	pipe into another.
  */
-<<<<<<< HEAD
 void generic_pipe_buf_get(struct pipe_inode_info *pipe, struct pipe_buffer *buf)
 {
 	page_cache_get(buf->page);
-=======
-bool generic_pipe_buf_get(struct pipe_inode_info *pipe, struct pipe_buffer *buf)
-{
-	return try_get_page(buf->page);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 EXPORT_SYMBOL(generic_pipe_buf_get);
 

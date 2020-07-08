@@ -480,18 +480,11 @@ static ssize_t eventlog_write(struct file *filp, struct kobject *kobj,
 	if (count < sizeof(u32))
 		return -EINVAL;
 	param.type = *(u32 *)buf;
-<<<<<<< HEAD
 	count -= sizeof(u32);
 	buf += sizeof(u32);
 
 	/* The remaining buffer is the data payload */
 	if (count > gsmi_dev.data_buf->length)
-=======
-	buf += sizeof(u32);
-
-	/* The remaining buffer is the data payload */
-	if ((count - sizeof(u32)) > gsmi_dev.data_buf->length)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		return -EINVAL;
 	param.data_len = count - sizeof(u32);
 
@@ -511,11 +504,7 @@ static ssize_t eventlog_write(struct file *filp, struct kobject *kobj,
 
 	spin_unlock_irqrestore(&gsmi_dev.lock, flags);
 
-<<<<<<< HEAD
 	return rc;
-=======
-	return (rc == 0) ? count : rc;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 }
 

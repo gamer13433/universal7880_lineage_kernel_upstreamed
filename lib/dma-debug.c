@@ -419,10 +419,6 @@ void debug_dma_dump_mappings(struct device *dev)
 		}
 
 		spin_unlock_irqrestore(&bucket->lock, flags);
-<<<<<<< HEAD
-=======
-		cond_resched();
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 }
 EXPORT_SYMBOL(debug_dma_dump_mappings);

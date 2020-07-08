@@ -2116,14 +2116,6 @@ static int reg_r(struct sd *sd, u16 index)
 	} else {
 		PERR("reg_r %02x failed %d\n", index, ret);
 		sd->gspca_dev.usb_err = ret;
-<<<<<<< HEAD
-=======
-		/*
-		 * Make sure the result is zeroed to avoid uninitialized
-		 * values.
-		 */
-		gspca_dev->usb_buf[0] = 0;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 	return ret;
@@ -2150,14 +2142,6 @@ static int reg_r8(struct sd *sd,
 	} else {
 		PERR("reg_r8 %02x failed %d\n", index, ret);
 		sd->gspca_dev.usb_err = ret;
-<<<<<<< HEAD
-=======
-		/*
-		 * Make sure the buffer is zeroed to avoid uninitialized
-		 * values.
-		 */
-		memset(gspca_dev->usb_buf, 0, 8);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 	return ret;
@@ -3513,14 +3497,6 @@ static void ov511_mode_init_regs(struct sd *sd)
 		return;
 	}
 
-<<<<<<< HEAD
-=======
-	if (alt->desc.bNumEndpoints < 1) {
-		sd->gspca_dev.usb_err = -ENODEV;
-		return;
-	}
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	packet_size = le16_to_cpu(alt->endpoint[0].desc.wMaxPacketSize);
 	reg_w(sd, R51x_FIFO_PSIZE, packet_size >> 5);
 
@@ -3646,14 +3622,6 @@ static void ov518_mode_init_regs(struct sd *sd)
 		return;
 	}
 
-<<<<<<< HEAD
-=======
-	if (alt->desc.bNumEndpoints < 1) {
-		sd->gspca_dev.usb_err = -ENODEV;
-		return;
-	}
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	packet_size = le16_to_cpu(alt->endpoint[0].desc.wMaxPacketSize);
 	ov518_reg_w32(sd, R51x_FIFO_PSIZE, packet_size & ~7, 2);
 

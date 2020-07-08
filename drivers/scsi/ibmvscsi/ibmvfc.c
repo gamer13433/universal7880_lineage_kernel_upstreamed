@@ -717,10 +717,7 @@ static int ibmvfc_reset_crq(struct ibmvfc_host *vhost)
 	spin_lock_irqsave(vhost->host->host_lock, flags);
 	vhost->state = IBMVFC_NO_CRQ;
 	vhost->logged_in = 0;
-<<<<<<< HEAD
 	ibmvfc_set_host_action(vhost, IBMVFC_HOST_ACTION_NONE);
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	/* Clean out the queue */
 	memset(crq->msgs, 0, PAGE_SIZE);
@@ -4918,13 +4915,8 @@ static int ibmvfc_remove(struct vio_dev *vdev)
 
 	spin_lock_irqsave(vhost->host->host_lock, flags);
 	ibmvfc_purge_requests(vhost, DID_ERROR);
-<<<<<<< HEAD
 	ibmvfc_free_event_pool(vhost);
 	spin_unlock_irqrestore(vhost->host->host_lock, flags);
-=======
-	spin_unlock_irqrestore(vhost->host->host_lock, flags);
-	ibmvfc_free_event_pool(vhost);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	ibmvfc_free_mem(vhost);
 	spin_lock(&ibmvfc_driver_lock);

@@ -1242,12 +1242,6 @@ static int ifx_spi_spi_remove(struct spi_device *spi)
 	struct ifx_spi_device *ifx_dev = spi_get_drvdata(spi);
 	/* stop activity */
 	tasklet_kill(&ifx_dev->io_work_tasklet);
-<<<<<<< HEAD
-=======
-
-	pm_runtime_disable(&spi->dev);
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/* free irq */
 	free_irq(gpio_to_irq(ifx_dev->gpio.reset_out), (void *)ifx_dev);
 	free_irq(gpio_to_irq(ifx_dev->gpio.srdy), (void *)ifx_dev);

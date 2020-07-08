@@ -900,7 +900,6 @@ u32 ieee802_11_parse_elems_crc(const u8 *start, size_t len, bool action,
 				elem_parse_failed = true;
 			break;
 		case WLAN_EID_VHT_OPERATION:
-<<<<<<< HEAD
 			if (elen >= sizeof(struct ieee80211_vht_operation))
 				elems->vht_operation = (void *)pos;
 			else
@@ -911,24 +910,6 @@ u32 ieee802_11_parse_elems_crc(const u8 *start, size_t len, bool action,
 				elems->opmode_notif = pos;
 			else
 				elem_parse_failed = true;
-=======
-			if (elen >= sizeof(struct ieee80211_vht_operation)) {
-				elems->vht_operation = (void *)pos;
-				if (calc_crc)
-					crc = crc32_be(crc, pos - 2, elen + 2);
-				break;
-			}
-			elem_parse_failed = true;
-			break;
-		case WLAN_EID_OPMODE_NOTIF:
-			if (elen > 0) {
-				elems->opmode_notif = pos;
-				if (calc_crc)
-					crc = crc32_be(crc, pos - 2, elen + 2);
-				break;
-			}
-			elem_parse_failed = true;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			break;
 		case WLAN_EID_MESH_ID:
 			elems->mesh_id = pos;

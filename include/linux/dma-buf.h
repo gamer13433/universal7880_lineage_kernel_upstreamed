@@ -211,8 +211,5 @@ void *dma_buf_vmap(struct dma_buf *);
 void dma_buf_vunmap(struct dma_buf *, void *vaddr);
 int dma_buf_debugfs_create_file(const char *name,
 				int (*write)(struct seq_file *));
-<<<<<<< HEAD
 struct dma_buf *get_dma_buf_file(struct file *);
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #endif /* __DMA_BUF_H__ */

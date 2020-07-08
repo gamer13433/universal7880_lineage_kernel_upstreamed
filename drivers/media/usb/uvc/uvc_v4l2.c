@@ -1279,24 +1279,16 @@ static int uvc_v4l2_put_xu_query(const struct uvc_xu_control_query *kp,
 static long uvc_v4l2_compat_ioctl32(struct file *file,
 		     unsigned int cmd, unsigned long arg)
 {
-<<<<<<< HEAD
-=======
-	struct uvc_fh *handle = file->private_data;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	union {
 		struct uvc_xu_control_mapping xmap;
 		struct uvc_xu_control_query xqry;
 	} karg;
 	void __user *up = compat_ptr(arg);
-<<<<<<< HEAD
 	mm_segment_t old_fs;
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	long ret;
 
 	switch (cmd) {
 	case UVCIOC_CTRL_MAP32:
-<<<<<<< HEAD
 		cmd = UVCIOC_CTRL_MAP;
 		ret = uvc_v4l2_get_xu_mapping(&karg.xmap, up);
 		break;
@@ -1304,37 +1296,12 @@ static long uvc_v4l2_compat_ioctl32(struct file *file,
 	case UVCIOC_CTRL_QUERY32:
 		cmd = UVCIOC_CTRL_QUERY;
 		ret = uvc_v4l2_get_xu_query(&karg.xqry, up);
-=======
-		ret = uvc_v4l2_get_xu_mapping(&karg.xmap, up);
-		if (ret)
-			return ret;
-		ret = uvc_ioctl_ctrl_map(handle->chain, &karg.xmap);
-		if (ret)
-			return ret;
-		ret = uvc_v4l2_put_xu_mapping(&karg.xmap, up);
-		if (ret)
-			return ret;
-
-		break;
-
-	case UVCIOC_CTRL_QUERY32:
-		ret = uvc_v4l2_get_xu_query(&karg.xqry, up);
-		if (ret)
-			return ret;
-		ret = uvc_xu_ctrl_query(handle->chain, &karg.xqry);
-		if (ret)
-			return ret;
-		ret = uvc_v4l2_put_xu_query(&karg.xqry, up);
-		if (ret)
-			return ret;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		break;
 
 	default:
 		return -ENOIOCTLCMD;
 	}
 
-<<<<<<< HEAD
 	old_fs = get_fs();
 	set_fs(KERNEL_DS);
 	ret = uvc_v4l2_ioctl(file, cmd, (unsigned long)&karg);
@@ -1353,8 +1320,6 @@ static long uvc_v4l2_compat_ioctl32(struct file *file,
 		break;
 	}
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return ret;
 }
 #endif

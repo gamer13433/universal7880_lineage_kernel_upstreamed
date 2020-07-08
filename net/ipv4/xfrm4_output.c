@@ -73,13 +73,9 @@ int xfrm4_output_finish(struct sk_buff *skb)
 	memset(IPCB(skb), 0, sizeof(*IPCB(skb)));
 	skb->protocol = htons(ETH_P_IP);
 
-<<<<<<< HEAD
 #ifdef CONFIG_NETFILTER
 	IPCB(skb)->flags |= IPSKB_XFRM_TRANSFORMED;
 #endif
-=======
-	IPCB(skb)->flags |= IPSKB_XFRM_TRANSFORMED;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	return xfrm_output(skb);
 }

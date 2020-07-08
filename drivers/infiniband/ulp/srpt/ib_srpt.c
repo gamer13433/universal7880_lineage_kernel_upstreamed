@@ -1520,17 +1520,9 @@ static int srpt_build_cmd_rsp(struct srpt_rdma_ch *ch,
 			      struct srpt_send_ioctx *ioctx, u64 tag,
 			      int status)
 {
-<<<<<<< HEAD
 	struct srp_rsp *srp_rsp;
 	const u8 *sense_data;
 	int sense_data_len, max_sense_len;
-=======
-	struct se_cmd *cmd = &ioctx->cmd;
-	struct srp_rsp *srp_rsp;
-	const u8 *sense_data;
-	int sense_data_len, max_sense_len;
-	u32 resid = cmd->residual_count;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	/*
 	 * The lowest bit of all SAM-3 status codes is zero (see also
@@ -1552,31 +1544,6 @@ static int srpt_build_cmd_rsp(struct srpt_rdma_ch *ch,
 	srp_rsp->tag = tag;
 	srp_rsp->status = status;
 
-<<<<<<< HEAD
-=======
-	if (cmd->se_cmd_flags & SCF_UNDERFLOW_BIT) {
-		if (cmd->data_direction == DMA_TO_DEVICE) {
-			/* residual data from an underflow write */
-			srp_rsp->flags = SRP_RSP_FLAG_DOUNDER;
-			srp_rsp->data_out_res_cnt = cpu_to_be32(resid);
-		} else if (cmd->data_direction == DMA_FROM_DEVICE) {
-			/* residual data from an underflow read */
-			srp_rsp->flags = SRP_RSP_FLAG_DIUNDER;
-			srp_rsp->data_in_res_cnt = cpu_to_be32(resid);
-		}
-	} else if (cmd->se_cmd_flags & SCF_OVERFLOW_BIT) {
-		if (cmd->data_direction == DMA_TO_DEVICE) {
-			/* residual data from an overflow write */
-			srp_rsp->flags = SRP_RSP_FLAG_DOOVER;
-			srp_rsp->data_out_res_cnt = cpu_to_be32(resid);
-		} else if (cmd->data_direction == DMA_FROM_DEVICE) {
-			/* residual data from an overflow read */
-			srp_rsp->flags = SRP_RSP_FLAG_DIOVER;
-			srp_rsp->data_in_res_cnt = cpu_to_be32(resid);
-		}
-	}
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (sense_data_len) {
 		BUILD_BUG_ON(MIN_MAX_RSP_SIZE <= sizeof(*srp_rsp));
 		max_sense_len = ch->max_ti_iu_len - sizeof(*srp_rsp);

@@ -117,27 +117,16 @@ kalmia_init_and_get_ethernet_addr(struct usbnet *dev, u8 *ethernet_addr)
 	status = kalmia_send_init_packet(dev, usb_buf, sizeof(init_msg_1)
 		/ sizeof(init_msg_1[0]), usb_buf, 24);
 	if (status != 0)
-<<<<<<< HEAD
 		return status;
-=======
-		goto out;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	memcpy(usb_buf, init_msg_2, 12);
 	status = kalmia_send_init_packet(dev, usb_buf, sizeof(init_msg_2)
 		/ sizeof(init_msg_2[0]), usb_buf, 28);
 	if (status != 0)
-<<<<<<< HEAD
 		return status;
 
 	memcpy(ethernet_addr, usb_buf + 10, ETH_ALEN);
 
-=======
-		goto out;
-
-	memcpy(ethernet_addr, usb_buf + 10, ETH_ALEN);
-out:
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	kfree(usb_buf);
 	return status;
 }

@@ -28,13 +28,9 @@ extern const struct cpu_operations cpu_psci_ops;
 const struct cpu_operations *cpu_ops[NR_CPUS];
 
 static const struct cpu_operations *supported_cpu_ops[] __initconst = {
-<<<<<<< HEAD
 #ifdef CONFIG_SMP
 	&smp_spin_table_ops,
 #endif
-=======
-	&smp_spin_table_ops,
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	&cpu_psci_ops,
 	NULL,
 };

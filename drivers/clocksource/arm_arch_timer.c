@@ -21,13 +21,9 @@
 #include <linux/io.h>
 #include <linux/slab.h>
 #include <linux/sched_clock.h>
-<<<<<<< HEAD
 #ifdef CONFIG_SEC_BSP
 #include <linux/sec_bsp.h>
 #endif
-=======
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #include <asm/arch_timer.h>
 #include <asm/virt.h>
 
@@ -74,10 +70,7 @@ static struct clock_event_device __percpu *arch_timer_evt;
 static bool arch_timer_use_virtual = true;
 static bool arch_timer_c3stop;
 static bool arch_timer_mem_use_virtual;
-<<<<<<< HEAD
 static bool arch_timer_use_clocksource_only = false;
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /*
  * Architected system timer support.
@@ -359,7 +352,6 @@ static void arch_counter_set_user_access(void)
 
 static int arch_timer_setup(struct clock_event_device *clk)
 {
-<<<<<<< HEAD
 	/*
 	 * If arch_timer is used to clocksource only,
 	 * it doesn't need to setup clockevent configuration.
@@ -368,8 +360,6 @@ static int arch_timer_setup(struct clock_event_device *clk)
 	if (arch_timer_use_clocksource_only)
 		goto skip_clockevent_setup;
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	__arch_timer_setup(ARCH_CP15_TIMER, clk);
 
 	if (arch_timer_use_virtual)
@@ -380,10 +370,7 @@ static int arch_timer_setup(struct clock_event_device *clk)
 			enable_percpu_irq(arch_timer_ppi[PHYS_NONSECURE_PPI], 0);
 	}
 
-<<<<<<< HEAD
 skip_clockevent_setup:
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	arch_counter_set_user_access();
 	if (IS_ENABLED(CONFIG_ARM_ARCH_TIMER_EVTSTREAM))
 		arch_timer_configure_evtstream();
@@ -464,25 +451,18 @@ static cycle_t arch_counter_read_cc(const struct cyclecounter *cc)
 	return arch_timer_read_counter();
 }
 
-<<<<<<< HEAD
 static void arch_timer_resume(struct clocksource *cs)
 {
 	arch_timer_setup(this_cpu_ptr(arch_timer_evt));
 }
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static struct clocksource clocksource_counter = {
 	.name	= "arch_sys_counter",
 	.rating	= 400,
 	.read	= arch_counter_read,
 	.mask	= CLOCKSOURCE_MASK(56),
-<<<<<<< HEAD
 	.flags	= CLOCK_SOURCE_IS_CONTINUOUS,
 	.resume	= arch_timer_resume,
-=======
-	.flags	= CLOCK_SOURCE_IS_CONTINUOUS | CLOCK_SOURCE_SUSPEND_NONSTOP,
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 static struct cyclecounter cyclecounter = {
@@ -530,7 +510,6 @@ static void __init arch_counter_register(unsigned type)
 
 static void arch_timer_stop(struct clock_event_device *clk)
 {
-<<<<<<< HEAD
 	/*
 	 * If arch_timer is used to clocksource only,
 	 * it doesn't need to stop clockevent configuration.
@@ -539,8 +518,6 @@ static void arch_timer_stop(struct clock_event_device *clk)
 	if (arch_timer_use_clocksource_only)
 		return;
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	pr_debug("arch_timer_teardown disable IRQ%d cpu #%d\n",
 		 clk->irq, smp_processor_id());
 
@@ -755,7 +732,6 @@ static void __init arch_timer_init(struct device_node *np)
 	for (i = PHYS_SECURE_PPI; i < MAX_TIMER_PPI; i++)
 		arch_timer_ppi[i] = irq_of_parse_and_map(np, i);
 	arch_timer_detect_rate(NULL, np);
-<<<<<<< HEAD
 #ifdef CONFIG_SEC_BSP
 	sec_boot_stat_get_mct(arch_timer_rate);
 #endif
@@ -764,8 +740,6 @@ static void __init arch_timer_init(struct device_node *np)
 		pr_info("%s: arch_timer is used only clocksource\n", __func__);
 		arch_timer_use_clocksource_only = true;
 	}
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	/*
 	 * If HYP mode is available, we know that the physical timer

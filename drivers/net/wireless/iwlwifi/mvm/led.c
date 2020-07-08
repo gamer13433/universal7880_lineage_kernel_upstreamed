@@ -109,12 +109,6 @@ int iwl_mvm_leds_init(struct iwl_mvm *mvm)
 
 	mvm->led.name = kasprintf(GFP_KERNEL, "%s-led",
 				   wiphy_name(mvm->hw->wiphy));
-<<<<<<< HEAD
-=======
-	if (!mvm->led.name)
-		return -ENOMEM;
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	mvm->led.brightness_set = iwl_led_brightness_set;
 	mvm->led.max_brightness = 1;
 

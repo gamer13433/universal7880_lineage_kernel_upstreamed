@@ -119,11 +119,7 @@ smb2_unlock_range(struct cifsFileInfo *cfile, struct file_lock *flock,
 
 	cur = buf;
 
-<<<<<<< HEAD
 	down_write(&cinode->lock_sem);
-=======
-	cifs_down_write(&cinode->lock_sem);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	list_for_each_entry_safe(li, tmp, &cfile->llist->locks, llist) {
 		if (flock->fl_start > li->offset ||
 		    (flock->fl_start + length) <

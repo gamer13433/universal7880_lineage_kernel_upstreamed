@@ -563,10 +563,6 @@ struct brcms_c_info {
 
 	struct wiphy *wiphy;
 	struct scb pri_scb;
-<<<<<<< HEAD
-=======
-	struct ieee80211_vif *vif;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	struct sk_buff *beacon;
 	u16 beacon_tim_offset;

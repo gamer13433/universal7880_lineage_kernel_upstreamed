@@ -163,11 +163,7 @@ static int hfs_readdir(struct file *file, struct dir_context *ctx)
 		rd->file = file;
 		list_add(&rd->list, &HFS_I(inode)->open_dir_list);
 	}
-<<<<<<< HEAD
 	memcpy(&rd->key, &fd.key, sizeof(struct hfs_cat_key));
-=======
-	memcpy(&rd->key, &fd.key->cat, sizeof(struct hfs_cat_key));
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 out:
 	hfs_find_exit(&fd);
 	return err;

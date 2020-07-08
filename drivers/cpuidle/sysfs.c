@@ -412,11 +412,7 @@ static int cpuidle_add_state_sysfs(struct cpuidle_device *device)
 		ret = kobject_init_and_add(&kobj->kobj, &ktype_state_cpuidle,
 					   &kdev->kobj, "state%d", i);
 		if (ret) {
-<<<<<<< HEAD
 			kfree(kobj);
-=======
-			kobject_put(&kobj->kobj);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			goto error_state;
 		}
 		kobject_uevent(&kobj->kobj, KOBJ_ADD);
@@ -546,11 +542,7 @@ static int cpuidle_add_driver_sysfs(struct cpuidle_device *dev)
 	ret = kobject_init_and_add(&kdrv->kobj, &ktype_driver_cpuidle,
 				   &kdev->kobj, "driver");
 	if (ret) {
-<<<<<<< HEAD
 		kfree(kdrv);
-=======
-		kobject_put(&kdrv->kobj);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		return ret;
 	}
 
@@ -644,11 +636,7 @@ int cpuidle_add_sysfs(struct cpuidle_device *dev)
 	error = kobject_init_and_add(&kdev->kobj, &ktype_cpuidle, &cpu_dev->kobj,
 				   "cpuidle");
 	if (error) {
-<<<<<<< HEAD
 		kfree(kdev);
-=======
-		kobject_put(&kdev->kobj);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		return error;
 	}
 

@@ -208,11 +208,8 @@ ssize_t iio_buffer_show_enable(struct device *dev,
 #define IIO_BUFFER_ENABLE_ATTR DEVICE_ATTR(enable, S_IRUGO | S_IWUSR,	\
 					   iio_buffer_show_enable,	\
 					   iio_buffer_store_enable)
-<<<<<<< HEAD
 					   
 int iio_sw_buffer_preenable(struct iio_dev *indio_dev);
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 bool iio_validate_scan_mask_onehot(struct iio_dev *indio_dev,
 	const unsigned long *mask);

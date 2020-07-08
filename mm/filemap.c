@@ -37,13 +37,10 @@
 #include <linux/rmap.h>
 #include "internal.h"
 
-<<<<<<< HEAD
 #ifdef CONFIG_SDP
 #include <sdp/cache_cleanup.h>
 #endif
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #define CREATE_TRACE_POINTS
 #include <trace/events/filemap.h>
 
@@ -129,17 +126,6 @@ static void page_cache_tree_delete(struct address_space *mapping,
 
 	__radix_tree_lookup(&mapping->page_tree, page->index, &node, &slot);
 
-<<<<<<< HEAD
-=======
-	if (!node) {
-		/*
-		 * We need a node to properly account shadow
-		 * entries. Don't plant any without. XXX
-		 */
-		shadow = NULL;
-	}
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (shadow) {
 		mapping->nrshadows++;
 		/*
@@ -199,14 +185,11 @@ void __delete_from_page_cache(struct page *page, void *shadow)
 {
 	struct address_space *mapping = page->mapping;
 
-<<<<<<< HEAD
 #ifdef CONFIG_SDP
 	if(mapping_sensitive(mapping))
 		sdp_page_cleanup(page);
 #endif
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	trace_mm_filemap_delete_from_page_cache(page);
 	/*
 	 * if we're uptodate, flush out into the cleancache, otherwise
@@ -306,12 +289,7 @@ int __filemap_fdatawrite_range(struct address_space *mapping, loff_t start,
 		.range_end = end,
 	};
 
-<<<<<<< HEAD
 	if (!mapping_cap_writeback_dirty(mapping))
-=======
-	if (!mapping_cap_writeback_dirty(mapping) ||
-	    !mapping_tagged(mapping, PAGECACHE_TAG_DIRTY))
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		return 0;
 
 	ret = do_writepages(mapping, &wbc);
@@ -372,7 +350,6 @@ int filemap_fdatawait_range(struct address_space *mapping, loff_t start_byte,
 		goto out;
 
 	pagevec_init(&pvec, 0);
-<<<<<<< HEAD
 	while ((index <= end) &&
 			(nr_pages = pagevec_lookup_tag(&pvec, mapping, &index,
 			PAGECACHE_TAG_WRITEBACK,
@@ -386,19 +363,6 @@ int filemap_fdatawait_range(struct address_space *mapping, loff_t start_byte,
 			if (page->index > end)
 				continue;
 
-=======
-	while (index <= end) {
-		unsigned i;
-
-		nr_pages = pagevec_lookup_range_tag(&pvec, mapping, &index,
-				end, PAGECACHE_TAG_WRITEBACK);
-		if (!nr_pages)
-			break;
-
-		for (i = 0; i < nr_pages; i++) {
-			struct page *page = pvec.pages[i];
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			wait_on_page_writeback(page);
 			if (TestClearPageError(page))
 				ret = -EIO;
@@ -690,12 +654,9 @@ struct page *__page_cache_alloc(gfp_t gfp)
 	int n;
 	struct page *page;
 
-<<<<<<< HEAD
 	/* for avoiding allocation from cma page block */
 	gfp &= ~__GFP_MOVABLE;
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (cpuset_do_page_mem_spread()) {
 		unsigned int cpuset_mems_cookie;
 		do {
@@ -1401,16 +1362,9 @@ repeat:
 EXPORT_SYMBOL(find_get_pages_contig);
 
 /**
-<<<<<<< HEAD
  * find_get_pages_tag - find and return pages that match @tag
  * @mapping:	the address_space to search
  * @index:	the starting page index
-=======
- * find_get_pages_range_tag - find and return pages in given range matching @tag
- * @mapping:	the address_space to search
- * @index:	the starting page index
- * @end:	The final page index (inclusive)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
  * @tag:	the tag index
  * @nr_pages:	the maximum number of pages
  * @pages:	where the resulting pages are placed
@@ -1418,14 +1372,8 @@ EXPORT_SYMBOL(find_get_pages_contig);
  * Like find_get_pages, except we only return pages which are tagged with
  * @tag.   We update @index to index the next page for the traversal.
  */
-<<<<<<< HEAD
 unsigned find_get_pages_tag(struct address_space *mapping, pgoff_t *index,
 			int tag, unsigned int nr_pages, struct page **pages)
-=======
-unsigned find_get_pages_range_tag(struct address_space *mapping, pgoff_t *index,
-			pgoff_t end, int tag, unsigned int nr_pages,
-			struct page **pages)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	struct radix_tree_iter iter;
 	void **slot;
@@ -1439,12 +1387,6 @@ restart:
 	radix_tree_for_each_tagged(slot, &mapping->page_tree,
 				   &iter, *index, tag) {
 		struct page *page;
-<<<<<<< HEAD
-=======
-
-		if (iter.index > end)
-			break;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 repeat:
 		page = radix_tree_deref_slot(slot);
 		if (unlikely(!page))
@@ -1483,7 +1425,6 @@ repeat:
 		}
 
 		pages[ret] = page;
-<<<<<<< HEAD
 		if (++ret == nr_pages)
 			break;
 	}
@@ -1496,30 +1437,6 @@ repeat:
 	return ret;
 }
 EXPORT_SYMBOL(find_get_pages_tag);
-=======
-		if (++ret == nr_pages) {
-			*index = pages[ret - 1]->index + 1;
-			goto out;
-		}
-	}
-
-	/*
-	 * We come here when we got at @end. We take care to not overflow the
-	 * index @index as it confuses some of the callers. This breaks the
-	 * iteration when there is page at index -1 but that is already broken
-	 * anyway.
-	 */
-	if (end == (pgoff_t)-1)
-		*index = (pgoff_t)-1;
-	else
-		*index = end + 1;
-out:
-	rcu_read_unlock();
-
-	return ret;
-}
-EXPORT_SYMBOL(find_get_pages_range_tag);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /*
  * CD/DVDs are error prone. When a medium error occurs, the driver may fail
@@ -1905,7 +1822,6 @@ static void do_sync_mmap_readahead(struct vm_area_struct *vma,
 	/*
 	 * mmap read-around
 	 */
-<<<<<<< HEAD
 #if CONFIG_MMAP_READAROUND_LIMIT == 0
 	ra_pages = max_sane_readahead(ra->ra_pages);
 #else
@@ -1914,9 +1830,6 @@ static void do_sync_mmap_readahead(struct vm_area_struct *vma,
 	else
 		ra_pages = max_sane_readahead(ra->ra_pages);
 #endif
-=======
-	ra_pages = max_sane_readahead(ra->ra_pages);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	ra->start = max_t(long, 0, offset - ra_pages / 2);
 	ra->size = ra_pages;
 	ra->async_size = ra_pages / 4;

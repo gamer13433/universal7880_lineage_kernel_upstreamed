@@ -39,7 +39,6 @@ struct compat_ion_handle_data {
 	compat_int_t handle;
 };
 
-<<<<<<< HEAD
 struct compat_ion_preload_object {
 	compat_size_t len;
 	compat_uint_t count;
@@ -59,15 +58,12 @@ struct compat_ion_fd_partial_data {
 	compat_size_t len;
 };
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #define COMPAT_ION_IOC_ALLOC	_IOWR(ION_IOC_MAGIC, 0, \
 				      struct compat_ion_allocation_data)
 #define COMPAT_ION_IOC_FREE	_IOWR(ION_IOC_MAGIC, 1, \
 				      struct compat_ion_handle_data)
 #define COMPAT_ION_IOC_CUSTOM	_IOWR(ION_IOC_MAGIC, 6, \
 				      struct compat_ion_custom_data)
-<<<<<<< HEAD
 #define COMPAT_ION_IOC_PRELOAD_ALLOC	_IOW(ION_IOC_MAGIC, 8, \
 					     struct compat_ion_preload_data)
 #define COMPAT_ION_IOC_SYNC_PARTIAL	_IOWR(ION_IOC_MAGIC, 9, \
@@ -116,8 +112,6 @@ static int compat_get_ion_preload_data(
 
 	return err;
 }
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 static int compat_get_ion_allocation_data(
 			struct compat_ion_allocation_data __user *data32,
@@ -194,7 +188,6 @@ static int compat_get_ion_custom_data(
 	return err;
 };
 
-<<<<<<< HEAD
 static int compat_get_ion_fd_partial_data(
 			struct compat_ion_fd_partial_data __user *data32,
 			struct ion_fd_partial_data __user *data)
@@ -217,8 +210,6 @@ static int compat_get_ion_fd_partial_data(
 	return err;
 }
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 long compat_ion_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 {
 	long ret;
@@ -264,7 +255,6 @@ long compat_ion_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 		return filp->f_op->unlocked_ioctl(filp, ION_IOC_FREE,
 							(unsigned long)data);
 	}
-<<<<<<< HEAD
 	case COMPAT_ION_IOC_PRELOAD_ALLOC: {
 		struct compat_ion_preload_data __user *data32;
 		struct ion_preload_data __user *data;
@@ -282,8 +272,6 @@ long compat_ion_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 		return filp->f_op->unlocked_ioctl(filp, ION_IOC_PRELOAD_ALLOC,
 							(unsigned long)data);
 	}
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	case COMPAT_ION_IOC_CUSTOM: {
 		struct compat_ion_custom_data __user *data32;
 		struct ion_custom_data __user *data;
@@ -301,7 +289,6 @@ long compat_ion_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 		return filp->f_op->unlocked_ioctl(filp, ION_IOC_CUSTOM,
 							(unsigned long)data);
 	}
-<<<<<<< HEAD
 	case COMPAT_ION_IOC_SYNC_PARTIAL:
 	{
 		struct compat_ion_fd_partial_data __user *data32;
@@ -320,8 +307,6 @@ long compat_ion_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 		return filp->f_op->unlocked_ioctl(filp, ION_IOC_SYNC_PARTIAL,
 							(unsigned long)data);
 	}
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	case ION_IOC_SHARE:
 	case ION_IOC_MAP:
 	case ION_IOC_IMPORT:

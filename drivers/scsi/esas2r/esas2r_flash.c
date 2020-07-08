@@ -1197,10 +1197,6 @@ bool esas2r_nvram_read_direct(struct esas2r_adapter *a)
 	if (!esas2r_read_flash_block(a, a->nvram, FLS_OFFSET_NVR,
 				     sizeof(struct esas2r_sas_nvram))) {
 		esas2r_hdebug("NVRAM read failed, using defaults");
-<<<<<<< HEAD
-=======
-		up(&a->nvram_semaphore);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		return false;
 	}
 

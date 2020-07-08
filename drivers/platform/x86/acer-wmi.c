@@ -1877,11 +1877,7 @@ static acpi_status __init acer_wmi_get_handle_cb(acpi_handle ah, u32 level,
 	if (!strcmp(ctx, "SENR")) {
 		if (acpi_bus_get_device(ah, &dev))
 			return AE_OK;
-<<<<<<< HEAD
 		if (!strcmp(ACER_WMID_ACCEL_HID, acpi_device_hid(dev)))
-=======
-		if (strcmp(ACER_WMID_ACCEL_HID, acpi_device_hid(dev)))
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			return AE_OK;
 	} else
 		return AE_OK;
@@ -1902,12 +1898,8 @@ static int __init acer_wmi_get_handle(const char *name, const char *prop,
 	handle = NULL;
 	status = acpi_get_devices(prop, acer_wmi_get_handle_cb,
 					(void *)name, &handle);
-<<<<<<< HEAD
 
 	if (ACPI_SUCCESS(status)) {
-=======
-	if (ACPI_SUCCESS(status) && handle) {
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		*ah = handle;
 		return 0;
 	} else {
@@ -2296,13 +2288,8 @@ static int __init acer_wmi_init(void)
 		if (err)
 			return err;
 		err = acer_wmi_accel_setup();
-<<<<<<< HEAD
 		if (err)
 			return err;
-=======
-		if (err && err != -ENODEV)
-			pr_warn("Cannot enable accelerometer\n");
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 	err = platform_driver_register(&acer_platform_driver);

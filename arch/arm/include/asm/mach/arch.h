@@ -51,11 +51,7 @@ struct machine_desc {
 	bool			(*smp_init)(void);
 	void			(*fixup)(struct tag *, char **);
 	void			(*dt_fixup)(void);
-<<<<<<< HEAD
 	void			(*init_meminfo)(void);
-=======
-	long long		(*init_meminfo)(void);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	void			(*reserve)(void);/* reserve mem blocks	*/
 	void			(*map_io)(void);/* IO mapping function	*/
 	void			(*init_early)(void);

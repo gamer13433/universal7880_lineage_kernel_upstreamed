@@ -130,7 +130,6 @@ static int samsung_kbd_mouse_input_mapping(struct hid_device *hdev,
 	return 1;
 }
 
-<<<<<<< HEAD
 static int samsung_kbd_input_mapping(struct hid_device *hdev,
 	struct hid_input *hi, struct hid_field *field, struct hid_usage *usage,
 	unsigned long **bit, int *max)
@@ -334,8 +333,6 @@ static int samsung_universal_kbd_input_mapping(struct hid_device *hdev,
 	return 1;
 }
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static __u8 *samsung_report_fixup(struct hid_device *hdev, __u8 *rdesc,
 	unsigned int *rsize)
 {
@@ -353,7 +350,6 @@ static int samsung_input_mapping(struct hid_device *hdev, struct hid_input *hi,
 	if (USB_DEVICE_ID_SAMSUNG_WIRELESS_KBD_MOUSE == hdev->product)
 		ret = samsung_kbd_mouse_input_mapping(hdev,
 			hi, field, usage, bit, max);
-<<<<<<< HEAD
 	else if (USB_DEVICE_ID_SAMSUNG_WIRELESS_KBD == hdev->product)
 		ret = samsung_kbd_input_mapping(hdev,
 			hi, field, usage, bit, max);
@@ -366,8 +362,6 @@ static int samsung_input_mapping(struct hid_device *hdev, struct hid_input *hi,
 	else if(USB_DEVICE_ID_SAMSUNG_WIRELESS_UNIVERSAL_KBD == hdev->product)
 		ret = samsung_universal_kbd_input_mapping(hdev,
 			hi, field, usage, bit, max);
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	return ret;
 }
@@ -406,13 +400,10 @@ err_free:
 static const struct hid_device_id samsung_devices[] = {
 	{ HID_USB_DEVICE(USB_VENDOR_ID_SAMSUNG, USB_DEVICE_ID_SAMSUNG_IR_REMOTE) },
 	{ HID_USB_DEVICE(USB_VENDOR_ID_SAMSUNG, USB_DEVICE_ID_SAMSUNG_WIRELESS_KBD_MOUSE) },
-<<<<<<< HEAD
 	{ HID_BLUETOOTH_DEVICE(USB_VENDOR_ID_SAMSUNG_ELECTRONICS, USB_DEVICE_ID_SAMSUNG_WIRELESS_KBD) },
 	{ HID_BLUETOOTH_DEVICE(USB_VENDOR_ID_SAMSUNG_ELECTRONICS, USB_DEVICE_ID_SAMSUNG_WIRELESS_GAMEPAD) },
 	{ HID_BLUETOOTH_DEVICE(USB_VENDOR_ID_SAMSUNG_ELECTRONICS, USB_DEVICE_ID_SAMSUNG_WIRELESS_ACTIONMOUSE) },
 	{ HID_BLUETOOTH_DEVICE(USB_VENDOR_ID_SAMSUNG_ELECTRONICS, USB_DEVICE_ID_SAMSUNG_WIRELESS_UNIVERSAL_KBD) },
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	{ }
 };
 MODULE_DEVICE_TABLE(hid, samsung_devices);

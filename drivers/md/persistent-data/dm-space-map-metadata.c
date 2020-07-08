@@ -204,30 +204,6 @@ static void in(struct sm_metadata *smm)
 	smm->recursion_count++;
 }
 
-<<<<<<< HEAD
-=======
-static int apply_bops(struct sm_metadata *smm)
-{
-	int r = 0;
-
-	while (!brb_empty(&smm->uncommitted)) {
-		struct block_op bop;
-
-		r = brb_pop(&smm->uncommitted, &bop);
-		if (r) {
-			DMERR("bug in bop ring buffer");
-			break;
-		}
-
-		r = commit_bop(smm, &bop);
-		if (r)
-			break;
-	}
-
-	return r;
-}
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static int out(struct sm_metadata *smm)
 {
 	int r = 0;
@@ -240,7 +216,6 @@ static int out(struct sm_metadata *smm)
 		return -ENOMEM;
 	}
 
-<<<<<<< HEAD
 	if (smm->recursion_count == 1) {
 		while (!brb_empty(&smm->uncommitted)) {
 			struct block_op bop;
@@ -256,10 +231,6 @@ static int out(struct sm_metadata *smm)
 				break;
 		}
 	}
-=======
-	if (smm->recursion_count == 1)
-		r = apply_bops(smm);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	smm->recursion_count--;
 
@@ -458,14 +429,7 @@ static int sm_metadata_new_block_(struct dm_space_map *sm, dm_block_t *b)
 	enum allocation_event ev;
 	struct sm_metadata *smm = container_of(sm, struct sm_metadata, sm);
 
-<<<<<<< HEAD
 	r = sm_ll_find_free_block(&smm->old_ll, smm->begin, smm->old_ll.nr_blocks, b);
-=======
-	/*
-	 * Any block we allocate has to be free in both the old and current ll.
-	 */
-	r = sm_ll_find_common_free_block(&smm->old_ll, &smm->ll, smm->begin, smm->ll.nr_blocks, b);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (r)
 		return r;
 
@@ -738,15 +702,6 @@ static int sm_metadata_extend(struct dm_space_map *sm, dm_block_t extra_blocks)
 		}
 		old_len = smm->begin;
 
-<<<<<<< HEAD
-=======
-		r = apply_bops(smm);
-		if (r) {
-			DMERR("%s: apply_bops failed", __func__);
-			goto out;
-		}
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		r = sm_ll_commit(&smm->ll);
 		if (r)
 			goto out;
@@ -814,15 +769,6 @@ int dm_sm_metadata_create(struct dm_space_map *sm,
 	if (r)
 		return r;
 
-<<<<<<< HEAD
-=======
-	r = apply_bops(smm);
-	if (r) {
-		DMERR("%s: apply_bops failed", __func__);
-		return r;
-	}
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return sm_metadata_commit(sm);
 }
 

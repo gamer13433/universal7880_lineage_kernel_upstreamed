@@ -239,11 +239,7 @@ static int xfrm6_tunnel_rcv(struct sk_buff *skb)
 	__be32 spi;
 
 	spi = xfrm6_tunnel_spi_lookup(net, (const xfrm_address_t *)&iph->saddr);
-<<<<<<< HEAD
 	return xfrm6_rcv_spi(skb, IPPROTO_IPV6, spi);
-=======
-	return xfrm6_rcv_spi(skb, IPPROTO_IPV6, spi, NULL);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 static int xfrm6_tunnel_err(struct sk_buff *skb, struct inet6_skb_parm *opt,
@@ -395,13 +391,6 @@ static void __exit xfrm6_tunnel_fini(void)
 	xfrm6_tunnel_deregister(&xfrm6_tunnel_handler, AF_INET6);
 	xfrm_unregister_type(&xfrm6_tunnel_type, AF_INET6);
 	unregister_pernet_subsys(&xfrm6_tunnel_net_ops);
-<<<<<<< HEAD
-=======
-	/* Someone maybe has gotten the xfrm6_tunnel_spi.
-	 * So need to wait it.
-	 */
-	rcu_barrier();
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	kmem_cache_destroy(xfrm6_tunnel_spi_kmem);
 }
 

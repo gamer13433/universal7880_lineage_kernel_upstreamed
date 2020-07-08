@@ -746,7 +746,6 @@ config SMARTJOYPLUS_FF
 	Say Y here if you have a SmartJoy PLUS PS2/USB adapter and want to
 	enable force feedback support for it.
 
-<<<<<<< HEAD
 config HID_SYNAPTICS_BT
 	tristate "HID Synaptics"
 	depends on HID
@@ -754,8 +753,6 @@ config HID_SYNAPTICS_BT
 	---help---
 	For a Bluetooth HID touchpad
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 config HID_TIVO
 	tristate "TiVo Slide Bluetooth remote control support"
 	depends on HID
@@ -875,15 +872,12 @@ config HID_SENSOR_HUB
 	  for events and handle data streams. Each sensor driver can format
 	  data and present to user mode using input or IIO interface.
 
-<<<<<<< HEAD
 config HID_MADCATZ
 	tristate "Madcatz wireless game controller support"
 	depends on (USB_HID || HID)
 	---help---
 	Support for Madcatz wireless game controller support.	
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 endmenu
 
 endif # HID

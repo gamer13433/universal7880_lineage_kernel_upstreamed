@@ -20,11 +20,6 @@
 #include <linux/of.h>
 #include <linux/clk.h>
 #include <linux/completion.h>
-<<<<<<< HEAD
-=======
-#include <linux/delay.h>
-#include <linux/reset.h>
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #include <linux/regulator/consumer.h>
 #include <linux/iio/iio.h>
 
@@ -52,10 +47,6 @@ struct rockchip_saradc {
 	struct clk		*clk;
 	struct completion	completion;
 	struct regulator	*vref;
-<<<<<<< HEAD
-=======
-	struct reset_control	*reset;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	u16			last_val;
 };
 
@@ -142,19 +133,6 @@ static const struct iio_chan_spec rockchip_saradc_iio_channels[] = {
 	ADC_CHANNEL(2, "adc2"),
 };
 
-<<<<<<< HEAD
-=======
-/**
- * Reset SARADC Controller.
- */
-static void rockchip_saradc_reset_controller(struct reset_control *reset)
-{
-	reset_control_assert(reset);
-	usleep_range(10, 20);
-	reset_control_deassert(reset);
-}
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static int rockchip_saradc_probe(struct platform_device *pdev)
 {
 	struct rockchip_saradc *info = NULL;
@@ -179,23 +157,6 @@ static int rockchip_saradc_probe(struct platform_device *pdev)
 	if (IS_ERR(info->regs))
 		return PTR_ERR(info->regs);
 
-<<<<<<< HEAD
-=======
-	/*
-	 * The reset should be an optional property, as it should work
-	 * with old devicetrees as well
-	 */
-	info->reset = devm_reset_control_get(&pdev->dev, "saradc-apb");
-	if (IS_ERR(info->reset)) {
-		ret = PTR_ERR(info->reset);
-		if (ret != -ENOENT)
-			return ret;
-
-		dev_dbg(&pdev->dev, "no reset control found\n");
-		info->reset = NULL;
-	}
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	init_completion(&info->completion);
 
 	irq = platform_get_irq(pdev, 0);
@@ -230,12 +191,6 @@ static int rockchip_saradc_probe(struct platform_device *pdev)
 		return PTR_ERR(info->vref);
 	}
 
-<<<<<<< HEAD
-=======
-	if (info->reset)
-		rockchip_saradc_reset_controller(info->reset);
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/*
 	 * Use a default of 1MHz for the converter clock.
 	 * This may become user-configurable in the future.

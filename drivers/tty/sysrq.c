@@ -55,18 +55,11 @@
 static int __read_mostly sysrq_enabled = CONFIG_MAGIC_SYSRQ_DEFAULT_ENABLE;
 static bool __read_mostly sysrq_always_enabled;
 
-<<<<<<< HEAD
 bool sysrq_on(void)
 {
 	return sysrq_enabled || sysrq_always_enabled;
 }
 EXPORT_SYMBOL(sysrq_on);
-=======
-static bool sysrq_on(void)
-{
-	return sysrq_enabled || sysrq_always_enabled;
-}
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /*
  * A value of 1 means 'all', other nonzero values are an op mask:
@@ -532,10 +525,7 @@ void __handle_sysrq(int key, bool check_mask)
 	 */
 	orig_log_level = console_loglevel;
 	console_loglevel = CONSOLE_LOGLEVEL_DEFAULT;
-<<<<<<< HEAD
 	printk(KERN_INFO "SysRq : ");
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
         op_p = __sysrq_get_key_op(key);
         if (op_p) {
@@ -544,7 +534,6 @@ void __handle_sysrq(int key, bool check_mask)
 		 * should not) and is the invoked operation enabled?
 		 */
 		if (!check_mask || sysrq_on_mask(op_p->enable_mask)) {
-<<<<<<< HEAD
 			printk("%s\n", op_p->action_msg);
 			console_loglevel = orig_log_level;
 			op_p->handler(key);
@@ -553,17 +542,6 @@ void __handle_sysrq(int key, bool check_mask)
 		}
 	} else {
 		printk("HELP : ");
-=======
-			pr_info("%s\n", op_p->action_msg);
-			console_loglevel = orig_log_level;
-			op_p->handler(key);
-		} else {
-			pr_info("This sysrq operation is disabled.\n");
-			console_loglevel = orig_log_level;
-		}
-	} else {
-		pr_info("HELP : ");
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		/* Only print the help msg once per handler */
 		for (i = 0; i < ARRAY_SIZE(sysrq_key_table); i++) {
 			if (sysrq_key_table[i]) {

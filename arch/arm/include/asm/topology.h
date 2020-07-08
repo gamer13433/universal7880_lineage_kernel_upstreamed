@@ -3,10 +3,6 @@
 
 #ifdef CONFIG_ARM_CPU_TOPOLOGY
 
-<<<<<<< HEAD
-=======
-#include <linux/cpufreq.h>
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #include <linux/cpumask.h>
 
 struct cputopo_arm {
@@ -28,15 +24,6 @@ void init_cpu_topology(void);
 void store_cpu_topology(unsigned int cpuid);
 const struct cpumask *cpu_coregroup_mask(int cpu);
 
-<<<<<<< HEAD
-=======
-#ifdef CONFIG_CPU_FREQ
-#define arch_scale_freq_capacity cpufreq_scale_freq_capacity
-#endif
-#define arch_scale_cpu_capacity scale_cpu_capacity
-extern unsigned long scale_cpu_capacity(struct sched_domain *sd, int cpu);
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #else
 
 static inline void init_cpu_topology(void) { }

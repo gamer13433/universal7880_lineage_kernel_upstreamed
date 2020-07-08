@@ -1687,17 +1687,10 @@ static void fec_get_mac(struct net_device *ndev)
 	 */
 	if (!is_valid_ether_addr(iap)) {
 		/* Report it and use a random ethernet address instead */
-<<<<<<< HEAD
 		netdev_err(ndev, "Invalid MAC address: %pM\n", iap);
 		eth_hw_addr_random(ndev);
 		netdev_info(ndev, "Using random MAC address: %pM\n",
 			    ndev->dev_addr);
-=======
-		dev_err(&fep->pdev->dev, "Invalid MAC address: %pM\n", iap);
-		eth_hw_addr_random(ndev);
-		dev_info(&fep->pdev->dev, "Using random MAC address: %pM\n",
-			 ndev->dev_addr);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		return;
 	}
 
@@ -2397,25 +2390,15 @@ fec_enet_set_coalesce(struct net_device *ndev, struct ethtool_coalesce *ec)
 		return -EINVAL;
 	}
 
-<<<<<<< HEAD
 	cycle = fec_enet_us_to_itr_clock(ndev, fep->rx_time_itr);
-=======
-	cycle = fec_enet_us_to_itr_clock(ndev, ec->rx_coalesce_usecs);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (cycle > 0xFFFF) {
 		pr_err("Rx coalesed usec exceeed hardware limiation");
 		return -EINVAL;
 	}
 
-<<<<<<< HEAD
 	cycle = fec_enet_us_to_itr_clock(ndev, fep->tx_time_itr);
 	if (cycle > 0xFFFF) {
 		pr_err("Rx coalesed usec exceeed hardware limiation");
-=======
-	cycle = fec_enet_us_to_itr_clock(ndev, ec->tx_coalesce_usecs);
-	if (cycle > 0xFFFF) {
-		pr_err("Tx coalesed usec exceeed hardware limiation");
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		return -EINVAL;
 	}
 

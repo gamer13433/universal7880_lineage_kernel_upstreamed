@@ -27,11 +27,8 @@ struct thread_info {
 	int bpt_nsaved;
 	unsigned long bpt_addr[2];		/* breakpoint handling  */
 	unsigned int bpt_insn[2];
-<<<<<<< HEAD
 
 	struct restart_block	restart_block;
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 /*
@@ -43,12 +40,9 @@ struct thread_info {
 	.exec_domain	= &default_exec_domain,	\
 	.addr_limit	= KERNEL_DS,		\
 	.preempt_count	= INIT_PREEMPT_COUNT,	\
-<<<<<<< HEAD
 	.restart_block = {			\
 		.fn = do_no_restart_syscall,	\
 	},					\
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 #define init_thread_info	(init_thread_union.thread_info)

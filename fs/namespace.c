@@ -216,10 +216,6 @@ static struct mount *alloc_vfsmnt(const char *name)
 		mnt->mnt_count = 1;
 		mnt->mnt_writers = 0;
 #endif
-<<<<<<< HEAD
-=======
-		mnt->mnt.data = NULL;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 		INIT_HLIST_NODE(&mnt->mnt_hash);
 		INIT_LIST_HEAD(&mnt->mnt_child);
@@ -915,10 +911,7 @@ vfs_kern_mount(struct file_system_type *type, int flags, const char *name, void 
 	if (!mnt)
 		return ERR_PTR(-ENOMEM);
 
-<<<<<<< HEAD
 	mnt->mnt.data = NULL;
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (type->alloc_mnt_data) {
 		mnt->mnt.data = type->alloc_mnt_data();
 		if (!mnt->mnt.data) {
@@ -1356,11 +1349,7 @@ static void namespace_unlock(void)
 
 	up_write(&namespace_sem);
 
-<<<<<<< HEAD
 	synchronize_rcu_expedited();
-=======
-	synchronize_rcu();
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	while (!hlist_empty(&head)) {
 		mnt = hlist_entry(head.first, struct mount, mnt_hash);
@@ -1554,16 +1543,9 @@ void __detach_mounts(struct dentry *dentry)
 		goto out_unlock;
 
 	lock_mount_hash();
-<<<<<<< HEAD
 	while (!hlist_empty(&mp->m_list)) {
 		mnt = hlist_entry(mp->m_list.first, struct mount, mnt_mp_list);
 		umount_tree(mnt, 2);
-=======
-	event++;
-	while (!hlist_empty(&mp->m_list)) {
-		mnt = hlist_entry(mp->m_list.first, struct mount, mnt_mp_list);
-		umount_tree(mnt, 0);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 	unlock_mount_hash();
 	put_mountpoint(mp);
@@ -1752,11 +1734,7 @@ struct vfsmount *collect_mounts(struct path *path)
 		tree = ERR_PTR(-EINVAL);
 	else
 		tree = copy_tree(real_mount(path->mnt), path->dentry,
-<<<<<<< HEAD
 				CL_COPY_ALL | CL_PRIVATE);
-=======
-				 CL_COPY_ALL | CL_PRIVATE);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	namespace_unlock();
 	if (IS_ERR(tree))
 		return ERR_CAST(tree);
@@ -3051,13 +3029,8 @@ SYSCALL_DEFINE2(pivot_root, const char __user *, new_root,
 	/* make certain new is below the root */
 	if (!is_path_reachable(new_mnt, new.dentry, &root))
 		goto out4;
-<<<<<<< HEAD
 	root_mp->m_count++; /* pin it so it won't go away */
 	lock_mount_hash();
-=======
-	lock_mount_hash();
-	root_mp->m_count++; /* pin it so it won't go away */
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	detach_mnt(new_mnt, &parent_path);
 	detach_mnt(root_mnt, &root_parent);
 	if (root_mnt->mnt.mnt_flags & MNT_LOCKED) {

@@ -628,11 +628,7 @@ static int acpi_cpufreq_blacklist(struct cpuinfo_x86 *c)
 	if (c->x86_vendor == X86_VENDOR_INTEL) {
 		if ((c->x86 == 15) &&
 		    (c->x86_model == 6) &&
-<<<<<<< HEAD
 		    (c->x86_mask == 8)) {
-=======
-		    (c->x86_stepping == 8)) {
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			printk(KERN_INFO "acpi-cpufreq: Intel(R) "
 			    "Xeon(R) 7100 Errata AL30, processors may "
 			    "lock up on frequency changes: disabling "

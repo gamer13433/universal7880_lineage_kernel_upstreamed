@@ -49,10 +49,6 @@
 
 #include <linux/linkage.h>
 #include <asm/assembler.h>
-<<<<<<< HEAD
-=======
-#include <asm/uaccess.h>
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #include <xen/interface/xen.h>
 
 
@@ -93,24 +89,6 @@ ENTRY(privcmd_call)
 	mov x2, x3
 	mov x3, x4
 	mov x4, x5
-<<<<<<< HEAD
 	hvc XEN_IMM
-=======
-	/*
-	 * Privcmd calls are issued by the userspace. The kernel needs to
-	 * enable access to TTBR0_EL1 as the hypervisor would issue stage 1
-	 * translations to user memory via AT instructions. Since AT
-	 * instructions are not affected by the PAN bit (ARMv8.1), we only
-	 * need the explicit uaccess_enable/disable if the TTBR0 PAN emulation
-	 * is enabled (it implies that hardware UAO and PAN disabled).
-	 */
-	uaccess_ttbr0_enable x6, x7, x8
-	hvc XEN_IMM
-
-	/*
-	 * Disable userspace access from kernel once the hyp call completed.
-	 */
-	uaccess_ttbr0_disable x6, x7
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	ret
 ENDPROC(privcmd_call);

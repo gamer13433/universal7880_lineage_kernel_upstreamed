@@ -163,15 +163,12 @@ void user_destroy(struct key *key)
 {
 	struct user_key_payload *upayload = key->payload.data;
 
-<<<<<<< HEAD
 #ifdef CONFIG_CRYPTO_FIPS
 	if(upayload)
 	{
 		memset(upayload->data, 0, upayload->datalen);
 	}
 #endif
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	kfree(upayload);
 }
 

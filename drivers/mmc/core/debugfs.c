@@ -164,11 +164,7 @@ static int mmc_ios_show(struct seq_file *s, void *data)
 		str = "invalid";
 		break;
 	}
-<<<<<<< HEAD
 	seq_printf(s, "signal voltage:\t%u (%s)\n", ios->chip_select, str);
-=======
-	seq_printf(s, "signal voltage:\t%u (%s)\n", ios->signal_voltage, str);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	return 0;
 }

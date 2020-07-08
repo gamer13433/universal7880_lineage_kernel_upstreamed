@@ -40,11 +40,7 @@ struct timestamp_event_queue {
 
 struct ptp_clock {
 	struct posix_clock clock;
-<<<<<<< HEAD
 	struct device *dev;
-=======
-	struct device dev;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	struct ptp_clock_info *info;
 	dev_t devid;
 	int index; /* index into clocks.map */
@@ -58,11 +54,6 @@ struct ptp_clock {
 	struct device_attribute *pin_dev_attr;
 	struct attribute **pin_attr;
 	struct attribute_group pin_attr_group;
-<<<<<<< HEAD
-=======
-	/* 1st entry is a pointer to the real group, 2nd is NULL terminator */
-	const struct attribute_group *pin_attr_groups[2];
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 /*
@@ -103,13 +94,8 @@ uint ptp_poll(struct posix_clock *pc,
 
 extern const struct attribute_group *ptp_groups[];
 
-<<<<<<< HEAD
 int ptp_cleanup_sysfs(struct ptp_clock *ptp);
 
 int ptp_populate_sysfs(struct ptp_clock *ptp);
-=======
-int ptp_populate_pin_groups(struct ptp_clock *ptp);
-void ptp_cleanup_pin_groups(struct ptp_clock *ptp);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #endif

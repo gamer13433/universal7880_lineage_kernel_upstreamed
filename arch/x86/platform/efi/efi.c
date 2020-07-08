@@ -824,12 +824,9 @@ static void __init kexec_enter_virtual_mode(void)
 
 	if (efi_enabled(EFI_OLD_MEMMAP) && (__supported_pte_mask & _PAGE_NX))
 		runtime_code_page_mkexec();
-<<<<<<< HEAD
 
 	/* clean DUMMY object */
 	efi_delete_dummy_variable();
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #endif
 }
 

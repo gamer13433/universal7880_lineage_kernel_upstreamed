@@ -84,11 +84,6 @@ struct cfg80211_registered_device {
 	struct list_head destroy_list;
 	struct work_struct destroy_work;
 
-<<<<<<< HEAD
-=======
-	struct work_struct sched_scan_stop_wk;
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/* must be last because of the way we do wiphy_priv(),
 	 * and it should at least be aligned to NETDEV_ALIGN */
 	struct wiphy wiphy __aligned(NETDEV_ALIGN);
@@ -116,15 +111,10 @@ cfg80211_rdev_free_wowlan(struct cfg80211_registered_device *rdev)
 	    rdev->wiphy.wowlan_config->tcp->sock)
 		sock_release(rdev->wiphy.wowlan_config->tcp->sock);
 	kfree(rdev->wiphy.wowlan_config->tcp);
-<<<<<<< HEAD
 #ifndef CONFIG_QCOM_WIFI
 	kfree(rdev->wiphy.wowlan_config);
 #endif
 #endif
-=======
-	kfree(rdev->wiphy.wowlan_config);
-#endif
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 extern struct workqueue_struct *cfg80211_wq;

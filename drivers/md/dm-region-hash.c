@@ -179,11 +179,7 @@ struct dm_region_hash *dm_region_hash_create(
 		;
 	nr_buckets >>= 1;
 
-<<<<<<< HEAD
 	rh = kmalloc(sizeof(*rh), GFP_KERNEL);
-=======
-	rh = kzalloc(sizeof(*rh), GFP_KERNEL);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (!rh) {
 		DMERR("unable to allocate region hash memory");
 		return ERR_PTR(-ENOMEM);

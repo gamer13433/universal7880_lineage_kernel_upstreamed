@@ -3008,12 +3008,7 @@ static int ixgbe_get_module_info(struct net_device *dev,
 		page_swap = true;
 	}
 
-<<<<<<< HEAD
 	if (sff8472_rev == IXGBE_SFF_SFF_8472_UNSUP || page_swap) {
-=======
-	if (sff8472_rev == IXGBE_SFF_SFF_8472_UNSUP || page_swap ||
-	    !(addr_mode & IXGBE_SFF_DDM_IMPLEMENTED)) {
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		/* We have a SFP, but it does not support SFF-8472 */
 		modinfo->type = ETH_MODULE_SFF_8079;
 		modinfo->eeprom_len = ETH_MODULE_SFF_8079_LEN;

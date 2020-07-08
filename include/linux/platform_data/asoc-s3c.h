@@ -1,9 +1,5 @@
-<<<<<<< HEAD
 /* arch/arm/plat-samsung/include/plat/audio.h
  *
-=======
-/*
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
  * Copyright (c) 2009 Samsung Electronics Co. Ltd
  * Author: Jaswinder Singh <jassi.brar@samsung.com>
  *
@@ -20,7 +16,6 @@
 #define S3C64XX_AC97_GPE  1
 extern void s3c64xx_ac97_setup_gpio(int);
 
-<<<<<<< HEAD
 /*
  * The machine init code calls s5p*_spdif_setup_gpio with
  * one of these defines in order to select appropriate bank
@@ -30,23 +25,17 @@ extern void s3c64xx_ac97_setup_gpio(int);
 #define S5PC100_SPDIF_GPG3 1
 extern void s5pc100_spdif_setup_gpio(int);
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 struct samsung_i2s {
 /* If the Primary DAI has 5.1 Channels */
 #define QUIRK_PRI_6CHAN		(1 << 0)
 /* If the I2S block has a Stereo Overlay Channel */
 #define QUIRK_SEC_DAI		(1 << 1)
-<<<<<<< HEAD
 /* If the I2S block has a Stereo internal DMA */
 #define QUIRK_IDMA		(1 << 2)
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /*
  * If the I2S block has no internal prescalar or MUX (I2SMOD[10] bit)
  * The Machine driver must provide suitably set clock to the I2S block.
  */
-<<<<<<< HEAD
 #define QUIRK_NO_MUXPSR		(1 << 3)
 #define QUIRK_NEED_RSTCLR	(1 << 4)
 #define QUIRK_SUPPORTS_TDM	(1 << 5)
@@ -59,12 +48,6 @@ struct samsung_i2s {
 #define QUIRK_I2S_MASTER_MODE	(1 << 9)
 #define QUIRK_I2S_STR_MODE	(1 << 10)
 #define QUIRK_I2S_DAI_AMP	(1 << 11)
-=======
-#define QUIRK_NO_MUXPSR		(1 << 2)
-#define QUIRK_NEED_RSTCLR	(1 << 3)
-#define QUIRK_SUPPORTS_TDM	(1 << 4)
-	/* Quirks of the I2S controller */
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	u32 quirks;
 	dma_addr_t idma_addr;
 };

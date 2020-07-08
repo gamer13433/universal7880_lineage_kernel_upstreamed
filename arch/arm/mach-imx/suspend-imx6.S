@@ -330,7 +330,6 @@ resume:
 
 	ret	lr
 ENDPROC(imx6_suspend)
-<<<<<<< HEAD
 
 /*
  * The following code must assume it is running from physical address
@@ -345,5 +344,3 @@ ENTRY(v7_cpu_resume)
 #endif
 	b	cpu_resume
 ENDPROC(v7_cpu_resume)
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012

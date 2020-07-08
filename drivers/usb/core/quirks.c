@@ -56,21 +56,9 @@ static const struct usb_device_id usb_quirk_list[] = {
 	/* Microsoft LifeCam-VX700 v2.0 */
 	{ USB_DEVICE(0x045e, 0x0770), .driver_info = USB_QUIRK_RESET_RESUME },
 
-<<<<<<< HEAD
 	/* Cherry Stream G230 2.0 (G85-231) and 3.0 (G85-232) */
 	{ USB_DEVICE(0x046a, 0x0023), .driver_info = USB_QUIRK_RESET_RESUME },
 
-=======
-	/* Microsoft Surface Dock Ethernet (RTL8153 GigE) */
-	{ USB_DEVICE(0x045e, 0x07c6), .driver_info = USB_QUIRK_NO_LPM },
-
-	/* Cherry Stream G230 2.0 (G85-231) and 3.0 (G85-232) */
-	{ USB_DEVICE(0x046a, 0x0023), .driver_info = USB_QUIRK_RESET_RESUME },
-
-	/* Logitech HD Webcam C270 */
-	{ USB_DEVICE(0x046d, 0x0825), .driver_info = USB_QUIRK_RESET_RESUME },
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/* Logitech HD Pro Webcams C920, C920-C, C925e and C930e */
 	{ USB_DEVICE(0x046d, 0x082d), .driver_info = USB_QUIRK_DELAY_INIT },
 	{ USB_DEVICE(0x046d, 0x0841), .driver_info = USB_QUIRK_DELAY_INIT },
@@ -84,12 +72,6 @@ static const struct usb_device_id usb_quirk_list[] = {
 	/* Logitech PTZ Pro Camera */
 	{ USB_DEVICE(0x046d, 0x0853), .driver_info = USB_QUIRK_DELAY_INIT },
 
-<<<<<<< HEAD
-=======
-	/* Logitech Screen Share */
-	{ USB_DEVICE(0x046d, 0x086c), .driver_info = USB_QUIRK_NO_LPM },
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/* Logitech Quickcam Fusion */
 	{ USB_DEVICE(0x046d, 0x08c1), .driver_info = USB_QUIRK_RESET_RESUME },
 
@@ -227,15 +209,6 @@ static const struct usb_device_id usb_quirk_list[] = {
 	{ USB_DEVICE(0x0b05, 0x17e0), .driver_info =
 			USB_QUIRK_IGNORE_REMOTE_WAKEUP },
 
-<<<<<<< HEAD
-=======
-	/* Realtek hub in Dell WD19 (Type-C) */
-	{ USB_DEVICE(0x0bda, 0x0487), .driver_info = USB_QUIRK_NO_LPM },
-
-	/* Generic RTL8153 based ethernet adapters */
-	{ USB_DEVICE(0x0bda, 0x8153), .driver_info = USB_QUIRK_NO_LPM },
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/* Action Semiconductor flash disk */
 	{ USB_DEVICE(0x10d6, 0x2200), .driver_info =
 			USB_QUIRK_STRING_FETCH_255 },
@@ -269,13 +242,6 @@ static const struct usb_device_id usb_quirk_list[] = {
 	/* Corsair K70 LUX */
 	{ USB_DEVICE(0x1b1c, 0x1b36), .driver_info = USB_QUIRK_DELAY_INIT },
 
-<<<<<<< HEAD
-=======
-	/* Corsair K70 RGB RAPDIFIRE */
-	{ USB_DEVICE(0x1b1c, 0x1b38), .driver_info = USB_QUIRK_DELAY_INIT |
-	  USB_QUIRK_DELAY_CTRL_MSG },
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/* MIDI keyboard WORLDE MINI */
 	{ USB_DEVICE(0x1c75, 0x0204), .driver_info =
 			USB_QUIRK_CONFIG_INTF_STRINGS },
@@ -304,12 +270,6 @@ static const struct usb_device_id usb_quirk_list[] = {
 	/* INTEL VALUE SSD */
 	{ USB_DEVICE(0x8086, 0xf1a5), .driver_info = USB_QUIRK_RESET_RESUME },
 
-<<<<<<< HEAD
-=======
-	/* novation SoundControl XL */
-	{ USB_DEVICE(0x1235, 0x0061), .driver_info = USB_QUIRK_RESET_RESUME },
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	{ }  /* terminating entry must be last */
 };
 

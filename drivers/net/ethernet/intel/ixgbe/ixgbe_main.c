@@ -2670,12 +2670,7 @@ int ixgbe_poll(struct napi_struct *napi, int budget)
 	ixgbe_for_each_ring(ring, q_vector->tx)
 		clean_complete &= !!ixgbe_clean_tx_irq(q_vector, ring);
 
-<<<<<<< HEAD
 	if (!ixgbe_qv_lock_napi(q_vector))
-=======
-	/* Exit if we are called by netpoll or busy polling is active */
-	if ((budget <= 0) || !ixgbe_qv_lock_napi(q_vector))
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		return budget;
 
 	/* attempt to distribute budget to each queue fairly, but don't allow

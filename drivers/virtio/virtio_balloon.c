@@ -196,13 +196,8 @@ static void leak_balloon(struct virtio_balloon *vb, size_t num)
 	 */
 	if (vb->num_pfns != 0)
 		tell_host(vb, vb->deflate_vq);
-<<<<<<< HEAD
 	mutex_unlock(&vb->balloon_lock);
 	release_pages_by_pfn(vb->pfns, vb->num_pfns);
-=======
-	release_pages_by_pfn(vb->pfns, vb->num_pfns);
-	mutex_unlock(&vb->balloon_lock);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 static inline void update_stat(struct virtio_balloon *vb, int idx,

@@ -977,30 +977,19 @@ struct pinctrl_state *pinctrl_lookup_state(struct pinctrl *p,
 EXPORT_SYMBOL_GPL(pinctrl_lookup_state);
 
 /**
-<<<<<<< HEAD
  * pinctrl_select_state() - select/activate/program a pinctrl state to HW
  * @p: the pinctrl handle for the device that requests configuration
  * @state: the state handle to select/activate/program
  */
 int pinctrl_select_state(struct pinctrl *p, struct pinctrl_state *state)
-=======
- * pinctrl_commit_state() - select/activate/program a pinctrl state to HW
- * @p: the pinctrl handle for the device that requests configuration
- * @state: the state handle to select/activate/program
- */
-static int pinctrl_commit_state(struct pinctrl *p, struct pinctrl_state *state)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	struct pinctrl_setting *setting, *setting2;
 	struct pinctrl_state *old_state = p->state;
 	int ret;
 
-<<<<<<< HEAD
 	if (p->state == state)
 		return 0;
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (p->state) {
 		/*
 		 * For each pinmux setting in the old state, forget SW's record
@@ -1064,22 +1053,6 @@ unapply_new_state:
 
 	return ret;
 }
-<<<<<<< HEAD
-=======
-
-/**
- * pinctrl_select_state() - select/activate/program a pinctrl state to HW
- * @p: the pinctrl handle for the device that requests configuration
- * @state: the state handle to select/activate/program
- */
-int pinctrl_select_state(struct pinctrl *p, struct pinctrl_state *state)
-{
-	if (p->state == state)
-		return 0;
-
-	return pinctrl_commit_state(p, state);
-}
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 EXPORT_SYMBOL_GPL(pinctrl_select_state);
 
 static void devm_pinctrl_release(struct device *dev, void *res)
@@ -1137,11 +1110,7 @@ void devm_pinctrl_put(struct pinctrl *p)
 EXPORT_SYMBOL_GPL(devm_pinctrl_put);
 
 int pinctrl_register_map(struct pinctrl_map const *maps, unsigned num_maps,
-<<<<<<< HEAD
 			 bool dup, bool locked)
-=======
-			 bool dup)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	int i, ret;
 	struct pinctrl_maps *maps_node;
@@ -1209,17 +1178,11 @@ int pinctrl_register_map(struct pinctrl_map const *maps, unsigned num_maps,
 		maps_node->maps = maps;
 	}
 
-<<<<<<< HEAD
 	if (!locked)
 		mutex_lock(&pinctrl_maps_mutex);
 	list_add_tail(&maps_node->node, &pinctrl_maps);
 	if (!locked)
 		mutex_unlock(&pinctrl_maps_mutex);
-=======
-	mutex_lock(&pinctrl_maps_mutex);
-	list_add_tail(&maps_node->node, &pinctrl_maps);
-	mutex_unlock(&pinctrl_maps_mutex);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	return 0;
 }
@@ -1234,11 +1197,7 @@ int pinctrl_register_map(struct pinctrl_map const *maps, unsigned num_maps,
 int pinctrl_register_mappings(struct pinctrl_map const *maps,
 			      unsigned num_maps)
 {
-<<<<<<< HEAD
 	return pinctrl_register_map(maps, num_maps, true, false);
-=======
-	return pinctrl_register_map(maps, num_maps, true);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 void pinctrl_unregister_map(struct pinctrl_map const *map)
@@ -1264,11 +1223,7 @@ void pinctrl_unregister_map(struct pinctrl_map const *map)
 int pinctrl_force_sleep(struct pinctrl_dev *pctldev)
 {
 	if (!IS_ERR(pctldev->p) && !IS_ERR(pctldev->hog_sleep))
-<<<<<<< HEAD
 		return pinctrl_select_state(pctldev->p, pctldev->hog_sleep);
-=======
-		return pinctrl_commit_state(pctldev->p, pctldev->hog_sleep);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return 0;
 }
 EXPORT_SYMBOL_GPL(pinctrl_force_sleep);
@@ -1280,11 +1235,7 @@ EXPORT_SYMBOL_GPL(pinctrl_force_sleep);
 int pinctrl_force_default(struct pinctrl_dev *pctldev)
 {
 	if (!IS_ERR(pctldev->p) && !IS_ERR(pctldev->hog_default))
-<<<<<<< HEAD
 		return pinctrl_select_state(pctldev->p, pctldev->hog_default);
-=======
-		return pinctrl_commit_state(pctldev->p, pctldev->hog_default);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return 0;
 }
 EXPORT_SYMBOL_GPL(pinctrl_force_default);
@@ -1850,25 +1801,14 @@ void pinctrl_unregister(struct pinctrl_dev *pctldev)
 	if (pctldev == NULL)
 		return;
 
-<<<<<<< HEAD
 	mutex_lock(&pinctrldev_list_mutex);
 	mutex_lock(&pctldev->mutex);
 
 	pinctrl_remove_device_debugfs(pctldev);
-=======
-	mutex_lock(&pctldev->mutex);
-	pinctrl_remove_device_debugfs(pctldev);
-	mutex_unlock(&pctldev->mutex);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if (!IS_ERR(pctldev->p))
 		pinctrl_put(pctldev->p);
 
-<<<<<<< HEAD
-=======
-	mutex_lock(&pinctrldev_list_mutex);
-	mutex_lock(&pctldev->mutex);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/* TODO: check that no pinmuxes are still active? */
 	list_del(&pctldev->node);
 	/* Destroy descriptor tree */

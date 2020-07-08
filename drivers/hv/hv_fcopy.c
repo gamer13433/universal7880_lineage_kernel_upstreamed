@@ -246,12 +246,7 @@ void hv_fcopy_onchannelcallback(void *context)
 		/*
 		 * Send the information to the user-level daemon.
 		 */
-<<<<<<< HEAD
 		schedule_delayed_work(&fcopy_work, 5*HZ);
-=======
-		schedule_delayed_work(&fcopy_work,
-				      HV_UTIL_TIMEOUT * HZ);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		fcopy_send_data();
 		return;
 	}

@@ -7,10 +7,6 @@
 
 #include <linux/uidgid.h>
 #include <net/inet_frag.h>
-<<<<<<< HEAD
-=======
-#include <linux/siphash.h>
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 struct tcpm_hash_bucket;
 struct ctl_table_header;
@@ -85,10 +81,6 @@ struct netns_ipv4 {
 
 	int sysctl_fwmark_reflect;
 	int sysctl_tcp_fwmark_accept;
-<<<<<<< HEAD
-=======
-	int sysctl_tcp_min_snd_mss;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	struct ping_group_range ping_group_range;
 
@@ -107,9 +99,5 @@ struct netns_ipv4 {
 #endif
 #endif
 	atomic_t	rt_genid;
-<<<<<<< HEAD
-=======
-	siphash_key_t	ip_id_key;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 #endif

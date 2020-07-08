@@ -25,10 +25,6 @@ quiet_cmd_bin2c = BIN2C   $@
 
 $(obj)/kexec-purgatory.c: $(obj)/purgatory.ro FORCE
 	$(call if_changed,bin2c)
-<<<<<<< HEAD
-=======
-	@:
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 
 obj-$(CONFIG_KEXEC_FILE)	+= kexec-purgatory.o

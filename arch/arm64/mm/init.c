@@ -68,11 +68,7 @@ early_param("initrd", early_initrd);
  * currently assumes that for memory starting above 4G, 32-bit devices will
  * use a DMA offset.
  */
-<<<<<<< HEAD
 static phys_addr_t max_zone_dma_phys(void)
-=======
-static phys_addr_t __init max_zone_dma_phys(void)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	phys_addr_t offset = memblock_start_of_DRAM() & GENMASK_ULL(63, 32);
 	return min(offset + (1ULL << 32), memblock_end_of_DRAM());
@@ -118,39 +114,21 @@ static void __init zone_sizes_init(unsigned long min, unsigned long max)
 }
 
 #ifdef CONFIG_HAVE_ARCH_PFN_VALID
-<<<<<<< HEAD
 #define PFN_MASK ((1UL << (64 - PAGE_SHIFT)) - 1)
 
 int pfn_valid(unsigned long pfn)
 {
 	return (pfn & PFN_MASK) == pfn && memblock_is_memory(pfn << PAGE_SHIFT);
-=======
-int pfn_valid(unsigned long pfn)
-{
-	phys_addr_t addr = pfn << PAGE_SHIFT;
-
-	if ((addr >> PAGE_SHIFT) != pfn)
-		return 0;
-	return memblock_is_memory(addr);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 EXPORT_SYMBOL(pfn_valid);
 #endif
 
 #ifndef CONFIG_SPARSEMEM
-<<<<<<< HEAD
 static void arm64_memory_present(void)
 {
 }
 #else
 static void arm64_memory_present(void)
-=======
-static void __init arm64_memory_present(void)
-{
-}
-#else
-static void __init arm64_memory_present(void)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	struct memblock_region *reg;
 
@@ -263,11 +241,7 @@ static void __init free_unused_memmap(void)
 		 * memmap entries are valid from the bank end aligned to
 		 * MAX_ORDER_NR_PAGES.
 		 */
-<<<<<<< HEAD
 		prev_end = ALIGN(start + __phys_to_pfn(reg->size),
-=======
-		prev_end = ALIGN(__phys_to_pfn(reg->base + reg->size),
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 				 MAX_ORDER_NR_PAGES);
 	}
 
@@ -354,7 +328,6 @@ void __init mem_init(void)
 
 void free_initmem(void)
 {
-<<<<<<< HEAD
 	free_initmem_default(0);
 	free_alternatives_memory();
 #ifdef CONFIG_TIMA_RKP
@@ -363,11 +336,6 @@ void free_initmem(void)
 #endif
 		rkp_call(RKP_DEF_INIT, 0, 0, 0, 0, 0);
 #endif
-=======
-	fixup_init();
-	free_initmem_default(0);
-	free_alternatives_memory();
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 #ifdef CONFIG_BLK_DEV_INITRD

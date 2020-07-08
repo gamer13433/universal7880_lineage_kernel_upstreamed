@@ -102,14 +102,6 @@ int is_valid_bugaddr(unsigned long addr);
 
 #else	/* !CONFIG_GENERIC_BUG */
 
-<<<<<<< HEAD
-=======
-static inline void *find_bug(unsigned long bugaddr)
-{
-	return NULL;
-}
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static inline enum bug_trap_type report_bug(unsigned long bug_addr,
 					    struct pt_regs *regs)
 {
@@ -117,26 +109,4 @@ static inline enum bug_trap_type report_bug(unsigned long bug_addr,
 }
 
 #endif	/* CONFIG_GENERIC_BUG */
-<<<<<<< HEAD
-=======
-
-/*
- * Since detected data corruption should stop operation on the affected
- * structures. Return value must be checked and sanely acted on by caller.
- */
-static inline __must_check bool check_data_corruption(bool v) { return v; }
-#define CHECK_DATA_CORRUPTION(condition, fmt, ...)			 \
-	check_data_corruption(({					 \
-		bool corruption = unlikely(condition);			 \
-		if (corruption) {					 \
-			if (IS_ENABLED(CONFIG_BUG_ON_DATA_CORRUPTION)) { \
-				pr_err(fmt, ##__VA_ARGS__);		 \
-				BUG();					 \
-			} else						 \
-				WARN(1, fmt, ##__VA_ARGS__);		 \
-		}							 \
-		corruption;						 \
-	}))
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #endif	/* _LINUX_BUG_H */

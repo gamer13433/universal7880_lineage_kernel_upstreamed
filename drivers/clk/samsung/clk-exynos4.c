@@ -1220,10 +1220,6 @@ static unsigned long exynos4_get_xom(void)
 			xom = readl(chipid_base + 8);
 
 		iounmap(chipid_base);
-<<<<<<< HEAD
-=======
-		of_node_put(np);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 	return xom;

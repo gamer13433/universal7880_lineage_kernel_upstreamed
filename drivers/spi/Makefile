@@ -3,10 +3,7 @@
 #
 
 ccflags-$(CONFIG_SPI_DEBUG) := -DDEBUG
-<<<<<<< HEAD
 ccflags-y := $(KBUILD_FP_SENSOR_CFLAGS)
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 # small core, mostly translating board-specific
 # config declarations into driver model code

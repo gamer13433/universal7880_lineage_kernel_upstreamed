@@ -120,12 +120,6 @@ static void tas2552_sw_shutdown(struct tas2552_data *tas_data, int sw_shutdown)
 {
 	u8 cfg1_reg;
 
-<<<<<<< HEAD
-=======
-	if (!tas_data->codec)
-		return;
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (sw_shutdown)
 		cfg1_reg = 0;
 	else
@@ -341,10 +335,7 @@ static DECLARE_TLV_DB_SCALE(dac_tlv, -7, 100, 24);
 static const struct snd_kcontrol_new tas2552_snd_controls[] = {
 	SOC_SINGLE_TLV("Speaker Driver Playback Volume",
 			 TAS2552_PGA_GAIN, 0, 0x1f, 1, dac_tlv),
-<<<<<<< HEAD
 	SOC_DAPM_SINGLE("Playback AMP", SND_SOC_NOPM, 0, 1, 0),
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 static const struct reg_default tas2552_init_regs[] = {

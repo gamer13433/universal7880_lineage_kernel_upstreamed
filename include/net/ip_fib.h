@@ -59,10 +59,6 @@ struct fib_nh_exception {
 	struct rtable __rcu		*fnhe_rth_input;
 	struct rtable __rcu		*fnhe_rth_output;
 	unsigned long			fnhe_stamp;
-<<<<<<< HEAD
-=======
-	struct rcu_head			rcu;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 struct fnhe_hash_bucket {

@@ -520,11 +520,7 @@ static sense_reason_t compare_and_write_callback(struct se_cmd *cmd, bool succes
 	cmd->transport_state |= CMD_T_ACTIVE|CMD_T_BUSY|CMD_T_SENT;
 	spin_unlock_irq(&cmd->t_state_lock);
 
-<<<<<<< HEAD
 	__target_execute_cmd(cmd);
-=======
-	__target_execute_cmd(cmd, false);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	kfree(buf);
 	return ret;

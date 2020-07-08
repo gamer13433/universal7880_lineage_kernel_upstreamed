@@ -38,13 +38,8 @@ struct devfreq;
  */
 struct devfreq_dev_status {
 	/* both since the last measure */
-<<<<<<< HEAD
 	unsigned long long total_time;
 	unsigned long long busy_time;
-=======
-	unsigned long total_time;
-	unsigned long busy_time;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	unsigned long current_frequency;
 	void *private_data;
 };
@@ -83,10 +78,7 @@ struct devfreq_dev_status {
  */
 struct devfreq_dev_profile {
 	unsigned long initial_freq;
-<<<<<<< HEAD
 	unsigned long suspend_freq;
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	unsigned int polling_ms;
 
 	int (*target)(struct device *dev, unsigned long *freq, u32 flags);
@@ -182,11 +174,8 @@ struct devfreq {
 	unsigned int *trans_table;
 	unsigned long *time_in_state;
 	unsigned long last_stat_updated;
-<<<<<<< HEAD
 
 	bool disabled_pm_qos;
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 #if defined(CONFIG_PM_DEVFREQ)
@@ -218,7 +207,6 @@ extern int devm_devfreq_register_opp_notifier(struct device *dev,
 extern void devm_devfreq_unregister_opp_notifier(struct device *dev,
 						struct devfreq *devfreq);
 
-<<<<<<< HEAD
 #if IS_ENABLED(CONFIG_DEVFREQ_GOV_SIMPLE_ONDEMAND) || IS_ENABLED(CONFIG_DEVFREQ_GOV_SIMPLE_USAGE)
 struct devfreq_notifier_block {
 	struct notifier_block nb;
@@ -226,8 +214,6 @@ struct devfreq_notifier_block {
 };
 #endif
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #if IS_ENABLED(CONFIG_DEVFREQ_GOV_SIMPLE_ONDEMAND)
 /**
  * struct devfreq_simple_ondemand_data - void *data fed to struct devfreq
@@ -243,7 +229,6 @@ struct devfreq_notifier_block {
  * the governor uses the default values.
  */
 struct devfreq_simple_ondemand_data {
-<<<<<<< HEAD
 	unsigned int multiplication_weight;
 	unsigned int upthreshold;
 	unsigned int downdifferential;
@@ -280,10 +265,6 @@ struct devfreq_simple_exynos_data {
 	bool en_monitoring;
 	struct devfreq_notifier_block nb;
 	struct devfreq_notifier_block nb_max;
-=======
-	unsigned int upthreshold;
-	unsigned int downdifferential;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 #endif
 

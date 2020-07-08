@@ -89,33 +89,16 @@ static void vhci_recv_ret_submit(struct vhci_device *vdev,
 	usbip_pack_pdu(pdu, urb, USBIP_RET_SUBMIT, 0);
 
 	/* recv transfer buffer */
-<<<<<<< HEAD
 	if (usbip_recv_xbuff(ud, urb) < 0)
 		return;
 
 	/* recv iso_packet_descriptor */
 	if (usbip_recv_iso(ud, urb) < 0)
 		return;
-=======
-	if (usbip_recv_xbuff(ud, urb) < 0) {
-		urb->status = -EPROTO;
-		goto error;
-	}
-
-	/* recv iso_packet_descriptor */
-	if (usbip_recv_iso(ud, urb) < 0) {
-		urb->status = -EPROTO;
-		goto error;
-	}
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	/* restore the padding in iso packets */
 	usbip_pad_iso(ud, urb);
 
-<<<<<<< HEAD
-=======
-error:
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (usbip_dbg_flag_vhci_rx)
 		usbip_dump_urb(urb);
 

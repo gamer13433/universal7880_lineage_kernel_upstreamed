@@ -319,10 +319,6 @@ static void scsi_target_destroy(struct scsi_target *starget)
 	struct Scsi_Host *shost = dev_to_shost(dev->parent);
 	unsigned long flags;
 
-<<<<<<< HEAD
-=======
-	BUG_ON(starget->state == STARGET_DEL);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	starget->state = STARGET_DEL;
 	transport_destroy_device(dev);
 	spin_lock_irqsave(shost->host_lock, flags);

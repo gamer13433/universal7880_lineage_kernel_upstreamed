@@ -59,19 +59,6 @@ struct wl18xx_cmd_smart_config_set_group_key {
 	u8 key[16];
 } __packed;
 
-<<<<<<< HEAD
-=======
-/* cac_start and cac_stop share the same params */
-struct wlcore_cmd_cac_start {
-	struct wl1271_cmd_header header;
-
-	u8 role_id;
-	u8 channel;
-	u8 band;
-	u8 bandwidth;
-} __packed;
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 int wl18xx_cmd_channel_switch(struct wl1271 *wl,
 			      struct wl12xx_vif *wlvif,
 			      struct ieee80211_channel_switch *ch_switch);
@@ -79,8 +66,4 @@ int wl18xx_cmd_smart_config_start(struct wl1271 *wl, u32 group_bitmap);
 int wl18xx_cmd_smart_config_stop(struct wl1271 *wl);
 int wl18xx_cmd_smart_config_set_group_key(struct wl1271 *wl, u16 group_id,
 					  u8 key_len, u8 *key);
-<<<<<<< HEAD
-=======
-int wl18xx_cmd_set_cac(struct wl1271 *wl, struct wl12xx_vif *wlvif, bool start);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #endif

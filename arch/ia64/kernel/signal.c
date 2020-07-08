@@ -46,11 +46,7 @@ restore_sigcontext (struct sigcontext __user *sc, struct sigscratch *scr)
 	long err;
 
 	/* Always make any pending restarted system calls return -EINTR */
-<<<<<<< HEAD
 	current_thread_info()->restart_block.fn = do_no_restart_syscall;
-=======
-	current->restart_block.fn = do_no_restart_syscall;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	/* restore scratch that always needs gets updated during signal delivery: */
 	err  = __get_user(flags, &sc->sc_flags);

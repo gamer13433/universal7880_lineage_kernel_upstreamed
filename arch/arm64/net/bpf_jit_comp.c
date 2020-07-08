@@ -413,10 +413,6 @@ emit_cond_jmp:
 		case BPF_JGE:
 			jmp_cond = A64_COND_CS;
 			break;
-<<<<<<< HEAD
-=======
-		case BPF_JSET:
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		case BPF_JNE:
 			jmp_cond = A64_COND_NE;
 			break;

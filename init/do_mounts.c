@@ -207,11 +207,7 @@ done:
  *	bangs.
  */
 
-<<<<<<< HEAD
 dev_t name_to_dev_t(char *name)
-=======
-dev_t name_to_dev_t(const char *name)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	char s[32];
 	char *p;
@@ -290,10 +286,6 @@ fail:
 done:
 	return res;
 }
-<<<<<<< HEAD
-=======
-EXPORT_SYMBOL_GPL(name_to_dev_t);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 static int __init root_dev_setup(char *line)
 {
@@ -564,10 +556,6 @@ void __init prepare_namespace(void)
 	wait_for_device_probe();
 
 	md_run_setup();
-<<<<<<< HEAD
-=======
-	dm_run_setup();
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if (saved_root_name[0]) {
 		root_device_name = saved_root_name;

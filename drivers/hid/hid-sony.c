@@ -1592,21 +1592,9 @@ static int sony_play_effect(struct input_dev *dev, void *data,
 
 static int sony_init_ff(struct sony_sc *sc)
 {
-<<<<<<< HEAD
 	struct hid_input *hidinput = list_entry(sc->hdev->inputs.next,
 						struct hid_input, list);
 	struct input_dev *input_dev = hidinput->input;
-=======
-	struct hid_input *hidinput;
-	struct input_dev *input_dev;
-
-	if (list_empty(&sc->hdev->inputs)) {
-		hid_err(sc->hdev, "no inputs found\n");
-		return -ENODEV;
-	}
-	hidinput = list_entry(sc->hdev->inputs.next, struct hid_input, list);
-	input_dev = hidinput->input;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	input_set_capability(input_dev, EV_FF, FF_RUMBLE);
 	return input_ff_create_memless(input_dev, NULL, sony_play_effect);
@@ -2053,12 +2041,6 @@ static const struct hid_device_id sony_devices[] = {
 	/* Logitech Harmony Adapter for PS3 */
 	{ HID_BLUETOOTH_DEVICE(USB_VENDOR_ID_LOGITECH, USB_DEVICE_ID_LOGITECH_HARMONY_PS3),
 		.driver_data = PS3REMOTE },
-<<<<<<< HEAD
-=======
-	/* SMK-Link PS3 BD Remote Control */
-	{ HID_BLUETOOTH_DEVICE(USB_VENDOR_ID_SMK, USB_DEVICE_ID_SMK_PS3_BDREMOTE),
-		.driver_data = PS3REMOTE },
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/* Sony Dualshock 4 controllers for PS4 */
 	{ HID_USB_DEVICE(USB_VENDOR_ID_SONY, USB_DEVICE_ID_SONY_PS4_CONTROLLER),
 		.driver_data = DUALSHOCK4_CONTROLLER_USB },

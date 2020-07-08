@@ -1396,19 +1396,6 @@ again:
 	if (__test_and_clear_bit(62, (unsigned long *)&status)) {
 		handled++;
 		x86_pmu.drain_pebs(regs);
-<<<<<<< HEAD
-=======
-		/*
-		 * There are cases where, even though, the PEBS ovfl bit is set
-		 * in GLOBAL_OVF_STATUS, the PEBS events may also have their
-		 * overflow bits set for their counters. We must clear them
-		 * here because they have been processed as exact samples in
-		 * the drain_pebs() routine. They must not be processed again
-		 * in the for_each_bit_set() loop for regular samples below.
-		 */
-		status &= ~cpuc->pebs_enabled;
-		status &= x86_pmu.intel_ctrl | GLOBAL_STATUS_TRACE_TOPAPMI;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 	/*
@@ -2159,11 +2146,7 @@ static int intel_snb_pebs_broken(int cpu)
 		break;
 
 	case 45: /* SNB-EP */
-<<<<<<< HEAD
 		switch (cpu_data(cpu).x86_mask) {
-=======
-		switch (cpu_data(cpu).x86_stepping) {
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		case 6: rev = 0x618; break;
 		case 7: rev = 0x70c; break;
 		}

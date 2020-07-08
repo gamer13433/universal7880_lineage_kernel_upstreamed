@@ -1414,12 +1414,9 @@ static void of_i2c_register_devices(struct i2c_adapter *adap)
 		if (of_get_property(node, "wakeup-source", NULL))
 			info.flags |= I2C_CLIENT_WAKE;
 
-<<<<<<< HEAD
 		if (of_get_property(node, "ten-bit-address", NULL))
 			info.flags |= I2C_CLIENT_TEN;
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		request_module("%s%s", I2C_MODULE_PREFIX, info.type);
 
 		result = i2c_new_device(adap, &info);

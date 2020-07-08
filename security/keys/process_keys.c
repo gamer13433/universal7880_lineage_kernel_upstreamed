@@ -131,12 +131,7 @@ error:
 /*
  * Install a thread keyring to the given credentials struct if it didn't have
  * one already.  This is allowed to overrun the quota.
-<<<<<<< HEAD
  * Return: 0 if a thread keyring is now present; -errno on failure. 
-=======
- *
- * Return: 0 if a thread keyring is now present; -errno on failure.
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
  */
 int install_thread_keyring_to_cred(struct cred *new)
 {

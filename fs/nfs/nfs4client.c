@@ -695,18 +695,9 @@ int nfs41_walk_client_list(struct nfs_client *new,
 
 static void nfs4_destroy_server(struct nfs_server *server)
 {
-<<<<<<< HEAD
 	nfs_server_return_all_delegations(server);
 	unset_pnfs_layoutdriver(server);
 	nfs4_purge_state_owners(server);
-=======
-	LIST_HEAD(freeme);
-
-	nfs_server_return_all_delegations(server);
-	unset_pnfs_layoutdriver(server);
-	nfs4_purge_state_owners(server, &freeme);
-	nfs4_free_state_owners(&freeme);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 /*
@@ -770,11 +761,7 @@ nfs4_find_client_sessionid(struct net *net, const struct sockaddr *addr,
 
 	spin_lock(&nn->nfs_client_lock);
 	list_for_each_entry(clp, &nn->nfs_client_list, cl_share_link) {
-<<<<<<< HEAD
 		if (nfs4_cb_match_client(addr, clp, minorversion) == false)
-=======
-		if (!nfs4_cb_match_client(addr, clp, minorversion))
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			continue;
 
 		if (!nfs4_has_session(clp))

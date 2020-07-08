@@ -289,11 +289,6 @@ static void send_hsr_supervision_frame(struct hsr_port *master, u8 type)
 			    skb->dev->dev_addr, skb->len) <= 0)
 		goto out;
 	skb_reset_mac_header(skb);
-<<<<<<< HEAD
-=======
-	skb_reset_network_header(skb);
-	skb_reset_transport_header(skb);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	hsr_stag = (typeof(hsr_stag)) skb_put(skb, sizeof(*hsr_stag));
 

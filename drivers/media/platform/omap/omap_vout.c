@@ -1590,7 +1590,6 @@ static int vidioc_dqbuf(struct file *file, void *fh, struct v4l2_buffer *b)
 	unsigned long size;
 	struct videobuf_buffer *vb;
 
-<<<<<<< HEAD
 	vb = q->bufs[b->index];
 
 	if (!vout->streaming)
@@ -1602,26 +1601,12 @@ static int vidioc_dqbuf(struct file *file, void *fh, struct v4l2_buffer *b)
 	else
 		/* Call videobuf_dqbuf for  blocking mode */
 		ret = videobuf_dqbuf(q, (struct v4l2_buffer *)b, 0);
-=======
-	if (!vout->streaming)
-		return -EINVAL;
-
-	ret = videobuf_dqbuf(q, b, !!(file->f_flags & O_NONBLOCK));
-	if (ret)
-		return ret;
-
-	vb = q->bufs[b->index];
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	addr = (unsigned long) vout->buf_phy_addr[vb->i];
 	size = (unsigned long) vb->size;
 	dma_unmap_single(vout->vid_dev->v4l2_dev.dev,  addr,
 				size, DMA_TO_DEVICE);
-<<<<<<< HEAD
 	return ret;
-=======
-	return 0;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 static int vidioc_streamon(struct file *file, void *fh, enum v4l2_buf_type i)

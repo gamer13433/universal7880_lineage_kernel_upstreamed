@@ -2327,7 +2327,6 @@ static int cgroup_attach_task(struct cgroup *dst_cgrp,
 	return ret;
 }
 
-<<<<<<< HEAD
 int subsys_cgroup_allow_attach(struct cgroup_subsys_state *css, struct cgroup_taskset *tset)
 {
 	const struct cred *cred = current_cred(), *tcred;
@@ -2366,8 +2365,6 @@ static int cgroup_allow_attach(struct cgroup *cgrp, struct cgroup_taskset *tset)
 	return 0;
 }
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /*
  * Find the task_struct of the task to attach by vpid and pass it along to the
  * function to attach either it or all tasks in its threadgroup. Will lock
@@ -2405,7 +2402,6 @@ retry_find_task:
 		tcred = __task_cred(tsk);
 		if (!uid_eq(cred->euid, GLOBAL_ROOT_UID) &&
 		    !uid_eq(cred->euid, tcred->uid) &&
-<<<<<<< HEAD
 		    !uid_eq(cred->euid, tcred->suid)) {
 			/*
 			 * if the default permission check fails, give each
@@ -2425,13 +2421,6 @@ retry_find_task:
 				rcu_read_unlock();
 				goto out_unlock_cgroup;
 			}
-=======
-		    !uid_eq(cred->euid, tcred->suid) &&
-		    !ns_capable(tcred->user_ns, CAP_SYS_NICE)) {
-			rcu_read_unlock();
-			ret = -EACCES;
-			goto out_unlock_cgroup;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		}
 	} else
 		tsk = current;
@@ -4382,21 +4371,11 @@ static void css_free_work_fn(struct work_struct *work)
 
 	if (css->ss) {
 		/* css free path */
-<<<<<<< HEAD
 		if (css->parent)
 			css_put(css->parent);
 
 		css->ss->css_free(css);
 		cgroup_put(cgrp);
-=======
-		struct cgroup_subsys_state *parent = css->parent;
-
-		css->ss->css_free(css);
-		cgroup_put(cgrp);
-
-		if (parent)
-			css_put(parent);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	} else {
 		/* cgroup free path */
 		atomic_dec(&cgrp->root->nr_cgrps);
@@ -4487,10 +4466,6 @@ static void init_and_link_css(struct cgroup_subsys_state *css,
 	memset(css, 0, sizeof(*css));
 	css->cgroup = cgrp;
 	css->ss = ss;
-<<<<<<< HEAD
-=======
-	css->id = -1;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	INIT_LIST_HEAD(&css->sibling);
 	INIT_LIST_HEAD(&css->children);
 	css->serial_nr = css_serial_nr_next++;
@@ -5540,11 +5515,7 @@ static int cgroup_css_links_read(struct seq_file *seq, void *v)
 		struct task_struct *task;
 		int count = 0;
 
-<<<<<<< HEAD
 		seq_printf(seq, "css_set %pK\n", cset);
-=======
-		seq_printf(seq, "css_set %p\n", cset);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 		list_for_each_entry(task, &cset->tasks, cg_list) {
 			if (count++ > MAX_TASKS_SHOWN_PER_CSS)

@@ -191,12 +191,6 @@ int pm_wake_lock(const char *buf)
 	size_t len;
 	int ret = 0;
 
-<<<<<<< HEAD
-=======
-	if (!capable(CAP_BLOCK_SUSPEND))
-		return -EPERM;
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	while (*str && !isspace(*str))
 		str++;
 
@@ -240,12 +234,6 @@ int pm_wake_unlock(const char *buf)
 	size_t len;
 	int ret = 0;
 
-<<<<<<< HEAD
-=======
-	if (!capable(CAP_BLOCK_SUSPEND))
-		return -EPERM;
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	len = strlen(buf);
 	if (!len)
 		return -EINVAL;

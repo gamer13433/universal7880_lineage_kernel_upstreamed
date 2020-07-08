@@ -25,10 +25,6 @@
 #include "ocfs2_ioctl.h"
 
 #include "alloc.h"
-<<<<<<< HEAD
-=======
-#include "localalloc.h"
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #include "aops.h"
 #include "dlmglue.h"
 #include "extent_map.h"
@@ -228,10 +224,6 @@ static int ocfs2_defrag_extent(struct ocfs2_move_extents_context *context,
 	struct ocfs2_refcount_tree *ref_tree = NULL;
 	u32 new_phys_cpos, new_len;
 	u64 phys_blkno = ocfs2_clusters_to_blocks(inode->i_sb, phys_cpos);
-<<<<<<< HEAD
-=======
-	int need_free = 0;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if ((ext_flags & OCFS2_EXT_REFCOUNTED) && *len) {
 
@@ -325,10 +317,6 @@ static int ocfs2_defrag_extent(struct ocfs2_move_extents_context *context,
 		if (!partial) {
 			context->range->me_flags &= ~OCFS2_MOVE_EXT_FL_COMPLETE;
 			ret = -ENOSPC;
-<<<<<<< HEAD
-=======
-			need_free = 1;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			goto out_commit;
 		}
 	}
@@ -353,23 +341,6 @@ static int ocfs2_defrag_extent(struct ocfs2_move_extents_context *context,
 		mlog_errno(ret);
 
 out_commit:
-<<<<<<< HEAD
-=======
-	if (need_free && context->data_ac) {
-		struct ocfs2_alloc_context *data_ac = context->data_ac;
-
-		if (context->data_ac->ac_which == OCFS2_AC_USE_LOCAL)
-			ocfs2_free_local_alloc_bits(osb, handle, data_ac,
-					new_phys_cpos, new_len);
-		else
-			ocfs2_free_clusters(handle,
-					data_ac->ac_inode,
-					data_ac->ac_bh,
-					ocfs2_clusters_to_blocks(osb->sb, new_phys_cpos),
-					new_len);
-	}
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	ocfs2_commit_trans(osb, handle);
 
 out_unlock_mutex:

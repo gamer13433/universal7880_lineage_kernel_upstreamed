@@ -66,14 +66,6 @@ struct tx_buf {
 	struct list_head list;
 };
 
-<<<<<<< HEAD
-=======
-struct rx_buf {
-	struct sk_buff *skb;
-	struct hif_device_usb *hif_dev;
-};
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #define HIF_USB_TX_STOP  BIT(0)
 #define HIF_USB_TX_FLUSH BIT(1)
 
@@ -120,9 +112,5 @@ struct hif_device_usb {
 
 int ath9k_hif_usb_init(void);
 void ath9k_hif_usb_exit(void);
-<<<<<<< HEAD
-=======
-void ath9k_hif_usb_dealloc_urbs(struct hif_device_usb *hif_dev);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #endif /* HTC_USB_H */

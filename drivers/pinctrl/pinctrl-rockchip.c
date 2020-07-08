@@ -1675,10 +1675,6 @@ static int rockchip_get_bank_data(struct rockchip_pin_bank *bank,
 						    base,
 						    &rockchip_regmap_config);
 		}
-<<<<<<< HEAD
-=======
-		of_node_put(node);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 	bank->irq = irq_of_parse_and_map(bank->of_node, 0);

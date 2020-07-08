@@ -792,25 +792,15 @@ static int sgiseeq_probe(struct platform_device *pdev)
 		printk(KERN_ERR "Sgiseeq: Cannot register net device, "
 		       "aborting.\n");
 		err = -ENODEV;
-<<<<<<< HEAD
 		goto err_out_free_page;
-=======
-		goto err_out_free_attrs;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 	printk(KERN_INFO "%s: %s %pM\n", dev->name, sgiseeqstr, dev->dev_addr);
 
 	return 0;
 
-<<<<<<< HEAD
 err_out_free_page:
 	free_page((unsigned long) sp->srings);
-=======
-err_out_free_attrs:
-	dma_free_attrs(&pdev->dev, sizeof(*sp->srings), sp->srings,
-		       sp->srings_dma, DMA_ATTR_NON_CONSISTENT);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 err_out_free_dev:
 	free_netdev(dev);
 

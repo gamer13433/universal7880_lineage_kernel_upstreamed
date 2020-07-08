@@ -88,11 +88,8 @@ void ext4_free_crypt_info(struct ext4_crypt_info *ci)
 	if (!ci)
 		return;
 
-<<<<<<< HEAD
 	if (ci->ci_keyring_key)
 		key_put(ci->ci_keyring_key);
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	crypto_free_ablkcipher(ci->ci_ctfm);
 	kmem_cache_free(ext4_crypt_info_cachep, ci);
 }
@@ -114,11 +111,7 @@ void ext4_free_encryption_info(struct inode *inode,
 	ext4_free_crypt_info(ci);
 }
 
-<<<<<<< HEAD
 int _ext4_get_encryption_info(struct inode *inode)
-=======
-int ext4_get_encryption_info(struct inode *inode)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	struct ext4_inode_info *ei = EXT4_I(inode);
 	struct ext4_crypt_info *crypt_info;
@@ -135,7 +128,6 @@ int ext4_get_encryption_info(struct inode *inode)
 	char mode;
 	int res;
 
-<<<<<<< HEAD
 	if (!ext4_read_workqueue) {
 		res = ext4_init_crypto();
 		if (res)
@@ -151,14 +143,6 @@ retry:
 		ext4_free_encryption_info(inode, crypt_info);
 		goto retry;
 	}
-=======
-	if (ei->i_crypt_info)
-		return 0;
-
-	res = ext4_init_crypto();
-	if (res)
-		return res;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	res = ext4_xattr_get(inode, EXT4_XATTR_INDEX_ENCRYPTION,
 				 EXT4_XATTR_NAME_ENCRYPTION_CONTEXT,
@@ -182,10 +166,7 @@ retry:
 	crypt_info->ci_data_mode = ctx.contents_encryption_mode;
 	crypt_info->ci_filename_mode = ctx.filenames_encryption_mode;
 	crypt_info->ci_ctfm = NULL;
-<<<<<<< HEAD
 	crypt_info->ci_keyring_key = NULL;
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	memcpy(crypt_info->ci_master_key, ctx.master_key_descriptor,
 	       sizeof(crypt_info->ci_master_key));
 	if (S_ISREG(inode->i_mode))
@@ -225,33 +206,16 @@ retry:
 		keyring_key = NULL;
 		goto out;
 	}
-<<<<<<< HEAD
 	crypt_info->ci_keyring_key = keyring_key;
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (keyring_key->type != &key_type_logon) {
 		printk_once(KERN_WARNING
 			    "ext4: key type must be logon\n");
 		res = -ENOKEY;
 		goto out;
 	}
-<<<<<<< HEAD
 	ukp = ((struct user_key_payload *)keyring_key->payload.data);
 	if (ukp->datalen != sizeof(struct ext4_encryption_key)) {
 		res = -EINVAL;
-=======
-	down_read(&keyring_key->sem);
-	ukp = ((struct user_key_payload *)keyring_key->payload.data);
-	if (!ukp) {
-		/* key was revoked before we acquired its semaphore */
-		res = -EKEYREVOKED;
-		up_read(&keyring_key->sem);
-		goto out;
-	}
-	if (ukp->datalen != sizeof(struct ext4_encryption_key)) {
-		res = -EINVAL;
-		up_read(&keyring_key->sem);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		goto out;
 	}
 	master_key = (struct ext4_encryption_key *)ukp->data;
@@ -262,18 +226,10 @@ retry:
 			    "ext4: key size incorrect: %d\n",
 			    master_key->size);
 		res = -ENOKEY;
-<<<<<<< HEAD
-=======
-		up_read(&keyring_key->sem);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		goto out;
 	}
 	res = ext4_derive_key_aes(ctx.nonce, master_key->raw,
 				  raw_key);
-<<<<<<< HEAD
-=======
-	up_read(&keyring_key->sem);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (res)
 		goto out;
 got_key:
@@ -293,7 +249,6 @@ got_key:
 				       ext4_encryption_key_size(mode));
 	if (res)
 		goto out;
-<<<<<<< HEAD
 	memzero_explicit(raw_key, sizeof(raw_key));
 	if (cmpxchg(&ei->i_crypt_info, NULL, crypt_info) != NULL) {
 		ext4_free_crypt_info(crypt_info);
@@ -304,15 +259,6 @@ got_key:
 out:
 	if (res == -ENOKEY)
 		res = 0;
-=======
-
-	if (cmpxchg(&ei->i_crypt_info, NULL, crypt_info) == NULL)
-		crypt_info = NULL;
-out:
-	if (res == -ENOKEY)
-		res = 0;
-	key_put(keyring_key);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	ext4_free_crypt_info(crypt_info);
 	memzero_explicit(raw_key, sizeof(raw_key));
 	return res;

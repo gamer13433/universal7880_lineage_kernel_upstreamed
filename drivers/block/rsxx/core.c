@@ -1028,15 +1028,8 @@ static void rsxx_pci_remove(struct pci_dev *dev)
 
 	cancel_work_sync(&card->event_work);
 
-<<<<<<< HEAD
 	rsxx_destroy_dev(card);
 	rsxx_dma_destroy(card);
-=======
-	destroy_workqueue(card->event_wq);
-	rsxx_destroy_dev(card);
-	rsxx_dma_destroy(card);
-	destroy_workqueue(card->creg_ctrl.creg_wq);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	spin_lock_irqsave(&card->irq_lock, flags);
 	rsxx_disable_ier_and_isr(card, CR_INTR_ALL);

@@ -125,13 +125,6 @@ static int kbtab_probe(struct usb_interface *intf, const struct usb_device_id *i
 	if (intf->cur_altsetting->desc.bNumEndpoints < 1)
 		return -ENODEV;
 
-<<<<<<< HEAD
-=======
-	endpoint = &intf->cur_altsetting->endpoint[0].desc;
-	if (!usb_endpoint_is_int_in(endpoint))
-		return -ENODEV;
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	kbtab = kzalloc(sizeof(struct kbtab), GFP_KERNEL);
 	input_dev = input_allocate_device();
 	if (!kbtab || !input_dev)
@@ -171,11 +164,8 @@ static int kbtab_probe(struct usb_interface *intf, const struct usb_device_id *i
 	input_set_abs_params(input_dev, ABS_Y, 0, 0x1750, 4, 0);
 	input_set_abs_params(input_dev, ABS_PRESSURE, 0, 0xff, 0, 0);
 
-<<<<<<< HEAD
 	endpoint = &intf->cur_altsetting->endpoint[0].desc;
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	usb_fill_int_urb(kbtab->irq, dev,
 			 usb_rcvintpipe(dev, endpoint->bEndpointAddress),
 			 kbtab->data, 8,

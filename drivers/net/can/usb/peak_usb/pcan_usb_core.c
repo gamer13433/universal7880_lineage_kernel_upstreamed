@@ -572,26 +572,16 @@ static int peak_usb_ndo_stop(struct net_device *netdev)
 	dev->state &= ~PCAN_USB_STATE_STARTED;
 	netif_stop_queue(netdev);
 
-<<<<<<< HEAD
-=======
-	close_candev(netdev);
-
-	dev->can.state = CAN_STATE_STOPPED;
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/* unlink all pending urbs and free used memory */
 	peak_usb_unlink_all_urbs(dev);
 
 	if (dev->adapter->dev_stop)
 		dev->adapter->dev_stop(dev);
 
-<<<<<<< HEAD
 	close_candev(netdev);
 
 	dev->can.state = CAN_STATE_STOPPED;
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/* can set bus off now */
 	if (dev->adapter->dev_set_bus) {
 		int err = dev->adapter->dev_set_bus(dev, 0);
@@ -742,11 +732,7 @@ static int peak_usb_create_dev(struct peak_usb_adapter *peak_usb_adapter,
 	dev = netdev_priv(netdev);
 
 	/* allocate a buffer large enough to send commands */
-<<<<<<< HEAD
 	dev->cmd_buf = kmalloc(PCAN_USB_MAX_CMD_LEN, GFP_KERNEL);
-=======
-	dev->cmd_buf = kzalloc(PCAN_USB_MAX_CMD_LEN, GFP_KERNEL);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (!dev->cmd_buf) {
 		err = -ENOMEM;
 		goto lbl_free_candev;
@@ -847,11 +833,7 @@ static void peak_usb_disconnect(struct usb_interface *intf)
 		char name[IFNAMSIZ];
 
 		dev->state &= ~PCAN_USB_STATE_CONNECTED;
-<<<<<<< HEAD
 		strncpy(name, netdev->name, IFNAMSIZ);
-=======
-		strlcpy(name, netdev->name, IFNAMSIZ);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 		unregister_netdev(netdev);
 		free_candev(netdev);

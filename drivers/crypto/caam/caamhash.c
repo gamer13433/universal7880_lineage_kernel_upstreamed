@@ -1544,11 +1544,6 @@ static int ahash_init(struct ahash_request *req)
 
 	state->current_buf = 0;
 	state->buf_dma = 0;
-<<<<<<< HEAD
-=======
-	state->buflen_0 = 0;
-	state->buflen_1 = 0;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	return 0;
 }

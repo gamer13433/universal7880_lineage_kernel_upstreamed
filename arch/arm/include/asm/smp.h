@@ -61,11 +61,7 @@ asmlinkage void secondary_start_kernel(void);
 struct secondary_data {
 	union {
 		unsigned long mpu_rgn_szr;
-<<<<<<< HEAD
 		unsigned long pgdir;
-=======
-		u64 pgdir;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	};
 	unsigned long swapper_pg_dir;
 	void *stack;

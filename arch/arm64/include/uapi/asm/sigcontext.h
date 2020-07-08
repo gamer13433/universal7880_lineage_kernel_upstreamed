@@ -44,25 +44,18 @@ struct _aarch64_ctx {
 	__u32 size;
 };
 
-<<<<<<< HEAD
 typedef struct{
 	__u64 a;
 	__u64 b;
 }___uint128_t;
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #define FPSIMD_MAGIC	0x46508001
 
 struct fpsimd_context {
 	struct _aarch64_ctx head;
 	__u32 fpsr;
 	__u32 fpcr;
-<<<<<<< HEAD
 	___uint128_t vregs[32];
-=======
-	__uint128_t vregs[32];
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 /* ESR_EL1 context */

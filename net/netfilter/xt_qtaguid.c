@@ -1172,41 +1172,6 @@ static void iface_stat_update(struct net_device *net_dev, bool stash_only)
 	spin_unlock_bh(&iface_stat_list_lock);
 }
 
-<<<<<<< HEAD
-=======
-/* Guarantied to return a net_device that has a name */
-static void get_dev_and_dir(const struct sk_buff *skb,
-			    struct xt_action_param *par,
-			    enum ifs_tx_rx *direction,
-			    const struct net_device **el_dev)
-{
-	BUG_ON(!direction || !el_dev);
-
-	if (par->in) {
-		*el_dev = par->in;
-		*direction = IFS_RX;
-	} else if (par->out) {
-		*el_dev = par->out;
-		*direction = IFS_TX;
-	} else {
-		pr_err("qtaguid[%d]: %s(): no par->in/out?!!\n",
-		       par->hooknum, __func__);
-		BUG();
-	}
-	if (unlikely(!(*el_dev)->name)) {
-		pr_err("qtaguid[%d]: %s(): no dev->name?!!\n",
-		       par->hooknum, __func__);
-		BUG();
-	}
-	if (skb->dev && *el_dev != skb->dev) {
-		MT_DEBUG("qtaguid[%d]: skb->dev=%p %s vs par->%s=%p %s\n",
-			 par->hooknum, skb->dev, skb->dev->name,
-			 *direction == IFS_RX ? "in" : "out",  *el_dev,
-			 (*el_dev)->name);
-	}
-}
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /*
  * Update stats for the specified interface from the skb.
  * Do nothing if the entry
@@ -1218,7 +1183,6 @@ static void iface_stat_update_from_skb(const struct sk_buff *skb,
 {
 	struct iface_stat *entry;
 	const struct net_device *el_dev;
-<<<<<<< HEAD
 	enum ifs_tx_rx direction = par->in ? IFS_RX : IFS_TX;
 	int bytes = skb->len;
 	int proto;
@@ -1252,38 +1216,17 @@ static void iface_stat_update_from_skb(const struct sk_buff *skb,
 			 par->hooknum, el_dev->name, el_dev->type,
 			 par->family, proto);
 	}
-=======
-	enum ifs_tx_rx direction;
-	int bytes = skb->len;
-	int proto;
-
-	get_dev_and_dir(skb, par, &direction, &el_dev);
-	proto = ipx_proto(skb, par);
-	MT_DEBUG("qtaguid[%d]: iface_stat: %s(%s): "
-		 "type=%d fam=%d proto=%d dir=%d\n",
-		 par->hooknum, __func__, el_dev->name, el_dev->type,
-		 par->family, proto, direction);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	spin_lock_bh(&iface_stat_list_lock);
 	entry = get_iface_entry(el_dev->name);
 	if (entry == NULL) {
-<<<<<<< HEAD
 		IF_DEBUG("qtaguid: iface_stat: %s(%s): not tracked\n",
 			 __func__, el_dev->name);
-=======
-		IF_DEBUG("qtaguid[%d]: iface_stat: %s(%s): not tracked\n",
-			 par->hooknum, __func__, el_dev->name);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		spin_unlock_bh(&iface_stat_list_lock);
 		return;
 	}
 
-<<<<<<< HEAD
 	IF_DEBUG("qtaguid: %s(%s): entry=%p\n", __func__,
-=======
-	IF_DEBUG("qtaguid[%d]: %s(%s): entry=%p\n", par->hooknum,  __func__,
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		 el_dev->name, entry);
 
 	data_counters_update(&entry->totals_via_skb, 0, direction, proto,
@@ -1348,22 +1291,14 @@ static void if_tag_stat_update(const char *ifname, uid_t uid,
 	spin_lock_bh(&iface_stat_list_lock);
 	iface_entry = get_iface_entry(ifname);
 	if (!iface_entry) {
-<<<<<<< HEAD
 		pr_err_ratelimited("qtaguid: iface_stat: stat_update() "
-=======
-		pr_err_ratelimited("qtaguid: tag_stat: stat_update() "
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 				   "%s not found\n", ifname);
 		spin_unlock_bh(&iface_stat_list_lock);
 		return;
 	}
 	/* It is ok to process data when an iface_entry is inactive */
 
-<<<<<<< HEAD
 	MT_DEBUG("qtaguid: iface_stat: stat_update() dev=%s entry=%p\n",
-=======
-	MT_DEBUG("qtaguid: tag_stat: stat_update() dev=%s entry=%p\n",
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		 ifname, iface_entry);
 
 	/*
@@ -1380,11 +1315,7 @@ static void if_tag_stat_update(const char *ifname, uid_t uid,
 		tag = combine_atag_with_uid(acct_tag, uid);
 		uid_tag = make_tag_from_uid(uid);
 	}
-<<<<<<< HEAD
 	MT_DEBUG("qtaguid: iface_stat: stat_update(): "
-=======
-	MT_DEBUG("qtaguid: tag_stat: stat_update(): "
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		 " looking for tag=0x%llx (uid=%u) in ife=%p\n",
 		 tag, get_uid_from_tag(tag), iface_entry);
 	/* Loop over tag list under this interface for {acct_tag,uid_tag} */
@@ -1644,13 +1575,8 @@ static struct sock *qtaguid_find_sk(const struct sk_buff *skb,
 	struct sock *sk;
 	unsigned int hook_mask = (1 << par->hooknum);
 
-<<<<<<< HEAD
 	MT_DEBUG("qtaguid: find_sk(skb=%p) hooknum=%d family=%d\n", skb,
 		 par->hooknum, par->family);
-=======
-	MT_DEBUG("qtaguid[%d]: find_sk(skb=%p) family=%d\n",
-		 par->hooknum, skb, par->family);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	/*
 	 * Let's not abuse the the xt_socket_get*_sk(), or else it will
@@ -1671,25 +1597,16 @@ static struct sock *qtaguid_find_sk(const struct sk_buff *skb,
 	}
 
 	if (sk) {
-<<<<<<< HEAD
 		MT_DEBUG("qtaguid: %p->sk_proto=%u "
 			 "->sk_state=%d\n", sk, sk->sk_protocol, sk->sk_state);
-=======
-		MT_DEBUG("qtaguid[%d]: %p->sk_proto=%u->sk_state=%d\n",
-			 par->hooknum, sk, sk->sk_protocol, sk->sk_state);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		/*
 		 * When in TCP_TIME_WAIT the sk is not a "struct sock" but
 		 * "struct inet_timewait_sock" which is missing fields.
 		 */
 		if (sk->sk_state  == TCP_TIME_WAIT) {
-<<<<<<< HEAD
 			if (sk != skb->sk)
 				sock_gen_put(sk);
 
-=======
-			sock_gen_put(sk);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			sk = NULL;
 		}
 	}
@@ -1701,7 +1618,6 @@ static void account_for_uid(const struct sk_buff *skb,
 			    struct xt_action_param *par)
 {
 	const struct net_device *el_dev;
-<<<<<<< HEAD
 
 	if (!skb->dev) {
 		MT_DEBUG("qtaguid[%d]: no skb->dev\n", par->hooknum);
@@ -1733,21 +1649,6 @@ static void account_for_uid(const struct sk_buff *skb,
 				par->in ? IFS_RX : IFS_TX,
 				proto, skb->len);
 	}
-=======
-	enum ifs_tx_rx direction;
-	int proto;
-
-	get_dev_and_dir(skb, par, &direction, &el_dev);
-	proto = ipx_proto(skb, par);
-	MT_DEBUG("qtaguid[%d]: dev name=%s type=%d fam=%d proto=%d dir=%d\n",
-		 par->hooknum, el_dev->name, el_dev->type,
-		 par->family, proto, direction);
-
-	if_tag_stat_update(el_dev->name, uid,
-			   skb->sk ? skb->sk : alternate_sk,
-			   direction,
-			   proto, skb->len);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 static bool qtaguid_mt(const struct sk_buff *skb, struct xt_action_param *par)
@@ -1759,14 +1660,6 @@ static bool qtaguid_mt(const struct sk_buff *skb, struct xt_action_param *par)
 	kuid_t sock_uid;
 	bool res;
 	bool set_sk_callback_lock = false;
-<<<<<<< HEAD
-=======
-	/*
-	 * TODO: unhack how to force just accounting.
-	 * For now we only do tag stats when the uid-owner is not requested
-	 */
-	bool do_tag_stat = !(info->match & XT_QTAGUID_UID);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if (unlikely(module_passive))
 		return (info->match ^ info->invert) == 0;
@@ -1824,27 +1717,19 @@ static bool qtaguid_mt(const struct sk_buff *skb, struct xt_action_param *par)
 	MT_DEBUG("qtaguid[%d]: sk=%p got_sock=%d fam=%d proto=%d\n",
 		 par->hooknum, sk, got_sock, par->family, ipx_proto(skb, par));
 
-<<<<<<< HEAD
 
 	if (sk == NULL) {
-=======
-	if (!sk) {
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		/*
 		 * Here, the qtaguid_find_sk() using connection tracking
 		 * couldn't find the owner, so for now we just count them
 		 * against the system.
 		 */
-<<<<<<< HEAD
 		/*
 		 * TODO: unhack how to force just accounting.
 		 * For now we only do iface stats when the uid-owner is not
 		 * requested.
 		 */
 		if (!(info->match & XT_QTAGUID_UID))
-=======
-		if (do_tag_stat)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			account_for_uid(skb, sk, 0, par);
 		MT_DEBUG("qtaguid[%d]: leaving (sk=NULL)\n", par->hooknum);
 		res = (info->match ^ info->invert) == 0;
@@ -1855,18 +1740,12 @@ static bool qtaguid_mt(const struct sk_buff *skb, struct xt_action_param *par)
 		goto put_sock_ret_res;
 	}
 	sock_uid = sk->sk_uid;
-<<<<<<< HEAD
 	/*
 	 * TODO: unhack how to force just accounting.
 	 * For now we only do iface stats when the uid-owner is not requested
 	 */
 	if (!(info->match & XT_QTAGUID_UID))
 		account_for_uid(skb, sk, from_kuid(&init_user_ns, sock_uid), par);
-=======
-	if (do_tag_stat)
-		account_for_uid(skb, sk, from_kuid(&init_user_ns, sock_uid),
-				par);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	/*
 	 * The following two tests fail the match when:
@@ -1878,13 +1757,8 @@ static bool qtaguid_mt(const struct sk_buff *skb, struct xt_action_param *par)
 		kuid_t uid_min = make_kuid(&init_user_ns, info->uid_min);
 		kuid_t uid_max = make_kuid(&init_user_ns, info->uid_max);
 
-<<<<<<< HEAD
 		if ((uid_gte(sk->sk_uid, uid_min) &&
 		     uid_lte(sk->sk_uid, uid_max)) ^
-=======
-		if ((uid_gte(sock_uid, uid_min) &&
-		     uid_lte(sock_uid, uid_max)) ^
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		    !(info->invert & XT_QTAGUID_UID)) {
 			MT_DEBUG("qtaguid[%d]: leaving uid not matching\n",
 				 par->hooknum);
@@ -1898,30 +1772,16 @@ static bool qtaguid_mt(const struct sk_buff *skb, struct xt_action_param *par)
 		set_sk_callback_lock = true;
 		read_lock_bh(&sk->sk_callback_lock);
 		MT_DEBUG("qtaguid[%d]: sk=%p->sk_socket=%p->file=%p\n",
-<<<<<<< HEAD
 			par->hooknum, sk, sk->sk_socket,
 			sk->sk_socket ? sk->sk_socket->file : (void *)-1LL);
 		filp = sk->sk_socket ? sk->sk_socket->file : NULL;
 		if (!filp) {
 			res = ((info->match ^ info->invert) & XT_QTAGUID_GID) == 0;
-=======
-			 par->hooknum, sk, sk->sk_socket,
-			 sk->sk_socket ? sk->sk_socket->file : (void *)-1LL);
-		filp = sk->sk_socket ? sk->sk_socket->file : NULL;
-		if (!filp) {
-			res = ((info->match ^ info->invert) &
-			       XT_QTAGUID_GID) == 0;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			atomic64_inc(&qtu_events.match_no_sk_gid);
 			goto put_sock_ret_res;
 		}
 		MT_DEBUG("qtaguid[%d]: filp...uid=%u\n",
-<<<<<<< HEAD
 			par->hooknum, filp ? from_kuid(&init_user_ns, filp->f_cred->fsuid) : -1);
-=======
-			 par->hooknum, filp ?
-			 from_kuid(&init_user_ns, filp->f_cred->fsuid) : -1);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		if ((gid_gte(filp->f_cred->fsgid, gid_min) &&
 				gid_lte(filp->f_cred->fsgid, gid_max)) ^
 			!(info->invert & XT_QTAGUID_GID)) {
@@ -1945,16 +1805,8 @@ ret_res:
 }
 
 #ifdef DDEBUG
-<<<<<<< HEAD
 /* This function is not in xt_qtaguid_print.c because of locks visibility */
 static void prdebug_full_state(int indent_level, const char *fmt, ...)
-=======
-/*
- * This function is not in xt_qtaguid_print.c because of locks visibility.
- * The lock of sock_tag_list must be aquired before calling this function
- */
-static void prdebug_full_state_locked(int indent_level, const char *fmt, ...)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	va_list args;
 	char *fmt_buff;
@@ -1975,24 +1827,16 @@ static void prdebug_full_state_locked(int indent_level, const char *fmt, ...)
 	kfree(buff);
 	va_end(args);
 
-<<<<<<< HEAD
 	spin_lock_bh(&sock_tag_list_lock);
 	prdebug_sock_tag_tree(indent_level, &sock_tag_tree);
 	spin_unlock_bh(&sock_tag_list_lock);
 
 	spin_lock_bh(&sock_tag_list_lock);
-=======
-	prdebug_sock_tag_tree(indent_level, &sock_tag_tree);
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	spin_lock_bh(&uid_tag_data_tree_lock);
 	prdebug_uid_tag_data_tree(indent_level, &uid_tag_data_tree);
 	prdebug_proc_qtu_data_tree(indent_level, &proc_qtu_data_tree);
 	spin_unlock_bh(&uid_tag_data_tree_lock);
-<<<<<<< HEAD
 	spin_unlock_bh(&sock_tag_list_lock);
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	spin_lock_bh(&iface_stat_list_lock);
 	prdebug_iface_stat_list(indent_level, &iface_stat_list);
@@ -2001,11 +1845,7 @@ static void prdebug_full_state_locked(int indent_level, const char *fmt, ...)
 	pr_debug("qtaguid: %s(): }\n", __func__);
 }
 #else
-<<<<<<< HEAD
 static void prdebug_full_state(int indent_level, const char *fmt, ...) {}
-=======
-static void prdebug_full_state_locked(int indent_level, const char *fmt, ...) {}
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #endif
 
 struct proc_ctrl_print_info {
@@ -2128,16 +1968,8 @@ static int qtaguid_ctrl_proc_show(struct seq_file *m, void *v)
 			   (u64)atomic64_read(&qtu_events.match_no_sk),
 			   (u64)atomic64_read(&qtu_events.match_no_sk_gid));
 
-<<<<<<< HEAD
 		/* Count the following as part of the last item_index */
 		prdebug_full_state(0, "proc ctrl");
-=======
-		/* Count the following as part of the last item_index. No need
-		 * to lock the sock_tag_list here since it is already locked when
-		 * starting the seq_file operation
-		 */
-		prdebug_full_state_locked(0, "proc ctrl");
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 	return 0;
@@ -2472,11 +2304,7 @@ static int ctrl_cmd_tag(const char *input)
 			BUG_ON(tag_ref_entry->num_sock_tags <= 0);
 			tag_ref_entry->num_sock_tags--;
 			free_tag_ref_from_utd_entry(tag_ref_entry,
-<<<<<<< HEAD
 						uid_tag_data_entry);
-=======
-						    uid_tag_data_entry);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			spin_unlock_bh(&uid_tag_data_tree_lock);
 			spin_unlock_bh(&sock_tag_list_lock);
 			res = -ENOMEM;
@@ -3056,15 +2884,8 @@ static int qtudev_release(struct inode *inode, struct file *file)
 
 	sock_tag_tree_erase(&st_to_free_tree);
 
-<<<<<<< HEAD
 	prdebug_full_state(0, "%s(): pid=%u tgid=%u", __func__,
 			   current->pid, current->tgid);
-=======
-	spin_lock_bh(&sock_tag_list_lock);
-	prdebug_full_state_locked(0, "%s(): pid=%u tgid=%u", __func__,
-			   current->pid, current->tgid);
-	spin_unlock_bh(&sock_tag_list_lock);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return 0;
 }
 

@@ -114,10 +114,6 @@ asmlinkage __visible void cpu_bringup_and_idle(int cpu)
 #endif
 	cpu_bringup();
 	cpu_startup_entry(CPUHP_ONLINE);
-<<<<<<< HEAD
-=======
-	prevent_tail_call_optimization();
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 static void xen_smp_intr_free(unsigned int cpu)

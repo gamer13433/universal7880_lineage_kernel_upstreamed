@@ -21,25 +21,18 @@
  *
  */
 
-<<<<<<< HEAD
 #include <linux/cpufreq.h>
 #include <linux/isp_cooling.h>
 #include <linux/delay.h>
 #include <linux/io.h>
 #include <linux/interrupt.h>
 #include <linux/ipa.h>
-=======
-#include <linux/clk.h>
-#include <linux/io.h>
-#include <linux/interrupt.h>
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #include <linux/module.h>
 #include <linux/of.h>
 #include <linux/of_address.h>
 #include <linux/of_irq.h>
 #include <linux/platform_device.h>
 #include <linux/regulator/consumer.h>
-<<<<<<< HEAD
 #include <linux/exynos-ss.h>
 #include <linux/pm_qos.h>
 
@@ -49,13 +42,10 @@
 #if defined(CONFIG_ECT)
 #include <soc/samsung/ect_parser.h>
 #endif
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #include "exynos_thermal_common.h"
 #include "exynos_tmu.h"
 #include "exynos_tmu_data.h"
-<<<<<<< HEAD
 #include <trace/events/exynos.h>
 
 #ifdef CONFIG_SEC_BSP
@@ -71,8 +61,6 @@ struct cpufreq_frequency_table gpu_freq_table[10];
 #ifdef CONFIG_ISP_THERMAL
 struct isp_fps_table isp_fps_table[10];
 #endif
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /**
  * struct exynos_tmu_data : A structure to hold the private data of the TMU
@@ -85,12 +73,7 @@ struct isp_fps_table isp_fps_table[10];
  * @soc: id of the SOC type.
  * @irq_work: pointer to the irq work structure.
  * @lock: lock to implement synchronization.
-<<<<<<< HEAD
  * @gate_clk: pointer to the clock structure for accessing the tmu gate clk.
-=======
- * @clk: pointer to the clock structure.
- * @clk_sec: pointer to the clock structure for accessing the base_second.
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
  * @temp_error1: fused value of the first point trim.
  * @temp_error2: fused value of the second point trim.
  * @regulator: pointer to the TMU regulator structure.
@@ -98,10 +81,7 @@ struct isp_fps_table isp_fps_table[10];
  */
 struct exynos_tmu_data {
 	int id;
-<<<<<<< HEAD
 	bool initialized;
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	struct exynos_tmu_platform_data *pdata;
 	void __iomem *base;
 	void __iomem *base_second;
@@ -109,7 +89,6 @@ struct exynos_tmu_data {
 	enum soc_type soc;
 	struct work_struct irq_work;
 	struct mutex lock;
-<<<<<<< HEAD
 	struct clk *gate_clk;
 	u16 temp_error1, temp_error2;
 	struct regulator *regulator;
@@ -122,19 +101,10 @@ struct exynos_tmu_data {
 /* list of multiple instance for each thermal sensor */
 static LIST_HEAD(dtm_dev_list);
 
-=======
-	struct clk *clk, *clk_sec;
-	u8 temp_error1, temp_error2;
-	struct regulator *regulator;
-	struct thermal_sensor_conf *reg_conf;
-};
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /*
  * TMU treats temperature as a mapped temperature code.
  * The temperature is converted differently depending on the calibration type.
  */
-<<<<<<< HEAD
 static int temp_to_code(struct exynos_tmu_data *data, u16 temp)
 {
 	struct exynos_tmu_platform_data *pdata = data->pdata;
@@ -153,22 +123,11 @@ static int temp_to_code(struct exynos_tmu_data *data, u16 temp)
 	switch (pdata->cal_type) {
 	case TYPE_TWO_POINT_TRIMMING:
 		temp_code = (rtemp - pdata->first_point_trim) *
-=======
-static int temp_to_code(struct exynos_tmu_data *data, u8 temp)
-{
-	struct exynos_tmu_platform_data *pdata = data->pdata;
-	int temp_code;
-
-	switch (pdata->cal_type) {
-	case TYPE_TWO_POINT_TRIMMING:
-		temp_code = (temp - pdata->first_point_trim) *
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			(data->temp_error2 - data->temp_error1) /
 			(pdata->second_point_trim - pdata->first_point_trim) +
 			data->temp_error1;
 		break;
 	case TYPE_ONE_POINT_TRIMMING:
-<<<<<<< HEAD
 		if (pdata->sensor_type == EXYNOS_TEM1455X) {
 			ptat_cont = readl(data->base + reg->buf_vref_otp_reg);
 			ptat_cont = (ptat_cont >> reg->buf_vref_otp_shift) & reg->buf_vref_otp_mask;
@@ -186,15 +145,6 @@ static int temp_to_code(struct exynos_tmu_data *data, u8 temp)
 		temp_code = rtemp + pdata->default_temp_offset;
 		break;
 	}
-=======
-		temp_code = temp + data->temp_error1 - pdata->first_point_trim;
-		break;
-	default:
-		temp_code = temp + pdata->default_temp_offset;
-		break;
-	}
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return temp_code;
 }
 
@@ -202,19 +152,12 @@ static int temp_to_code(struct exynos_tmu_data *data, u8 temp)
  * Calculate a temperature value from a temperature code.
  * The unit of the temperature is degree Celsius.
  */
-<<<<<<< HEAD
 static int code_to_temp(struct exynos_tmu_data *data, u16 temp_code)
 {
 	struct exynos_tmu_platform_data *pdata = data->pdata;
 	const struct exynos_tmu_registers *reg = pdata->registers;
 	int temp;
 	u32 ptat_cont;
-=======
-static int code_to_temp(struct exynos_tmu_data *data, u8 temp_code)
-{
-	struct exynos_tmu_platform_data *pdata = data->pdata;
-	int temp;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	switch (pdata->cal_type) {
 	case TYPE_TWO_POINT_TRIMMING:
@@ -225,7 +168,6 @@ static int code_to_temp(struct exynos_tmu_data *data, u8 temp_code)
 		break;
 	case TYPE_ONE_POINT_TRIMMING:
 		temp = temp_code - data->temp_error1 + pdata->first_point_trim;
-<<<<<<< HEAD
 
 		if (pdata->sensor_type == EXYNOS_TEM1455X) {
 			ptat_cont = readl(data->base + reg->buf_vref_otp_reg);
@@ -238,23 +180,18 @@ static int code_to_temp(struct exynos_tmu_data *data, u8 temp_code)
 			if (ptat_cont == 0)
 				temp += (temp / 8);
 		}
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		break;
 	default:
 		temp = temp_code - pdata->default_temp_offset;
 		break;
 	}
 
-<<<<<<< HEAD
 	/* temperature should range between minimum and maximum */
 	if (temp > EXYNOS_MAX_TEMP)
 		temp = EXYNOS_MAX_TEMP;
 	else if (temp < EXYNOS_MIN_TEMP)
 		temp = EXYNOS_MIN_TEMP;
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return temp;
 }
 
@@ -282,7 +219,6 @@ static int exynos_tmu_initialize(struct platform_device *pdev)
 	const struct exynos_tmu_registers *reg = pdata->registers;
 	unsigned int status, trim_info = 0, con, ctrl;
 	unsigned int rising_threshold = 0, falling_threshold = 0;
-<<<<<<< HEAD
 	unsigned int rising7_4_threshold = 0, falling7_4_threshold = 0;
 	unsigned int rising_threshold0 = 0, rising_threshold1 = 0;
 	unsigned int rising_threshold2 = 0, rising_threshold3 = 0;
@@ -322,20 +258,6 @@ static int exynos_tmu_initialize(struct platform_device *pdev)
 				break;
 			}
 			udelay(5);
-=======
-	int ret = 0, threshold_code, i;
-
-	mutex_lock(&data->lock);
-	clk_enable(data->clk);
-	if (!IS_ERR(data->clk_sec))
-		clk_enable(data->clk_sec);
-
-	if (TMU_SUPPORTS(pdata, READY_STATUS)) {
-		status = readb(data->base + reg->tmu_status);
-		if (!status) {
-			ret = -EBUSY;
-			goto out;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		}
 	}
 
@@ -351,12 +273,9 @@ static int exynos_tmu_initialize(struct platform_device *pdev)
 		}
 	}
 
-<<<<<<< HEAD
 	if (!data->initialized)
 		list_add_tail(&data->node, &dtm_dev_list);
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/* Save trimming info in order to perform calibration */
 	if (data->soc == SOC_ARCH_EXYNOS5440) {
 		/*
@@ -383,7 +302,6 @@ static int exynos_tmu_initialize(struct platform_device *pdev)
 		else
 			trim_info = readl(data->base + reg->triminfo_data);
 	}
-<<<<<<< HEAD
 	/* If temp_mask variables exist, temp bit is 9 bit. */
 	if (pdata->temp_mask)
 		temp_mask = pdata->temp_mask;
@@ -397,21 +315,6 @@ static int exynos_tmu_initialize(struct platform_device *pdev)
 	if (!data->temp_error2)
 		data->temp_error2 =
 			(pdata->efuse_value >> reg->triminfo_85_shift) & temp_mask;
-=======
-	data->temp_error1 = trim_info & EXYNOS_TMU_TEMP_MASK;
-	data->temp_error2 = ((trim_info >> EXYNOS_TRIMINFO_85_SHIFT) &
-				EXYNOS_TMU_TEMP_MASK);
-
-	if (!data->temp_error1 ||
-		(pdata->min_efuse_value > data->temp_error1) ||
-		(data->temp_error1 > pdata->max_efuse_value))
-		data->temp_error1 = pdata->efuse_value & EXYNOS_TMU_TEMP_MASK;
-
-	if (!data->temp_error2)
-		data->temp_error2 =
-			(pdata->efuse_value >> EXYNOS_TRIMINFO_85_SHIFT) &
-			EXYNOS_TMU_TEMP_MASK;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	rising_threshold = readl(data->base + reg->threshold_th0);
 
@@ -426,7 +329,6 @@ static int exynos_tmu_initialize(struct platform_device *pdev)
 
 		exynos_tmu_clear_irqs(data);
 	} else {
-<<<<<<< HEAD
 		/* EXYNOS8890 add threshold_th4~7 register, so if threshold_th4~7 register existed call this code */
 		if (reg->threshold_th4 && reg->threshold_th5 && reg->threshold_th6 && reg->threshold_th7) {
 			for (i = 0; i < pdata->non_hw_trigger_levels; i++) {
@@ -511,27 +413,6 @@ static int exynos_tmu_initialize(struct platform_device *pdev)
 					data->base + reg->threshold_th3);
 		}
 
-=======
-		/* Write temperature code for rising and falling threshold */
-		for (i = 0; i < pdata->non_hw_trigger_levels; i++) {
-			threshold_code = temp_to_code(data,
-						pdata->trigger_levels[i]);
-			rising_threshold &= ~(0xff << 8 * i);
-			rising_threshold |= threshold_code << 8 * i;
-			if (pdata->threshold_falling) {
-				threshold_code = temp_to_code(data,
-						pdata->trigger_levels[i] -
-						pdata->threshold_falling);
-				falling_threshold |= threshold_code << 8 * i;
-			}
-		}
-
-		writel(rising_threshold,
-				data->base + reg->threshold_th0);
-		writel(falling_threshold,
-				data->base + reg->threshold_th1);
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		exynos_tmu_clear_irqs(data);
 
 		/* if last threshold limit is also present */
@@ -540,7 +421,6 @@ static int exynos_tmu_initialize(struct platform_device *pdev)
 				(pdata->trigger_type[i] == HW_TRIP)) {
 			threshold_code = temp_to_code(data,
 						pdata->trigger_levels[i]);
-<<<<<<< HEAD
 			/* EXYNOS8890 add threshold_th4~7 register, so if threshold_th4~7 register existed call this code */
 			if (reg->threshold_th4 && reg->threshold_th5 && reg->threshold_th6 && reg->threshold_th7) {
 				if (i == EXYNOS_MAX_TRIGGER_PER_REG - 1) {
@@ -575,40 +455,14 @@ static int exynos_tmu_initialize(struct platform_device *pdev)
 				udelay(5);
 			}
 
-=======
-			if (i == EXYNOS_MAX_TRIGGER_PER_REG - 1) {
-				/* 1-4 level to be assigned in th0 reg */
-				rising_threshold &= ~(0xff << 8 * i);
-				rising_threshold |= threshold_code << 8 * i;
-				writel(rising_threshold,
-					data->base + reg->threshold_th0);
-			} else if (i == EXYNOS_MAX_TRIGGER_PER_REG) {
-				/* 5th level to be assigned in th2 reg */
-				rising_threshold =
-				threshold_code << reg->threshold_th3_l0_shift;
-				writel(rising_threshold,
-					data->base + reg->threshold_th2);
-			}
-			con = readl(data->base + reg->tmu_ctrl);
-			con |= (1 << reg->therm_trip_en_shift);
-			writel(con, data->base + reg->tmu_ctrl);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		}
 	}
 	/*Clear the PMIN in the common TMU register*/
 	if (reg->tmu_pmin && !data->id)
 		writel(0, data->base_second + reg->tmu_pmin);
-<<<<<<< HEAD
 
 	data->initialized = true;
 	mutex_unlock(&data->lock);
-=======
-out:
-	clk_disable(data->clk);
-	mutex_unlock(&data->lock);
-	if (!IS_ERR(data->clk_sec))
-		clk_disable(data->clk_sec);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	return ret;
 }
@@ -618,7 +472,6 @@ static void exynos_tmu_control(struct platform_device *pdev, bool on)
 	struct exynos_tmu_data *data = platform_get_drvdata(pdev);
 	struct exynos_tmu_platform_data *pdata = data->pdata;
 	const struct exynos_tmu_registers *reg = pdata->registers;
-<<<<<<< HEAD
 	unsigned int con, interrupt_en, otp_fuse;
 	int timeout, status;
 	int ptat_cont, buf_cont, ctrl1;
@@ -629,19 +482,10 @@ static void exynos_tmu_control(struct platform_device *pdev, bool on)
 	con = readl(data->base + reg->tmu_ctrl);
 	con &= ~(1 << reg->therm_trip_en_shift);
 	writel(con, data->base + reg->tmu_ctrl);
-=======
-	unsigned int con, interrupt_en;
-
-	mutex_lock(&data->lock);
-	clk_enable(data->clk);
-
-	con = readl(data->base + reg->tmu_ctrl);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if (pdata->test_mux)
 		con |= (pdata->test_mux << reg->test_mux_addr_shift);
 
-<<<<<<< HEAD
 	/* Add reg->buf_vref_otp_reg register condition at EXYNOS8890 */
 	/* Beacuse we read otp data and write this value to control register */
 	if (!reg->buf_vref_otp_mask) {
@@ -675,13 +519,6 @@ static void exynos_tmu_control(struct platform_device *pdev, bool on)
 			con |= (otp_fuse << EXYNOS_TMU_BUF_SLOPE_SEL_SHIFT);
 		}
 	}
-=======
-	con &= ~(EXYNOS_TMU_REF_VOLTAGE_MASK << EXYNOS_TMU_REF_VOLTAGE_SHIFT);
-	con |= pdata->reference_voltage << EXYNOS_TMU_REF_VOLTAGE_SHIFT;
-
-	con &= ~(EXYNOS_TMU_BUF_SLOPE_SEL_MASK << EXYNOS_TMU_BUF_SLOPE_SEL_SHIFT);
-	con |= (pdata->gain << EXYNOS_TMU_BUF_SLOPE_SEL_SHIFT);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if (pdata->noise_cancel_mode) {
 		con &= ~(reg->therm_trip_mode_mask <<
@@ -691,23 +528,18 @@ static void exynos_tmu_control(struct platform_device *pdev, bool on)
 
 	if (on) {
 		con |= (1 << EXYNOS_TMU_CORE_EN_SHIFT);
-<<<<<<< HEAD
 		con |= (1 << reg->therm_trip_en_shift);
 		interrupt_en =
 			pdata->trigger_enable[7] << reg->inten_rise7_shift |
 			pdata->trigger_enable[6] << reg->inten_rise6_shift |
 			pdata->trigger_enable[5] << reg->inten_rise5_shift |
 			pdata->trigger_enable[4] << reg->inten_rise4_shift |
-=======
-		interrupt_en =
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			pdata->trigger_enable[3] << reg->inten_rise3_shift |
 			pdata->trigger_enable[2] << reg->inten_rise2_shift |
 			pdata->trigger_enable[1] << reg->inten_rise1_shift |
 			pdata->trigger_enable[0] << reg->inten_rise0_shift;
 		if (TMU_SUPPORTS(pdata, FALLING_TRIP))
 			interrupt_en |=
-<<<<<<< HEAD
 				pdata->trigger_enable[7] << reg->inten_fall7_shift |
 				pdata->trigger_enable[6] << reg->inten_fall6_shift |
 				pdata->trigger_enable[5] << reg->inten_fall5_shift |
@@ -795,25 +627,10 @@ static struct ipa_sensor_conf ipa_sensor_conf = {
 };
 #endif
 
-=======
-				interrupt_en << reg->inten_fall0_shift;
-	} else {
-		con &= ~(1 << EXYNOS_TMU_CORE_EN_SHIFT);
-		interrupt_en = 0; /* Disable all interrupts */
-	}
-	writel(interrupt_en, data->base + reg->tmu_inten);
-	writel(con, data->base + reg->tmu_ctrl);
-
-	clk_disable(data->clk);
-	mutex_unlock(&data->lock);
-}
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static int exynos_tmu_read(struct exynos_tmu_data *data)
 {
 	struct exynos_tmu_platform_data *pdata = data->pdata;
 	const struct exynos_tmu_registers *reg = pdata->registers;
-<<<<<<< HEAD
 	u32 temp_code;
 	int temp;
 #ifdef CONFIG_CPU_THERMAL_IPA
@@ -844,32 +661,11 @@ static int exynos_tmu_read(struct exynos_tmu_data *data)
 #endif
 	exynos_ss_thermal(pdata, temp, "READ" , 0);
 	trace_exynos_thermal(pdata, temp, "READ" , 0);
-=======
-	u8 temp_code;
-	int temp;
-
-	mutex_lock(&data->lock);
-	clk_enable(data->clk);
-
-	temp_code = readb(data->base + reg->tmu_cur_temp);
-
-	if (data->soc == SOC_ARCH_EXYNOS4210)
-		/* temp_code should range between 75 and 175 */
-		if (temp_code < 75 || temp_code > 175) {
-			temp = -ENODATA;
-			goto out;
-		}
-
-	temp = code_to_temp(data, temp_code);
-out:
-	clk_disable(data->clk);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	mutex_unlock(&data->lock);
 
 	return temp;
 }
 
-<<<<<<< HEAD
 #ifdef CONFIG_SEC_BSP
 void get_exynos_thermal_curr_temp(int *temp, int size)
 {
@@ -885,8 +681,6 @@ void get_exynos_thermal_curr_temp(int *temp, int size)
 }
 #endif
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #ifdef CONFIG_THERMAL_EMULATION
 static int exynos_tmu_set_emulation(void *drv_data, unsigned long temp)
 {
@@ -903,10 +697,6 @@ static int exynos_tmu_set_emulation(void *drv_data, unsigned long temp)
 		goto out;
 
 	mutex_lock(&data->lock);
-<<<<<<< HEAD
-=======
-	clk_enable(data->clk);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	val = readl(data->base + reg->emul_con);
 
@@ -926,10 +716,6 @@ static int exynos_tmu_set_emulation(void *drv_data, unsigned long temp)
 
 	writel(val, data->base + reg->emul_con);
 
-<<<<<<< HEAD
-=======
-	clk_disable(data->clk);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	mutex_unlock(&data->lock);
 	return 0;
 out:
@@ -940,7 +726,6 @@ static int exynos_tmu_set_emulation(void *drv_data,	unsigned long temp)
 	{ return -EINVAL; }
 #endif/*CONFIG_THERMAL_EMULATION*/
 
-<<<<<<< HEAD
 void exynos_tmu_core_control(bool on, int id)
 {
 	int count;
@@ -1010,8 +795,6 @@ static struct notifier_block exynos_low_pwr_nb = {
 };
 #endif /* end of CONFIG_CPU_PM */
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static void exynos_tmu_work(struct work_struct *work)
 {
 	struct exynos_tmu_data *data = container_of(work,
@@ -1019,37 +802,18 @@ static void exynos_tmu_work(struct work_struct *work)
 	struct exynos_tmu_platform_data *pdata = data->pdata;
 	const struct exynos_tmu_registers *reg = pdata->registers;
 	unsigned int val_type;
-<<<<<<< HEAD
-=======
-
-	if (!IS_ERR(data->clk_sec))
-		clk_enable(data->clk_sec);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/* Find which sensor generated this interrupt */
 	if (reg->tmu_irqstatus) {
 		val_type = readl(data->base_second + reg->tmu_irqstatus);
 		if (!((val_type >> data->id) & 0x1))
 			goto out;
 	}
-<<<<<<< HEAD
 	exynos_report_trigger(data->reg_conf);
 	mutex_lock(&data->lock);
-=======
-	if (!IS_ERR(data->clk_sec))
-		clk_disable(data->clk_sec);
-
-	exynos_report_trigger(data->reg_conf);
-	mutex_lock(&data->lock);
-	clk_enable(data->clk);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	/* TODO: take action based on particular interrupt */
 	exynos_tmu_clear_irqs(data);
 
-<<<<<<< HEAD
-=======
-	clk_disable(data->clk);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	mutex_unlock(&data->lock);
 out:
 	enable_irq(data->irq);
@@ -1098,7 +862,6 @@ static const struct of_device_id exynos_tmu_match[] = {
 		.compatible = "samsung,exynos5440-tmu",
 		.data = (void *)EXYNOS5440_TMU_DRV_DATA,
 	},
-<<<<<<< HEAD
 	{
 		.compatible = "samsung,exynos7580-tmu",
 		.data = (void *)EXYNOS7580_TMU_DRV_DATA,
@@ -1115,8 +878,6 @@ static const struct of_device_id exynos_tmu_match[] = {
 		.compatible = "samsung,exynos7880-tmu",
 		.data = (void *)EXYNOS7880_TMU_DRV_DATA,
 	},
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	{},
 };
 MODULE_DEVICE_TABLE(of, exynos_tmu_match);
@@ -1144,7 +905,6 @@ static int exynos_map_dt_data(struct platform_device *pdev)
 	struct exynos_tmu_platform_data *pdata;
 	struct resource res;
 	int ret;
-<<<<<<< HEAD
 	unsigned int i;
 	u32 value;
 	char node_name[20];
@@ -1159,8 +919,6 @@ static int exynos_map_dt_data(struct platform_device *pdev)
 	struct isp_fps_table *isp_table_ptr;
 	u32 isp_idx_num = 0;
 #endif
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if (!data || !pdev->dev.of_node)
 		return -ENODEV;
@@ -1207,7 +965,6 @@ static int exynos_map_dt_data(struct platform_device *pdev)
 		dev_err(&pdev->dev, "No platform init data supplied.\n");
 		return -ENODEV;
 	}
-<<<<<<< HEAD
 	/* Parsing throttling data */
 	of_property_read_u32(pdev->dev.of_node, "max_trigger_level", &value);
 	if (!value)
@@ -1319,9 +1076,6 @@ static int exynos_map_dt_data(struct platform_device *pdev)
 
 	data->pdata = pdata;
 
-=======
-	data->pdata = pdata;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/*
 	 * Check if the TMU shares some registers and then try to map the
 	 * memory of common registers.
@@ -1344,7 +1098,6 @@ static int exynos_map_dt_data(struct platform_device *pdev)
 	return 0;
 }
 
-<<<<<<< HEAD
 #if defined(CONFIG_ECT)
 static int exynos_tmu_ect_set_information(struct platform_device *pdev)
 {
@@ -1407,8 +1160,6 @@ static int exynos_tmu_ect_set_information(struct platform_device *pdev)
 }
 #endif
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static int exynos_tmu_probe(struct platform_device *pdev)
 {
 	struct exynos_tmu_data *data;
@@ -1416,13 +1167,10 @@ static int exynos_tmu_probe(struct platform_device *pdev)
 	struct thermal_sensor_conf *sensor_conf;
 	int ret, i;
 
-<<<<<<< HEAD
 	/* make sure cpufreq driver has been initialized */
 	if (!cpufreq_frequency_get_table(0))
 		return -EPROBE_DEFER;
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	data = devm_kzalloc(&pdev->dev, sizeof(struct exynos_tmu_data),
 					GFP_KERNEL);
 	if (!data)
@@ -1437,7 +1185,6 @@ static int exynos_tmu_probe(struct platform_device *pdev)
 
 	pdata = data->pdata;
 
-<<<<<<< HEAD
 	if (pdata->type == SOC_ARCH_EXYNOS7880) {
 		data->gate_clk = devm_clk_get(&pdev->dev, "gate_tmu");
 		if (IS_ERR(data->gate_clk)) {
@@ -1450,35 +1197,6 @@ static int exynos_tmu_probe(struct platform_device *pdev)
 	}
 
 	INIT_WORK(&data->irq_work, exynos_tmu_work);
-=======
-	INIT_WORK(&data->irq_work, exynos_tmu_work);
-
-	data->clk = devm_clk_get(&pdev->dev, "tmu_apbif");
-	if (IS_ERR(data->clk)) {
-		dev_err(&pdev->dev, "Failed to get clock\n");
-		return  PTR_ERR(data->clk);
-	}
-
-	data->clk_sec = devm_clk_get(&pdev->dev, "tmu_triminfo_apbif");
-	if (IS_ERR(data->clk_sec)) {
-		if (data->soc == SOC_ARCH_EXYNOS5420_TRIMINFO) {
-			dev_err(&pdev->dev, "Failed to get triminfo clock\n");
-			return PTR_ERR(data->clk_sec);
-		}
-	} else {
-		ret = clk_prepare(data->clk_sec);
-		if (ret) {
-			dev_err(&pdev->dev, "Failed to get clock\n");
-			return ret;
-		}
-	}
-
-	ret = clk_prepare(data->clk);
-	if (ret) {
-		dev_err(&pdev->dev, "Failed to get clock\n");
-		goto err_clk_sec;
-	}
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if (pdata->type == SOC_ARCH_EXYNOS3250 ||
 	    pdata->type == SOC_ARCH_EXYNOS4210 ||
@@ -1486,20 +1204,15 @@ static int exynos_tmu_probe(struct platform_device *pdev)
 	    pdata->type == SOC_ARCH_EXYNOS5250 ||
 	    pdata->type == SOC_ARCH_EXYNOS5260 ||
 	    pdata->type == SOC_ARCH_EXYNOS5420_TRIMINFO ||
-<<<<<<< HEAD
 	    pdata->type == SOC_ARCH_EXYNOS5440 ||
 	    pdata->type == SOC_ARCH_EXYNOS7580 ||
 	    pdata->type == SOC_ARCH_EXYNOS7870 ||
 	    pdata->type == SOC_ARCH_EXYNOS7880 ||
 	    pdata->type == SOC_ARCH_EXYNOS8890)
-=======
-	    pdata->type == SOC_ARCH_EXYNOS5440)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		data->soc = pdata->type;
 	else {
 		ret = -EINVAL;
 		dev_err(&pdev->dev, "Platform not supported\n");
-<<<<<<< HEAD
 		goto err;
 	}
 
@@ -1515,15 +1228,6 @@ static int exynos_tmu_probe(struct platform_device *pdev)
 	if (ret) {
 		dev_err(&pdev->dev, "Failed to initialize TMU\n");
 		goto err;
-=======
-		goto err_clk;
-	}
-
-	ret = exynos_tmu_initialize(pdev);
-	if (ret) {
-		dev_err(&pdev->dev, "Failed to initialize TMU\n");
-		goto err_clk;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 	exynos_tmu_control(pdev, true);
@@ -1533,7 +1237,6 @@ static int exynos_tmu_probe(struct platform_device *pdev)
 				sizeof(struct thermal_sensor_conf), GFP_KERNEL);
 	if (!sensor_conf) {
 		ret = -ENOMEM;
-<<<<<<< HEAD
 		goto err;
 	}
 
@@ -1541,24 +1244,15 @@ static int exynos_tmu_probe(struct platform_device *pdev)
 	/* We currently regard data->id as a cluster id */
 	sensor_conf->id = data->id;
 	sensor_conf->d_type = pdata->d_type;
-=======
-		goto err_clk;
-	}
-	sprintf(sensor_conf->name, "therm_zone%d", data->id);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	sensor_conf->read_temperature = (int (*)(void *))exynos_tmu_read;
 	sensor_conf->write_emul_temp =
 		(int (*)(void *, unsigned long))exynos_tmu_set_emulation;
 	sensor_conf->driver_data = data;
 	sensor_conf->trip_data.trip_count = pdata->trigger_enable[0] +
 			pdata->trigger_enable[1] + pdata->trigger_enable[2]+
-<<<<<<< HEAD
 			pdata->trigger_enable[3] + pdata->trigger_enable[4]+
 			pdata->trigger_enable[5] + pdata->trigger_enable[6]+
 			pdata->trigger_enable[7];
-=======
-			pdata->trigger_enable[3];
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	for (i = 0; i < sensor_conf->trip_data.trip_count; i++) {
 		sensor_conf->trip_data.trip_val[i] =
@@ -1576,7 +1270,6 @@ static int exynos_tmu_probe(struct platform_device *pdev)
 		sensor_conf->cooling_data.freq_data[i].temp_level =
 					pdata->freq_tab[i].temp_level;
 	}
-<<<<<<< HEAD
 
 	sensor_conf->hotplug_enable = pdata->hotplug_enable;
 	sensor_conf->hotplug_in_threshold = pdata->hotplug_in_threshold;
@@ -1590,18 +1283,11 @@ static int exynos_tmu_probe(struct platform_device *pdev)
 		ipa_register_thermal_sensor(&ipa_sensor_conf);
 	}
 #endif
-=======
-	sensor_conf->dev = &pdev->dev;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/* Register the sensor with thermal management interface */
 	ret = exynos_register_thermal(sensor_conf);
 	if (ret) {
 		dev_err(&pdev->dev, "Failed to register thermal interface\n");
-<<<<<<< HEAD
 		goto err;
-=======
-		goto err_clk;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 	data->reg_conf = sensor_conf;
 
@@ -1609,7 +1295,6 @@ static int exynos_tmu_probe(struct platform_device *pdev)
 		IRQF_TRIGGER_RISING | IRQF_SHARED, dev_name(&pdev->dev), data);
 	if (ret) {
 		dev_err(&pdev->dev, "Failed to request irq: %d\n", data->irq);
-<<<<<<< HEAD
 		goto err;
 	}
 
@@ -1627,33 +1312,18 @@ static int exynos_tmu_probe(struct platform_device *pdev)
 err:
 	clk_disable_unprepare(data->gate_clk);
 err1:
-=======
-		goto err_clk;
-	}
-
-	return 0;
-err_clk:
-	clk_unprepare(data->clk);
-err_clk_sec:
-	if (!IS_ERR(data->clk_sec))
-		clk_unprepare(data->clk_sec);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return ret;
 }
 
 static int exynos_tmu_remove(struct platform_device *pdev)
 {
 	struct exynos_tmu_data *data = platform_get_drvdata(pdev);
-<<<<<<< HEAD
 	struct exynos_tmu_data *devnode;
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	exynos_unregister_thermal(data->reg_conf);
 
 	exynos_tmu_control(pdev, false);
 
-<<<<<<< HEAD
 	clk_disable_unprepare(data->gate_clk);
 	if (!IS_ERR(data->regulator))
 		regulator_disable(data->regulator);
@@ -1671,15 +1341,6 @@ static int exynos_tmu_remove(struct platform_device *pdev)
 	}
 	mutex_unlock(&data->lock);
 
-=======
-	clk_unprepare(data->clk);
-	if (!IS_ERR(data->clk_sec))
-		clk_unprepare(data->clk_sec);
-
-	if (!IS_ERR(data->regulator))
-		regulator_disable(data->regulator);
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return 0;
 }
 

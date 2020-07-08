@@ -84,7 +84,6 @@ static int hash_walk_new_entry(struct crypto_hash_walk *walk)
 int crypto_hash_walk_done(struct crypto_hash_walk *walk, int err)
 {
 	unsigned int alignmask = walk->alignmask;
-<<<<<<< HEAD
 	unsigned int nbytes = walk->entrylen;
 
 	walk->data -= walk->offset;
@@ -96,19 +95,6 @@ int crypto_hash_walk_done(struct crypto_hash_walk *walk, int err)
 		walk->entrylen -= nbytes;
 
 		if (nbytes) {
-=======
-
-	walk->data -= walk->offset;
-
-	if (walk->entrylen && (walk->offset & alignmask) && !err) {
-		unsigned int nbytes;
-
-		walk->offset = ALIGN(walk->offset, alignmask + 1);
-		nbytes = min(walk->entrylen,
-			     (unsigned int)(PAGE_SIZE - walk->offset));
-		if (nbytes) {
-			walk->entrylen -= nbytes;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			walk->data += walk->offset;
 			return nbytes;
 		}
@@ -128,11 +114,7 @@ int crypto_hash_walk_done(struct crypto_hash_walk *walk, int err)
 	if (err)
 		return err;
 
-<<<<<<< HEAD
 	if (nbytes) {
-=======
-	if (walk->entrylen) {
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		walk->offset = 0;
 		walk->pg++;
 		return hash_walk_next(walk);
@@ -315,10 +297,6 @@ static void ahash_restore_req(struct ahash_request *req, int err)
 
 	/* Restore the original crypto request. */
 	req->result = priv->result;
-<<<<<<< HEAD
-=======
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	ahash_request_set_callback(req, priv->flags,
 				   priv->complete, priv->data);
 	req->priv = NULL;
@@ -658,19 +636,5 @@ struct hash_alg_common *ahash_attr_alg(struct rtattr *rta, u32 type, u32 mask)
 }
 EXPORT_SYMBOL_GPL(ahash_attr_alg);
 
-<<<<<<< HEAD
-=======
-bool crypto_hash_alg_has_setkey(struct hash_alg_common *halg)
-{
-	struct crypto_alg *alg = &halg->base;
-
-	if (alg->cra_type != &crypto_ahash_type)
-		return crypto_shash_alg_has_setkey(__crypto_shash_alg(alg));
-
-	return __crypto_ahash_alg(alg)->setkey != NULL;
-}
-EXPORT_SYMBOL_GPL(crypto_hash_alg_has_setkey);
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 MODULE_LICENSE("GPL");
 MODULE_DESCRIPTION("Asynchronous cryptographic hash type");

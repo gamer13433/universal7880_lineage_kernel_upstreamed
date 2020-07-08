@@ -2065,11 +2065,7 @@ vxge_hw_vpath_strip_fcs_check(struct __vxge_hw_device *hldev, u64 vpath_mask);
 	if ((level >= VXGE_ERR && VXGE_COMPONENT_LL & VXGE_DEBUG_ERR_MASK) ||  \
 	    (level >= VXGE_TRACE && VXGE_COMPONENT_LL & VXGE_DEBUG_TRACE_MASK))\
 		if ((mask & VXGE_DEBUG_MASK) == mask)			       \
-<<<<<<< HEAD
 			printk(fmt "\n", __VA_ARGS__);			       \
-=======
-			printk(fmt "\n", ##__VA_ARGS__);		       \
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 } while (0)
 #else
 #define vxge_debug_ll(level, mask, fmt, ...)

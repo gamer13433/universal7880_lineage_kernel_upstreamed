@@ -94,26 +94,9 @@ static void __iomem *ring_options_base(struct tb_ring *ring)
 	return io;
 }
 
-<<<<<<< HEAD
 static void ring_iowrite16desc(struct tb_ring *ring, u32 value, u32 offset)
 {
 	iowrite16(value, ring_desc_base(ring) + offset);
-=======
-static void ring_iowrite_cons(struct tb_ring *ring, u16 cons)
-{
-	/*
-	 * The other 16-bits in the register is read-only and writes to it
-	 * are ignored by the hardware so we can save one ioread32() by
-	 * filling the read-only bits with zeroes.
-	 */
-	iowrite32(cons, ring_desc_base(ring) + 8);
-}
-
-static void ring_iowrite_prod(struct tb_ring *ring, u16 prod)
-{
-	/* See ring_iowrite_cons() above for explanation */
-	iowrite32(prod << 16, ring_desc_base(ring) + 8);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 static void ring_iowrite32desc(struct tb_ring *ring, u32 value, u32 offset)
@@ -165,14 +148,7 @@ static void ring_write_descriptors(struct tb_ring *ring)
 			descriptor->sof = frame->sof;
 		}
 		ring->head = (ring->head + 1) % ring->size;
-<<<<<<< HEAD
 		ring_iowrite16desc(ring, ring->head, ring->is_tx ? 10 : 8);
-=======
-		if (ring->is_tx)
-			ring_iowrite_prod(ring, ring->head);
-		else
-			ring_iowrite_cons(ring, ring->head);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 }
 
@@ -392,11 +368,7 @@ void ring_stop(struct tb_ring *ring)
 
 	ring_iowrite32options(ring, 0, 0);
 	ring_iowrite64desc(ring, 0, 0);
-<<<<<<< HEAD
 	ring_iowrite16desc(ring, 0, ring->is_tx ? 10 : 8);
-=======
-	ring_iowrite32desc(ring, 0, 8);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	ring_iowrite32desc(ring, 0, 12);
 	ring->head = 0;
 	ring->tail = 0;

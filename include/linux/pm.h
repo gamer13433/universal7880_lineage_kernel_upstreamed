@@ -773,10 +773,7 @@ enum dpm_order {
 	DPM_ORDER_DEV_AFTER_PARENT,
 	DPM_ORDER_PARENT_BEFORE_DEV,
 	DPM_ORDER_DEV_LAST,
-<<<<<<< HEAD
 	DPM_ORDER_DEV_FIRST,
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 #endif /* _LINUX_PM_H */

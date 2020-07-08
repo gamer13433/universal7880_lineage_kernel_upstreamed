@@ -158,11 +158,7 @@ int acpi_bus_get_private_data(acpi_handle handle, void **data)
 {
 	acpi_status status;
 
-<<<<<<< HEAD
 	if (!*data)
-=======
-	if (!data)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		return -EINVAL;
 
 	status = acpi_get_data(handle, acpi_bus_private_data_handler, data);

@@ -779,11 +779,7 @@ static int suspend_prepare(struct regulator_dev *rdev, suspend_state_t state)
 static void print_constraints(struct regulator_dev *rdev)
 {
 	struct regulation_constraints *constraints = rdev->constraints;
-<<<<<<< HEAD
 	char buf[80] = "";
-=======
-	char buf[160] = "";
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	int count = 0;
 	int ret;
 
@@ -1004,52 +1000,32 @@ static int set_machine_constraints(struct regulator_dev *rdev,
 
 	ret = machine_constraints_voltage(rdev, rdev->constraints);
 	if (ret != 0)
-<<<<<<< HEAD
 		goto out;
 
 	ret = machine_constraints_current(rdev, rdev->constraints);
 	if (ret != 0)
 		goto out;
-=======
-		return ret;
-
-	ret = machine_constraints_current(rdev, rdev->constraints);
-	if (ret != 0)
-		return ret;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	/* do we need to setup our suspend state */
 	if (rdev->constraints->initial_state) {
 		ret = suspend_prepare(rdev, rdev->constraints->initial_state);
 		if (ret < 0) {
 			rdev_err(rdev, "failed to set suspend state\n");
-<<<<<<< HEAD
 			goto out;
-=======
-			return ret;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		}
 	}
 
 	if (rdev->constraints->initial_mode) {
 		if (!ops->set_mode) {
 			rdev_err(rdev, "no set_mode operation\n");
-<<<<<<< HEAD
 			ret = -EINVAL;
 			goto out;
-=======
-			return -EINVAL;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		}
 
 		ret = ops->set_mode(rdev, rdev->constraints->initial_mode);
 		if (ret < 0) {
 			rdev_err(rdev, "failed to set initial mode: %d\n", ret);
-<<<<<<< HEAD
 			goto out;
-=======
-			return ret;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		}
 	}
 
@@ -1060,11 +1036,7 @@ static int set_machine_constraints(struct regulator_dev *rdev,
 		ret = _regulator_do_enable(rdev);
 		if (ret < 0 && ret != -EINVAL) {
 			rdev_err(rdev, "failed to enable\n");
-<<<<<<< HEAD
 			goto out;
-=======
-			return ret;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		}
 	}
 
@@ -1073,23 +1045,16 @@ static int set_machine_constraints(struct regulator_dev *rdev,
 		ret = ops->set_ramp_delay(rdev, rdev->constraints->ramp_delay);
 		if (ret < 0) {
 			rdev_err(rdev, "failed to set ramp_delay\n");
-<<<<<<< HEAD
 			goto out;
-=======
-			return ret;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		}
 	}
 
 	print_constraints(rdev);
 	return 0;
-<<<<<<< HEAD
 out:
 	kfree(rdev->constraints);
 	rdev->constraints = NULL;
 	return ret;
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 /**
@@ -1306,7 +1271,6 @@ static void regulator_supply_alias(struct device **dev, const char **supply)
 	}
 }
 
-<<<<<<< HEAD
 static int _regulator_get_disable_time(struct regulator_dev *rdev)
 {
 	if (!rdev->desc->ops->disable_time)
@@ -1314,8 +1278,6 @@ static int _regulator_get_disable_time(struct regulator_dev *rdev)
 	return rdev->desc->ops->disable_time(rdev);
 }
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static struct regulator_dev *regulator_dev_lookup(struct device *dev,
 						  const char *supply,
 						  int *ret)
@@ -1990,7 +1952,6 @@ EXPORT_SYMBOL_GPL(regulator_enable);
 
 static int _regulator_do_disable(struct regulator_dev *rdev)
 {
-<<<<<<< HEAD
 	int ret, delay;
 
 	/* Query before disabling in case configuration dependent.  */
@@ -2001,9 +1962,6 @@ static int _regulator_do_disable(struct regulator_dev *rdev)
 		rdev_warn(rdev, "disable_time() failed: %d\n", ret);
 		delay = 0;
 	}
-=======
-	int ret;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	trace_regulator_disable(rdev_get_name(rdev));
 
@@ -2027,7 +1985,6 @@ static int _regulator_do_disable(struct regulator_dev *rdev)
 	if (rdev->desc->off_on_delay)
 		rdev->last_off_jiffy = jiffies;
 
-<<<<<<< HEAD
 	/* Allow the regulator to ramp; it would be useful to extend
 	 * this for bulk operations so that the regulators can ramp
 	 * together.  */
@@ -2040,8 +1997,6 @@ static int _regulator_do_disable(struct regulator_dev *rdev)
 		udelay(delay);
 	}
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	trace_regulator_disable_complete(rdev_get_name(rdev));
 
 	return 0;
@@ -2492,7 +2447,6 @@ int regulator_is_supported_voltage(struct regulator *regulator,
 }
 EXPORT_SYMBOL_GPL(regulator_is_supported_voltage);
 
-<<<<<<< HEAD
 /**
  * regulator_get_max_support_voltage - standard get_max_supporting_volt()
  *
@@ -2525,8 +2479,6 @@ int regulator_get_min_support_voltage(struct regulator *regulator)
 }
 EXPORT_SYMBOL_GPL(regulator_get_min_support_voltage);
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static int _regulator_call_set_voltage(struct regulator_dev *rdev,
 				       int min_uV, int max_uV,
 				       unsigned *selector)
@@ -2747,13 +2699,10 @@ int regulator_set_voltage(struct regulator *regulator, int min_uV, int max_uV)
 	regulator->min_uV = min_uV;
 	regulator->max_uV = max_uV;
 
-<<<<<<< HEAD
 	if ((rdev->open_count < rdev->constraints->expected_consumer)
 			&& rdev->constraints->expected_consumer)
 		goto out;
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	ret = regulator_check_consumers(rdev, &min_uV, &max_uV);
 	if (ret < 0)
 		goto out2;
@@ -3864,11 +3813,7 @@ scrub:
 	if (rdev->supply)
 		_regulator_put(rdev->supply);
 	regulator_ena_gpio_free(rdev);
-<<<<<<< HEAD
 	kfree(rdev->constraints);
-=======
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 wash:
 	device_unregister(&rdev->dev);
 	/* device core frees rdev */

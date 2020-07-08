@@ -580,17 +580,12 @@ config SDH_BFIN_MISSING_CMD_PULLUP_WORKAROUND
 config MMC_DW
 	tristate "Synopsys DesignWare Memory Card Interface"
 	depends on HAS_DMA
-<<<<<<< HEAD
 	depends on ARC || ARM || ARM64 || MIPS || COMPILE_TEST
-=======
-	depends on ARC || ARM || MIPS || COMPILE_TEST
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	help
 	  This selects support for the Synopsys DesignWare Mobile Storage IP
 	  block, this provides host support for SD and MMC interfaces, in both
 	  PIO and external DMA modes.
 
-<<<<<<< HEAD
 config MMC_DW_FMP_DM_CRYPT
 	bool "FMP acceleration for DM_CRYPT"
 	depends on DM_CRYPT && FMP_MMC
@@ -605,8 +600,6 @@ config MMC_DW_FMP_ECRYPT_FS
 	  This option activates flash memory protector of the eMMC controller to
 	  accelerate eCryptfs.
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 config MMC_DW_IDMAC
 	bool "Internal DMAC interface"
 	depends on MMC_DW
@@ -615,7 +608,6 @@ config MMC_DW_IDMAC
 	  Designware Mobile Storage IP block. This disables the external DMA
 	  interface.
 
-<<<<<<< HEAD
 config MMC_DW_64BIT_DESC
 	bool "64bit desctriptor interface"
 	depends on MMC_DW
@@ -624,8 +616,6 @@ config MMC_DW_64BIT_DESC
 	  Designware Mobile Storage IP block. This disables the 32bit internal DMA
 	  interface.
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 config MMC_DW_PLTFM
 	tristate "Synopsys Designware MCI Support as platform device"
 	depends on MMC_DW
@@ -649,7 +639,6 @@ config MMC_DW_EXYNOS
 	  Synopsys DesignWare Memory Card Interface driver. Select this option
 	  for platforms based on Exynos4 and Exynos5 SoC's.
 
-<<<<<<< HEAD
 config MMC_DW_DEBUG
 	bool "Samsung DWMCI debug feature"
 	depends on MMC_DW
@@ -657,8 +646,6 @@ config MMC_DW_DEBUG
 	  This selects support for infomation logging for debugging.
 	  Select this option if this feature is needed on working.
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 config MMC_DW_K3
 	tristate "K3 specific extensions for Synopsys DW Memory Card Interface"
 	depends on MMC_DW
@@ -689,7 +676,6 @@ config MMC_DW_ROCKCHIP
 	  Synopsys DesignWare Memory Card Interface driver. Select this option
 	  for platforms based on RK3066, RK3188 and RK3288 SoC's.
 
-<<<<<<< HEAD
 config MMC_DW_FORCE_32BIT_SFR_RW
 	bool "Force to use 32bit rw for 64bit SFR rw"
 	depends on MMC_DW
@@ -698,8 +684,6 @@ config MMC_DW_FORCE_32BIT_SFR_RW
 	  read/write when 64bit read/write is not allowed for SFR on some DW
 	  MMC implementation. Consider using this with FIFO SFR on PIO mode.
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 config MMC_SH_MMCIF
 	tristate "SuperH Internal MMCIF support"
 	depends on MMC_BLOCK && HAS_DMA
@@ -801,12 +785,9 @@ config MMC_SUNXI
 	help
 	  This selects support for the SD/MMC Host Controller on
 	  Allwinner sunxi SoCs.
-<<<<<<< HEAD
 
 config MMC_SRPMB
 	bool "MMC Secure RPMB Support"
 	depends on MMC_DW
 	help
 	  This option activates mmc secure rpmb.
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012

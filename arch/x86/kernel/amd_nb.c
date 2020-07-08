@@ -105,11 +105,7 @@ int amd_cache_northbridges(void)
 	if (boot_cpu_data.x86 == 0x10 &&
 	    boot_cpu_data.x86_model >= 0x8 &&
 	    (boot_cpu_data.x86_model > 0x9 ||
-<<<<<<< HEAD
 	     boot_cpu_data.x86_mask >= 0x1))
-=======
-	     boot_cpu_data.x86_stepping >= 0x1))
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		amd_northbridges.flags |= AMD_NB_L3_INDEX_DISABLE;
 
 	if (boot_cpu_data.x86 == 0x15)

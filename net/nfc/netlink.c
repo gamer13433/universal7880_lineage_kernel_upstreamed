@@ -56,10 +56,6 @@ static const struct nla_policy nfc_genl_policy[NFC_ATTR_MAX + 1] = {
 	[NFC_ATTR_LLC_SDP] = { .type = NLA_NESTED },
 	[NFC_ATTR_FIRMWARE_NAME] = { .type = NLA_STRING,
 				     .len = NFC_FIRMWARE_NAME_MAXSIZE },
-<<<<<<< HEAD
-=======
-	[NFC_ATTR_SE_INDEX] = { .type = NLA_U32 },
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	[NFC_ATTR_SE_APDU] = { .type = NLA_BINARY },
 };
 
@@ -856,12 +852,7 @@ static int nfc_genl_dep_link_down(struct sk_buff *skb, struct genl_info *info)
 	int rc;
 	u32 idx;
 
-<<<<<<< HEAD
 	if (!info->attrs[NFC_ATTR_DEVICE_INDEX])
-=======
-	if (!info->attrs[NFC_ATTR_DEVICE_INDEX] ||
-	    !info->attrs[NFC_ATTR_TARGET_INDEX])
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		return -EINVAL;
 
 	idx = nla_get_u32(info->attrs[NFC_ATTR_DEVICE_INDEX]);
@@ -990,10 +981,7 @@ static int nfc_genl_llc_set_params(struct sk_buff *skb, struct genl_info *info)
 
 	local = nfc_llcp_find_local(dev);
 	if (!local) {
-<<<<<<< HEAD
 		nfc_put_device(dev);
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		rc = -ENODEV;
 		goto exit;
 	}
@@ -1055,10 +1043,7 @@ static int nfc_genl_llc_sdreq(struct sk_buff *skb, struct genl_info *info)
 
 	local = nfc_llcp_find_local(dev);
 	if (!local) {
-<<<<<<< HEAD
 		nfc_put_device(dev);
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		rc = -ENODEV;
 		goto exit;
 	}
@@ -1121,12 +1106,7 @@ static int nfc_genl_fw_download(struct sk_buff *skb, struct genl_info *info)
 	u32 idx;
 	char firmware_name[NFC_FIRMWARE_NAME_MAXSIZE + 1];
 
-<<<<<<< HEAD
 	if (!info->attrs[NFC_ATTR_DEVICE_INDEX])
-=======
-	if (!info->attrs[NFC_ATTR_DEVICE_INDEX] ||
-	    !info->attrs[NFC_ATTR_FIRMWARE_NAME])
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		return -EINVAL;
 
 	idx = nla_get_u32(info->attrs[NFC_ATTR_DEVICE_INDEX]);

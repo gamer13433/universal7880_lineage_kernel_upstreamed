@@ -78,23 +78,13 @@ static int sun7i_gmac_init(struct platform_device *pdev, void *priv)
 	 * rate, which then uses the auto-reparenting feature of the
 	 * clock driver, and enabling/disabling the clock.
 	 */
-<<<<<<< HEAD
 	if (gmac->interface == PHY_INTERFACE_MODE_RGMII) {
-=======
-	if (phy_interface_mode_is_rgmii(gmac->interface)) {
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		clk_set_rate(gmac->tx_clk, SUN7I_GMAC_GMII_RGMII_RATE);
 		clk_prepare_enable(gmac->tx_clk);
 		gmac->clk_enabled = 1;
 	} else {
 		clk_set_rate(gmac->tx_clk, SUN7I_GMAC_MII_RATE);
-<<<<<<< HEAD
 		clk_prepare(gmac->tx_clk);
-=======
-		ret = clk_prepare(gmac->tx_clk);
-		if (ret)
-			return ret;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 	return 0;

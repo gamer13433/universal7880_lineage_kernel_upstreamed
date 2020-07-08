@@ -26,7 +26,6 @@ DTB_LIST := $(dtb-y)
 endif
 DTB_OBJS := $(addprefix $(obj)/dts/,$(DTB_LIST))
 
-<<<<<<< HEAD
 ifeq ($(CONFIG_EXYNOS_DTBTOOL),y)
 targets += dtb.img
 
@@ -39,14 +38,6 @@ endif
 $(obj)/Image: vmlinux FORCE
 	$(call if_changed,objcopy)
 
-=======
-$(obj)/Image: vmlinux FORCE
-	$(call if_changed,objcopy)
-
-$(obj)/Image-dtb: $(obj)/Image $(DTB_OBJS) FORCE
-	$(call if_changed,cat)
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 $(obj)/Image.gz: $(obj)/Image FORCE
 	$(call if_changed,gzip)
 

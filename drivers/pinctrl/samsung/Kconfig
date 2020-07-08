@@ -26,7 +26,6 @@ config PINCTRL_S3C64XX
 	bool "Samsung S3C64XX SoC pinctrl driver"
 	depends on ARCH_S3C64XX
 	select PINCTRL_SAMSUNG
-<<<<<<< HEAD
 
 config SEC_GPIO_DVS
 	tristate "setting Samsung GPIO debugging and verification system"
@@ -34,5 +33,3 @@ config SEC_GPIO_DVS
 config SENSORS_FP_SPI_GPIO
 	depends on SENSORS_FINGERPRINT
 	string "Fingerprint spi gpio name"
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012

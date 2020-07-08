@@ -2229,13 +2229,6 @@ static int xs_tcp_finish_connecting(struct rpc_xprt *xprt, struct socket *sock)
 		/* SYN_SENT! */
 		if (xprt->reestablish_timeout < XS_TCP_INIT_REEST_TO)
 			xprt->reestablish_timeout = XS_TCP_INIT_REEST_TO;
-<<<<<<< HEAD
-=======
-		break;
-	case -EADDRNOTAVAIL:
-		/* Source port number is unavailable. Try a new one! */
-		transport->srcport = 0;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 out:
 	return ret;

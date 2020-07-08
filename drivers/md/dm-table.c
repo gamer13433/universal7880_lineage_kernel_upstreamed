@@ -11,10 +11,6 @@
 #include <linux/vmalloc.h>
 #include <linux/blkdev.h>
 #include <linux/namei.h>
-<<<<<<< HEAD
-=======
-#include <linux/mount.h>
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #include <linux/ctype.h>
 #include <linux/string.h>
 #include <linux/slab.h>
@@ -510,23 +506,14 @@ static int adjoin(struct dm_table *table, struct dm_target *ti)
  * On the other hand, dm-switch needs to process bulk data using messages and
  * excessive use of GFP_NOIO could cause trouble.
  */
-<<<<<<< HEAD
 static char **realloc_argv(unsigned *array_size, char **old_argv)
-=======
-static char **realloc_argv(unsigned *size, char **old_argv)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	char **argv;
 	unsigned new_size;
 	gfp_t gfp;
 
-<<<<<<< HEAD
 	if (*array_size) {
 		new_size = *array_size * 2;
-=======
-	if (*size) {
-		new_size = *size * 2;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		gfp = GFP_KERNEL;
 	} else {
 		new_size = 8;
@@ -534,13 +521,8 @@ static char **realloc_argv(unsigned *size, char **old_argv)
 	}
 	argv = kmalloc(new_size * sizeof(*argv), gfp);
 	if (argv) {
-<<<<<<< HEAD
 		memcpy(argv, old_argv, *array_size * sizeof(*argv));
 		*array_size = new_size;
-=======
-		memcpy(argv, old_argv, *size * sizeof(*argv));
-		*size = new_size;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 	kfree(old_argv);
@@ -1142,11 +1124,7 @@ void dm_table_event(struct dm_table *t)
 }
 EXPORT_SYMBOL(dm_table_event);
 
-<<<<<<< HEAD
 sector_t dm_table_get_size(struct dm_table *t)
-=======
-inline sector_t dm_table_get_size(struct dm_table *t)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	return t->num_targets ? (t->highs[t->num_targets - 1] + 1) : 0;
 }
@@ -1171,12 +1149,6 @@ struct dm_target *dm_table_find_target(struct dm_table *t, sector_t sector)
 	unsigned int l, n = 0, k = 0;
 	sector_t *node;
 
-<<<<<<< HEAD
-=======
-	if (unlikely(sector >= dm_table_get_size(t)))
-		return &t->targets[t->num_targets];
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	for (l = 0; l < t->depth; l++) {
 		n = get_child(n, k);
 		node = get_node(t, l, n);
@@ -1525,12 +1497,6 @@ void dm_table_set_restrictions(struct dm_table *t, struct request_queue *q,
 	smp_mb();
 	if (dm_table_request_based(t))
 		queue_flag_set_unlocked(QUEUE_FLAG_STACKABLE, q);
-<<<<<<< HEAD
-=======
-
-	/* io_pages is used for readahead */
-	q->backing_dev_info.io_pages = limits->max_sectors >> (PAGE_SHIFT - 9);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 unsigned int dm_table_get_num_targets(struct dm_table *t)

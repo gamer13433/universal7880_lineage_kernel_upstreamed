@@ -129,20 +129,12 @@ static inline u32 usbtll_read(void __iomem *base, u32 reg)
 	return readl_relaxed(base + reg);
 }
 
-<<<<<<< HEAD
 static inline void usbtll_writeb(void __iomem *base, u8 reg, u8 val)
-=======
-static inline void usbtll_writeb(void __iomem *base, u32 reg, u8 val)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	writeb_relaxed(val, base + reg);
 }
 
-<<<<<<< HEAD
 static inline u8 usbtll_readb(void __iomem *base, u8 reg)
-=======
-static inline u8 usbtll_readb(void __iomem *base, u32 reg)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	return readb_relaxed(base + reg);
 }

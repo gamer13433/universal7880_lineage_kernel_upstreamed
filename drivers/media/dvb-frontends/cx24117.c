@@ -1043,11 +1043,7 @@ static int cx24117_send_diseqc_msg(struct dvb_frontend *fe,
 	dev_dbg(&state->priv->i2c->dev, ")\n");
 
 	/* Validate length */
-<<<<<<< HEAD
 	if (d->msg_len > 15)
-=======
-	if (d->msg_len > sizeof(d->msg))
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		return -EINVAL;
 
 	/* DiSEqC message */

@@ -32,11 +32,7 @@ struct security_class_mapping secclass_map[] = {
 	    "setsockcreate", NULL } },
 	{ "system",
 	  { "ipc_info", "syslog_read", "syslog_mod",
-<<<<<<< HEAD
 	    "syslog_console", "module_request", NULL } },
-=======
-	    "syslog_console", "module_request", "module_load", NULL } },
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	{ "capability",
 	  { "chown", "dac_override", "dac_read_search",
 	    "fowner", "fsetid", "kill", "setgid", "setuid", "setpcap",

@@ -2359,7 +2359,6 @@ static long usbdev_do_ioctl(struct file *file, unsigned int cmd,
 	return ret;
 }
 
-<<<<<<< HEAD
 #ifdef CONFIG_USB_DEBUG_DETAILED_LOG
 static int usbdev_log(unsigned int cmd, int ret)
 {
@@ -2443,22 +2442,16 @@ static int usbdev_log(unsigned int cmd, int ret)
 }
 #endif
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static long usbdev_ioctl(struct file *file, unsigned int cmd,
 			unsigned long arg)
 {
 	int ret;
 
 	ret = usbdev_do_ioctl(file, cmd, (void __user *)arg);
-<<<<<<< HEAD
 #ifdef CONFIG_USB_DEBUG_DETAILED_LOG
 	if (ret <0)
 		usbdev_log(cmd, ret);
 #endif
-=======
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return ret;
 }
 

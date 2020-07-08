@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-=======
-// SPDX-License-Identifier: GPL-2.0
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /*
  * fs/f2fs/acl.h
  *
@@ -11,13 +7,10 @@
  * Portions of this code from linux/fs/ext2/acl.h
  *
  * Copyright (C) 2001-2003 Andreas Gruenbacher, <agruen@suse.de>
-<<<<<<< HEAD
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation.
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
  */
 #ifndef __F2FS_ACL_H__
 #define __F2FS_ACL_H__
@@ -44,26 +37,15 @@ struct f2fs_acl_header {
 #ifdef CONFIG_F2FS_FS_POSIX_ACL
 
 extern struct posix_acl *f2fs_get_acl(struct inode *, int);
-<<<<<<< HEAD
 extern int f2fs_set_acl(struct inode *inode, struct posix_acl *acl, int type);
 extern int f2fs_init_acl(struct inode *, struct inode *, struct page *);
 #else
 #define f2fs_check_acl	NULL
-=======
-extern int f2fs_set_acl(struct inode *, struct posix_acl *, int);
-extern int f2fs_init_acl(struct inode *, struct inode *, struct page *,
-							struct page *);
-#else
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #define f2fs_get_acl	NULL
 #define f2fs_set_acl	NULL
 
 static inline int f2fs_init_acl(struct inode *inode, struct inode *dir,
-<<<<<<< HEAD
 							struct page *page)
-=======
-				struct page *ipage, struct page *dpage)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	return 0;
 }

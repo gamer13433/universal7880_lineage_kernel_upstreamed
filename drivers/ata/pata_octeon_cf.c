@@ -1053,11 +1053,7 @@ static struct of_device_id octeon_cf_match[] = {
 	},
 	{},
 };
-<<<<<<< HEAD
 MODULE_DEVICE_TABLE(of, octeon_i2c_match);
-=======
-MODULE_DEVICE_TABLE(of, octeon_cf_match);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 static struct platform_driver octeon_cf_driver = {
 	.probe		= octeon_cf_probe,

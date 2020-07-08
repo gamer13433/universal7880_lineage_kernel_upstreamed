@@ -23,10 +23,7 @@ static void of_get_regulation_constraints(struct device_node *np,
 					struct regulator_init_data **init_data)
 {
 	const __be32 *min_uV, *max_uV;
-<<<<<<< HEAD
 	const __be32 *expected_consumer;
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	struct regulation_constraints *constraints = &(*init_data)->constraints;
 	int ret;
 	u32 pval;
@@ -77,7 +74,6 @@ static void of_get_regulation_constraints(struct device_node *np,
 	ret = of_property_read_u32(np, "regulator-enable-ramp-delay", &pval);
 	if (!ret)
 		constraints->enable_time = pval;
-<<<<<<< HEAD
 
 	ret = of_property_read_u32(np, "regulator-initial-mode", &pval);
 	if (!ret)
@@ -89,8 +85,6 @@ static void of_get_regulation_constraints(struct device_node *np,
 	expected_consumer = of_get_property(np, "regulator-expected-consumer", NULL);
 	if (expected_consumer)
 		constraints->expected_consumer = be32_to_cpu(*expected_consumer);
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 /**

@@ -133,11 +133,7 @@ static struct zbud_ops zbud_zpool_ops = {
 static void *zbud_zpool_create(char *name, gfp_t gfp,
 			struct zpool_ops *zpool_ops)
 {
-<<<<<<< HEAD
 	return zbud_create_pool(gfp, zpool_ops ? &zbud_zpool_ops : NULL);
-=======
-	return zbud_create_pool(gfp, &zbud_zpool_ops);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 static void zbud_zpool_destroy(void *pool)
@@ -189,7 +185,6 @@ static u64 zbud_zpool_total_size(void *pool)
 	return zbud_get_pool_size(pool) * PAGE_SIZE;
 }
 
-<<<<<<< HEAD
 static unsigned long zbud_zpool_compact(void *pool)
 {
 	return 0;
@@ -200,8 +195,6 @@ static bool zbud_zpool_compactable(void *pool, unsigned int pages)
 	return false;
 }
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static struct zpool_driver zbud_zpool_driver = {
 	.type =		"zbud",
 	.owner =	THIS_MODULE,
@@ -213,11 +206,8 @@ static struct zpool_driver zbud_zpool_driver = {
 	.map =		zbud_zpool_map,
 	.unmap =	zbud_zpool_unmap,
 	.total_size =	zbud_zpool_total_size,
-<<<<<<< HEAD
 	.compact =	zbud_zpool_compact,
 	.compactable =	zbud_zpool_compactable,
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 MODULE_ALIAS("zpool-zbud");

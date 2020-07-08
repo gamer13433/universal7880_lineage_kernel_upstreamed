@@ -12,7 +12,6 @@
 
 /* On cooling devices upper and lower limits */
 #define THERMAL_NO_LIMIT		(-1UL)
-<<<<<<< HEAD
 #define TABLE_END			(~1)
 
 #define THROTTLE_ACTIVE			(1)
@@ -22,8 +21,6 @@
 
 #define DISABLE				(0)
 #define ENABLE				(1)
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #endif
 

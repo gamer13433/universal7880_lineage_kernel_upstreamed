@@ -43,15 +43,6 @@ static inline int atomic_##op##_return(int i, atomic_t *v)		\
 {									\
 	unsigned int temp;						\
 									\
-<<<<<<< HEAD
-=======
-	/*								\
-	 * Explicit full memory barrier needed before/after as		\
-	 * LLOCK/SCOND thmeselves don't provide any such semantics	\
-	 */								\
-	smp_mb();							\
-									\
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	__asm__ __volatile__(						\
 	"1:	llock   %0, [%1]	\n"				\
 	"	" #asm_op " %0, %0, %2	\n"				\
@@ -61,11 +52,6 @@ static inline int atomic_##op##_return(int i, atomic_t *v)		\
 	: "r"(&v->counter), "ir"(i)					\
 	: "cc");							\
 									\
-<<<<<<< HEAD
-=======
-	smp_mb();							\
-									\
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return temp;							\
 }
 
@@ -119,12 +105,6 @@ static inline int atomic_##op##_return(int i, atomic_t *v)		\
 	unsigned long flags;						\
 	unsigned long temp;						\
 									\
-<<<<<<< HEAD
-=======
-	/*								\
-	 * spin lock/unlock provides the needed smp_mb() before/after	\
-	 */								\
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	atomic_ops_lock(flags);						\
 	temp = v->counter;						\
 	temp c_op i;							\
@@ -162,25 +142,9 @@ ATOMIC_OP(and, &=, and)
 #define __atomic_add_unless(v, a, u)					\
 ({									\
 	int c, old;							\
-<<<<<<< HEAD
 	c = atomic_read(v);						\
 	while (c != (u) && (old = atomic_cmpxchg((v), c, c + (a))) != c)\
 		c = old;						\
-=======
-									\
-	/*								\
-	 * Explicit full memory barrier needed before/after as		\
-	 * LLOCK/SCOND thmeselves don't provide any such semantics	\
-	 */								\
-	smp_mb();							\
-									\
-	c = atomic_read(v);						\
-	while (c != (u) && (old = atomic_cmpxchg((v), c, c + (a))) != c)\
-		c = old;						\
-									\
-	smp_mb();							\
-									\
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	c;								\
 })
 

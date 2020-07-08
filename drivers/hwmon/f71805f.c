@@ -96,34 +96,17 @@ superio_select(int base, int ld)
 	outb(ld, base + 1);
 }
 
-<<<<<<< HEAD
 static inline void
 superio_enter(int base)
 {
 	outb(0x87, base);
 	outb(0x87, base);
-=======
-static inline int
-superio_enter(int base)
-{
-	if (!request_muxed_region(base, 2, DRVNAME))
-		return -EBUSY;
-
-	outb(0x87, base);
-	outb(0x87, base);
-
-	return 0;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 static inline void
 superio_exit(int base)
 {
 	outb(0xaa, base);
-<<<<<<< HEAD
-=======
-	release_region(base, 2);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 /*
@@ -1579,11 +1562,7 @@ exit:
 static int __init f71805f_find(int sioaddr, unsigned short *address,
 			       struct f71805f_sio_data *sio_data)
 {
-<<<<<<< HEAD
 	int err = -ENODEV;
-=======
-	int err;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	u16 devid;
 
 	static const char * const names[] = {
@@ -1591,16 +1570,8 @@ static int __init f71805f_find(int sioaddr, unsigned short *address,
 		"F71872F/FG or F71806F/FG",
 	};
 
-<<<<<<< HEAD
 	superio_enter(sioaddr);
 
-=======
-	err = superio_enter(sioaddr);
-	if (err)
-		return err;
-
-	err = -ENODEV;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	devid = superio_inw(sioaddr, SIO_REG_MANID);
 	if (devid != SIO_FINTEK_ID)
 		goto exit;

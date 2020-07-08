@@ -44,10 +44,6 @@ static int show_sb_opts(struct seq_file *m, struct super_block *sb)
 		{ MS_SYNCHRONOUS, ",sync" },
 		{ MS_DIRSYNC, ",dirsync" },
 		{ MS_MANDLOCK, ",mand" },
-<<<<<<< HEAD
-=======
-		{ MS_LAZYTIME, ",lazytime" },
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		{ 0, NULL }
 	};
 	const struct proc_fs_info *fs_infop;
@@ -117,11 +113,7 @@ static int show_vfsmnt(struct seq_file *m, struct vfsmount *mnt)
 		goto out;
 	show_mnt_opts(m, mnt);
 	if (sb->s_op->show_options2)
-<<<<<<< HEAD
 		err = sb->s_op->show_options2(mnt, m, mnt_path.dentry);
-=======
-			err = sb->s_op->show_options2(mnt, m, mnt_path.dentry);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	else if (sb->s_op->show_options)
 		err = sb->s_op->show_options(m, mnt_path.dentry);
 	seq_puts(m, " 0 0\n");
@@ -203,11 +195,6 @@ static int show_vfsstat(struct seq_file *m, struct vfsmount *mnt)
 	if (sb->s_op->show_devname) {
 		seq_puts(m, "device ");
 		err = sb->s_op->show_devname(m, mnt_path.dentry);
-<<<<<<< HEAD
-=======
-		if (err)
-			goto out;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	} else {
 		if (r->mnt_devname) {
 			seq_puts(m, "device ");
@@ -233,10 +220,6 @@ static int show_vfsstat(struct seq_file *m, struct vfsmount *mnt)
 	}
 
 	seq_putc(m, '\n');
-<<<<<<< HEAD
-=======
-out:
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return err;
 }
 

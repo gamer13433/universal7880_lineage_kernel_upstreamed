@@ -35,24 +35,16 @@ static int ip_local_port_range_min[] = { 1, 1 };
 static int ip_local_port_range_max[] = { 65535, 65535 };
 static int tcp_adv_win_scale_min = -31;
 static int tcp_adv_win_scale_max = 31;
-<<<<<<< HEAD
-=======
-static int tcp_min_snd_mss_min = TCP_MIN_SND_MSS;
-static int tcp_min_snd_mss_max = 65535;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static int ip_ttl_min = 1;
 static int ip_ttl_max = 255;
 static int tcp_syn_retries_min = 1;
 static int tcp_syn_retries_max = MAX_TCP_SYNCNT;
 static int ip_ping_group_range_min[] = { 0, 0 };
 static int ip_ping_group_range_max[] = { GID_T_MAX, GID_T_MAX };
-<<<<<<< HEAD
 static int tcp_delack_seg_min = TCP_DELACK_MIN;
 static int tcp_delack_seg_max = 60;
 static int tcp_use_userconfig_min;
 static int tcp_use_userconfig_max = 1;
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /* Update system visible IP port range */
 static void set_local_port_range(struct net *net, int range[2])
@@ -803,7 +795,6 @@ static struct ctl_table ipv4_table[] = {
 		.proc_handler	= proc_dointvec_minmax,
 		.extra1		= &one
 	},
-<<<<<<< HEAD
 	{
 		.procname	= "tcp_delack_seg",
 		.data		= &sysctl_tcp_delack_seg,
@@ -823,8 +814,6 @@ static struct ctl_table ipv4_table[] = {
 		.extra2		= &tcp_use_userconfig_max,
 	},
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	{ }
 };
 
@@ -928,18 +917,6 @@ static struct ctl_table ipv4_net_table[] = {
 		.proc_handler	= proc_dointvec,
 	},
 	{
-<<<<<<< HEAD
-=======
-		.procname	= "tcp_min_snd_mss",
-		.data		= &init_net.ipv4.sysctl_tcp_min_snd_mss,
-		.maxlen		= sizeof(int),
-		.mode		= 0644,
-		.proc_handler	= proc_dointvec_minmax,
-		.extra1		= &tcp_min_snd_mss_min,
-		.extra2		= &tcp_min_snd_mss_max,
-	},
-	{
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		.procname	= "tcp_fwmark_accept",
 		.data		= &init_net.ipv4.sysctl_tcp_fwmark_accept,
 		.maxlen		= sizeof(int),

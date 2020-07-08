@@ -827,11 +827,7 @@ struct dm_kcopyd_client *dm_kcopyd_client_create(struct dm_kcopyd_throttle *thro
 	int r = -ENOMEM;
 	struct dm_kcopyd_client *kc;
 
-<<<<<<< HEAD
 	kc = kmalloc(sizeof(*kc), GFP_KERNEL);
-=======
-	kc = kzalloc(sizeof(*kc), GFP_KERNEL);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (!kc)
 		return ERR_PTR(-ENOMEM);
 

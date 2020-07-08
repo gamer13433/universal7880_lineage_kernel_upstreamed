@@ -164,7 +164,6 @@ static int fd_configure_device(struct se_device *dev)
 			" block_device blocks: %llu logical_block_size: %d\n",
 			dev_size, div_u64(dev_size, fd_dev->fd_block_size),
 			fd_dev->fd_block_size);
-<<<<<<< HEAD
 		/*
 		 * Check if the underlying struct block_device request_queue supports
 		 * the QUEUE_FLAG_DISCARD bit for UNMAP/WRITE_SAME in SCSI + TRIM
@@ -184,12 +183,6 @@ static int fd_configure_device(struct se_device *dev)
 			pr_debug("IFILE: BLOCK Discard support available,"
 					" disabled by default\n");
 		}
-=======
-
-		if (target_configure_unmap_from_queue(&dev->dev_attrib, q))
-			pr_debug("IFILE: BLOCK Discard support available,"
-				 " disabled by default\n");
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		/*
 		 * Enable write same emulation for IBLOCK and use 0xFFFF as
 		 * the smaller WRITE_SAME(10) only has a two-byte block count.
@@ -612,18 +605,9 @@ fd_do_unmap(struct se_cmd *cmd, void *priv, sector_t lba, sector_t nolb)
 	if (S_ISBLK(inode->i_mode)) {
 		/* The backend is block device, use discard */
 		struct block_device *bdev = inode->i_bdev;
-<<<<<<< HEAD
 
 		ret = blkdev_issue_discard(bdev, lba,
 				nolb, GFP_KERNEL, 0);
-=======
-		struct se_device *dev = cmd->se_dev;
-
-		ret = blkdev_issue_discard(bdev,
-					   target_to_linux_sector(dev, lba),
-					   target_to_linux_sector(dev,  nolb),
-					   GFP_KERNEL, 0);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		if (ret < 0) {
 			pr_warn("FILEIO: blkdev_issue_discard() failed: %d\n",
 				ret);

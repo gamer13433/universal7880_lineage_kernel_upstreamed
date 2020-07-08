@@ -490,11 +490,7 @@ enum sci_status sci_controller_start_io(
 	struct isci_remote_device *idev,
 	struct isci_request *ireq);
 
-<<<<<<< HEAD
 enum sci_task_status sci_controller_start_task(
-=======
-enum sci_status sci_controller_start_task(
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	struct isci_host *ihost,
 	struct isci_remote_device *idev,
 	struct isci_request *ireq);

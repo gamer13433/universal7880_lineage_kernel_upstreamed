@@ -161,13 +161,8 @@ struct phy_device *phy_device_create(struct mii_bus *bus, int addr, int phy_id,
 
 	dev->dev.release = phy_device_release;
 
-<<<<<<< HEAD
 	dev->speed = 0;
 	dev->duplex = -1;
-=======
-	dev->speed = SPEED_UNKNOWN;
-	dev->duplex = DUPLEX_UNKNOWN;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	dev->pause = 0;
 	dev->asym_pause = 0;
 	dev->link = 1;
@@ -427,12 +422,6 @@ int phy_connect_direct(struct net_device *dev, struct phy_device *phydev,
 {
 	int rc;
 
-<<<<<<< HEAD
-=======
-	if (!dev)
-		return -EINVAL;
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	rc = phy_attach_direct(dev, phydev, phydev->dev_flags, interface);
 	if (rc)
 		return rc;
@@ -480,10 +469,6 @@ struct phy_device *phy_connect(struct net_device *dev, const char *bus_id,
 	phydev = to_phy_device(d);
 
 	rc = phy_connect_direct(dev, phydev, handler, interface);
-<<<<<<< HEAD
-=======
-	put_device(d);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (rc)
 		return ERR_PTR(rc);
 
@@ -663,12 +648,6 @@ struct phy_device *phy_attach(struct net_device *dev, const char *bus_id,
 	struct device *d;
 	int rc;
 
-<<<<<<< HEAD
-=======
-	if (!dev)
-		return ERR_PTR(-EINVAL);
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/* Search the list of PHY devices on the mdio bus for the
 	 * PHY with the requested name
 	 */
@@ -680,10 +659,6 @@ struct phy_device *phy_attach(struct net_device *dev, const char *bus_id,
 	phydev = to_phy_device(d);
 
 	rc = phy_attach_direct(dev, phydev, phydev->dev_flags, interface);
-<<<<<<< HEAD
-=======
-	put_device(d);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (rc)
 		return ERR_PTR(rc);
 
@@ -807,18 +782,10 @@ static int genphy_config_advert(struct phy_device *phydev)
 	if (phydev->supported & (SUPPORTED_1000baseT_Half |
 				 SUPPORTED_1000baseT_Full)) {
 		adv |= ethtool_adv_to_mii_ctrl1000_t(advertise);
-<<<<<<< HEAD
 		if (adv != oldadv)
 			changed = 1;
 	}
 
-=======
-	}
-
-	if (adv != oldadv)
-		changed = 1;
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	err = phy_write(phydev, MII_CTRL1000, adv);
 	if (err < 0)
 		return err;

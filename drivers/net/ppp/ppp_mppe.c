@@ -62,10 +62,6 @@ MODULE_AUTHOR("Frank Cusack <fcusack@fcusack.com>");
 MODULE_DESCRIPTION("Point-to-Point Protocol Microsoft Point-to-Point Encryption support");
 MODULE_LICENSE("Dual BSD/GPL");
 MODULE_ALIAS("ppp-compress-" __stringify(CI_MPPE));
-<<<<<<< HEAD
-=======
-MODULE_SOFTDEP("pre: arc4");
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 MODULE_VERSION("1.0.2");
 
 static unsigned int

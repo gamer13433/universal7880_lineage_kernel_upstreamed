@@ -69,13 +69,8 @@ static int show_cpuinfo(struct seq_file *m, void *v)
 		   c->x86_model,
 		   c->x86_model_id[0] ? c->x86_model_id : "unknown");
 
-<<<<<<< HEAD
 	if (c->x86_mask || c->cpuid_level >= 0)
 		seq_printf(m, "stepping\t: %d\n", c->x86_mask);
-=======
-	if (c->x86_stepping || c->cpuid_level >= 0)
-		seq_printf(m, "stepping\t: %d\n", c->x86_stepping);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	else
 		seq_printf(m, "stepping\t: unknown\n");
 	if (c->microcode)

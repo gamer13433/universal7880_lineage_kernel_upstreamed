@@ -106,10 +106,7 @@ struct mcast_group {
 	atomic_t		refcount;
 	enum mcast_group_state	state;
 	struct ib_sa_query	*query;
-<<<<<<< HEAD
 	int			query_id;
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	u16			pkey_index;
 	u8			leave_state;
 	int			retries;
@@ -342,15 +339,11 @@ static int send_join(struct mcast_group *group, struct mcast_member *member)
 				       member->multicast.comp_mask,
 				       3000, GFP_KERNEL, join_handler, group,
 				       &group->query);
-<<<<<<< HEAD
 	if (ret >= 0) {
 		group->query_id = ret;
 		ret = 0;
 	}
 	return ret;
-=======
-	return (ret > 0) ? 0 : ret;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 static int send_leave(struct mcast_group *group, u8 leave_state)
@@ -370,15 +363,11 @@ static int send_leave(struct mcast_group *group, u8 leave_state)
 				       IB_SA_MCMEMBER_REC_JOIN_STATE,
 				       3000, GFP_KERNEL, leave_handler,
 				       group, &group->query);
-<<<<<<< HEAD
 	if (ret >= 0) {
 		group->query_id = ret;
 		ret = 0;
 	}
 	return ret;
-=======
-	return (ret > 0) ? 0 : ret;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 static void join_group(struct mcast_group *group, struct mcast_member *member,

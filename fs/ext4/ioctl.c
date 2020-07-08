@@ -588,11 +588,7 @@ group_add_out:
 		if (err == 0)
 			err = err2;
 		mnt_drop_write_file(filp);
-<<<<<<< HEAD
 		if (!err && (o_group > EXT4_SB(sb)->s_groups_count) &&
-=======
-		if (!err && (o_group < EXT4_SB(sb)->s_groups_count) &&
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		    ext4_has_group_desc_csum(sb) &&
 		    test_opt(sb, INIT_INODE_TABLE))
 			err = ext4_register_li_request(sb, o_group);
@@ -648,21 +644,7 @@ resizefs_out:
 			goto encryption_policy_out;
 		}
 
-<<<<<<< HEAD
 		err = ext4_process_policy(&policy, inode);
-=======
-		err = mnt_want_write_file(filp);
-		if (err)
-			goto encryption_policy_out;
-
-		mutex_lock(&inode->i_mutex);
-
-		err = ext4_process_policy(&policy, inode);
-
-		mutex_unlock(&inode->i_mutex);
-
-		mnt_drop_write_file(filp);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 encryption_policy_out:
 		return err;
 #else
@@ -722,7 +704,6 @@ encryption_policy_out:
 		return -EOPNOTSUPP;
 #endif
 	}
-<<<<<<< HEAD
 
 	/* CONFIG_EPM FMP start */
 	case FS_IOC_INVAL_MAPPING:
@@ -731,8 +712,6 @@ encryption_policy_out:
 	}
 	/* CONFIG_EPM FMP end */
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	default:
 		return -ENOTTY;
 	}

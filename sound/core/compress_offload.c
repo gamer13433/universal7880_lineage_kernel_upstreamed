@@ -500,11 +500,7 @@ static int snd_compress_check_input(struct snd_compr_params *params)
 {
 	/* first let's check the buffer parameter's */
 	if (params->buffer.fragment_size == 0 ||
-<<<<<<< HEAD
 	    params->buffer.fragments > INT_MAX / params->buffer.fragment_size ||
-=======
-	    params->buffer.fragments > U32_MAX / params->buffer.fragment_size ||
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	    params->buffer.fragments == 0)
 		return -EINVAL;
 
@@ -554,14 +550,10 @@ snd_compr_set_params(struct snd_compr_stream *stream, unsigned long arg)
 		stream->metadata_set = false;
 		stream->next_track = false;
 
-<<<<<<< HEAD
 		if (stream->direction == SND_COMPRESS_PLAYBACK)
 			stream->runtime->state = SNDRV_PCM_STATE_SETUP;
 		else
 			stream->runtime->state = SNDRV_PCM_STATE_PREPARED;
-=======
-		stream->runtime->state = SNDRV_PCM_STATE_SETUP;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	} else {
 		return -EPERM;
 	}
@@ -639,16 +631,10 @@ snd_compr_set_metadata(struct snd_compr_stream *stream, unsigned long arg)
 static inline int
 snd_compr_tstamp(struct snd_compr_stream *stream, unsigned long arg)
 {
-<<<<<<< HEAD
 	struct snd_compr_tstamp tstamp;
 	int ret;
 
 	memset(&tstamp, 0, sizeof(tstamp));
-=======
-	struct snd_compr_tstamp tstamp = {0};
-	int ret;
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	ret = snd_compr_update_tstamp(stream, &tstamp);
 	if (ret == 0)
 		ret = copy_to_user((struct snd_compr_tstamp __user *)arg,
@@ -660,18 +646,11 @@ static int snd_compr_pause(struct snd_compr_stream *stream)
 {
 	int retval;
 
-<<<<<<< HEAD
 	if (stream->runtime->state != SNDRV_PCM_STATE_RUNNING
 		&& stream->runtime->state != SNDRV_PCM_STATE_DRAINING)
 		return -EPERM;
 	retval = stream->ops->trigger(stream, SNDRV_PCM_TRIGGER_PAUSE_PUSH);
 	if (!retval && stream->runtime->state != SNDRV_PCM_STATE_DRAINING)
-=======
-	if (stream->runtime->state != SNDRV_PCM_STATE_RUNNING)
-		return -EPERM;
-	retval = stream->ops->trigger(stream, SNDRV_PCM_TRIGGER_PAUSE_PUSH);
-	if (!retval)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		stream->runtime->state = SNDRV_PCM_STATE_PAUSED;
 	return retval;
 }
@@ -680,18 +659,11 @@ static int snd_compr_resume(struct snd_compr_stream *stream)
 {
 	int retval;
 
-<<<<<<< HEAD
 	if (stream->runtime->state != SNDRV_PCM_STATE_PAUSED
 		&& stream->runtime->state != SNDRV_PCM_STATE_DRAINING)
 		return -EPERM;
 	retval = stream->ops->trigger(stream, SNDRV_PCM_TRIGGER_PAUSE_RELEASE);
 	if (!retval && stream->runtime->state != SNDRV_PCM_STATE_DRAINING)
-=======
-	if (stream->runtime->state != SNDRV_PCM_STATE_PAUSED)
-		return -EPERM;
-	retval = stream->ops->trigger(stream, SNDRV_PCM_TRIGGER_PAUSE_RELEASE);
-	if (!retval)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		stream->runtime->state = SNDRV_PCM_STATE_RUNNING;
 	return retval;
 }
@@ -700,22 +672,8 @@ static int snd_compr_start(struct snd_compr_stream *stream)
 {
 	int retval;
 
-<<<<<<< HEAD
 	if (stream->runtime->state != SNDRV_PCM_STATE_PREPARED)
 		return -EPERM;
-=======
-	switch (stream->runtime->state) {
-	case SNDRV_PCM_STATE_SETUP:
-		if (stream->direction != SND_COMPRESS_CAPTURE)
-			return -EPERM;
-		break;
-	case SNDRV_PCM_STATE_PREPARED:
-		break;
-	default:
-		return -EPERM;
-	}
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	retval = stream->ops->trigger(stream, SNDRV_PCM_TRIGGER_START);
 	if (!retval)
 		stream->runtime->state = SNDRV_PCM_STATE_RUNNING;
@@ -726,21 +684,9 @@ static int snd_compr_stop(struct snd_compr_stream *stream)
 {
 	int retval;
 
-<<<<<<< HEAD
 	if (stream->runtime->state == SNDRV_PCM_STATE_PREPARED ||
 			stream->runtime->state == SNDRV_PCM_STATE_SETUP)
 		return -EPERM;
-=======
-	switch (stream->runtime->state) {
-	case SNDRV_PCM_STATE_OPEN:
-	case SNDRV_PCM_STATE_SETUP:
-	case SNDRV_PCM_STATE_PREPARED:
-		return -EPERM;
-	default:
-		break;
-	}
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	retval = stream->ops->trigger(stream, SNDRV_PCM_TRIGGER_STOP);
 	if (!retval) {
 		snd_compr_drain_notify(stream);
@@ -762,13 +708,9 @@ static int snd_compress_wait_for_drain(struct snd_compr_stream *stream)
 	 * stream will be moved to SETUP state, even if draining resulted in an
 	 * error. We can trigger next track after this.
 	 */
-<<<<<<< HEAD
 #ifndef CONFIG_SND_SAMSUNG_SEIREN_OFFLOAD
 	stream->runtime->state = SNDRV_PCM_STATE_DRAINING;
 #endif
-=======
-	stream->runtime->state = SNDRV_PCM_STATE_DRAINING;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	mutex_unlock(&stream->device->lock);
 
 	/* we wait for drain to complete here, drain can return when
@@ -795,7 +737,6 @@ static int snd_compr_drain(struct snd_compr_stream *stream)
 {
 	int retval;
 
-<<<<<<< HEAD
 	if (stream->runtime->state == SNDRV_PCM_STATE_PREPARED ||
 			stream->runtime->state == SNDRV_PCM_STATE_SETUP)
 		return -EPERM;
@@ -803,20 +744,6 @@ static int snd_compr_drain(struct snd_compr_stream *stream)
 #ifdef CONFIG_SND_SAMSUNG_SEIREN_OFFLOAD
 	stream->runtime->state = SNDRV_PCM_STATE_DRAINING;
 #endif
-=======
-	switch (stream->runtime->state) {
-	case SNDRV_PCM_STATE_OPEN:
-	case SNDRV_PCM_STATE_SETUP:
-	case SNDRV_PCM_STATE_PREPARED:
-	case SNDRV_PCM_STATE_PAUSED:
-		return -EPERM;
-	case SNDRV_PCM_STATE_XRUN:
-		return -EPIPE;
-	default:
-		break;
-	}
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	retval = stream->ops->trigger(stream, SND_COMPR_TRIGGER_DRAIN);
 	if (retval) {
 		pr_debug("SND_COMPR_TRIGGER_DRAIN failed %d\n", retval);
@@ -852,28 +779,12 @@ static int snd_compr_next_track(struct snd_compr_stream *stream)
 static int snd_compr_partial_drain(struct snd_compr_stream *stream)
 {
 	int retval;
-<<<<<<< HEAD
 	if (stream->runtime->state == SNDRV_PCM_STATE_PREPARED ||
 			stream->runtime->state == SNDRV_PCM_STATE_SETUP)
 		return -EPERM;
 #ifdef CONFIG_SND_SAMSUNG_SEIREN_OFFLOAD
 	stream->runtime->state = SNDRV_PCM_STATE_DRAINING;
 #endif
-=======
-
-	switch (stream->runtime->state) {
-	case SNDRV_PCM_STATE_OPEN:
-	case SNDRV_PCM_STATE_SETUP:
-	case SNDRV_PCM_STATE_PREPARED:
-	case SNDRV_PCM_STATE_PAUSED:
-		return -EPERM;
-	case SNDRV_PCM_STATE_XRUN:
-		return -EPIPE;
-	default:
-		break;
-	}
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/* stream can be drained only when next track has been signalled */
 	if (stream->next_track == false)
 		return -EPERM;
@@ -966,10 +877,7 @@ static const struct file_operations snd_compr_file_ops = {
 		.write =	snd_compr_write,
 		.read =		snd_compr_read,
 		.unlocked_ioctl = snd_compr_ioctl,
-<<<<<<< HEAD
 		.compat_ioctl = snd_compr_ioctl,
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		.mmap =		snd_compr_mmap,
 		.poll =		snd_compr_poll,
 };

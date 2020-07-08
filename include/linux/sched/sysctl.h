@@ -39,19 +39,6 @@ extern unsigned int sysctl_sched_latency;
 extern unsigned int sysctl_sched_min_granularity;
 extern unsigned int sysctl_sched_wakeup_granularity;
 extern unsigned int sysctl_sched_child_runs_first;
-<<<<<<< HEAD
-=======
-extern unsigned int sysctl_sched_is_big_little;
-extern unsigned int sysctl_sched_sync_hint_enable;
-extern unsigned int sysctl_sched_initial_task_util;
-extern unsigned int sysctl_sched_cstate_aware;
-#ifdef CONFIG_SCHED_WALT
-extern unsigned int sysctl_sched_use_walt_cpu_util;
-extern unsigned int sysctl_sched_use_walt_task_util;
-extern unsigned int sysctl_sched_walt_init_task_load_pct;
-extern unsigned int sysctl_sched_walt_cpu_high_irqload;
-#endif
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 enum sched_tunable_scaling {
 	SCHED_TUNABLESCALING_NONE,
@@ -102,25 +89,6 @@ extern int sysctl_sched_rt_runtime;
 extern unsigned int sysctl_sched_cfs_bandwidth_slice;
 #endif
 
-<<<<<<< HEAD
-=======
-#ifdef CONFIG_SCHED_TUNE
-extern int sysctl_sched_cfs_boost;
-int sysctl_sched_cfs_boost_handler(struct ctl_table *table, int write,
-				   void __user *buffer, size_t *length,
-				   loff_t *ppos);
-static inline int get_sysctl_sched_cfs_boost(void)
-{
-	return sysctl_sched_cfs_boost;
-}
-#else
-static inline int get_sysctl_sched_cfs_boost(void)
-{
-	return 0;
-}
-#endif
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #ifdef CONFIG_SCHED_AUTOGROUP
 extern unsigned int sysctl_sched_autogroup_enabled;
 #endif

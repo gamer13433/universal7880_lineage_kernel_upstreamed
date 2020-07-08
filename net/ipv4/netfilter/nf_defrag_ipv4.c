@@ -26,11 +26,8 @@ static int nf_ct_ipv4_gather_frags(struct sk_buff *skb, u_int32_t user)
 {
 	int err;
 
-<<<<<<< HEAD
 	skb_orphan(skb);
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	local_bh_disable();
 	err = ip_defrag(skb, user);
 	local_bh_enable();

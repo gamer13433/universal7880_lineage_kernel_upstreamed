@@ -211,15 +211,7 @@ int irq_set_affinity_locked(struct irq_data *data, const struct cpumask *mask,
 
 	if (desc->affinity_notify) {
 		kref_get(&desc->affinity_notify->kref);
-<<<<<<< HEAD
 		schedule_work(&desc->affinity_notify->work);
-=======
-		if (!schedule_work(&desc->affinity_notify->work)) {
-			/* Work was already scheduled, drop our extra ref */
-			kref_put(&desc->affinity_notify->kref,
-				 desc->affinity_notify->release);
-		}
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 	irqd_set(data, IRQD_AFFINITY_SET);
 
@@ -316,14 +308,7 @@ irq_set_affinity_notifier(unsigned int irq, struct irq_affinity_notify *notify)
 	raw_spin_unlock_irqrestore(&desc->lock, flags);
 
 	if (old_notify) {
-<<<<<<< HEAD
 		cancel_work_sync(&old_notify->work);
-=======
-		if (cancel_work_sync(&old_notify->work)) {
-			/* Pending work had a ref, put that one too */
-			kref_put(&old_notify->kref, old_notify->release);
-		}
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		kref_put(&old_notify->kref, old_notify->release);
 	}
 
@@ -1075,15 +1060,10 @@ __setup_irq(unsigned int irq, struct irq_desc *desc, struct irqaction *new)
 		 * set the trigger type must match. Also all must
 		 * agree on ONESHOT.
 		 */
-<<<<<<< HEAD
 		unsigned int oldtype = irqd_get_trigger_type(&desc->irq_data);
 
 		if (!((old->flags & new->flags) & IRQF_SHARED) ||
 		    (oldtype != (new->flags & IRQF_TRIGGER_MASK)) ||
-=======
-		if (!((old->flags & new->flags) & IRQF_SHARED) ||
-		    ((old->flags ^ new->flags) & IRQF_TRIGGER_MASK) ||
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		    ((old->flags ^ new->flags) & IRQF_ONESHOT))
 			goto mismatch;
 
@@ -1210,12 +1190,9 @@ __setup_irq(unsigned int irq, struct irq_desc *desc, struct irqaction *new)
 			irqd_set(&desc->irq_data, IRQD_NO_BALANCING);
 		}
 
-<<<<<<< HEAD
 		if (new->flags & IRQF_GIC_MULTI_TARGET)
 			irqd_set(&desc->irq_data, IRQD_GIC_MULTI_TARGET);
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		/* Set default affinity mask once everything is setup */
 		setup_affinity(irq, desc, mask);
 

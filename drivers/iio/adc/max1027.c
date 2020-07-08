@@ -470,17 +470,6 @@ static int max1027_probe(struct spi_device *spi)
 		goto fail_dev_register;
 	}
 
-<<<<<<< HEAD
-=======
-	/* Internal reset */
-	st->reg = MAX1027_RST_REG;
-	ret = spi_write(st->spi, &st->reg, 1);
-	if (ret < 0) {
-		dev_err(&indio_dev->dev, "Failed to reset the ADC\n");
-		return ret;
-	}
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/* Disable averaging */
 	st->reg = MAX1027_AVG_REG;
 	ret = spi_write(st->spi, &st->reg, 1);

@@ -1227,7 +1227,6 @@ target_setup_cmd_from_cdb(struct se_cmd *cmd, unsigned char *cdb)
 
 	trace_target_sequencer_start(cmd);
 
-<<<<<<< HEAD
 	/*
 	 * Check for an existing UNIT ATTENTION condition
 	 */
@@ -1245,8 +1244,6 @@ target_setup_cmd_from_cdb(struct se_cmd *cmd, unsigned char *cdb)
 		return ret;
 	}
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	ret = dev->transport->parse_cdb(cmd);
 	if (ret)
 		return ret;
@@ -1705,7 +1702,6 @@ queue_full:
 }
 EXPORT_SYMBOL(transport_generic_request_failure);
 
-<<<<<<< HEAD
 void __target_execute_cmd(struct se_cmd *cmd)
 {
 	sense_reason_t ret;
@@ -1720,47 +1716,6 @@ void __target_execute_cmd(struct se_cmd *cmd)
 			transport_generic_request_failure(cmd, ret);
 		}
 	}
-=======
-void __target_execute_cmd(struct se_cmd *cmd, bool do_checks)
-{
-	sense_reason_t ret;
-
-	if (!cmd->execute_cmd) {
-		ret = TCM_LOGICAL_UNIT_COMMUNICATION_FAILURE;
-		goto err;
-	}
-	if (do_checks) {
-		/*
-		 * Check for an existing UNIT ATTENTION condition after
-		 * target_handle_task_attr() has done SAM task attr
-		 * checking, and possibly have already defered execution
-		 * out to target_restart_delayed_cmds() context.
-		 */
-		ret = target_scsi3_ua_check(cmd);
-		if (ret)
-			goto err;
-
-		ret = target_alua_state_check(cmd);
-		if (ret)
-			goto err;
-
-		ret = target_check_reservation(cmd);
-		if (ret) {
-			cmd->scsi_status = SAM_STAT_RESERVATION_CONFLICT;
-			goto err;
-		}
-	}
-
-	ret = cmd->execute_cmd(cmd);
-	if (!ret)
-		return;
-err:
-	spin_lock_irq(&cmd->t_state_lock);
-	cmd->transport_state &= ~(CMD_T_BUSY|CMD_T_SENT);
-	spin_unlock_irq(&cmd->t_state_lock);
-
-	transport_generic_request_failure(cmd, ret);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 static bool target_handle_task_attr(struct se_cmd *cmd)
@@ -1770,11 +1725,6 @@ static bool target_handle_task_attr(struct se_cmd *cmd)
 	if (dev->transport->transport_type == TRANSPORT_PLUGIN_PHBA_PDEV)
 		return false;
 
-<<<<<<< HEAD
-=======
-	cmd->se_cmd_flags |= SCF_TASK_ATTR_SET;
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/*
 	 * Check for the existence of HEAD_OF_QUEUE, and if true return 1
 	 * to allow the passed struct se_cmd list of tasks to the front of the list.
@@ -1867,11 +1817,7 @@ void target_execute_cmd(struct se_cmd *cmd)
 		return;
 	}
 
-<<<<<<< HEAD
 	__target_execute_cmd(cmd);
-=======
-	__target_execute_cmd(cmd, true);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 EXPORT_SYMBOL(target_execute_cmd);
 
@@ -1895,11 +1841,7 @@ static void target_restart_delayed_cmds(struct se_device *dev)
 		list_del(&cmd->se_delayed_node);
 		spin_unlock(&dev->delayed_cmd_lock);
 
-<<<<<<< HEAD
 		__target_execute_cmd(cmd);
-=======
-		__target_execute_cmd(cmd, true);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 		if (cmd->sam_task_attr == MSG_ORDERED_TAG)
 			break;
@@ -1917,12 +1859,6 @@ static void transport_complete_task_attr(struct se_cmd *cmd)
 	if (dev->transport->transport_type == TRANSPORT_PLUGIN_PHBA_PDEV)
 		return;
 
-<<<<<<< HEAD
-=======
-	if (!(cmd->se_cmd_flags & SCF_TASK_ATTR_SET))
-		goto restart;
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (cmd->sam_task_attr == MSG_SIMPLE_TAG) {
 		atomic_dec_mb(&dev->simple_cmds);
 		dev->dev_cur_ordered_id++;
@@ -1941,11 +1877,7 @@ static void transport_complete_task_attr(struct se_cmd *cmd)
 		pr_debug("Incremented dev_cur_ordered_id: %u for ORDERED:"
 			" %u\n", dev->dev_cur_ordered_id, cmd->se_ordered_id);
 	}
-<<<<<<< HEAD
 
-=======
-restart:
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	target_restart_delayed_cmds(dev);
 }
 

@@ -71,15 +71,9 @@ static inline s64 percpu_counter_read(struct percpu_counter *fbc)
  */
 static inline s64 percpu_counter_read_positive(struct percpu_counter *fbc)
 {
-<<<<<<< HEAD
 	s64 ret = fbc->count;
 
 	barrier();		/* Prevent reloads of fbc->count */
-=======
-	/* Prevent reloads of fbc->count */
-	s64 ret = READ_ONCE(fbc->count);
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (ret >= 0)
 		return ret;
 	return 0;

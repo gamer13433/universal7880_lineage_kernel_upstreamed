@@ -12,10 +12,6 @@
 #include <asm/unistd.h>
 #include <asm/ftrace.h>
 #include <asm/unwind.h>
-<<<<<<< HEAD
-=======
-#include <asm/memory.h>
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #ifdef CONFIG_NEED_RET_TO_USER
 #include <mach/entry-macro.S>
@@ -37,12 +33,6 @@ ret_fast_syscall:
  UNWIND(.fnstart	)
  UNWIND(.cantunwind	)
 	disable_irq				@ disable interrupts
-<<<<<<< HEAD
-=======
-	ldr	r2, [tsk, #TI_ADDR_LIMIT]
-	cmp	r2, #TASK_SIZE
-	blne	addr_limit_check_failed
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	ldr	r1, [tsk, #TI_FLAGS]		@ re-check for syscall tracing
 	tst	r1, #_TIF_SYSCALL_WORK
 	bne	__sys_trace_return
@@ -79,12 +69,6 @@ ENTRY(ret_to_user)
 ret_slow_syscall:
 	disable_irq				@ disable interrupts
 ENTRY(ret_to_user_from_irq)
-<<<<<<< HEAD
-=======
-	ldr	r2, [tsk, #TI_ADDR_LIMIT]
-	cmp	r2, #TASK_SIZE
-	blne	addr_limit_check_failed
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	ldr	r1, [tsk, #TI_FLAGS]
 	tst	r1, #_TIF_WORK_MASK
 	bne	work_pending
@@ -424,11 +408,6 @@ ENTRY(vector_swi)
  USER(	ldr	scno, [lr, #-4]		)	@ get SWI instruction
 #endif
 
-<<<<<<< HEAD
-=======
-	uaccess_disable tbl
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	adr	tbl, sys_call_table		@ load syscall table pointer
 
 #if defined(CONFIG_OABI_COMPAT)

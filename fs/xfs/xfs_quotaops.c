@@ -119,12 +119,6 @@ xfs_fs_rm_xquota(
 	if (XFS_IS_QUOTA_ON(mp))
 		return -EINVAL;
 
-<<<<<<< HEAD
-=======
-	if (uflags & ~(FS_USER_QUOTA | FS_GROUP_QUOTA | FS_PROJ_QUOTA))
-		return -EINVAL;
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (uflags & FS_USER_QUOTA)
 		flags |= XFS_DQ_USER;
 	if (uflags & FS_GROUP_QUOTA)

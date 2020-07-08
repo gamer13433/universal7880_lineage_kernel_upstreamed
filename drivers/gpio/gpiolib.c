@@ -147,17 +147,6 @@ int gpiod_get_direction(const struct gpio_desc *desc)
 	chip = gpiod_to_chip(desc);
 	offset = gpio_chip_hwgpio(desc);
 
-<<<<<<< HEAD
-=======
-	/*
-	 * Open drain emulation using input mode may incorrectly report
-	 * input here, fix that up.
-	 */
-	if (test_bit(FLAG_OPEN_DRAIN, &desc->flags) &&
-	    test_bit(FLAG_IS_OUT, &desc->flags))
-		return 0;
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (!chip->get_direction)
 		return status;
 
@@ -1595,14 +1584,8 @@ static struct gpio_desc *gpiod_find(struct device *dev, const char *con_id,
 
 		if (chip->ngpio <= p->chip_hwnum) {
 			dev_err(dev,
-<<<<<<< HEAD
 				"requested GPIO %d is out of range [0..%d] for chip %s\n",
 				idx, chip->ngpio, chip->label);
-=======
-				"requested GPIO %u (%u) is out of range [0..%u] for chip %s\n",
-				idx, p->chip_hwnum, chip->ngpio - 1,
-				chip->label);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			return ERR_PTR(-EINVAL);
 		}
 

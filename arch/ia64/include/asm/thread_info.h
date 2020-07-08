@@ -27,10 +27,7 @@ struct thread_info {
 	__u32 status;			/* Thread synchronous flags */
 	mm_segment_t addr_limit;	/* user-level address space limit */
 	int preempt_count;		/* 0=premptable, <0=BUG; will also serve as bh-counter */
-<<<<<<< HEAD
 	struct restart_block restart_block;
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #ifdef CONFIG_VIRT_CPU_ACCOUNTING_NATIVE
 	__u64 ac_stamp;
 	__u64 ac_leave;
@@ -49,12 +46,9 @@ struct thread_info {
 	.cpu		= 0,			\
 	.addr_limit	= KERNEL_DS,		\
 	.preempt_count	= INIT_PREEMPT_COUNT,	\
-<<<<<<< HEAD
 	.restart_block = {			\
 		.fn = do_no_restart_syscall,	\
 	},					\
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 #ifndef ASM_OFFSETS_C

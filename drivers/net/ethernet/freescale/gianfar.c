@@ -2529,24 +2529,13 @@ static void gfar_clean_tx_ring(struct gfar_priv_tx_q *tx_queue)
 
 	while ((skb = tx_queue->tx_skbuff[skb_dirtytx])) {
 		unsigned long flags;
-<<<<<<< HEAD
-=======
-		bool do_tstamp;
-
-		do_tstamp = (skb_shinfo(skb)->tx_flags & SKBTX_HW_TSTAMP) &&
-			    priv->hwts_tx_en;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 		frags = skb_shinfo(skb)->nr_frags;
 
 		/* When time stamping, one additional TxBD must be freed.
 		 * Also, we need to dma_unmap_single() the TxPAL.
 		 */
-<<<<<<< HEAD
 		if (unlikely(skb_shinfo(skb)->tx_flags & SKBTX_IN_PROGRESS))
-=======
-		if (unlikely(do_tstamp))
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			nr_txbds = frags + 2;
 		else
 			nr_txbds = frags + 1;
@@ -2560,11 +2549,7 @@ static void gfar_clean_tx_ring(struct gfar_priv_tx_q *tx_queue)
 		    (lstatus & BD_LENGTH_MASK))
 			break;
 
-<<<<<<< HEAD
 		if (unlikely(skb_shinfo(skb)->tx_flags & SKBTX_IN_PROGRESS)) {
-=======
-		if (unlikely(do_tstamp)) {
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			next = next_txbd(bdp, base, tx_ring_size);
 			buflen = next->length + GMAC_FCB_LEN + GMAC_TXPAL_LEN;
 		} else
@@ -2573,11 +2558,7 @@ static void gfar_clean_tx_ring(struct gfar_priv_tx_q *tx_queue)
 		dma_unmap_single(priv->dev, bdp->bufPtr,
 				 buflen, DMA_TO_DEVICE);
 
-<<<<<<< HEAD
 		if (unlikely(skb_shinfo(skb)->tx_flags & SKBTX_IN_PROGRESS)) {
-=======
-		if (unlikely(do_tstamp)) {
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			struct skb_shared_hwtstamps shhwtstamps;
 			u64 *ns = (u64*) (((u32)skb->data + 0x10) & ~0x7);
 

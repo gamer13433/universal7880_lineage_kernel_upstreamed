@@ -2639,28 +2639,14 @@ static struct hso_device *hso_create_bulk_serial_device(
 		 */
 		if (serial->tiocmget) {
 			tiocmget = serial->tiocmget;
-<<<<<<< HEAD
-=======
-			tiocmget->endp = hso_get_ep(interface,
-						    USB_ENDPOINT_XFER_INT,
-						    USB_DIR_IN);
-			if (!tiocmget->endp) {
-				dev_err(&interface->dev, "Failed to find INT IN ep\n");
-				goto exit;
-			}
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			tiocmget->urb = usb_alloc_urb(0, GFP_KERNEL);
 			if (tiocmget->urb) {
 				mutex_init(&tiocmget->mutex);
 				init_waitqueue_head(&tiocmget->waitq);
-<<<<<<< HEAD
 				tiocmget->endp = hso_get_ep(
 					interface,
 					USB_ENDPOINT_XFER_INT,
 					USB_DIR_IN);
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			} else
 				hso_free_tiomget(serial);
 		}

@@ -227,7 +227,6 @@ out:
 }
 EXPORT_SYMBOL_GPL(phy_exit);
 
-<<<<<<< HEAD
 int phy_tune(struct phy *phy, int phy_state)
 {
 	int ret;
@@ -260,8 +259,6 @@ int phy_set(struct phy *phy, int option, void *info)
 }
 EXPORT_SYMBOL_GPL(phy_set);
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 int phy_power_on(struct phy *phy)
 {
 	int ret = 0;

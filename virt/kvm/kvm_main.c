@@ -1655,21 +1655,12 @@ int kvm_write_guest_cached(struct kvm *kvm, struct gfn_to_hva_cache *ghc,
 	if (slots->generation != ghc->generation)
 		kvm_gfn_to_hva_cache_init(kvm, ghc, ghc->gpa, ghc->len);
 
-<<<<<<< HEAD
 	if (unlikely(!ghc->memslot))
 		return kvm_write_guest(kvm, ghc->gpa, data, len);
 
 	if (kvm_is_error_hva(ghc->hva))
 		return -EFAULT;
 
-=======
-	if (kvm_is_error_hva(ghc->hva))
-		return -EFAULT;
-
-	if (unlikely(!ghc->memslot))
-		return kvm_write_guest(kvm, ghc->gpa, data, len);
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	r = __copy_to_user((void __user *)ghc->hva, data, len);
 	if (r)
 		return -EFAULT;
@@ -1690,21 +1681,12 @@ int kvm_read_guest_cached(struct kvm *kvm, struct gfn_to_hva_cache *ghc,
 	if (slots->generation != ghc->generation)
 		kvm_gfn_to_hva_cache_init(kvm, ghc, ghc->gpa, ghc->len);
 
-<<<<<<< HEAD
 	if (unlikely(!ghc->memslot))
 		return kvm_read_guest(kvm, ghc->gpa, data, len);
 
 	if (kvm_is_error_hva(ghc->hva))
 		return -EFAULT;
 
-=======
-	if (kvm_is_error_hva(ghc->hva))
-		return -EFAULT;
-
-	if (unlikely(!ghc->memslot))
-		return kvm_read_guest(kvm, ghc->gpa, data, len);
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	r = __copy_from_user(data, (void __user *)ghc->hva, len);
 	if (r)
 		return -EFAULT;
@@ -2316,12 +2298,6 @@ static long kvm_device_ioctl(struct file *filp, unsigned int ioctl,
 {
 	struct kvm_device *dev = filp->private_data;
 
-<<<<<<< HEAD
-=======
-	if (dev->kvm->mm != current->mm)
-		return -EIO;
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	switch (ioctl) {
 	case KVM_SET_DEVICE_ATTR:
 		return kvm_device_ioctl_attr(dev, dev->ops->set_attr, arg);

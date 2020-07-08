@@ -153,26 +153,6 @@ static inline struct user_namespace *seq_user_ns(struct seq_file *seq)
 #endif
 }
 
-<<<<<<< HEAD
-=======
-/**
- * seq_show_options - display mount options with appropriate escapes.
- * @m: the seq_file handle
- * @name: the mount option name
- * @value: the mount option name's value, can be NULL
- */
-static inline void seq_show_option(struct seq_file *m, const char *name,
-				   const char *value)
-{
-	seq_putc(m, ',');
-	seq_escape(m, name, ",= \t\n\\");
-	if (value) {
-		seq_putc(m, '=');
-		seq_escape(m, value, ", \t\n\\");
-	}
-}
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #define SEQ_START_TOKEN ((void *)1)
 /*
  * Helpers for iteration over list_head-s in seq_files

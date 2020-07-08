@@ -302,14 +302,11 @@ static int v2_free_file_info(struct super_block *sb, int type)
 	return 0;
 }
 
-<<<<<<< HEAD
 static int v2_get_next_id(struct super_block *sb, struct kqid *qid)
 {
 	return qtree_get_next_id(sb_dqinfo(sb, qid->type)->dqi_priv, qid);
 }
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static const struct quota_format_ops v2_format_ops = {
 	.check_quota_file	= v2_check_quota_file,
 	.read_file_info		= v2_read_file_info,
@@ -318,10 +315,7 @@ static const struct quota_format_ops v2_format_ops = {
 	.read_dqblk		= v2_read_dquot,
 	.commit_dqblk		= v2_write_dquot,
 	.release_dqblk		= v2_release_dquot,
-<<<<<<< HEAD
 	.get_next_id		= v2_get_next_id,
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 static struct quota_format_type v2r0_quota_format = {

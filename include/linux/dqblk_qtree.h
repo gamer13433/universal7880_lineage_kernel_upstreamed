@@ -15,10 +15,7 @@
 #define QTREE_DEL_REWRITE 6
 
 struct dquot;
-<<<<<<< HEAD
 struct kqid;
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /* Operations */
 struct qtree_fmt_operations {
@@ -56,9 +53,6 @@ static inline int qtree_depth(struct qtree_mem_dqinfo *info)
 		entries *= epb;
 	return i;
 }
-<<<<<<< HEAD
 int qtree_get_next_id(struct qtree_mem_dqinfo *info, struct kqid *qid);
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #endif /* _LINUX_DQBLK_QTREE_H */

@@ -1,10 +1,6 @@
 obj-y += time.o timer.o hrtimer.o itimer.o posix-timers.o posix-cpu-timers.o
 obj-y += timekeeping.o ntp.o clocksource.o jiffies.o timer_list.o
-<<<<<<< HEAD
 obj-y += timeconv.o posix-clock.o alarmtimer.o
-=======
-obj-y += timeconv.o timecounter.o posix-clock.o alarmtimer.o
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 obj-$(CONFIG_GENERIC_CLOCKEVENTS_BUILD)		+= clockevents.o
 obj-$(CONFIG_GENERIC_CLOCKEVENTS)		+= tick-common.o

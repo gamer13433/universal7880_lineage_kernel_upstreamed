@@ -25,10 +25,7 @@ int main(void)
 	DEFINE(TI_FLAGS,	offsetof(struct thread_info, flags));
 	DEFINE(TI_CPU,		offsetof(struct thread_info, cpu));
 	DEFINE(TI_PRE_COUNT,	offsetof(struct thread_info, preempt_count));
-<<<<<<< HEAD
 	DEFINE(TI_RESTART_BLOCK,offsetof(struct thread_info, restart_block));
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	DEFINE(TI_SIZE,		sizeof(struct thread_info));
 
 #ifdef CONFIG_HIBERNATION

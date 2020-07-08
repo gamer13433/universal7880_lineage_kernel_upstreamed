@@ -96,11 +96,7 @@ struct vpbe_config {
 	struct encoder_config_info *ext_encoders;
 	/* amplifier information goes here */
 	struct amp_config_info *amp;
-<<<<<<< HEAD
 	int num_outputs;
-=======
-	unsigned int num_outputs;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/* Order is venc outputs followed by LCD and then external encoders */
 	struct vpbe_output *outputs;
 };

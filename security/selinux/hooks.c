@@ -85,13 +85,10 @@
 #include <linux/msg.h>
 #include <linux/shm.h>
 
-<<<<<<< HEAD
 // [ SEC_SELINUX_PORTING_COMMON
 #include <linux/delay.h>
 // ] SEC_SELINUX_PORTING_COMMON
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #include "avc.h"
 #include "objsec.h"
 #include "netif.h"
@@ -108,7 +105,6 @@ extern struct security_operations *security_ops;
 static atomic_t selinux_secmark_refcount = ATOMIC_INIT(0);
 
 #ifdef CONFIG_SECURITY_SELINUX_DEVELOP
-<<<<<<< HEAD
 // [ SEC_SELINUX_PORTING_COMMON
 #if defined(CONFIG_ALWAYS_ENFORCE) && defined(CONFIG_RKP_KDP)
 RKP_RO_AREA int selinux_enforcing;
@@ -116,15 +112,11 @@ RKP_RO_AREA int selinux_enforcing;
 int selinux_enforcing;
 #endif
 // ] SEC_SELINUX_PORTING_COMMON
-=======
-int selinux_enforcing;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 static int __init enforcing_setup(char *str)
 {
 	unsigned long enforcing;
 	if (!kstrtoul(str, 0, &enforcing))
-<<<<<<< HEAD
 // [ SEC_SELINUX_PORTING_COMMON
 #if defined(CONFIG_SECURITY_SELINUX_ALWAYS_ENFORCE)
  		selinux_enforcing = 1;
@@ -134,9 +126,6 @@ static int __init enforcing_setup(char *str)
 		selinux_enforcing = enforcing ? 1 : 0;
 #endif
 // ] SEC_SELINUX_PORTING_COMMON
-=======
-		selinux_enforcing = enforcing ? 1 : 0;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return 1;
 }
 __setup("enforcing=", enforcing_setup);
@@ -149,7 +138,6 @@ static int __init selinux_enabled_setup(char *str)
 {
 	unsigned long enabled;
 	if (!kstrtoul(str, 0, &enabled))
-<<<<<<< HEAD
 // [ SEC_SELINUX_PORTING_COMMON
 #ifdef CONFIG_SECURITY_SELINUX_ALWAYS_ENFORCE
 		selinux_enabled = 1;
@@ -157,9 +145,6 @@ static int __init selinux_enabled_setup(char *str)
 		selinux_enabled = enabled ? 1 : 0;
 #endif
 // ] SEC_SELINUX_PORTING_COMMON
-=======
-		selinux_enabled = enabled ? 1 : 0;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return 1;
 }
 __setup("selinux=", selinux_enabled_setup);
@@ -438,24 +423,10 @@ static int may_context_mount_inode_relabel(u32 sid,
 	return rc;
 }
 
-<<<<<<< HEAD
-=======
-static int selinux_is_genfs_special_handling(struct super_block *sb)
-{
-	/* Special handling. Genfs but also in-core setxattr handler */
-	return	!strcmp(sb->s_type->name, "sysfs") ||
-		!strcmp(sb->s_type->name, "pstore") ||
-		!strcmp(sb->s_type->name, "debugfs") ||
-		!strcmp(sb->s_type->name, "tracefs") ||
-		!strcmp(sb->s_type->name, "rootfs");
-}
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static int selinux_is_sblabel_mnt(struct super_block *sb)
 {
 	struct superblock_security_struct *sbsec = sb->s_security;
 
-<<<<<<< HEAD
 	return sbsec->behavior == SECURITY_FS_USE_XATTR ||
 		sbsec->behavior == SECURITY_FS_USE_TRANS ||
 		sbsec->behavior == SECURITY_FS_USE_TASK ||
@@ -466,30 +437,6 @@ static int selinux_is_sblabel_mnt(struct super_block *sb)
 		!strcmp(sb->s_type->name, "rootfs") ||
 	        !strcmp(sb->s_type->name, "f2fs") ||
 		!strcmp(sb->s_type->name, "sdcardfs");
-=======
-	/*
-	 * IMPORTANT: Double-check logic in this function when adding a new
-	 * SECURITY_FS_USE_* definition!
-	 */
-	BUILD_BUG_ON(SECURITY_FS_USE_MAX != 7);
-
-	switch (sbsec->behavior) {
-	case SECURITY_FS_USE_XATTR:
-	case SECURITY_FS_USE_TRANS:
-	case SECURITY_FS_USE_TASK:
-	case SECURITY_FS_USE_NATIVE:
-		return 1;
-
-	case SECURITY_FS_USE_GENFS:
-		return selinux_is_genfs_special_handling(sb);
-
-	/* Never allow relabeling on context mounts */
-	case SECURITY_FS_USE_MNTPOINT:
-	case SECURITY_FS_USE_NONE:
-	default:
-		return 0;
-	}
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 static int sb_finish_set_opts(struct super_block *sb)
@@ -813,10 +760,6 @@ static int selinux_set_mnt_opts(struct super_block *sb,
 		sbsec->flags |= SE_SBPROC | SE_SBGENFS;
 
 	if (!strcmp(sb->s_type->name, "debugfs") ||
-<<<<<<< HEAD
-=======
-	    !strcmp(sb->s_type->name, "tracefs") ||
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	    !strcmp(sb->s_type->name, "sysfs") ||
 	    !strcmp(sb->s_type->name, "pstore"))
 		sbsec->flags |= SE_SBGENFS;
@@ -2955,10 +2898,7 @@ static noinline int audit_inode_permission(struct inode *inode,
 					   int result,
 					   unsigned flags)
 {
-<<<<<<< HEAD
 #ifdef CONFIG_AUDIT
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	struct common_audit_data ad;
 	struct inode_security_struct *isec = inode->i_security;
 	int rc;
@@ -2970,10 +2910,7 @@ static noinline int audit_inode_permission(struct inode *inode,
 			    audited, denied, result, &ad, flags);
 	if (rc)
 		return rc;
-<<<<<<< HEAD
 #endif
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return 0;
 }
 
@@ -3006,7 +2943,6 @@ static int selinux_inode_permission(struct inode *inode, int mask)
 	sid = cred_sid(cred);
 	isec = inode->i_security;
 
-<<<<<<< HEAD
 // [ SEC_SELINUX_PORTING_COMMON
 	/* skip sid == 1(kernel), it means first boot time */
 	if(isec->initialized != 1 && sid != 1) {
@@ -3026,8 +2962,6 @@ static int selinux_inode_permission(struct inode *inode, int mask)
 	}
 // ] SEC_SELINUX_PORTING_COMMON
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	rc = avc_has_perm_noaudit(sid, isec->sid, isec->sclass, perms, 0, &avd);
 	audited = avc_audit_required(perms, &avd, rc,
 				     from_access ? FILE__AUDIT_ACCESS : 0,
@@ -3776,41 +3710,6 @@ static int selinux_kernel_module_request(char *kmod_name)
 			    SYSTEM__MODULE_REQUEST, &ad);
 }
 
-<<<<<<< HEAD
-=======
-static int selinux_kernel_module_from_file(struct file *file)
-{
-	struct common_audit_data ad;
-	struct inode_security_struct *isec;
-	struct file_security_struct *fsec;
-	struct inode *inode;
-	u32 sid = current_sid();
-	int rc;
-
-	/* init_module */
-	if (file == NULL)
-		return avc_has_perm(sid, sid, SECCLASS_SYSTEM,
-					SYSTEM__MODULE_LOAD, NULL);
-
-	/* finit_module */
-	ad.type = LSM_AUDIT_DATA_PATH;
-	ad.u.path = file->f_path;
-
-	inode = file_inode(file);
-	isec = inode->i_security;
-	fsec = file->f_security;
-
-	if (sid != fsec->sid) {
-		rc = avc_has_perm(sid, fsec->sid, SECCLASS_FD, FD__USE, &ad);
-		if (rc)
-			return rc;
-	}
-
-	return avc_has_perm(sid, isec->sid, SECCLASS_SYSTEM,
-				SYSTEM__MODULE_LOAD, &ad);
-}
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static int selinux_task_setpgid(struct task_struct *p, pid_t pgid)
 {
 	return current_has_perm(p, PROCESS__SETPGID);
@@ -4961,7 +4860,6 @@ static int selinux_tun_dev_open(void *security)
 
 static int selinux_nlmsg_perm(struct sock *sk, struct sk_buff *skb)
 {
-<<<<<<< HEAD
 	int err = 0;
 	u32 perm;
 	struct nlmsghdr *nlh;
@@ -4999,61 +4897,6 @@ static int selinux_nlmsg_perm(struct sock *sk, struct sk_buff *skb)
 	err = sock_has_perm(current, sk, perm);
 out:
 	return err;
-=======
-	int rc = 0;
-	unsigned int msg_len;
-	unsigned int data_len = skb->len;
-	unsigned char *data = skb->data;
-	struct nlmsghdr *nlh;
-	struct sk_security_struct *sksec = sk->sk_security;
-	u16 sclass = sksec->sclass;
-	u32 perm;
-
-	while (data_len >= nlmsg_total_size(0)) {
-		nlh = (struct nlmsghdr *)data;
-
-		/* NOTE: the nlmsg_len field isn't reliably set by some netlink
-		 *       users which means we can't reject skb's with bogus
-		 *       length fields; our solution is to follow what
-		 *       netlink_rcv_skb() does and simply skip processing at
-		 *       messages with length fields that are clearly junk
-		 */
-		if (nlh->nlmsg_len < NLMSG_HDRLEN || nlh->nlmsg_len > data_len)
-			return 0;
-
-		rc = selinux_nlmsg_lookup(sclass, nlh->nlmsg_type, &perm);
-		if (rc == 0) {
-			rc = sock_has_perm(current, sk, perm);
-			if (rc)
-				return rc;
-		} else if (rc == -EINVAL) {
-			/* -EINVAL is a missing msg/perm mapping */
-			pr_warn_ratelimited("SELinux: unrecognized netlink"
-				" message: protocol=%hu nlmsg_type=%hu sclass=%s"
-				" pid=%d comm=%s\n",
-				sk->sk_protocol, nlh->nlmsg_type,
-				secclass_map[sclass - 1].name,
-				task_pid_nr(current), current->comm);
-			if (selinux_enforcing && !security_get_allow_unknown())
-				return rc;
-			rc = 0;
-		} else if (rc == -ENOENT) {
-			/* -ENOENT is a missing socket/class mapping, ignore */
-			rc = 0;
-		} else {
-			return rc;
-		}
-
-		/* move to the next message after applying netlink padding */
-		msg_len = NLMSG_ALIGN(nlh->nlmsg_len);
-		if (msg_len >= data_len)
-			return 0;
-		data_len -= msg_len;
-		data += msg_len;
-	}
-
-	return rc;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 #ifdef CONFIG_NETFILTER
@@ -6210,10 +6053,6 @@ static struct security_operations selinux_ops = {
 	.kernel_act_as =		selinux_kernel_act_as,
 	.kernel_create_files_as =	selinux_kernel_create_files_as,
 	.kernel_module_request =	selinux_kernel_module_request,
-<<<<<<< HEAD
-=======
-	.kernel_module_from_file =      selinux_kernel_module_from_file,
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	.task_setpgid =			selinux_task_setpgid,
 	.task_getpgid =			selinux_task_getpgid,
 	.task_getsid =			selinux_task_getsid,
@@ -6338,7 +6177,6 @@ static struct security_operations selinux_ops = {
 static __init int selinux_init(void)
 {
 	if (!security_module_enable(&selinux_ops)) {
-<<<<<<< HEAD
 // [ SEC_SELINUX_PORTING_COMMON
 #ifdef CONFIG_ALWAYS_ENFORCE
 		selinux_enabled = 1;
@@ -6346,9 +6184,6 @@ static __init int selinux_init(void)
 		selinux_enabled = 0;
 #endif
 // ] SEC_SELINUX_PORTING_COMMON
-=======
-		selinux_enabled = 0;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		return 0;
 	}
 
@@ -6374,15 +6209,11 @@ static __init int selinux_init(void)
 
 	if (avc_add_callback(selinux_netcache_avc_callback, AVC_CALLBACK_RESET))
 		panic("SELinux: Unable to register AVC netcache callback\n");
-<<<<<<< HEAD
 // [ SEC_SELINUX_PORTING_COMMON
 #ifdef CONFIG_ALWAYS_ENFORCE
 		selinux_enforcing = 1;
 #endif
 // ] SEC_SELINUX_PORTING_COMMON
-=======
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (selinux_enforcing)
 		printk(KERN_DEBUG "SELinux:  Starting in enforcing mode\n");
 	else
@@ -6454,15 +6285,11 @@ static struct nf_hook_ops selinux_nf_ops[] = {
 static int __init selinux_nf_ip_init(void)
 {
 	int err;
-<<<<<<< HEAD
 // [ SEC_SELINUX_PORTING_COMMON
 #ifdef CONFIG_ALWAYS_ENFORCE
 		selinux_enabled = 1;
 #endif
 // ] SEC_SELINUX_PORTING_COMMON
-=======
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (!selinux_enabled)
 		return 0;
 

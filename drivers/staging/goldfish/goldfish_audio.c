@@ -26,10 +26,6 @@
 #include <linux/sched.h>
 #include <linux/dma-mapping.h>
 #include <linux/uaccess.h>
-<<<<<<< HEAD
-=======
-#include <linux/slab.h>
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #include <linux/goldfish.h>
 
 MODULE_AUTHOR("Google, Inc.");
@@ -67,11 +63,7 @@ struct goldfish_audio {
 #define AUDIO_READ(data, addr)		(readl(data->reg_base + addr))
 #define AUDIO_WRITE(data, addr, x)	(writel(x, data->reg_base + addr))
 #define AUDIO_WRITE64(data, addr, addr2, x)	\
-<<<<<<< HEAD
 	(gf_write64((u64)(x), data->reg_base + addr, data->reg_base+addr2))
-=======
-	(gf_write_dma_addr((x), data->reg_base + addr, data->reg_base+addr2))
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /*
  *  temporary variable used between goldfish_audio_probe() and

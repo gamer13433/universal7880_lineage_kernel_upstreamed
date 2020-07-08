@@ -447,10 +447,6 @@ skip:
 			/* restore search_key */
 			hfs_bnode_read_key(node, fd->search_key, 14);
 		}
-<<<<<<< HEAD
-=======
-		new_node = NULL;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 	if (!rec && node->parent)

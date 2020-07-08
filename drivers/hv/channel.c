@@ -28,10 +28,6 @@
 #include <linux/module.h>
 #include <linux/hyperv.h>
 #include <linux/uio.h>
-<<<<<<< HEAD
-=======
-#include <linux/interrupt.h>
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #include "hyperv_vmbus.h"
 
@@ -488,26 +484,8 @@ static void reset_channel_cb(void *arg)
 static int vmbus_close_internal(struct vmbus_channel *channel)
 {
 	struct vmbus_channel_close_channel *msg;
-<<<<<<< HEAD
 	int ret;
 
-=======
-	struct tasklet_struct *tasklet;
-	int ret;
-
-	/*
-	 * process_chn_event(), running in the tasklet, can race
-	 * with vmbus_close_internal() in the case of SMP guest, e.g., when
-	 * the former is accessing channel->inbound.ring_buffer, the latter
-	 * could be freeing the ring_buffer pages.
-	 *
-	 * To resolve the race, we can serialize them by disabling the
-	 * tasklet when the latter is running here.
-	 */
-	tasklet = hv_context.event_dpc[channel->target_cpu];
-	tasklet_disable(tasklet);
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	channel->state = CHANNEL_OPEN_STATE;
 	channel->sc_creation_callback = NULL;
 	/* Stop callback and cancel the timer asap */
@@ -535,11 +513,7 @@ static int vmbus_close_internal(struct vmbus_channel *channel)
 		 * If we failed to post the close msg,
 		 * it is perhaps better to leak memory.
 		 */
-<<<<<<< HEAD
 		return ret;
-=======
-		goto out;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 	/* Tear down the gpadl for the channel's ring buffer */
@@ -552,11 +526,7 @@ static int vmbus_close_internal(struct vmbus_channel *channel)
 			 * If we failed to teardown gpadl,
 			 * it is perhaps better to leak memory.
 			 */
-<<<<<<< HEAD
 			return ret;
-=======
-			goto out;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		}
 	}
 
@@ -567,12 +537,6 @@ static int vmbus_close_internal(struct vmbus_channel *channel)
 	free_pages((unsigned long)channel->ringbuffer_pages,
 		get_order(channel->ringbuffer_pagecount * PAGE_SIZE));
 
-<<<<<<< HEAD
-=======
-out:
-	tasklet_enable(tasklet);
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return ret;
 }
 

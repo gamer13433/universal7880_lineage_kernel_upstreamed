@@ -2126,13 +2126,8 @@ exit_done:
 	return status;
 }
 
-<<<<<<< HEAD
 static int altera_get_note(u8 *p, s32 program_size,
 			s32 *offset, char *key, char *value, int length)
-=======
-static int altera_get_note(u8 *p, s32 program_size, s32 *offset,
-			   char *key, char *value, int keylen, int vallen)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /*
  * Gets key and value of NOTE fields in the JBC file.
  * Can be called in two modes:  if offset pointer is NULL,
@@ -2190,11 +2185,7 @@ static int altera_get_note(u8 *p, s32 program_size, s32 *offset,
 						&p[note_table + (8 * i) + 4])];
 
 				if (value != NULL)
-<<<<<<< HEAD
 					strlcpy(value, value_ptr, length);
-=======
-					strlcpy(value, value_ptr, vallen);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 			}
 		}
@@ -2213,21 +2204,13 @@ static int altera_get_note(u8 *p, s32 program_size, s32 *offset,
 				strlcpy(key, &p[note_strings +
 						get_unaligned_be32(
 						&p[note_table + (8 * i)])],
-<<<<<<< HEAD
 					length);
-=======
-					keylen);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 			if (value != NULL)
 				strlcpy(value, &p[note_strings +
 						get_unaligned_be32(
 						&p[note_table + (8 * i) + 4])],
-<<<<<<< HEAD
 					length);
-=======
-					vallen);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 			*offset = i + 1;
 		}
@@ -2481,11 +2464,7 @@ int altera_init(struct altera_config *config, const struct firmware *fw)
 			__func__, (format_version == 2) ? "Jam STAPL" :
 						"pre-standardized Jam 1.1");
 		while (altera_get_note((u8 *)fw->data, fw->size,
-<<<<<<< HEAD
 					&offset, key, value, 256) == 0)
-=======
-					&offset, key, value, 32, 256) == 0)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			printk(KERN_INFO "%s: NOTE \"%s\" = \"%s\"\n",
 					__func__, key, value);
 	}

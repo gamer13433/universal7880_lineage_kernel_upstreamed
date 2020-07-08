@@ -95,16 +95,9 @@ emulate:
 	reteq	r4			@ no, return failure
 
 next:
-<<<<<<< HEAD
 .Lx1:	ldrt	r6, [r5], #4		@ get the next instruction and
 					@ increment PC
 
-=======
-	uaccess_enable r3
-.Lx1:	ldrt	r6, [r5], #4		@ get the next instruction and
-					@ increment PC
-	uaccess_disable r3
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	and	r2, r6, #0x0F000000	@ test for FP insns
 	teq	r2, #0x0C000000
 	teqne	r2, #0x0D000000

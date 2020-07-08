@@ -87,10 +87,7 @@
 #define PA_PACPREQEOBTIMEOUT	0x1591
 #define PA_HIBERN8TIME		0x15A7
 #define PA_LOCALVERINFO		0x15A9
-<<<<<<< HEAD
 #define PA_GRANULARITY		0x15AA
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #define PA_TACTIVATE		0x15A8
 #define PA_PACPFRAMECOUNT	0x15C0
 #define PA_PACPERRORCOUNT	0x15C1
@@ -123,12 +120,9 @@ enum {
 	UNCHANGED	= 7,
 };
 
-<<<<<<< HEAD
 #define IS_PWR_MODE_HS(m)        (((m) == FAST_MODE) || ((m) == FASTAUTO_MODE))
 #define IS_PWR_MODE_PWM(m)       (((m) == SLOW_MODE) || ((m) == SLOWAUTO_MODE))
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /* PA TX/RX Frequency Series */
 enum {
 	PA_HS_MODE_A	= 1,
@@ -180,14 +174,11 @@ enum ufs_hs_gear_tag {
 #define DL_PEERTC1PRESENT	0x2066
 #define DL_PEERTC1RXINITCREVAL	0x2067
 
-<<<<<<< HEAD
 /* Default value of L2 Timer */
 #define FC0PROTTIMEOUTVAL	8191
 #define TC0REPLAYTIMEOUTVAL	65535
 #define AFC0REQTIMEOUTVAL	32767
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /*
  * Network Layer Attributes
  */
@@ -216,7 +207,6 @@ enum ufs_hs_gear_tag {
 #define T_TC0TXMAXSDUSIZE	0x4060
 #define T_TC1TXMAXSDUSIZE	0x4061
 
-<<<<<<< HEAD
 /* CPort setting */
 #define E2EFC_ON	(1 << 0)
 #define E2EFC_OFF	(0 << 0)
@@ -232,8 +222,6 @@ enum {
 	CPORT_CONNECTED,
 };
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /* Boolean attribute values */
 enum {
 	FALSE = 0,

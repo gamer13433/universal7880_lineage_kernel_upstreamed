@@ -7,11 +7,7 @@
 extern char __brk_base[], __brk_limit[];
 extern struct exception_table_entry __stop___ex_table[];
 
-<<<<<<< HEAD
 #if defined(CONFIG_X86_64) && defined(CONFIG_DEBUG_RODATA)
-=======
-#if defined(CONFIG_X86_64)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 extern char __end_rodata_hpage_align[];
 #endif
 

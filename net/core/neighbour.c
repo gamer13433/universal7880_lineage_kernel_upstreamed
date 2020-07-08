@@ -18,10 +18,6 @@
 #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 
 #include <linux/slab.h>
-<<<<<<< HEAD
-=======
-#include <linux/kmemleak.h>
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #include <linux/types.h>
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -330,23 +326,12 @@ static struct neigh_hash_table *neigh_hash_alloc(unsigned int shift)
 	ret = kmalloc(sizeof(*ret), GFP_ATOMIC);
 	if (!ret)
 		return NULL;
-<<<<<<< HEAD
 	if (size <= PAGE_SIZE)
 		buckets = kzalloc(size, GFP_ATOMIC);
 	else
 		buckets = (struct neighbour __rcu **)
 			  __get_free_pages(GFP_ATOMIC | __GFP_ZERO,
 					   get_order(size));
-=======
-	if (size <= PAGE_SIZE) {
-		buckets = kzalloc(size, GFP_ATOMIC);
-	} else {
-		buckets = (struct neighbour __rcu **)
-			  __get_free_pages(GFP_ATOMIC | __GFP_ZERO,
-					   get_order(size));
-		kmemleak_alloc(buckets, size, 1, GFP_ATOMIC);
-	}
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (!buckets) {
 		kfree(ret);
 		return NULL;
@@ -366,19 +351,10 @@ static void neigh_hash_free_rcu(struct rcu_head *head)
 	size_t size = (1 << nht->hash_shift) * sizeof(struct neighbour *);
 	struct neighbour __rcu **buckets = nht->hash_buckets;
 
-<<<<<<< HEAD
 	if (size <= PAGE_SIZE)
 		kfree(buckets);
 	else
 		free_pages((unsigned long)buckets, get_order(size));
-=======
-	if (size <= PAGE_SIZE) {
-		kfree(buckets);
-	} else {
-		kmemleak_free(buckets);
-		free_pages((unsigned long)buckets, get_order(size));
-	}
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	kfree(nht);
 }
 
@@ -726,11 +702,7 @@ void neigh_destroy(struct neighbour *neigh)
 	NEIGH_CACHE_STAT_INC(neigh->tbl, destroys);
 
 	if (!neigh->dead) {
-<<<<<<< HEAD
 		pr_warn("Destroying alive neighbour %pK\n", neigh);
-=======
-		pr_warn("Destroying alive neighbour %p\n", neigh);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		dump_stack();
 		return;
 	}
@@ -1007,11 +979,6 @@ int __neigh_event_send(struct neighbour *neigh, struct sk_buff *skb)
 	rc = 0;
 	if (neigh->nud_state & (NUD_CONNECTED | NUD_DELAY | NUD_PROBE))
 		goto out_unlock_bh;
-<<<<<<< HEAD
-=======
-	if (neigh->dead)
-		goto out_dead;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if (!(neigh->nud_state & (NUD_STALE | NUD_INCOMPLETE))) {
 		if (NEIGH_VAR(neigh->parms, MCAST_PROBES) +
@@ -1020,10 +987,6 @@ int __neigh_event_send(struct neighbour *neigh, struct sk_buff *skb)
 
 			atomic_set(&neigh->probes,
 				   NEIGH_VAR(neigh->parms, UCAST_PROBES));
-<<<<<<< HEAD
-=======
-			neigh_del_timer(neigh);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			neigh->nud_state     = NUD_INCOMPLETE;
 			neigh->updated = now;
 			next = now + max(NEIGH_VAR(neigh->parms, RETRANS_TIME),
@@ -1040,10 +1003,6 @@ int __neigh_event_send(struct neighbour *neigh, struct sk_buff *skb)
 		}
 	} else if (neigh->nud_state & NUD_STALE) {
 		neigh_dbg(2, "neigh %p is delayed\n", neigh);
-<<<<<<< HEAD
-=======
-		neigh_del_timer(neigh);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		neigh->nud_state = NUD_DELAY;
 		neigh->updated = jiffies;
 		neigh_add_timer(neigh, jiffies +
@@ -1076,16 +1035,6 @@ out_unlock_bh:
 		write_unlock(&neigh->lock);
 	local_bh_enable();
 	return rc;
-<<<<<<< HEAD
-=======
-
-out_dead:
-	if (neigh->nud_state & NUD_STALE)
-		goto out_unlock_bh;
-	write_unlock_bh(&neigh->lock);
-	kfree_skb(skb);
-	return 1;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 EXPORT_SYMBOL(__neigh_event_send);
 
@@ -1149,11 +1098,6 @@ int neigh_update(struct neighbour *neigh, const u8 *lladdr, u8 new,
 	if (!(flags & NEIGH_UPDATE_F_ADMIN) &&
 	    (old & (NUD_NOARP | NUD_PERMANENT)))
 		goto out;
-<<<<<<< HEAD
-=======
-	if (neigh->dead)
-		goto out;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if (!(new & NUD_VALID)) {
 		neigh_del_timer(neigh);
@@ -1314,11 +1258,6 @@ EXPORT_SYMBOL(neigh_update);
  */
 void __neigh_set_probe_once(struct neighbour *neigh)
 {
-<<<<<<< HEAD
-=======
-	if (neigh->dead)
-		return;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	neigh->updated = jiffies;
 	if (!(neigh->nud_state & NUD_FAILED))
 		return;
@@ -1413,11 +1352,7 @@ int neigh_resolve_output(struct neighbour *neigh, struct sk_buff *skb)
 out:
 	return rc;
 discard:
-<<<<<<< HEAD
 	neigh_dbg(1, "%s: dst=%pK neigh=%pK\n", __func__, dst, neigh);
-=======
-	neigh_dbg(1, "%s: dst=%p neigh=%p\n", __func__, dst, neigh);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 out_kfree_skb:
 	rc = -EINVAL;
 	kfree_skb(skb);
@@ -1944,13 +1879,8 @@ static int neightbl_fill_info(struct sk_buff *skb, struct neigh_table *tbl,
 		goto nla_put_failure;
 	{
 		unsigned long now = jiffies;
-<<<<<<< HEAD
 		unsigned int flush_delta = now - tbl->last_flush;
 		unsigned int rand_delta = now - tbl->last_rand;
-=======
-		long flush_delta = now - tbl->last_flush;
-		long rand_delta = now - tbl->last_rand;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		struct neigh_hash_table *nht;
 		struct ndt_config ndc = {
 			.ndtc_key_len		= tbl->key_len,
@@ -2711,10 +2641,6 @@ static void *neigh_get_idx_any(struct seq_file *seq, loff_t *pos)
 }
 
 void *neigh_seq_start(struct seq_file *seq, loff_t *pos, struct neigh_table *tbl, unsigned int neigh_seq_flags)
-<<<<<<< HEAD
-=======
-	__acquires(tbl->lock)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	__acquires(rcu_bh)
 {
 	struct neigh_seq_state *state = seq->private;
@@ -2725,10 +2651,6 @@ void *neigh_seq_start(struct seq_file *seq, loff_t *pos, struct neigh_table *tbl
 
 	rcu_read_lock_bh();
 	state->nht = rcu_dereference_bh(tbl->nht);
-<<<<<<< HEAD
-=======
-	read_lock(&tbl->lock);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	return *pos ? neigh_get_idx_any(seq, pos) : SEQ_START_TOKEN;
 }
@@ -2762,18 +2684,8 @@ out:
 EXPORT_SYMBOL(neigh_seq_next);
 
 void neigh_seq_stop(struct seq_file *seq, void *v)
-<<<<<<< HEAD
 	__releases(rcu_bh)
 {
-=======
-	__releases(tbl->lock)
-	__releases(rcu_bh)
-{
-	struct neigh_seq_state *state = seq->private;
-	struct neigh_table *tbl = state->tbl;
-
-	read_unlock(&tbl->lock);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	rcu_read_unlock_bh();
 }
 EXPORT_SYMBOL(neigh_seq_stop);

@@ -23,10 +23,7 @@
 #include <linux/vmalloc.h>
 #include <net/netlink.h>
 #include <net/pkt_sched.h>
-<<<<<<< HEAD
 #include <net/flow_keys.h>
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #include <net/codel.h>
 
 /*	Fair Queue CoDel.
@@ -59,11 +56,7 @@ struct fq_codel_sched_data {
 	struct fq_codel_flow *flows;	/* Flows table [flows_cnt] */
 	u32		*backlogs;	/* backlog table [flows_cnt] */
 	u32		flows_cnt;	/* number of flows */
-<<<<<<< HEAD
 	u32		perturbation;	/* hash perturbation */
-=======
-	siphash_key_t	perturbation;	/* hash perturbation */
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	u32		quantum;	/* psched_mtu(qdisc_dev(sch)); */
 	struct codel_params cparams;
 	struct codel_stats cstats;
@@ -75,7 +68,6 @@ struct fq_codel_sched_data {
 };
 
 static unsigned int fq_codel_hash(const struct fq_codel_sched_data *q,
-<<<<<<< HEAD
 				  const struct sk_buff *skb)
 {
 	struct flow_keys keys;
@@ -85,11 +77,6 @@ static unsigned int fq_codel_hash(const struct fq_codel_sched_data *q,
 	hash = jhash_3words((__force u32)keys.dst,
 			    (__force u32)keys.src ^ keys.ip_proto,
 			    (__force u32)keys.ports, q->perturbation);
-=======
-				  struct sk_buff *skb)
-{
-	u32 hash = skb_get_hash_perturb(skb, &q->perturbation);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	return reciprocal_scale(hash, q->flows_cnt);
 }
@@ -408,11 +395,7 @@ static int fq_codel_init(struct Qdisc *sch, struct nlattr *opt)
 	sch->limit = 10*1024;
 	q->flows_cnt = 1024;
 	q->quantum = psched_mtu(qdisc_dev(sch));
-<<<<<<< HEAD
 	q->perturbation = prandom_u32();
-=======
-	get_random_bytes(&q->perturbation, sizeof(q->perturbation));
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	INIT_LIST_HEAD(&q->new_flows);
 	INIT_LIST_HEAD(&q->old_flows);
 	codel_params_init(&q->cparams);
@@ -574,11 +557,7 @@ static int fq_codel_dump_class_stats(struct Qdisc *sch, unsigned long cl,
 		qs.backlog = q->backlogs[idx];
 		qs.drops = flow->dropped;
 	}
-<<<<<<< HEAD
 	if (gnet_stats_copy_queue(d, NULL, &qs, 0) < 0)
-=======
-	if (gnet_stats_copy_queue(d, NULL, &qs, qs.qlen) < 0)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		return -1;
 	if (idx < q->flows_cnt)
 		return gnet_stats_copy_app(d, &xstats, sizeof(xstats));

@@ -10186,7 +10186,6 @@ connected_sink_compute_bpp(struct intel_connector *connector,
 		pipe_config->pipe_bpp = connector->base.display_info.bpc*3;
 	}
 
-<<<<<<< HEAD
 	/* Clamp bpp to default limit on screens without EDID 1.4 */
 	if (connector->base.display_info.bpc == 0) {
 		int type = connector->base.connector_type;
@@ -10202,13 +10201,6 @@ connected_sink_compute_bpp(struct intel_connector *connector,
 				      bpp, clamp_bpp);
 			pipe_config->pipe_bpp = clamp_bpp;
 		}
-=======
-	/* Clamp bpp to 8 on screens without EDID 1.4 */
-	if (connector->base.display_info.bpc == 0 && bpp > 24) {
-		DRM_DEBUG_KMS("clamping display bpp (was %d) to default limit of 24\n",
-			      bpp);
-		pipe_config->pipe_bpp = 24;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 }
 
@@ -13575,11 +13567,6 @@ void intel_modeset_cleanup(struct drm_device *dev)
 	mutex_lock(&dev->struct_mutex);
 	intel_cleanup_gt_powersave(dev);
 	mutex_unlock(&dev->struct_mutex);
-<<<<<<< HEAD
-=======
-
-	intel_teardown_gmbus(dev);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 /*

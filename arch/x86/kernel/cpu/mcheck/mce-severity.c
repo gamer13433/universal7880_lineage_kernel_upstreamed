@@ -132,14 +132,6 @@ static struct severity {
 		SER, MASK(MCI_STATUS_OVER|MCI_UC_SAR|MCI_ADDR|MCACOD, MCI_UC_SAR|MCI_ADDR|MCACOD_INSTR),
 		USER
 		),
-<<<<<<< HEAD
-=======
-	MCESEV(
-		PANIC, "Instruction fetch error in kernel",
-		SER, MASK(MCI_STATUS_OVER|MCI_UC_SAR|MCI_ADDR|MCACOD, MCI_UC_SAR|MCI_ADDR|MCACOD_INSTR),
-		KERNEL
-		),
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #endif
 	MCESEV(
 		PANIC, "Action required: unknown MCACOD",

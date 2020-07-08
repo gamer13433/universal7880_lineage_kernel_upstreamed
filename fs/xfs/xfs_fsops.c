@@ -243,13 +243,8 @@ xfs_growfs_data_private(
 		agf->agf_roots[XFS_BTNUM_CNTi] = cpu_to_be32(XFS_CNT_BLOCK(mp));
 		agf->agf_levels[XFS_BTNUM_BNOi] = cpu_to_be32(1);
 		agf->agf_levels[XFS_BTNUM_CNTi] = cpu_to_be32(1);
-<<<<<<< HEAD
 		agf->agf_flfirst = 0;
 		agf->agf_fllast = cpu_to_be32(XFS_AGFL_SIZE(mp) - 1);
-=======
-		agf->agf_flfirst = cpu_to_be32(1);
-		agf->agf_fllast = 0;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		agf->agf_flcount = 0;
 		tmpsize = agsize - XFS_PREALLOC_BLOCKS(mp);
 		agf->agf_freeblks = cpu_to_be32(tmpsize);

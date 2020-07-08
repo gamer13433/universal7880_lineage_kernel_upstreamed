@@ -23,14 +23,11 @@
 
 #include <linux/slab.h>
 #include <asm/unaligned.h>
-<<<<<<< HEAD
 #ifdef CONFIG_HOST_COMPLIANT_TEST
 #include <linux/dma-mapping.h>
 #include <linux/slab.h>
 #include "../core/hub.h"
 #endif
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #include "xhci.h"
 #include "xhci-trace.h"
@@ -39,7 +36,6 @@
 #define	PORT_RWC_BITS	(PORT_CSC | PORT_PEC | PORT_WRC | PORT_OCC | \
 			 PORT_RC | PORT_PLC | PORT_PE)
 
-<<<<<<< HEAD
 /* 31:28 for port testing in xHCI */
 #ifdef CONFIG_HOST_COMPLIANT_TEST
 #define PORT_TEST(x)		(((x) & 0xf) << 28)     /* Port Test Control */
@@ -49,8 +45,6 @@
 #define PORT_TEST_PKT		PORT_TEST(0x4)
 #define PORT_TEST_FORCE		PORT_TEST(0x5)
 #endif
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /* USB 3.0 BOS descriptor and a capability descriptor, combined */
 static u8 usb_bos_descriptor [] = {
 	USB_DT_BOS_SIZE,		/*  __u8 bLength, 5 bytes */
@@ -378,13 +372,10 @@ static void xhci_disable_port(struct usb_hcd *hcd, struct xhci_hcd *xhci,
 		xhci_dbg(xhci, "Ignoring request to disable "
 				"SuperSpeed port.\n");
 		return;
-<<<<<<< HEAD
 #ifdef CONFIG_HOST_COMPLIANT_TEST
 	} else if (hcd->speed == HCD_USB2) {
 		xhci_dbg(xhci, "request to disable High-Speed port.\n");
 #endif
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 	/* Write 1 to disable the port */
@@ -460,7 +451,6 @@ static int xhci_get_ports(struct usb_hcd *hcd, __le32 __iomem ***port_array)
 	return max_ports;
 }
 
-<<<<<<< HEAD
 #ifdef CONFIG_HOST_COMPLIANT_TEST
 static int xhci_get_portpmsc(struct usb_hcd *hcd, __le32 __iomem ***port_array)
 {
@@ -479,8 +469,6 @@ static int xhci_get_portpmsc(struct usb_hcd *hcd, __le32 __iomem ***port_array)
 }
 #endif
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 void xhci_set_link_state(struct xhci_hcd *xhci, __le32 __iomem **port_array,
 				int port_id, u32 link_state)
 {
@@ -593,7 +581,6 @@ static void xhci_hub_report_usb3_link_state(struct xhci_hcd *xhci,
 	*status |= pls;
 }
 
-<<<<<<< HEAD
 #ifdef CONFIG_HOST_COMPLIANT_TEST
 static int single_step_set_feature(struct usb_hcd *hcd, u8 port)
 {
@@ -941,8 +928,6 @@ error:
 }
 #endif/* CONFIG_HOST_COMPLIANT_TEST */
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /*
  * Function for Compliance Mode Quirk.
  *
@@ -985,11 +970,7 @@ static u32 xhci_get_port_status(struct usb_hcd *hcd,
 		struct xhci_bus_state *bus_state,
 		__le32 __iomem **port_array,
 		u16 wIndex, u32 raw_port_status,
-<<<<<<< HEAD
 		unsigned long flags)
-=======
-		unsigned long *flags)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	__releases(&xhci->lock)
 	__acquires(&xhci->lock)
 {
@@ -1021,17 +1002,6 @@ static u32 xhci_get_port_status(struct usb_hcd *hcd,
 			status |= USB_PORT_STAT_C_BH_RESET << 16;
 		if ((raw_port_status & PORT_CEC))
 			status |= USB_PORT_STAT_C_CONFIG_ERROR << 16;
-<<<<<<< HEAD
-=======
-
-		/* USB3 remote wake resume signaling completed */
-		if (bus_state->port_remote_wakeup & (1 << wIndex) &&
-		    (raw_port_status & PORT_PLS_MASK) != XDEV_RESUME &&
-		    (raw_port_status & PORT_PLS_MASK) != XDEV_RECOVERY) {
-			bus_state->port_remote_wakeup &= ~(1 << wIndex);
-			usb_hcd_end_port_resume(&hcd->self, wIndex);
-		}
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 	if (hcd->speed != HCD_USB3) {
@@ -1082,20 +1052,12 @@ static u32 xhci_get_port_status(struct usb_hcd *hcd,
 			xhci_set_link_state(xhci, port_array, wIndex,
 					XDEV_U0);
 
-<<<<<<< HEAD
 			spin_unlock_irqrestore(&xhci->lock, flags);
-=======
-			spin_unlock_irqrestore(&xhci->lock, *flags);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			time_left = wait_for_completion_timeout(
 					&bus_state->rexit_done[wIndex],
 					msecs_to_jiffies(
 						XHCI_MAX_REXIT_TIMEOUT));
-<<<<<<< HEAD
 			spin_lock_irqsave(&xhci->lock, flags);
-=======
-			spin_lock_irqsave(&xhci->lock, *flags);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 			if (time_left) {
 				slot_id = xhci_find_slot_id_by_port(hcd,
@@ -1191,7 +1153,6 @@ int xhci_hub_control(struct usb_hcd *hcd, u16 typeReq, u16 wValue,
 	u16 link_state = 0;
 	u16 wake_mask = 0;
 	u16 timeout = 0;
-<<<<<<< HEAD
 #ifdef CONFIG_HOST_COMPLIANT_TEST
 	int max_portpmsc;
 	__le32 __iomem **portpmsc_array;
@@ -1199,9 +1160,6 @@ int xhci_hub_control(struct usb_hcd *hcd, u16 typeReq, u16 wValue,
 
 	max_portpmsc = xhci_get_portpmsc(hcd, &portpmsc_array);
 #endif
-=======
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	max_ports = xhci_get_ports(hcd, &port_array);
 	bus_state = &xhci->bus_state[hcd_index(hcd)];
 
@@ -1259,11 +1217,7 @@ int xhci_hub_control(struct usb_hcd *hcd, u16 typeReq, u16 wValue,
 			break;
 		}
 		status = xhci_get_port_status(hcd, bus_state, port_array,
-<<<<<<< HEAD
 				wIndex, temp, flags);
-=======
-				wIndex, temp, &flags);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		if (status == 0xffffffff)
 			goto error;
 
@@ -1274,12 +1228,9 @@ int xhci_hub_control(struct usb_hcd *hcd, u16 typeReq, u16 wValue,
 		put_unaligned(cpu_to_le32(status), (__le32 *) buf);
 		break;
 	case SetPortFeature:
-<<<<<<< HEAD
 #ifdef CONFIG_HOST_COMPLIANT_TEST
 		selector = wIndex >> 8;
 #endif
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		if (wValue == USB_PORT_FEAT_LINK_STATE)
 			link_state = (wIndex & 0xff00) >> 3;
 		if (wValue == USB_PORT_FEAT_REMOTE_WAKE_MASK)
@@ -1429,7 +1380,6 @@ int xhci_hub_control(struct usb_hcd *hcd, u16 typeReq, u16 wValue,
 			temp = readl(port_array[wIndex]);
 			xhci_dbg(xhci, "set port reset, actual port %d status  = 0x%x\n", wIndex, temp);
 			break;
-<<<<<<< HEAD
 
 		/*
 		 * For downstream facing ports (these):  one hub port is put
@@ -1449,8 +1399,6 @@ int xhci_hub_control(struct usb_hcd *hcd, u16 typeReq, u16 wValue,
 			break;
 #endif
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		case USB_PORT_FEAT_REMOTE_WAKE_MASK:
 			xhci_set_remote_wake_mask(xhci, port_array,
 					wIndex, wake_mask);

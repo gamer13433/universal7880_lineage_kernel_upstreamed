@@ -175,11 +175,8 @@ dma_sync_sg_for_device(struct device *dev, struct scatterlist *sg,
 #define dma_unmap_single(d, a, s, r) dma_unmap_single_attrs(d, a, s, r, NULL)
 #define dma_map_sg(d, s, n, r) dma_map_sg_attrs(d, s, n, r, NULL)
 #define dma_unmap_sg(d, s, n, r) dma_unmap_sg_attrs(d, s, n, r, NULL)
-<<<<<<< HEAD
 #define dma_map_sg_attr(d, s, n, r, a) dma_map_sg_attrs(d, s, n, r, a)
 #define dma_unmap_sg_attr(d, s, n, r, a) dma_unmap_sg_attrs(d, s, n, r, a)
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 extern int dma_common_mmap(struct device *dev, struct vm_area_struct *vma,
 			   void *cpu_addr, dma_addr_t dma_addr, size_t size);

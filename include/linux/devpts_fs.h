@@ -15,7 +15,6 @@
 
 #include <linux/errno.h>
 
-<<<<<<< HEAD
 #ifdef CONFIG_UNIX98_PTYS
 
 int devpts_new_index(struct inode *ptmx_inode);
@@ -25,27 +24,11 @@ void devpts_del_ref(struct inode *ptmx_inode);
 /* mknod in devpts */
 struct inode *devpts_pty_new(struct inode *ptmx_inode, dev_t device, int index,
 		void *priv);
-=======
-struct pts_fs_info;
-
-#ifdef CONFIG_UNIX98_PTYS
-
-/* Look up a pts fs info and get a ref to it */
-struct pts_fs_info *devpts_get_ref(struct inode *, struct file *);
-void devpts_put_ref(struct pts_fs_info *);
-
-int devpts_new_index(struct pts_fs_info *);
-void devpts_kill_index(struct pts_fs_info *, int);
-
-/* mknod in devpts */
-struct inode *devpts_pty_new(struct pts_fs_info *, dev_t, int, void *);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /* get private structure */
 void *devpts_get_priv(struct inode *pts_inode);
 /* unlink */
 void devpts_pty_kill(struct inode *inode);
 
-<<<<<<< HEAD
 #else
 
 /* Dummy stubs in the no-pty case */
@@ -64,8 +47,6 @@ static inline void *devpts_get_priv(struct inode *pts_inode)
 }
 static inline void devpts_pty_kill(struct inode *inode) { }
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #endif
 
 

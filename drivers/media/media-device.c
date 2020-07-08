@@ -24,10 +24,6 @@
 #include <linux/export.h>
 #include <linux/ioctl.h>
 #include <linux/media.h>
-<<<<<<< HEAD
-=======
-#include <linux/slab.h>
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #include <linux/types.h>
 
 #include <media/media-device.h>
@@ -238,11 +234,7 @@ static long media_device_ioctl(struct file *filp, unsigned int cmd,
 			       unsigned long arg)
 {
 	struct media_devnode *devnode = media_devnode_data(filp);
-<<<<<<< HEAD
 	struct media_device *dev = to_media_device(devnode);
-=======
-	struct media_device *dev = devnode->media_dev;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	long ret;
 
 	switch (cmd) {
@@ -311,11 +303,7 @@ static long media_device_compat_ioctl(struct file *filp, unsigned int cmd,
 				      unsigned long arg)
 {
 	struct media_devnode *devnode = media_devnode_data(filp);
-<<<<<<< HEAD
 	struct media_device *dev = to_media_device(devnode);
-=======
-	struct media_device *dev = devnode->media_dev;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	long ret;
 
 	switch (cmd) {
@@ -356,12 +344,7 @@ static const struct media_file_operations media_device_fops = {
 static ssize_t show_model(struct device *cd,
 			  struct device_attribute *attr, char *buf)
 {
-<<<<<<< HEAD
 	struct media_device *mdev = to_media_device(to_media_devnode(cd));
-=======
-	struct media_devnode *devnode = to_media_devnode(cd);
-	struct media_device *mdev = devnode->media_dev;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	return sprintf(buf, "%.*s\n", (int)sizeof(mdev->model), mdev->model);
 }
@@ -389,10 +372,6 @@ static void media_device_release(struct media_devnode *mdev)
 int __must_check __media_device_register(struct media_device *mdev,
 					 struct module *owner)
 {
-<<<<<<< HEAD
-=======
-	struct media_devnode *devnode;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	int ret;
 
 	if (WARN_ON(mdev->dev == NULL || mdev->model[0] == 0))
@@ -403,7 +382,6 @@ int __must_check __media_device_register(struct media_device *mdev,
 	spin_lock_init(&mdev->lock);
 	mutex_init(&mdev->graph_mutex);
 
-<<<<<<< HEAD
 	/* Register the device node. */
 	mdev->devnode.fops = &media_device_fops;
 	mdev->devnode.parent = mdev->dev;
@@ -415,30 +393,6 @@ int __must_check __media_device_register(struct media_device *mdev,
 	ret = device_create_file(&mdev->devnode.dev, &dev_attr_model);
 	if (ret < 0) {
 		media_devnode_unregister(&mdev->devnode);
-=======
-	devnode = kzalloc(sizeof(*devnode), GFP_KERNEL);
-	if (!devnode)
-		return -ENOMEM;
-
-	/* Register the device node. */
-	mdev->devnode = devnode;
-	devnode->fops = &media_device_fops;
-	devnode->parent = mdev->dev;
-	devnode->release = media_device_release;
-	ret = media_devnode_register(mdev, devnode, owner);
-	if (ret < 0) {
-		/* devnode free is handled in media_devnode_*() */
-		mdev->devnode = NULL;
-		return ret;
-	}
-
-	ret = device_create_file(&devnode->dev, &dev_attr_model);
-	if (ret < 0) {
-		/* devnode free is handled in media_devnode_*() */
-		mdev->devnode = NULL;
-		media_devnode_unregister_prepare(devnode);
-		media_devnode_unregister(devnode);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		return ret;
 	}
 
@@ -456,24 +410,11 @@ void media_device_unregister(struct media_device *mdev)
 	struct media_entity *entity;
 	struct media_entity *next;
 
-<<<<<<< HEAD
 	list_for_each_entry_safe(entity, next, &mdev->entities, list)
 		media_device_unregister_entity(entity);
 
 	device_remove_file(&mdev->devnode.dev, &dev_attr_model);
 	media_devnode_unregister(&mdev->devnode);
-=======
-	/* Clear the devnode register bit to avoid races with media dev open */
-	media_devnode_unregister_prepare(mdev->devnode);
-
-	list_for_each_entry_safe(entity, next, &mdev->entities, list)
-		media_device_unregister_entity(entity);
-
-	device_remove_file(&mdev->devnode->dev, &dev_attr_model);
-	media_devnode_unregister(mdev->devnode);
-	/* devnode free is handled in media_devnode_*() */
-	mdev->devnode = NULL;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 EXPORT_SYMBOL_GPL(media_device_unregister);
 

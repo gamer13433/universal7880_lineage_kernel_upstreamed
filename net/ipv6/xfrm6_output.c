@@ -124,13 +124,9 @@ int xfrm6_output_finish(struct sk_buff *skb)
 	memset(IP6CB(skb), 0, sizeof(*IP6CB(skb)));
 	skb->protocol = htons(ETH_P_IPV6);
 
-<<<<<<< HEAD
 #ifdef CONFIG_NETFILTER
 	IP6CB(skb)->flags |= IP6SKB_XFRM_TRANSFORMED;
 #endif
-=======
-	IP6CB(skb)->flags |= IP6SKB_XFRM_TRANSFORMED;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	return xfrm_output(skb);
 }

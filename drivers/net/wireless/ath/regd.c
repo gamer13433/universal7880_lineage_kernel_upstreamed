@@ -254,17 +254,8 @@ bool ath_is_49ghz_allowed(u16 regdomain)
 EXPORT_SYMBOL(ath_is_49ghz_allowed);
 
 /* Frequency is one where radar detection is required */
-<<<<<<< HEAD
 static bool ath_is_radar_freq(u16 center_freq)
 {
-=======
-static bool ath_is_radar_freq(u16 center_freq,
-			      struct ath_regulatory *reg)
-
-{
-	if (reg->country_code == CTRY_INDIA)
-		return (center_freq >= 5500 && center_freq <= 5700);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return (center_freq >= 5260 && center_freq <= 5700);
 }
 
@@ -315,11 +306,7 @@ __ath_reg_apply_beaconing_flags(struct wiphy *wiphy,
 				enum nl80211_reg_initiator initiator,
 				struct ieee80211_channel *ch)
 {
-<<<<<<< HEAD
 	if (ath_is_radar_freq(ch->center_freq) ||
-=======
-	if (ath_is_radar_freq(ch->center_freq, reg) ||
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	    (ch->flags & IEEE80211_CHAN_RADAR))
 		return;
 
@@ -408,14 +395,8 @@ ath_reg_apply_ir_flags(struct wiphy *wiphy,
 	}
 }
 
-<<<<<<< HEAD
 /* Always apply Radar/DFS rules on freq range 5260 MHz - 5700 MHz */
 static void ath_reg_apply_radar_flags(struct wiphy *wiphy)
-=======
-/* Always apply Radar/DFS rules on freq range 5500 MHz - 5700 MHz */
-static void ath_reg_apply_radar_flags(struct wiphy *wiphy,
-				      struct ath_regulatory *reg)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	struct ieee80211_supported_band *sband;
 	struct ieee80211_channel *ch;
@@ -428,11 +409,7 @@ static void ath_reg_apply_radar_flags(struct wiphy *wiphy,
 
 	for (i = 0; i < sband->n_channels; i++) {
 		ch = &sband->channels[i];
-<<<<<<< HEAD
 		if (!ath_is_radar_freq(ch->center_freq))
-=======
-		if (!ath_is_radar_freq(ch->center_freq, reg))
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			continue;
 		/* We always enable radar detection/DFS on this
 		 * frequency range. Additionally we also apply on
@@ -528,11 +505,7 @@ void ath_reg_notifier_apply(struct wiphy *wiphy,
 	struct ath_common *common = container_of(reg, struct ath_common,
 						 regulatory);
 	/* We always apply this */
-<<<<<<< HEAD
 	ath_reg_apply_radar_flags(wiphy);
-=======
-	ath_reg_apply_radar_flags(wiphy, reg);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	/*
 	 * This would happen when we have sent a custom regulatory request
@@ -680,11 +653,7 @@ ath_regd_init_wiphy(struct ath_regulatory *reg,
 	}
 
 	wiphy_apply_custom_regulatory(wiphy, regd);
-<<<<<<< HEAD
 	ath_reg_apply_radar_flags(wiphy);
-=======
-	ath_reg_apply_radar_flags(wiphy, reg);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	ath_reg_apply_world_flags(wiphy, NL80211_REGDOM_SET_BY_DRIVER, reg);
 	return 0;
 }

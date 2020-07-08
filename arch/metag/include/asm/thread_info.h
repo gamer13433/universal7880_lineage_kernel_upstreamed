@@ -35,14 +35,9 @@ struct thread_info {
 	int preempt_count;	/* 0 => preemptable, <0 => BUG */
 
 	mm_segment_t addr_limit;	/* thread address space */
-<<<<<<< HEAD
 	struct restart_block restart_block;
 
 	u8 supervisor_stack[0];
-=======
-
-	u8 supervisor_stack[0] __aligned(8);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 #else /* !__ASSEMBLY__ */
@@ -79,12 +74,9 @@ struct thread_info {
 	.cpu		= 0,			\
 	.preempt_count	= INIT_PREEMPT_COUNT,	\
 	.addr_limit	= KERNEL_DS,		\
-<<<<<<< HEAD
 	.restart_block = {			\
 		.fn = do_no_restart_syscall,	\
 	},					\
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 #define init_thread_info	(init_thread_union.thread_info)

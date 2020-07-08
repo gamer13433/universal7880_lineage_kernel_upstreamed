@@ -1156,12 +1156,6 @@ int iwlagn_suspend(struct iwl_priv *priv, struct cfg80211_wowlan *wowlan)
 
 	priv->ucode_loaded = false;
 	iwl_trans_stop_device(priv->trans);
-<<<<<<< HEAD
-=======
-	ret = iwl_trans_start_hw(priv->trans);
-	if (ret)
-		goto out;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	priv->wowlan = true;
 

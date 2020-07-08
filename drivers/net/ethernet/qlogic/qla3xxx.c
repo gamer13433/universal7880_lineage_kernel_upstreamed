@@ -2756,12 +2756,6 @@ static int ql_alloc_large_buffers(struct ql3_adapter *qdev)
 	int err;
 
 	for (i = 0; i < qdev->num_large_buffers; i++) {
-<<<<<<< HEAD
-=======
-		lrg_buf_cb = &qdev->lrg_buf[i];
-		memset(lrg_buf_cb, 0, sizeof(struct ql_rcv_buf_cb));
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		skb = netdev_alloc_skb(qdev->ndev,
 				       qdev->lrg_buffer_len);
 		if (unlikely(!skb)) {
@@ -2772,15 +2766,11 @@ static int ql_alloc_large_buffers(struct ql3_adapter *qdev)
 			ql_free_large_buffers(qdev);
 			return -ENOMEM;
 		} else {
-<<<<<<< HEAD
 
 			lrg_buf_cb = &qdev->lrg_buf[i];
 			memset(lrg_buf_cb, 0, sizeof(struct ql_rcv_buf_cb));
 			lrg_buf_cb->index = i;
 			lrg_buf_cb->skb = skb;
-=======
-			lrg_buf_cb->index = i;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			/*
 			 * We save some space to copy the ethhdr from first
 			 * buffer
@@ -2797,18 +2787,10 @@ static int ql_alloc_large_buffers(struct ql3_adapter *qdev)
 				netdev_err(qdev->ndev,
 					   "PCI mapping failed with error: %d\n",
 					   err);
-<<<<<<< HEAD
-=======
-				dev_kfree_skb_irq(skb);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 				ql_free_large_buffers(qdev);
 				return -ENOMEM;
 			}
 
-<<<<<<< HEAD
-=======
-			lrg_buf_cb->skb = skb;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			dma_unmap_addr_set(lrg_buf_cb, mapaddr, map);
 			dma_unmap_len_set(lrg_buf_cb, maplen,
 					  qdev->lrg_buffer_len -

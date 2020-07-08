@@ -19,10 +19,6 @@
 #include <linux/init.h>
 #include <linux/kernel.h>
 #include <linux/list.h>
-<<<<<<< HEAD
-=======
-#include <linux/mm.h>
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #include <linux/proc_fs.h>
 #include <linux/profile.h>
 #include <linux/rtmutex.h>
@@ -133,11 +129,7 @@ static void get_full_task_comm(struct task_entry *task_entry,
 	struct mm_struct *mm = task->mm;
 
 	/* fill the first TASK_COMM_LEN bytes with thread name */
-<<<<<<< HEAD
 	get_task_comm(task_entry->comm, task);
-=======
-	__get_task_comm(task_entry->comm, TASK_COMM_LEN, task);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	i = strlen(task_entry->comm);
 	while (i < TASK_COMM_LEN)
 		task_entry->comm[i++] = ' ';

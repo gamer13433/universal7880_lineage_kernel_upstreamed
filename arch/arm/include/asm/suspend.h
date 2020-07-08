@@ -7,10 +7,6 @@ struct sleep_save_sp {
 };
 
 extern void cpu_resume(void);
-<<<<<<< HEAD
-=======
-extern void cpu_resume_no_hyp(void);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 extern int cpu_suspend(unsigned long, int (*)(unsigned long));
 
 #endif

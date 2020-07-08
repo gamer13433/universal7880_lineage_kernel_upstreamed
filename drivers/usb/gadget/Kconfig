@@ -202,12 +202,6 @@ config USB_F_AUDIO_SRC
 config USB_F_ACC
 	tristate
 
-<<<<<<< HEAD
-=======
-config USB_F_MIDI
-	tristate
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 choice
 	tristate "USB Gadget Drivers"
 	default USB_ETH
@@ -380,7 +374,6 @@ config USB_CONFIGFS_F_FS
 	  implemented in kernel space (for instance Ethernet, serial or
 	  mass storage) and other are implemented in user space.
 
-<<<<<<< HEAD
 config USB_CONFIGFS_F_DM
         boolean "DM gadget"
         depends on USB_CONFIGFS
@@ -395,8 +388,6 @@ config USB_CONFIGFS_F_ADB
 	help
 	  USB gadget ADB support
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 config USB_CONFIGFS_F_MTP
         boolean "MTP gadget"
         depends on USB_CONFIGFS
@@ -421,10 +412,6 @@ config USB_CONFIGFS_F_ACC
 config USB_CONFIGFS_F_AUDIO_SRC
 	boolean "Audio Source gadget"
 	depends on USB_CONFIGFS && USB_CONFIGFS_F_ACC
-<<<<<<< HEAD
-=======
-	depends on SND_PCM
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	select USB_F_AUDIO_SRC
 	help
 	  USB gadget Audio Source support
@@ -437,26 +424,11 @@ config USB_CONFIGFS_UEVENT
 	  state changes. The gadget can be in any of the following
 	  three states: "CONNECTED/DISCONNECTED/CONFIGURED"
 
-<<<<<<< HEAD
 config USB_RNDIS_MULTIPACKET
 	boolean "Samsung Rndis Multi Packet support"
 	depends on USB_CONFIGFS_UEVENT
 	help
 		Rndis Multipacket Support.
-=======
-config USB_CONFIGFS_F_MIDI
-        boolean "MIDI function"
-        depends on USB_CONFIGFS
-        depends on SND
-        select SND_RAWMIDI
-        select USB_F_MIDI
-        help
-          The MIDI Function acts as a USB Audio device, with one MIDI
-          input and one MIDI output. These MIDI jacks appear as
-          a sound "card" in the ALSA sound system. Other MIDI
-          connections can then be made on the gadget system, using
-          ALSA's aconnect utility etc.
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 config USB_G_ANDROID
 	boolean "Android Composite Gadget"
@@ -470,7 +442,6 @@ config USB_G_ANDROID
 	  Each function can be configured and enabled/disabled
 	  dynamically from userspace through a sysfs interface.
 
-<<<<<<< HEAD
 config USB_ANDROID_SAMSUNG_COMPOSITE
 	boolean "Samsung Composite function"
 	depends on USB_G_ANDROID
@@ -522,8 +493,6 @@ config USB_RNDIS_MULTIPACKET
 	help
 		Rndis Multipacket Support.
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 config USB_ANDROID_RNDIS_DWORD_ALIGNED
 	boolean "Use double word aligned"
 	depends on USB_G_ANDROID

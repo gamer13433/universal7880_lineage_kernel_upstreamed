@@ -25,18 +25,10 @@
 static const struct crypto_type crypto_shash_type;
 
 int shash_no_setkey(struct crypto_shash *tfm, const u8 *key,
-<<<<<<< HEAD
 			   unsigned int keylen)
 {
 	return -ENOSYS;
 }
-=======
-		    unsigned int keylen)
-{
-	return -ENOSYS;
-}
-EXPORT_SYMBOL_GPL(shash_no_setkey);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 static int shash_setkey_unaligned(struct crypto_shash *tfm, const u8 *key,
 				  unsigned int keylen)
@@ -282,23 +274,12 @@ static int shash_async_finup(struct ahash_request *req)
 
 int shash_ahash_digest(struct ahash_request *req, struct shash_desc *desc)
 {
-<<<<<<< HEAD
 	struct scatterlist *sg = req->src;
 	unsigned int offset = sg->offset;
 	unsigned int nbytes = req->nbytes;
 	int err;
 
 	if (nbytes < min(sg->length, ((unsigned int)(PAGE_SIZE)) - offset)) {
-=======
-	unsigned int nbytes = req->nbytes;
-	struct scatterlist *sg;
-	unsigned int offset;
-	int err;
-
-	if (nbytes &&
-	    (sg = req->src, offset = sg->offset,
-	     nbytes < min(sg->length, ((unsigned int)(PAGE_SIZE)) - offset))) {
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		void *data;
 
 		data = kmap_atomic(sg_page(sg));
@@ -373,16 +354,9 @@ int crypto_init_shash_ops_async(struct crypto_tfm *tfm)
 	crt->final = shash_async_final;
 	crt->finup = shash_async_finup;
 	crt->digest = shash_async_digest;
-<<<<<<< HEAD
 
 	if (alg->setkey)
 		crt->setkey = shash_async_setkey;
-=======
-	crt->setkey = shash_async_setkey;
-
-	crt->has_setkey = alg->setkey != shash_no_setkey;
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (alg->export)
 		crt->export = shash_async_export;
 	if (alg->import)

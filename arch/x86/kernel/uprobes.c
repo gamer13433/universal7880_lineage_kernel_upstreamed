@@ -228,13 +228,6 @@ static int uprobe_init_insn(struct arch_uprobe *auprobe, struct insn *insn, bool
 	if (is_prefix_bad(insn))
 		return -ENOTSUPP;
 
-<<<<<<< HEAD
-=======
-	/* We should not singlestep on the exception masking instructions */
-	if (insn_masking_exception(insn))
-		return -ENOTSUPP;
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (x86_64)
 		good_insns = good_insns_64;
 	else
@@ -301,38 +294,20 @@ static void riprel_analyze(struct arch_uprobe *auprobe, struct insn *insn)
 		*cursor &= 0xfe;
 	}
 	/*
-<<<<<<< HEAD
 	 * Similar treatment for VEX3 prefix.
 	 * TODO: add XOP/EVEX treatment when insn decoder supports them
 	 */
 	if (insn->vex_prefix.nbytes == 3) {
-=======
-	 * Similar treatment for VEX3/EVEX prefix.
-	 * TODO: add XOP treatment when insn decoder supports them
-	 */
-	if (insn->vex_prefix.nbytes >= 3) {
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		/*
 		 * vex2:     c5    rvvvvLpp   (has no b bit)
 		 * vex3/xop: c4/8f rxbmmmmm wvvvvLpp
 		 * evex:     62    rxbR00mm wvvvv1pp zllBVaaa
-<<<<<<< HEAD
 		 *   (evex will need setting of both b and x since
 		 *   in non-sib encoding evex.x is 4th bit of MODRM.rm)
 		 * Setting VEX3.b (setting because it has inverted meaning):
 		 */
 		cursor = auprobe->insn + insn_offset_vex_prefix(insn) + 1;
 		*cursor |= 0x20;
-=======
-		 * Setting VEX3.b (setting because it has inverted meaning).
-		 * Setting EVEX.x since (in non-SIB encoding) EVEX.x
-		 * is the 4th bit of MODRM.rm, and needs the same treatment.
-		 * For VEX3-encoded insns, VEX3.x value has no effect in
-		 * non-SIB encoding, the change is superfluous but harmless.
-		 */
-		cursor = auprobe->insn + insn_offset_vex_prefix(insn) + 1;
-		*cursor |= 0x60;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 	/*
@@ -377,19 +352,12 @@ static void riprel_analyze(struct arch_uprobe *auprobe, struct insn *insn)
 
 	reg = MODRM_REG(insn);	/* Fetch modrm.reg */
 	reg2 = 0xff;		/* Fetch vex.vvvv */
-<<<<<<< HEAD
 	if (insn->vex_prefix.nbytes == 2)
 		reg2 = insn->vex_prefix.bytes[1];
 	else if (insn->vex_prefix.nbytes == 3)
 		reg2 = insn->vex_prefix.bytes[2];
 	/*
 	 * TODO: add XOP, EXEV vvvv reading.
-=======
-	if (insn->vex_prefix.nbytes)
-		reg2 = insn->vex_prefix.bytes[2];
-	/*
-	 * TODO: add XOP vvvv reading.
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	 *
 	 * vex.vvvv field is in bits 6-3, bits are inverted.
 	 * But in 32-bit mode, high-order bit may be ignored.
@@ -953,11 +921,7 @@ arch_uretprobe_hijack_return_addr(unsigned long trampoline_vaddr, struct pt_regs
 		pr_err("uprobe: return address clobbered: pid=%d, %%sp=%#lx, "
 			"%%ip=%#lx\n", current->pid, regs->sp, regs->ip);
 
-<<<<<<< HEAD
 		force_sig_info(SIGSEGV, SEND_SIG_FORCED, current);
-=======
-		force_sig(SIGSEGV, current);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 	return -1;

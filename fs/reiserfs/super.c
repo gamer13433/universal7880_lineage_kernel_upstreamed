@@ -198,19 +198,7 @@ static int remove_save_link_only(struct super_block *s,
 static int reiserfs_quota_on_mount(struct super_block *, int);
 #endif
 
-<<<<<<< HEAD
 /* look for uncompleted unlinks and truncates and complete them */
-=======
-/*
- * Look for uncompleted unlinks and truncates and complete them
- *
- * Called with superblock write locked.  If quotas are enabled, we have to
- * release/retake lest we call dquot_quota_on_mount(), proceed to
- * schedule_on_each_cpu() in invalidate_bdev() and deadlock waiting for the per
- * cpu worklets to complete flush_async_commits() that in turn wait for the
- * superblock write lock.
- */
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static int finish_unfinished(struct super_block *s)
 {
 	INITIALIZE_PATH(path);
@@ -257,13 +245,7 @@ static int finish_unfinished(struct super_block *s)
 				quota_enabled[i] = 0;
 				continue;
 			}
-<<<<<<< HEAD
 			ret = reiserfs_quota_on_mount(s, i);
-=======
-			reiserfs_write_unlock(s);
-			ret = reiserfs_quota_on_mount(s, i);
-			reiserfs_write_lock(s);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			if (ret < 0)
 				reiserfs_warning(s, "reiserfs-2500",
 						 "cannot turn on journaled "
@@ -606,10 +588,6 @@ static void reiserfs_put_super(struct super_block *s)
 	reiserfs_write_unlock(s);
 	mutex_destroy(&REISERFS_SB(s)->lock);
 	destroy_workqueue(REISERFS_SB(s)->commit_wq);
-<<<<<<< HEAD
-=======
-	kfree(REISERFS_SB(s)->s_jdev);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	kfree(s->s_fs_info);
 	s->s_fs_info = NULL;
 }
@@ -820,10 +798,7 @@ static const struct dquot_operations reiserfs_quota_operations = {
 	.write_info = reiserfs_write_info,
 	.alloc_dquot	= dquot_alloc,
 	.destroy_dquot	= dquot_destroy,
-<<<<<<< HEAD
 	.get_next_id	= dquot_get_next_id,
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 static const struct quotactl_ops reiserfs_qctl_operations = {
@@ -1923,11 +1898,7 @@ static int reiserfs_fill_super(struct super_block *s, void *data, int silent)
 		if (!sbi->s_jdev) {
 			SWARN(silent, s, "", "Cannot allocate memory for "
 				"journal device name");
-<<<<<<< HEAD
 			goto error;
-=======
-			goto error_unlocked;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		}
 	}
 #ifdef CONFIG_QUOTA
@@ -2215,10 +2186,6 @@ error_unlocked:
 			kfree(qf_names[j]);
 	}
 #endif
-<<<<<<< HEAD
-=======
-	kfree(sbi->s_jdev);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	kfree(sbi);
 
 	s->s_fs_info = NULL;

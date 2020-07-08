@@ -21,7 +21,6 @@
  */
 
 #include <linux/cpu_cooling.h>
-<<<<<<< HEAD
 #include <linux/gpu_cooling.h>
 #include <linux/isp_cooling.h>
 #include <linux/err.h>
@@ -41,14 +40,6 @@ extern int gpu_dvfs_get_min_freq(void);
 
 unsigned long cpu_max_temp[2];
 
-=======
-#include <linux/err.h>
-#include <linux/slab.h>
-#include <linux/thermal.h>
-
-#include "exynos_thermal_common.h"
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 struct exynos_thermal_zone {
 	enum thermal_device_mode mode;
 	struct thermal_zone_device *therm_dev;
@@ -59,13 +50,10 @@ struct exynos_thermal_zone {
 	bool bind;
 };
 
-<<<<<<< HEAD
 static DEFINE_MUTEX (thermal_suspend_lock);
 static bool suspended;
 static bool is_cpu_hotplugged_out;
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /* Get mode callback functions for thermal zone */
 static int exynos_get_mode(struct thermal_zone_device *thermal,
 			enum thermal_device_mode *mode)
@@ -166,7 +154,6 @@ static int exynos_bind(struct thermal_zone_device *thermal,
 	struct freq_clip_table *tab_ptr, *clip_data;
 	struct exynos_thermal_zone *th_zone = thermal->devdata;
 	struct thermal_sensor_conf *data = th_zone->sensor_conf;
-<<<<<<< HEAD
 	enum thermal_trip_type type;
 #ifdef CONFIG_ARM_EXYNOS_MP_CPUFREQ
 	struct cpufreq_policy policy;
@@ -174,8 +161,6 @@ static int exynos_bind(struct thermal_zone_device *thermal,
 #ifdef CONFIG_GPU_THERMAL
 	int gpu_max_freq, gpu_min_freq;
 #endif
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	tab_ptr = (struct freq_clip_table *)data->cooling_data.freq_data;
 	tab_size = data->cooling_data.freq_clip_count;
@@ -195,7 +180,6 @@ static int exynos_bind(struct thermal_zone_device *thermal,
 	/* Bind the thermal zone to the cpufreq cooling device */
 	for (i = 0; i < tab_size; i++) {
 		clip_data = (struct freq_clip_table *)&(tab_ptr[i]);
-<<<<<<< HEAD
 
 #ifdef CONFIG_ARM_EXYNOS_MP_CPUFREQ
 		if(data->d_type == CLUSTER0 || data->d_type == CLUSTER1) {
@@ -249,12 +233,6 @@ static int exynos_bind(struct thermal_zone_device *thermal,
 		exynos_get_trip_type(thermal, i, &type);
 
 		switch (GET_ZONE(type)) {
-=======
-		level = cpufreq_cooling_get_level(0, clip_data->freq_clip_max);
-		if (level == THERMAL_CSTATE_INVALID)
-			return 0;
-		switch (GET_ZONE(i)) {
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		case MONITOR_ZONE:
 		case WARN_ZONE:
 			if (thermal_zone_bind_cooling_device(thermal, i, cdev,
@@ -280,10 +258,7 @@ static int exynos_unbind(struct thermal_zone_device *thermal,
 	int ret = 0, i, tab_size;
 	struct exynos_thermal_zone *th_zone = thermal->devdata;
 	struct thermal_sensor_conf *data = th_zone->sensor_conf;
-<<<<<<< HEAD
 	enum thermal_trip_type type;
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if (th_zone->bind == false)
 		return 0;
@@ -304,13 +279,9 @@ static int exynos_unbind(struct thermal_zone_device *thermal,
 
 	/* Bind the thermal zone to the cpufreq cooling device */
 	for (i = 0; i < tab_size; i++) {
-<<<<<<< HEAD
 		exynos_get_trip_type(thermal, i, &type);
 
 		switch (GET_ZONE(type)) {
-=======
-		switch (GET_ZONE(i)) {
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		case MONITOR_ZONE:
 		case WARN_ZONE:
 			if (thermal_zone_unbind_cooling_device(thermal, i,
@@ -328,7 +299,6 @@ static int exynos_unbind(struct thermal_zone_device *thermal,
 	return ret;
 }
 
-<<<<<<< HEAD
 #ifdef CONFIG_CPU_THERMAL
 extern int cpufreq_set_cur_temp(bool suspended, unsigned long temp);
 #else
@@ -345,18 +315,13 @@ extern int isp_set_cur_temp(bool suspended, unsigned long temp);
 static inline int isp_set_cur_temp(bool suspended, unsigned long temp) { return 0; }
 #endif
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /* Get temperature callback functions for thermal zone */
 static int exynos_get_temp(struct thermal_zone_device *thermal,
 			unsigned long *temp)
 {
 	struct exynos_thermal_zone *th_zone = thermal->devdata;
 	void *data;
-<<<<<<< HEAD
 	unsigned long max_temp;
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if (!th_zone->sensor_conf) {
 		dev_err(&thermal->device,
@@ -365,7 +330,6 @@ static int exynos_get_temp(struct thermal_zone_device *thermal,
 	}
 	data = th_zone->sensor_conf->driver_data;
 	*temp = th_zone->sensor_conf->read_temperature(data);
-<<<<<<< HEAD
 
 	/* convert the temperature into millicelsius */
 	*temp = *temp * MCELSIUS;
@@ -381,10 +345,6 @@ static int exynos_get_temp(struct thermal_zone_device *thermal,
 		isp_set_cur_temp(suspended, *temp / 1000);
 	mutex_unlock(&thermal_suspend_lock);
 
-=======
-	/* convert the temperature into millicelsius */
-	*temp = *temp * MCELSIUS;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return 0;
 }
 
@@ -425,7 +385,6 @@ static int exynos_get_trend(struct thermal_zone_device *thermal,
 
 	return 0;
 }
-<<<<<<< HEAD
 
 struct pm_qos_request thermal_cpu_hotplug_request;
 static int exynos_throttle_cpu_hotplug(struct thermal_zone_device *thermal)
@@ -465,8 +424,6 @@ static int exynos_throttle_cpu_hotplug(struct thermal_zone_device *thermal)
 	return ret;
 }
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /* Operation callback functions for thermal zone */
 static struct thermal_zone_device_ops exynos_dev_ops = {
 	.bind = exynos_bind,
@@ -481,7 +438,6 @@ static struct thermal_zone_device_ops exynos_dev_ops = {
 	.get_crit_temp = exynos_get_crit_temp,
 };
 
-<<<<<<< HEAD
 /* Operation callback functions for thermal zone */
 static struct thermal_zone_device_ops exynos_dev_hotplug_ops = {
 	.bind = exynos_bind,
@@ -497,8 +453,6 @@ static struct thermal_zone_device_ops exynos_dev_hotplug_ops = {
 	.throttle_cpu_hotplug = exynos_throttle_cpu_hotplug,
 };
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /*
  * This function may be called from interrupt based temperature sensor
  * when threshold is changed.
@@ -549,7 +503,6 @@ void exynos_report_trigger(struct thermal_sensor_conf *conf)
 	mutex_unlock(&th_zone->therm_dev->lock);
 }
 
-<<<<<<< HEAD
 static int exynos_pm_notifier(struct notifier_block *notifier,
 			unsigned long event, void *v)
 {
@@ -587,14 +540,6 @@ int exynos_register_thermal(struct thermal_sensor_conf *sensor_conf)
 	struct cpumask mask_val;
 	struct exynos_thermal_zone *th_zone;
 	struct thermal_zone_device_ops *dev_ops;
-=======
-/* Register with the in-kernel thermal management */
-int exynos_register_thermal(struct thermal_sensor_conf *sensor_conf)
-{
-	int ret;
-	struct cpumask mask_val;
-	struct exynos_thermal_zone *th_zone;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if (!sensor_conf || !sensor_conf->read_temperature) {
 		pr_err("Temperature sensor not initialised\n");
@@ -607,7 +552,6 @@ int exynos_register_thermal(struct thermal_sensor_conf *sensor_conf)
 		return -ENOMEM;
 
 	th_zone->sensor_conf = sensor_conf;
-<<<<<<< HEAD
 	cpumask_clear(&mask_val);
 
 	for_each_possible_cpu(cpu) {
@@ -617,15 +561,12 @@ int exynos_register_thermal(struct thermal_sensor_conf *sensor_conf)
 		}
 	}
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/*
 	 * TODO: 1) Handle multiple cooling devices in a thermal zone
 	 *	 2) Add a flag/name in cooling info to map to specific
 	 *	 sensor
 	 */
 	if (sensor_conf->cooling_data.freq_clip_count > 0) {
-<<<<<<< HEAD
 		if (sensor_conf->d_type == CLUSTER0 || sensor_conf->d_type == CLUSTER1) {
 			th_zone->cool_dev[th_zone->cool_dev_size] =
 					cpufreq_cooling_register(&mask_val);
@@ -639,11 +580,6 @@ int exynos_register_thermal(struct thermal_sensor_conf *sensor_conf)
 			th_zone->cool_dev[th_zone->cool_dev_size] =
 					isp_cooling_register(&mask_val);
 		}
-=======
-		cpumask_set_cpu(0, &mask_val);
-		th_zone->cool_dev[th_zone->cool_dev_size] =
-					cpufreq_cooling_register(&mask_val);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		if (IS_ERR(th_zone->cool_dev[th_zone->cool_dev_size])) {
 			dev_err(sensor_conf->dev,
 				"Failed to register cpufreq cooling device\n");
@@ -653,7 +589,6 @@ int exynos_register_thermal(struct thermal_sensor_conf *sensor_conf)
 		th_zone->cool_dev_size++;
 	}
 
-<<<<<<< HEAD
 	/* Add hotplug function ops */
 	if (sensor_conf->hotplug_enable) {
 		dev_ops = &exynos_dev_hotplug_ops;
@@ -665,11 +600,6 @@ int exynos_register_thermal(struct thermal_sensor_conf *sensor_conf)
 	th_zone->therm_dev = thermal_zone_device_register(
 			sensor_conf->name, sensor_conf->trip_data.trip_count,
 			0, th_zone, dev_ops, NULL, 0,
-=======
-	th_zone->therm_dev = thermal_zone_device_register(
-			sensor_conf->name, sensor_conf->trip_data.trip_count,
-			0, th_zone, &exynos_dev_ops, NULL, 0,
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			sensor_conf->trip_data.trigger_falling ? 0 :
 			IDLE_INTERVAL);
 
@@ -682,12 +612,9 @@ int exynos_register_thermal(struct thermal_sensor_conf *sensor_conf)
 	th_zone->mode = THERMAL_DEVICE_ENABLED;
 	sensor_conf->pzone_data = th_zone;
 
-<<<<<<< HEAD
 	if (sensor_conf->id == 0)
 		register_pm_notifier(&exynos_tmu_pm_notifier);
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	dev_info(sensor_conf->dev,
 		"Exynos: Thermal zone(%s) registered\n", sensor_conf->name);
 
@@ -709,18 +636,14 @@ void exynos_unregister_thermal(struct thermal_sensor_conf *sensor_conf)
 		return;
 	}
 
-<<<<<<< HEAD
 #if defined(CONFIG_GPU_THERMAL) && defined(CONFIG_MALI_DEBUG_KERNEL_SYSFS)
 	gpu_thermal_conf_ptr = NULL;
 #endif
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	th_zone = sensor_conf->pzone_data;
 
 	thermal_zone_device_unregister(th_zone->therm_dev);
 
-<<<<<<< HEAD
 	for (i = 0; i < th_zone->cool_dev_size; i++) {
 		if (sensor_conf->d_type == CLUSTER0 || sensor_conf->d_type == CLUSTER1)
 			cpufreq_cooling_unregister(th_zone->cool_dev[i]);
@@ -732,10 +655,6 @@ void exynos_unregister_thermal(struct thermal_sensor_conf *sensor_conf)
 
 	if (sensor_conf->id == 0)
 		unregister_pm_notifier(&exynos_tmu_pm_notifier);
-=======
-	for (i = 0; i < th_zone->cool_dev_size; ++i)
-		cpufreq_cooling_unregister(th_zone->cool_dev[i]);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	dev_info(sensor_conf->dev,
 		"Exynos: Kernel Thermal management unregistered\n");

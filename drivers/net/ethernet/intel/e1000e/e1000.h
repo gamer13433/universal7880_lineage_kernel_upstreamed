@@ -34,11 +34,7 @@
 #include <linux/pci-aspm.h>
 #include <linux/crc32.h>
 #include <linux/if_vlan.h>
-<<<<<<< HEAD
 #include <linux/clocksource.h>
-=======
-#include <linux/timecounter.h>
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #include <linux/net_tstamp.h>
 #include <linux/ptp_clock_kernel.h>
 #include <linux/ptp_classify.h>
@@ -579,10 +575,7 @@ static inline u32 __er32(struct e1000_hw *hw, unsigned long reg)
 
 #define er32(reg)	__er32(hw, E1000_##reg)
 
-<<<<<<< HEAD
 s32 __ew32_prepare(struct e1000_hw *hw);
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 void __ew32(struct e1000_hw *hw, unsigned long reg, u32 val);
 
 #define ew32(reg, val)	__ew32(hw, E1000_##reg, (val))

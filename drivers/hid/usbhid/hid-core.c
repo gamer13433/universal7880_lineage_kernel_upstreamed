@@ -94,13 +94,10 @@ static int hid_start_in(struct hid_device *hid)
 		} else {
 			clear_bit(HID_NO_BANDWIDTH, &usbhid->iofl);
 		}
-<<<<<<< HEAD
 #ifdef CONFIG_USB_DEBUG_DETAILED_LOG
 		usbhid->in_err_isr = 0;
 		hid_info(hid, "%s submit urb rc=%d\n", __func__, rc);
 #endif
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 	spin_unlock_irqrestore(&usbhid->lock, flags);
 	return rc;
@@ -285,7 +282,6 @@ static void hid_irq_in(struct urb *urb)
 		usbhid->retry_delay = 0;
 		if ((hid->quirks & HID_QUIRK_ALWAYS_POLL) && !hid->open)
 			break;
-<<<<<<< HEAD
 		status = hid_input_report(urb->context, HID_INPUT_REPORT,
 				 urb->transfer_buffer,
 				 urb->actual_length, 1);
@@ -305,11 +301,6 @@ static void hid_irq_in(struct urb *urb)
 					,urb->actual_length);
 		}
 #endif
-=======
-		hid_input_report(urb->context, HID_INPUT_REPORT,
-				 urb->transfer_buffer,
-				 urb->actual_length, 1);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		/*
 		 * autosuspend refused while keys are pressed
 		 * because most keyboards don't wake up when
@@ -321,12 +312,9 @@ static void hid_irq_in(struct urb *urb)
 			clear_bit(HID_KEYS_PRESSED, &usbhid->iofl);
 		break;
 	case -EPIPE:		/* stall */
-<<<<<<< HEAD
 #ifdef CONFIG_USB_DEBUG_DETAILED_LOG
 		hid_err(urb->dev, "usbhid: %s: stall\n", __func__);
 #endif
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		usbhid_mark_busy(usbhid);
 		clear_bit(HID_IN_RUNNING, &usbhid->iofl);
 		set_bit(HID_CLEAR_HALT, &usbhid->iofl);
@@ -335,26 +323,20 @@ static void hid_irq_in(struct urb *urb)
 	case -ECONNRESET:	/* unlink */
 	case -ENOENT:
 	case -ESHUTDOWN:	/* unplug */
-<<<<<<< HEAD
 #ifdef CONFIG_USB_DEBUG_DETAILED_LOG
 		hid_err(urb->dev, "usbhid: %s: unlink %d\n",
 					__func__, urb->status);
 #endif
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		clear_bit(HID_IN_RUNNING, &usbhid->iofl);
 		return;
 	case -EILSEQ:		/* protocol error or unplug */
 	case -EPROTO:		/* protocol error or unplug */
 	case -ETIME:		/* protocol error or unplug */
 	case -ETIMEDOUT:	/* Should never happen, but... */
-<<<<<<< HEAD
 #ifdef CONFIG_USB_DEBUG_DETAILED_LOG
 		hid_err(urb->dev, "usbhid: %s: protocol error %d\n",
 					__func__, urb->status);
 #endif
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		usbhid_mark_busy(usbhid);
 		clear_bit(HID_IN_RUNNING, &usbhid->iofl);
 		hid_io_error(hid);
@@ -727,12 +709,9 @@ int usbhid_open(struct hid_device *hid)
 	struct usbhid_device *usbhid = hid->driver_data;
 	int res = 0;
 
-<<<<<<< HEAD
 #ifdef CONFIG_USB_DEBUG_DETAILED_LOG
 	hid_info(hid, "%s hid->open %d\n", __func__, hid->open);
 #endif
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	mutex_lock(&hid_open_mut);
 	if (!hid->open++) {
 		res = usb_autopm_get_interface(usbhid->intf);
@@ -759,13 +738,10 @@ int usbhid_open(struct hid_device *hid)
 	}
 done:
 	mutex_unlock(&hid_open_mut);
-<<<<<<< HEAD
 #ifdef CONFIG_USB_DEBUG_DETAILED_LOG
 	if (res < 0)
 		hid_err(hid, "%s error res %d\n", __func__, res);
 #endif
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return res;
 }
 
@@ -1021,13 +997,8 @@ static int usbhid_parse(struct hid_device *hid)
 	unsigned int rsize = 0;
 	char *rdesc;
 	int ret, n;
-<<<<<<< HEAD
 	int num_descriptors;  
 	size_t offset = offsetof(struct hid_descriptor, desc);  
-=======
-	int num_descriptors;
-	size_t offset = offsetof(struct hid_descriptor, desc);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	quirks = usbhid_lookup_quirk(le16_to_cpu(dev->descriptor.idVendor),
 			le16_to_cpu(dev->descriptor.idProduct));
@@ -1050,32 +1021,18 @@ static int usbhid_parse(struct hid_device *hid)
 		return -ENODEV;
 	}
 
-<<<<<<< HEAD
 	if (hdesc->bLength < sizeof(struct hid_descriptor)) {  
 		dbg_hid("hid descriptor is too short\n");  
 		return -EINVAL;  
 	}  
-=======
-	if (hdesc->bLength < sizeof(struct hid_descriptor)) {
-		dbg_hid("hid descriptor is too short\n");
-		return -EINVAL;
-	}
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	hid->version = le16_to_cpu(hdesc->bcdHID);
 	hid->country = hdesc->bCountryCode;
 
-<<<<<<< HEAD
 	num_descriptors = min_t(int, hdesc->bNumDescriptors,  
 	       (hdesc->bLength - offset) / sizeof(struct hid_class_descriptor));  
   
 	for (n = 0; n < num_descriptors; n++)  
-=======
-	num_descriptors = min_t(int, hdesc->bNumDescriptors,
-	       (hdesc->bLength - offset) / sizeof(struct hid_class_descriptor));
-
-	for (n = 0; n < num_descriptors; n++)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		if (hdesc->desc[n].bDescriptorType == HID_DT_REPORT)
 			rsize = le16_to_cpu(hdesc->desc[n].wDescriptorLength);
 

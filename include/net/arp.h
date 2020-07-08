@@ -16,10 +16,6 @@ static inline u32 arp_hashfn(u32 key, const struct net_device *dev, u32 hash_rnd
 	return val * hash_rnd;
 }
 
-<<<<<<< HEAD
-=======
-#ifdef CONFIG_INET
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static inline struct neighbour *__ipv4_neigh_lookup_noref(struct net_device *dev, u32 key)
 {
 	struct neigh_hash_table *nht = rcu_dereference_bh(arp_tbl.nht);
@@ -39,16 +35,6 @@ static inline struct neighbour *__ipv4_neigh_lookup_noref(struct net_device *dev
 
 	return NULL;
 }
-<<<<<<< HEAD
-=======
-#else
-static inline
-struct neighbour *__ipv4_neigh_lookup_noref(struct net_device *dev, u32 key)
-{
-	return NULL;
-}
-#endif
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 static inline struct neighbour *__ipv4_neigh_lookup(struct net_device *dev, u32 key)
 {

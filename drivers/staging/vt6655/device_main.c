@@ -1340,13 +1340,6 @@ static int device_rx_srv(struct vnt_private *pDevice, unsigned int uIdx)
 	     pRD = pRD->next) {
 		if (works++ > 15)
 			break;
-<<<<<<< HEAD
-=======
-
-		if (!pRD->pRDInfo->skb)
-			break;
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		if (device_receive_frame(pDevice, pRD)) {
 			if (!device_alloc_rx_buf(pDevice, pRD)) {
 				dev_err(&pDevice->pcid->dev,

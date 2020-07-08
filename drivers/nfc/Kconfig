@@ -3,10 +3,6 @@
 #
 
 menu "Near Field Communication (NFC) devices"
-<<<<<<< HEAD
-=======
-	depends on NFC
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 config NFC_PN533
 	tristate "NXP PN533 USB driver"
@@ -71,7 +67,6 @@ config NFC_PORT100
 
 	  If unsure, say N.
 
-<<<<<<< HEAD
 config SEC_NFC
         bool "Samsung NFC driver"
         default n
@@ -125,8 +120,6 @@ config ESE_SECURE_GPIO
         string "gpio group for ese"
 
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 source "drivers/nfc/pn544/Kconfig"
 source "drivers/nfc/microread/Kconfig"
 source "drivers/nfc/nfcmrvl/Kconfig"

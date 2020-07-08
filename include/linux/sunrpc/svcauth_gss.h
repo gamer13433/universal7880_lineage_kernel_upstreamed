@@ -20,12 +20,7 @@ int gss_svc_init(void);
 void gss_svc_shutdown(void);
 int gss_svc_init_net(struct net *net);
 void gss_svc_shutdown_net(struct net *net);
-<<<<<<< HEAD
 int svcauth_gss_register_pseudoflavor(u32 pseudoflavor, char * name);
-=======
-struct auth_domain *svcauth_gss_register_pseudoflavor(u32 pseudoflavor,
-						      char *name);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 u32 svcauth_gss_flavor(struct auth_domain *dom);
 
 #endif /* __KERNEL__ */

@@ -386,13 +386,10 @@ config SND_SOC_CX20442
 	tristate
 	depends on TTY
 
-<<<<<<< HEAD
 config SND_SOC_COD3026X
 	tristate
 	default y
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 config SND_SOC_JZ4740_CODEC
 	select REGMAP_MMIO
 	tristate
@@ -541,14 +538,11 @@ config SND_SOC_SN95031
 config SND_SOC_SPDIF
 	tristate "S/PDIF CODEC"
 
-<<<<<<< HEAD
 config SND_SOC_EXYNOS_AUDMIXER
         tristate
         select REGMAP_MMIO
         select REGMAP_I2C
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 config SND_SOC_SSM2518
 	tristate
 
@@ -804,12 +798,9 @@ config SND_SOC_WM9712
 config SND_SOC_WM9713
 	tristate
 
-<<<<<<< HEAD
 config SND_SOC_DUMMY_CODEC
 	tristate
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 # Amp
 config SND_SOC_LM4857
 	tristate

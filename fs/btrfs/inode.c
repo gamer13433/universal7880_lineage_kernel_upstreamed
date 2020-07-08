@@ -5066,10 +5066,7 @@ static void inode_tree_del(struct inode *inode)
 	spin_unlock(&root->inode_lock);
 
 	if (empty && btrfs_root_refs(&root->root_item) == 0) {
-<<<<<<< HEAD
 		synchronize_srcu(&root->fs_info->subvol_srcu);
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		spin_lock(&root->inode_lock);
 		empty = RB_EMPTY_ROOT(&root->inode_tree);
 		spin_unlock(&root->inode_lock);
@@ -7797,10 +7794,7 @@ static int btrfs_submit_direct_hook(int rw, struct btrfs_dio_private *dip,
 	bio->bi_private = dip;
 	bio->bi_end_io = btrfs_end_dio_bio;
 	btrfs_io_bio(bio)->logical = file_offset;
-<<<<<<< HEAD
 	atomic_inc(&dip->pending_bios);
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	while (bvec <= (orig_bio->bi_io_vec + orig_bio->bi_vcnt - 1)) {
 		if (map_length < submit_len + bvec->bv_len ||
@@ -7857,12 +7851,7 @@ submit:
 	if (!ret)
 		return 0;
 
-<<<<<<< HEAD
 	bio_put(bio);
-=======
-	if (bio != orig_bio)
-		bio_put(bio);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 out_err:
 	dip->errors = 1;
 	/*
@@ -7910,11 +7899,7 @@ static void btrfs_submit_direct(int rw, struct bio *dio_bio,
 	io_bio->bi_private = dip;
 	dip->orig_bio = io_bio;
 	dip->dio_bio = dio_bio;
-<<<<<<< HEAD
 	atomic_set(&dip->pending_bios, 0);
-=======
-	atomic_set(&dip->pending_bios, 1);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	btrfs_bio = btrfs_io_bio(io_bio);
 	btrfs_bio->logical = file_offset;
 

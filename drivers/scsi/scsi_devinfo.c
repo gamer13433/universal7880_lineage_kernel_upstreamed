@@ -228,10 +228,6 @@ static struct {
 	{"Promise", "", NULL, BLIST_SPARSELUN},
 	{"QEMU", "QEMU CD-ROM", NULL, BLIST_SKIP_VPD_PAGES},
 	{"QNAP", "iSCSI Storage", NULL, BLIST_MAX_1024},
-<<<<<<< HEAD
-=======
-	{"SYNOLOGY", "iSCSI Storage", NULL, BLIST_MAX_1024},
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	{"QUANTUM", "XP34301", "1071", BLIST_NOTQ},
 	{"REGAL", "CDC-4X", NULL, BLIST_MAX5LUN | BLIST_SINGLELUN},
 	{"SanDisk", "ImageMate CF-SD1", NULL, BLIST_FORCELUN},

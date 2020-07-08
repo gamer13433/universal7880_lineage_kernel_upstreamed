@@ -156,7 +156,6 @@ static int create_fixed_stream_quirk(struct snd_usb_audio *chip,
 	stream = (fp->endpoint & USB_DIR_IN)
 		? SNDRV_PCM_STREAM_CAPTURE : SNDRV_PCM_STREAM_PLAYBACK;
 	err = snd_usb_add_audio_stream(chip, stream, fp);
-<<<<<<< HEAD
 	if (err < 0) {
 		kfree(fp);
 		kfree(rate_table);
@@ -167,26 +166,13 @@ static int create_fixed_stream_quirk(struct snd_usb_audio *chip,
 		kfree(fp);
 		kfree(rate_table);
 		return -EINVAL;
-=======
-	if (err < 0)
-		goto error;
-	if (fp->iface != get_iface_desc(&iface->altsetting[0])->bInterfaceNumber ||
-	    fp->altset_idx >= iface->num_altsetting) {
-		err = -EINVAL;
-		goto error;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 	alts = &iface->altsetting[fp->altset_idx];
 	altsd = get_iface_desc(alts);
 	if (altsd->bNumEndpoints < 1) {
-<<<<<<< HEAD
 		kfree(fp);
 		kfree(rate_table);
 		return -EINVAL;
-=======
-		err = -EINVAL;
-		goto error;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 	fp->protocol = altsd->bInterfaceProtocol;
@@ -1135,10 +1121,6 @@ bool snd_usb_get_sample_rate_quirk(struct snd_usb_audio *chip)
 {
 	/* devices which do not support reading the sample rate. */
 	switch (chip->usb_id) {
-<<<<<<< HEAD
-=======
-	case USB_ID(0x041E, 0x4080): /* Creative Live Cam VF0610 */
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	case USB_ID(0x045E, 0x075D): /* MS Lifecam Cinema  */
 	case USB_ID(0x045E, 0x076D): /* MS Lifecam HD-5000 */
 	case USB_ID(0x045E, 0x076E): /* MS Lifecam HD-5001 */
@@ -1149,11 +1131,6 @@ bool snd_usb_get_sample_rate_quirk(struct snd_usb_audio *chip)
 	case USB_ID(0x047F, 0xAA05): /* Plantronics DA45 */
 	case USB_ID(0x04D8, 0xFEEA): /* Benchmark DAC1 Pre */
 	case USB_ID(0x0556, 0x0014): /* Phoenix Audio TMX320VC */
-<<<<<<< HEAD
-=======
-	case USB_ID(0x05a7, 0x1020): /* Bose Companion 5 */
-	case USB_ID(0x05A3, 0x9420): /* ELP HD USB Camera */
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	case USB_ID(0x074D, 0x3553): /* Outlaw RR2150 (Micronas UAC3553B) */
 	case USB_ID(0x1395, 0x740a): /* Sennheiser DECT */
 	case USB_ID(0x1901, 0x0191): /* GE B850V3 CP2114 audio interface */
@@ -1161,10 +1138,6 @@ bool snd_usb_get_sample_rate_quirk(struct snd_usb_audio *chip)
 	case USB_ID(0x1de7, 0x0014): /* Phoenix Audio TMX320 */
 	case USB_ID(0x1de7, 0x0114): /* Phoenix Audio MT202pcs */
 	case USB_ID(0x21B4, 0x0081): /* AudioQuest DragonFly */
-<<<<<<< HEAD
-=======
-	case USB_ID(0x2912, 0x30c8): /* Audioengine D1 */
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		return true;
 	}
 	return false;
@@ -1320,10 +1293,6 @@ u64 snd_usb_interface_dsd_format_quirks(struct snd_usb_audio *chip,
 	case USB_ID(0x20b1, 0x3008): /* iFi Audio micro/nano iDSD */
 	case USB_ID(0x20b1, 0x2008): /* Matrix Audio X-Sabre */
 	case USB_ID(0x20b1, 0x300a): /* Matrix Audio Mini-i Pro */
-<<<<<<< HEAD
-=======
-	case USB_ID(0x22d9, 0x0416): /* OPPO HA-1 */
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		if (fp->altsetting == 2)
 			return SNDRV_PCM_FMTBIT_DSD_U32_BE;
 		break;

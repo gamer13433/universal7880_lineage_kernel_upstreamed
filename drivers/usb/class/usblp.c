@@ -447,10 +447,6 @@ static void usblp_cleanup(struct usblp *usblp)
 	kfree(usblp->readbuf);
 	kfree(usblp->device_id_string);
 	kfree(usblp->statusbuf);
-<<<<<<< HEAD
-=======
-	usb_put_intf(usblp->intf);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	kfree(usblp);
 }
 
@@ -467,22 +463,11 @@ static int usblp_release(struct inode *inode, struct file *file)
 
 	mutex_lock(&usblp_mutex);
 	usblp->used = 0;
-<<<<<<< HEAD
 	if (usblp->present) {
 		usblp_unlink_urbs(usblp);
 		usb_autopm_put_interface(usblp->intf);
 	} else		/* finish cleanup from disconnect */
 		usblp_cleanup(usblp);
-=======
-	if (usblp->present)
-		usblp_unlink_urbs(usblp);
-
-	usb_autopm_put_interface(usblp->intf);
-
-	if (!usblp->present)		/* finish cleanup from disconnect */
-		usblp_cleanup(usblp);	/* any URBs must be dead */
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	mutex_unlock(&usblp_mutex);
 	return 0;
 }
@@ -1117,11 +1102,7 @@ static int usblp_probe(struct usb_interface *intf,
 	init_waitqueue_head(&usblp->wwait);
 	init_usb_anchor(&usblp->urbs);
 	usblp->ifnum = intf->cur_altsetting->desc.bInterfaceNumber;
-<<<<<<< HEAD
 	usblp->intf = intf;
-=======
-	usblp->intf = usb_get_intf(intf);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	/* Malloc device ID string buffer to the largest expected length,
 	 * since we can re-query it on an ioctl and a dynamic string
@@ -1210,10 +1191,6 @@ abort:
 	kfree(usblp->readbuf);
 	kfree(usblp->statusbuf);
 	kfree(usblp->device_id_string);
-<<<<<<< HEAD
-=======
-	usb_put_intf(usblp->intf);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	kfree(usblp);
 abort_ret:
 	return retval;
@@ -1393,17 +1370,9 @@ static void usblp_disconnect(struct usb_interface *intf)
 
 	usblp_unlink_urbs(usblp);
 	mutex_unlock(&usblp->mut);
-<<<<<<< HEAD
 
 	if (!usblp->used)
 		usblp_cleanup(usblp);
-=======
-	usb_poison_anchored_urbs(&usblp->urbs);
-
-	if (!usblp->used)
-		usblp_cleanup(usblp);
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	mutex_unlock(&usblp_mutex);
 }
 

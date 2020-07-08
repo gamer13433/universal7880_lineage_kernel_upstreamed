@@ -255,8 +255,4 @@ CPU_LE( rev	data2, data2 )
 .Lret0:
 	mov	result, #0
 	ret
-<<<<<<< HEAD
 ENDPROC(memcmp)
-=======
-ENDPIPROC(memcmp)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012

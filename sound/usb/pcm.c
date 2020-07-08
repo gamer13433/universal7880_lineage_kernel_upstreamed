@@ -159,11 +159,6 @@ static int init_pitch_v1(struct snd_usb_audio *chip, int iface,
 	unsigned char data[1];
 	int err;
 
-<<<<<<< HEAD
-=======
-	if (get_iface_desc(alts)->bNumEndpoints < 1)
-		return -EINVAL;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	ep = get_endpoint(alts, 0)->bEndpointAddress;
 
 	data[0] = 1;
@@ -431,10 +426,6 @@ static int set_sync_endpoint(struct snd_usb_substream *subs,
 	}
 	ep = get_endpoint(alts, 1)->bEndpointAddress;
 	if (get_endpoint(alts, 0)->bLength >= USB_DT_ENDPOINT_AUDIO_SIZE &&
-<<<<<<< HEAD
-=======
-	    get_endpoint(alts, 0)->bSynchAddress != 0 &&
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	    ((is_playback && ep != (unsigned int)(get_endpoint(alts, 0)->bSynchAddress | USB_DIR_IN)) ||
 	     (!is_playback && ep != (unsigned int)(get_endpoint(alts, 0)->bSynchAddress & ~USB_DIR_IN)))) {
 		dev_err(&dev->dev,

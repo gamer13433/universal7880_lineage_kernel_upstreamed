@@ -379,13 +379,8 @@ static const struct regulator_desc s2mps11_regulators[] = {
 	regulator_desc_s2mps11_buck1_4(4),
 	regulator_desc_s2mps11_buck5,
 	regulator_desc_s2mps11_buck67810(6, MIN_600_MV, STEP_6_25_MV),
-<<<<<<< HEAD
 	regulator_desc_s2mps11_buck67810(7, MIN_600_MV, STEP_12_5_MV),
 	regulator_desc_s2mps11_buck67810(8, MIN_600_MV, STEP_12_5_MV),
-=======
-	regulator_desc_s2mps11_buck67810(7, MIN_750_MV, STEP_12_5_MV),
-	regulator_desc_s2mps11_buck67810(8, MIN_750_MV, STEP_12_5_MV),
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	regulator_desc_s2mps11_buck9,
 	regulator_desc_s2mps11_buck67810(10, MIN_750_MV, STEP_12_5_MV),
 };

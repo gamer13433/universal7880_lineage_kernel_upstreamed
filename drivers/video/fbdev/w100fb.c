@@ -583,10 +583,6 @@ static void w100fb_restore_vidmem(struct w100fb_par *par)
 		memsize=par->mach->mem->size;
 		memcpy_toio(remapped_fbuf + (W100_FB_BASE-MEM_WINDOW_BASE), par->saved_extmem, memsize);
 		vfree(par->saved_extmem);
-<<<<<<< HEAD
-=======
-		par->saved_extmem = NULL;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 	if (par->saved_intmem) {
 		memsize=MEM_INT_SIZE;
@@ -595,10 +591,6 @@ static void w100fb_restore_vidmem(struct w100fb_par *par)
 		else
 			memcpy_toio(remapped_fbuf + (W100_FB_BASE-MEM_WINDOW_BASE), par->saved_intmem, memsize);
 		vfree(par->saved_intmem);
-<<<<<<< HEAD
-=======
-		par->saved_intmem = NULL;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 }
 

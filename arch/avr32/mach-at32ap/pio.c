@@ -435,11 +435,7 @@ void __init at32_init_pio(struct platform_device *pdev)
 	struct resource *regs;
 	struct pio_device *pio;
 
-<<<<<<< HEAD
 	if (pdev->id > MAX_NR_PIO_DEVICES) {
-=======
-	if (pdev->id >= MAX_NR_PIO_DEVICES) {
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		dev_err(&pdev->dev, "only %d PIO devices supported\n",
 			MAX_NR_PIO_DEVICES);
 		return;

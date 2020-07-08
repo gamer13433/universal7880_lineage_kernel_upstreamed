@@ -176,14 +176,10 @@ static inline void snd_compr_drain_notify(struct snd_compr_stream *stream)
 	if (snd_BUG_ON(!stream))
 		return;
 
-<<<<<<< HEAD
 	if (stream->direction == SND_COMPRESS_PLAYBACK)
 		stream->runtime->state = SNDRV_PCM_STATE_SETUP;
 	else
 		stream->runtime->state = SNDRV_PCM_STATE_PREPARED;
-=======
-	stream->runtime->state = SNDRV_PCM_STATE_SETUP;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	wake_up(&stream->runtime->sleep);
 }

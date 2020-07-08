@@ -19,11 +19,7 @@
 
 #include <linux/types.h>
 
-<<<<<<< HEAD
 #include <uapi/linux/ion.h>
-=======
-#include "../uapi/ion.h"
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 struct ion_handle;
 struct ion_device;
@@ -204,7 +200,6 @@ int ion_share_dma_buf_fd(struct ion_client *client, struct ion_handle *handle);
  */
 struct ion_handle *ion_import_dma_buf(struct ion_client *client, int fd);
 
-<<<<<<< HEAD
 #include <linux/dma-direction.h>
 #include <linux/dma-buf.h>
 
@@ -217,6 +212,4 @@ int ion_secure_protect(struct ion_buffer *buffer);
 int ion_secure_unprotect(struct ion_buffer *buffer);
 bool ion_is_heap_available(struct ion_heap *heap, unsigned long flags, void *data);
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #endif /* _LINUX_ION_H */

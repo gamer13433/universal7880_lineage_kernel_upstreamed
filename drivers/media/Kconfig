@@ -80,7 +80,6 @@ config MEDIA_RC_SUPPORT
 
 	  Say Y when you have a TV or an IR device.
 
-<<<<<<< HEAD
 config MEDIA_M2M1SHOT
 	bool "Non-streaming m2m media processing (m2m1shot) API"
 	---help---
@@ -91,8 +90,6 @@ config MEDIA_M2M1SHOT_TESTDEV
 	depends on MEDIA_M2M1SHOT
 	bool "Test driver for non-streaming m2m media processing (m2m1shot) API"
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #
 # Media controller
 #	Selectable only for webcam/grabbers, as other drivers don't use it
@@ -222,12 +219,9 @@ source "drivers/media/i2c/Kconfig"
 source "drivers/media/tuners/Kconfig"
 source "drivers/media/dvb-frontends/Kconfig"
 
-<<<<<<< HEAD
 #
 # TDMB drivers
 #
 source "drivers/media/tdmb/Kconfig"
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 endif # MEDIA_SUPPORT

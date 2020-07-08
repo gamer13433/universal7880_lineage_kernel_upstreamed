@@ -533,11 +533,7 @@ static int alarm_timer_create(struct k_itimer *new_timer)
 	struct alarm_base *base;
 
 	if (!alarmtimer_get_rtcdev())
-<<<<<<< HEAD
 		return -ENOTSUPP;
-=======
-		return -EOPNOTSUPP;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if (!capable(CAP_WAKE_ALARM))
 		return -EPERM;
@@ -580,11 +576,7 @@ static void alarm_timer_get(struct k_itimer *timr,
 static int alarm_timer_del(struct k_itimer *timr)
 {
 	if (!rtcdev)
-<<<<<<< HEAD
 		return -ENOTSUPP;
-=======
-		return -EOPNOTSUPP;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if (alarm_try_to_cancel(&timr->it.alarm.alarmtimer) < 0)
 		return TIMER_RETRY;
@@ -608,11 +600,7 @@ static int alarm_timer_set(struct k_itimer *timr, int flags,
 	ktime_t exp;
 
 	if (!rtcdev)
-<<<<<<< HEAD
 		return -ENOTSUPP;
-=======
-		return -EOPNOTSUPP;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if (flags & ~TIMER_ABSTIME)
 		return -EINVAL;
@@ -774,11 +762,7 @@ static int alarm_timer_nsleep(const clockid_t which_clock, int flags,
 	struct restart_block *restart;
 
 	if (!alarmtimer_get_rtcdev())
-<<<<<<< HEAD
 		return -ENOTSUPP;
-=======
-		return -EOPNOTSUPP;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if (flags & ~TIMER_ABSTIME)
 		return -EINVAL;
@@ -814,11 +798,7 @@ static int alarm_timer_nsleep(const clockid_t which_clock, int flags,
 			goto out;
 	}
 
-<<<<<<< HEAD
 	restart = &current_thread_info()->restart_block;
-=======
-	restart = &current->restart_block;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	restart->fn = alarm_timer_nsleep_restart;
 	restart->nanosleep.clockid = type;
 	restart->nanosleep.expires = exp.tv64;

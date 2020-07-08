@@ -245,11 +245,7 @@ enum {
 };
 
 struct dqstats {
-<<<<<<< HEAD
 	int stat[_DQST_DQSTAT_LAST];
-=======
-	unsigned long stat[_DQST_DQSTAT_LAST];
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	struct percpu_counter counter[_DQST_DQSTAT_LAST];
 };
 
@@ -302,10 +298,7 @@ struct quota_format_ops {
 	int (*read_dqblk)(struct dquot *dquot);		/* Read structure for one user */
 	int (*commit_dqblk)(struct dquot *dquot);	/* Write structure for one user */
 	int (*release_dqblk)(struct dquot *dquot);	/* Called when last reference to dquot is being dropped */
-<<<<<<< HEAD
 	int (*get_next_id)(struct super_block *sb, struct kqid *qid);	/* Get next ID with existing structure in the quota file */
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 /* Operations working with dquots */
@@ -320,11 +313,8 @@ struct dquot_operations {
 	/* get reserved quota for delayed alloc, value returned is managed by
 	 * quota code only */
 	qsize_t *(*get_reserved_space) (struct inode *);
-<<<<<<< HEAD
 	/* Get next ID with active quota structure */
 	int (*get_next_id) (struct super_block *sb, struct kqid *qid);
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 struct path;
@@ -381,11 +371,8 @@ struct quotactl_ops {
 	int (*get_info)(struct super_block *, int, struct if_dqinfo *);
 	int (*set_info)(struct super_block *, int, struct if_dqinfo *);
 	int (*get_dqblk)(struct super_block *, struct kqid, struct qc_dqblk *);
-<<<<<<< HEAD
 	int (*get_nextdqblk)(struct super_block *, struct kqid *,
 			     struct qc_dqblk *);
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	int (*set_dqblk)(struct super_block *, struct kqid, struct qc_dqblk *);
 	int (*get_xstate)(struct super_block *, struct fs_quota_stat *);
 	int (*set_xstate)(struct super_block *, unsigned int, int);

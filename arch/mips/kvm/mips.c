@@ -793,11 +793,7 @@ int kvm_vm_ioctl_get_dirty_log(struct kvm *kvm, struct kvm_dirty_log *log)
 
 	/* If nothing is dirty, don't bother messing with page tables. */
 	if (is_dirty) {
-<<<<<<< HEAD
 		memslot = &kvm->memslots->memslots[log->slot];
-=======
-		memslot = id_to_memslot(kvm->memslots, log->slot);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 		ga = memslot->base_gfn << PAGE_SHIFT;
 		ga_end = ga + (memslot->npages << PAGE_SHIFT);

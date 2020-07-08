@@ -51,19 +51,9 @@ void __trace_note_message(struct blk_trace *, const char *fmt, ...);
  **/
 #define blk_add_trace_msg(q, fmt, ...)					\
 	do {								\
-<<<<<<< HEAD
 		struct blk_trace *bt = (q)->blk_trace;			\
 		if (unlikely(bt))					\
 			__trace_note_message(bt, fmt, ##__VA_ARGS__);	\
-=======
-		struct blk_trace *bt;					\
-									\
-		rcu_read_lock();					\
-		bt = rcu_dereference((q)->blk_trace);			\
-		if (unlikely(bt))					\
-			__trace_note_message(bt, fmt, ##__VA_ARGS__);	\
-		rcu_read_unlock();					\
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	} while (0)
 #define BLK_TN_MAX_MSG		128
 

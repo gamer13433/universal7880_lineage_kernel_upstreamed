@@ -38,12 +38,9 @@ static int init_state_node(struct cpuidle_state *idle_state,
 	 */
 	idle_state->enter = match_id->data;
 
-<<<<<<< HEAD
 	if (!of_device_is_available(state_node))
 		idle_state->disabled = 1;
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	err = of_property_read_u32(state_node, "wakeup-latency-us",
 				   &idle_state->exit_latency);
 	if (err) {

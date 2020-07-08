@@ -1058,11 +1058,7 @@ sis900_open(struct net_device *net_dev)
 	sis900_set_mode(sis_priv, HW_SPEED_10_MBPS, FDX_CAPABLE_HALF_SELECTED);
 
 	/* Enable all known interrupts by setting the interrupt mask. */
-<<<<<<< HEAD
 	sw32(imr, RxSOVR | RxORN | RxERR | RxOK | TxURN | TxERR | TxIDLE);
-=======
-	sw32(imr, RxSOVR | RxORN | RxERR | RxOK | TxURN | TxERR | TxIDLE | TxDESC);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	sw32(cr, RxENA | sr32(cr));
 	sw32(ier, IE);
 
@@ -1585,11 +1581,7 @@ static void sis900_tx_timeout(struct net_device *net_dev)
 	sw32(txdp, sis_priv->tx_ring_dma);
 
 	/* Enable all known interrupts by setting the interrupt mask. */
-<<<<<<< HEAD
 	sw32(imr, RxSOVR | RxORN | RxERR | RxOK | TxURN | TxERR | TxIDLE);
-=======
-	sw32(imr, RxSOVR | RxORN | RxERR | RxOK | TxURN | TxERR | TxIDLE | TxDESC);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 /**
@@ -1629,11 +1621,7 @@ sis900_start_xmit(struct sk_buff *skb, struct net_device *net_dev)
 			spin_unlock_irqrestore(&sis_priv->lock, flags);
 			return NETDEV_TX_OK;
 	}
-<<<<<<< HEAD
 	sis_priv->tx_ring[entry].cmdsts = (OWN | skb->len);
-=======
-	sis_priv->tx_ring[entry].cmdsts = (OWN | INTR | skb->len);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	sw32(cr, TxENA | sr32(cr));
 
 	sis_priv->cur_tx ++;
@@ -1689,11 +1677,7 @@ static irqreturn_t sis900_interrupt(int irq, void *dev_instance)
 	do {
 		status = sr32(isr);
 
-<<<<<<< HEAD
 		if ((status & (HIBERR|TxURN|TxERR|TxIDLE|RxORN|RxERR|RxOK)) == 0)
-=======
-		if ((status & (HIBERR|TxURN|TxERR|TxIDLE|TxDESC|RxORN|RxERR|RxOK)) == 0)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			/* nothing intresting happened */
 			break;
 		handled = 1;
@@ -1703,11 +1687,7 @@ static irqreturn_t sis900_interrupt(int irq, void *dev_instance)
 			/* Rx interrupt */
 			sis900_rx(net_dev);
 
-<<<<<<< HEAD
 		if (status & (TxURN | TxERR | TxIDLE))
-=======
-		if (status & (TxURN | TxERR | TxIDLE | TxDESC))
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			/* Tx interrupt */
 			sis900_finish_xmit(net_dev);
 
@@ -1919,13 +1899,8 @@ static void sis900_finish_xmit (struct net_device *net_dev)
 
 		if (tx_status & OWN) {
 			/* The packet is not transmitted yet (owned by hardware) !
-<<<<<<< HEAD
 			 * Note: the interrupt is generated only when Tx Machine
 			 * is idle, so this is an almost impossible case */
-=======
-			 * Note: this is an almost impossible condition
-			 * in case of TxDESC ('descriptor interrupt') */
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			break;
 		}
 
@@ -2501,11 +2476,7 @@ static int sis900_resume(struct pci_dev *pci_dev)
 	sis900_set_mode(sis_priv, HW_SPEED_10_MBPS, FDX_CAPABLE_HALF_SELECTED);
 
 	/* Enable all known interrupts by setting the interrupt mask. */
-<<<<<<< HEAD
 	sw32(imr, RxSOVR | RxORN | RxERR | RxOK | TxURN | TxERR | TxIDLE);
-=======
-	sw32(imr, RxSOVR | RxORN | RxERR | RxOK | TxURN | TxERR | TxIDLE | TxDESC);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	sw32(cr, RxENA | sr32(cr));
 	sw32(ier, IE);
 

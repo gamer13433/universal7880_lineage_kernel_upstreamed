@@ -58,10 +58,6 @@
 #define COMPAT_PSR_Z_BIT	0x40000000
 #define COMPAT_PSR_N_BIT	0x80000000
 #define COMPAT_PSR_IT_MASK	0x0600fc00	/* If-Then execution state mask */
-<<<<<<< HEAD
-=======
-#define COMPAT_PSR_GE_MASK	0x000f0000
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #ifdef CONFIG_CPU_BIG_ENDIAN
 #define COMPAT_PSR_ENDSTATE	COMPAT_PSR_E_BIT
@@ -120,11 +116,6 @@ struct pt_regs {
 	};
 	u64 orig_x0;
 	u64 syscallno;
-<<<<<<< HEAD
-=======
-	u64 orig_addr_limit;
-	u64 unused;	// maintain 16 byte alignment
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 #define arch_has_single_step()	(1)
@@ -160,7 +151,6 @@ static inline unsigned long regs_return_value(struct pt_regs *regs)
 	return regs->regs[0];
 }
 
-<<<<<<< HEAD
 /*
  * Are the current registers suitable for user mode? (used to maintain
  * security in signal handlers)
@@ -198,15 +188,6 @@ extern unsigned long profile_pc(struct pt_regs *regs);
 #else
 #define profile_pc(regs) instruction_pointer(regs)
 #endif
-=======
-/* We must avoid circular header include via sched.h */
-struct task_struct;
-int valid_user_regs(struct user_pt_regs *regs, struct task_struct *task);
-
-#define instruction_pointer(regs)	((unsigned long)(regs)->pc)
-
-extern unsigned long profile_pc(struct pt_regs *regs);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #endif /* __ASSEMBLY__ */
 #endif

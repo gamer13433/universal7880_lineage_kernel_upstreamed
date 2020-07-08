@@ -368,11 +368,7 @@ static int drm_dp_dpcd_access(struct drm_dp_aux *aux, u8 request,
 {
 	struct drm_dp_aux_msg msg;
 	unsigned int retry;
-<<<<<<< HEAD
 	int err;
-=======
-	int err = 0;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	memset(&msg, 0, sizeof(msg));
 	msg.address = offset;
@@ -380,11 +376,6 @@ static int drm_dp_dpcd_access(struct drm_dp_aux *aux, u8 request,
 	msg.buffer = buffer;
 	msg.size = size;
 
-<<<<<<< HEAD
-=======
-	mutex_lock(&aux->hw_mutex);
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/*
 	 * The specification doesn't give any recommendation on how often to
 	 * retry native transactions. We used to retry 7 times like for
@@ -393,42 +384,25 @@ static int drm_dp_dpcd_access(struct drm_dp_aux *aux, u8 request,
 	 */
 	for (retry = 0; retry < 32; retry++) {
 
-<<<<<<< HEAD
 		mutex_lock(&aux->hw_mutex);
 		err = aux->transfer(aux, &msg);
 		mutex_unlock(&aux->hw_mutex);
-=======
-		err = aux->transfer(aux, &msg);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		if (err < 0) {
 			if (err == -EBUSY)
 				continue;
 
-<<<<<<< HEAD
 			return err;
-=======
-			goto unlock;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		}
 
 
 		switch (msg.reply & DP_AUX_NATIVE_REPLY_MASK) {
 		case DP_AUX_NATIVE_REPLY_ACK:
 			if (err < size)
-<<<<<<< HEAD
 				return -EPROTO;
 			return err;
 
 		case DP_AUX_NATIVE_REPLY_NACK:
 			return -EIO;
-=======
-				err = -EPROTO;
-			goto unlock;
-
-		case DP_AUX_NATIVE_REPLY_NACK:
-			err = -EIO;
-			goto unlock;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 		case DP_AUX_NATIVE_REPLY_DEFER:
 			usleep_range(400, 500);
@@ -437,15 +411,7 @@ static int drm_dp_dpcd_access(struct drm_dp_aux *aux, u8 request,
 	}
 
 	DRM_DEBUG_KMS("too many retries, giving up\n");
-<<<<<<< HEAD
 	return -EIO;
-=======
-	err = -EIO;
-
-unlock:
-	mutex_unlock(&aux->hw_mutex);
-	return err;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 /**
@@ -634,13 +600,9 @@ static int drm_dp_i2c_do_msg(struct drm_dp_aux *aux, struct drm_dp_aux_msg *msg)
 	 * before giving up the AUX transaction.
 	 */
 	for (retry = 0; retry < 7; retry++) {
-<<<<<<< HEAD
 		mutex_lock(&aux->hw_mutex);
 		err = aux->transfer(aux, msg);
 		mutex_unlock(&aux->hw_mutex);
-=======
-		err = aux->transfer(aux, msg);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		if (err < 0) {
 			if (err == -EBUSY)
 				continue;
@@ -720,11 +682,6 @@ static int drm_dp_i2c_xfer(struct i2c_adapter *adapter, struct i2c_msg *msgs,
 
 	memset(&msg, 0, sizeof(msg));
 
-<<<<<<< HEAD
-=======
-	mutex_lock(&aux->hw_mutex);
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	for (i = 0; i < num; i++) {
 		msg.address = msgs[i].addr;
 		msg.request = (msgs[i].flags & I2C_M_RD) ?
@@ -769,11 +726,6 @@ static int drm_dp_i2c_xfer(struct i2c_adapter *adapter, struct i2c_msg *msgs,
 	msg.size = 0;
 	(void)drm_dp_i2c_do_msg(aux, &msg);
 
-<<<<<<< HEAD
-=======
-	mutex_unlock(&aux->hw_mutex);
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return err;
 }
 

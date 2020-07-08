@@ -2689,21 +2689,12 @@ static int nf_tables_newset(struct sock *nlsk, struct sk_buff *skb,
 
 	err = nft_trans_set_add(&ctx, NFT_MSG_NEWSET, set);
 	if (err < 0)
-<<<<<<< HEAD
 		goto err2;
-=======
-		goto err3;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	list_add_tail_rcu(&set->list, &table->sets);
 	table->use++;
 	return 0;
 
-<<<<<<< HEAD
-=======
-err3:
-	ops->destroy(set);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 err2:
 	kfree(set);
 err1:

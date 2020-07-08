@@ -1472,11 +1472,6 @@ out_free_iclog:
 		if (iclog->ic_bp)
 			xfs_buf_free(iclog->ic_bp);
 		kmem_free(iclog);
-<<<<<<< HEAD
-=======
-		if (prev_iclog == log->l_iclog)
-			break;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 	spinlock_destroy(&log->l_icloglock);
 	xfs_buf_free(log->l_xbuf);

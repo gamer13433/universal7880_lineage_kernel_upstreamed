@@ -35,11 +35,6 @@
 config SCSI_UFSHCD
 	tristate "Universal Flash Storage Controller Driver Core"
 	depends on SCSI && SCSI_DMA
-<<<<<<< HEAD
-=======
-	select PM_DEVFREQ
-	select DEVFREQ_GOV_SIMPLE_ONDEMAND
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	---help---
 	This selects the support for UFS devices in Linux, say Y and make
 	  sure that you know the name of your UFS host adapter (the card
@@ -52,13 +47,10 @@ config SCSI_UFSHCD
 	  However, do not compile this as a module if your root file system
 	  (the one containing the directory /) is located on a UFS device.
 
-<<<<<<< HEAD
 config UFS_DYNAMIC_H8
 	bool "UFS Dynamic Hibernation (EXPERIMENTAL)"
 	depends on SCSI_UFSHCD
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 config SCSI_UFSHCD_PCI
 	tristate "PCI bus based UFS Controller support"
 	depends on SCSI_UFSHCD && PCI
@@ -68,7 +60,6 @@ config SCSI_UFSHCD_PCI
 
 	  If you have a controller with this interface, say Y or M here.
 
-<<<<<<< HEAD
 config SCSI_SKIP_CACHE_OP
 	bool "Skip operations for cache coherency"
 	depends on SCSI_UFSHCD
@@ -77,8 +68,6 @@ config SCSI_SKIP_CACHE_OP
 
 	  to reduce I/O overhead if file system layer do same thing.
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	  If unsure, say N.
 
 config SCSI_UFSHCD_PLATFORM
@@ -91,7 +80,6 @@ config SCSI_UFSHCD_PLATFORM
 	If you have a controller with this interface, say Y or M here.
 
 	  If unsure, say N.
-<<<<<<< HEAD
 
 config SCSI_UFS_EXYNOS
 	tristate "EXYNOS UFS Host Controller Driver"
@@ -102,5 +90,3 @@ config SCSI_UFS_EXYNOS
 	  If you have a controller with this interface, say Y or M here.
 
 	  If unsure, say N.
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012

@@ -1,7 +1,4 @@
-<<<<<<< HEAD
 /* Copyright (c) 2015 Samsung Electronics Co., Ltd. */
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /*
  * INET		An implementation of the TCP/IP protocol suite for the LINUX
  *		operating system.  INET is implemented using the  BSD Socket
@@ -41,7 +38,6 @@
  *		as published by the Free Software Foundation; either version
  *		2 of the License, or (at your option) any later version.
  */
-<<<<<<< HEAD
 /*
  *  Changes:
  *  KwnagHyun Kim <kh0304.kim@samsung.com> 2015/07/08
@@ -51,8 +47,6 @@
  *
  */
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #ifndef _SOCK_H
 #define _SOCK_H
 
@@ -85,10 +79,7 @@
 #include <net/checksum.h>
 #include <net/tcp_states.h>
 #include <linux/net_tstamp.h>
-<<<<<<< HEAD
 #include <net/tcp_states.h>
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 struct cgroup;
 struct cgroup_subsys;
@@ -450,7 +441,6 @@ struct sock {
 	kuid_t			sk_uid;
 	u32			sk_classid;
 	struct cg_proto		*sk_cgrp;
-<<<<<<< HEAD
 	/* START_OF_KNOX_NPA */
 	uid_t           knox_uid;
 	pid_t           knox_pid;
@@ -461,8 +451,6 @@ struct sock {
 	__be16          sk_udp_sport;
 	char 			domain_name[255];
 	/* END_OF_KNOX_NPA */
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	void			(*sk_state_change)(struct sock *sk);
 	void			(*sk_data_ready)(struct sock *sk);
 	void			(*sk_write_space)(struct sock *sk);
@@ -660,15 +648,6 @@ static inline void sk_add_node_rcu(struct sock *sk, struct hlist_head *list)
 	hlist_add_head_rcu(&sk->sk_node, list);
 }
 
-<<<<<<< HEAD
-=======
-static inline void sk_add_node_tail_rcu(struct sock *sk, struct hlist_head *list)
-{
-	sock_hold(sk);
-	hlist_add_tail_rcu(&sk->sk_node, list);
-}
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static inline void __sk_nulls_add_node_rcu(struct sock *sk, struct hlist_nulls_head *list)
 {
 	hlist_nulls_add_head_rcu(&sk->sk_nulls_node, list);
@@ -761,12 +740,9 @@ enum sock_flags {
 		     */
 	SOCK_FILTER_LOCKED, /* Filter cannot be changed anymore */
 	SOCK_SELECT_ERR_QUEUE, /* Wake select on error queue */
-<<<<<<< HEAD
 #ifdef CONFIG_MPTCP
 	SOCK_MPTCP, /* MPTCP set on this socket */
 #endif
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 #define SK_FLAGS_TIMESTAMP ((1UL << SOCK_TIMESTAMP) | (1UL << SOCK_TIMESTAMPING_RX_SOFTWARE))
@@ -977,7 +953,6 @@ void sk_clear_memalloc(struct sock *sk);
 
 int sk_wait_data(struct sock *sk, long *timeo);
 
-<<<<<<< HEAD
 #ifdef CONFIG_MPTCP
 /* START - needed for MPTCP */
 struct sock *sk_prot_alloc(struct proto *prot, gfp_t priority, int family);
@@ -990,8 +965,6 @@ extern char *const af_family_clock_key_strings[AF_MAX+1];
 /* END - needed for MPTCP */
 #endif
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 struct request_sock_ops;
 struct timewait_sock_ops;
 struct inet_hashinfo;
@@ -1380,11 +1353,7 @@ static inline void sk_sockets_allocated_inc(struct sock *sk)
 	percpu_counter_inc(prot->sockets_allocated);
 }
 
-<<<<<<< HEAD
 static inline int
-=======
-static inline u64
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 sk_sockets_allocated_read_positive(struct sock *sk)
 {
 	struct proto *prot = sk->sk_prot;
@@ -2253,11 +2222,7 @@ static inline ktime_t sock_read_timestamp(struct sock *sk)
 
 	return kt;
 #else
-<<<<<<< HEAD
 	return sk->sk_stamp;
-=======
-	return READ_ONCE(sk->sk_stamp);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #endif
 }
 
@@ -2268,11 +2233,7 @@ static inline void sock_write_timestamp(struct sock *sk, ktime_t kt)
 	sk->sk_stamp = kt;
 	write_sequnlock(&sk->sk_stamp_seq);
 #else
-<<<<<<< HEAD
 	sk->sk_stamp = kt;
-=======
-	WRITE_ONCE(sk->sk_stamp, kt);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #endif
 }
 
@@ -2433,7 +2394,4 @@ extern __u32 sysctl_wmem_default;
 extern __u32 sysctl_rmem_default;
 
 #endif	/* _SOCK_H */
-<<<<<<< HEAD
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012

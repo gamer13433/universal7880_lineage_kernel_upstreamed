@@ -899,11 +899,7 @@ asmlinkage long syscall_trace_enter(struct pt_regs *regs, long syscall)
 	long ret = 0;
 	user_exit();
 
-<<<<<<< HEAD
 	if (secure_computing() == -1)
-=======
-	if (secure_computing(NULL) == -1)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		return -1;
 
 	if (test_thread_flag(TIF_SYSCALL_TRACE) &&

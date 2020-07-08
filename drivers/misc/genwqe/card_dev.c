@@ -782,11 +782,6 @@ static int genwqe_pin_mem(struct genwqe_file *cfile, struct genwqe_mem *m)
 
 	if ((m->addr == 0x0) || (m->size == 0))
 		return -EINVAL;
-<<<<<<< HEAD
-=======
-	if (m->size > ULONG_MAX - PAGE_SIZE - (m->addr & ~PAGE_MASK))
-		return -EINVAL;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	map_addr = (m->addr & PAGE_MASK);
 	map_size = round_up(m->size + (m->addr & ~PAGE_MASK), PAGE_SIZE);

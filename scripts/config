@@ -6,12 +6,6 @@ myname=${0##*/}
 # If no prefix forced, use the default CONFIG_
 CONFIG_="${CONFIG_-CONFIG_}"
 
-<<<<<<< HEAD
-=======
-# We use an uncommon delimiter for sed substitutions
-SED_DELIM=$(echo -en "\001")
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 usage() {
 	cat >&2 <<EOL
 Manipulate options in a .config file from the command line.
@@ -88,11 +82,7 @@ txt_subst() {
 	local infile="$3"
 	local tmpfile="$infile.swp"
 
-<<<<<<< HEAD
 	sed -e "s:$before:$after:" "$infile" >"$tmpfile"
-=======
-	sed -e "s$SED_DELIM$before$SED_DELIM$after$SED_DELIM" "$infile" >"$tmpfile"
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	# replace original file with the edited one
 	mv "$tmpfile" "$infile"
 }

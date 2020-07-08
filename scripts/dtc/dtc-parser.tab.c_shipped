@@ -70,11 +70,7 @@
 #include "dtc.h"
 #include "srcpos.h"
 
-<<<<<<< HEAD
 extern YYLTYPE yylloc;
-=======
-YYLTYPE yylloc;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 extern int yylex(void);
 extern void print_error(char const *fmt, ...);

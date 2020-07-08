@@ -5768,10 +5768,6 @@ enum punit_power_well {
 #define  HSW_ROW_CHICKEN3_L3_GLOBAL_ATOMICS_DISABLE    (1 << 6)
 
 #define HALF_SLICE_CHICKEN3		0xe184
-<<<<<<< HEAD
-=======
-#define   HSW_SAMPLE_C_PERFORMANCE	(1<<9)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #define   GEN8_CENTROID_PIXEL_OPT_DIS	(1<<8)
 #define   GEN8_SAMPLER_POWER_BYPASS_DIS	(1<<1)
 

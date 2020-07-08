@@ -39,7 +39,6 @@ config ARM_EXYNOS4210_CPUFREQ
 
 	  If in doubt, say N.
 
-<<<<<<< HEAD
 config ARM_EXYNOS_MP_CPUFREQ
 	bool "SAMSUNG EXYNOS SoCs for MP"
 	depends on ARCH_EXYNOS
@@ -49,8 +48,6 @@ config ARM_EXYNOS_MP_CPUFREQ
 
 	  If in doubt, say N.
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 config ARM_EXYNOS4X12_CPUFREQ
 	bool "SAMSUNG EXYNOS4x12"
 	depends on SOC_EXYNOS4212 || SOC_EXYNOS4412

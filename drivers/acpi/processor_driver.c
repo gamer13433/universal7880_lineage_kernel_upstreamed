@@ -231,23 +231,11 @@ static int __acpi_processor_start(struct acpi_device *device)
 static int acpi_processor_start(struct device *dev)
 {
 	struct acpi_device *device = ACPI_COMPANION(dev);
-<<<<<<< HEAD
-=======
-	int ret;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if (!device)
 		return -ENODEV;
 
-<<<<<<< HEAD
 	return __acpi_processor_start(device);
-=======
-	/* Protect against concurrent CPU hotplug operations */
-	get_online_cpus();
-	ret = __acpi_processor_start(device);
-	put_online_cpus();
-	return ret;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 static int acpi_processor_stop(struct device *dev)

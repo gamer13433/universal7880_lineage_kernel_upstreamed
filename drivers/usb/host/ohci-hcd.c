@@ -414,12 +414,8 @@ static void ohci_usb_reset (struct ohci_hcd *ohci)
  * other cases where the next software may expect clean state from the
  * "firmware".  this is bus-neutral, unlike shutdown() methods.
  */
-<<<<<<< HEAD
 static void
 ohci_shutdown (struct usb_hcd *hcd)
-=======
-static void _ohci_shutdown(struct usb_hcd *hcd)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	struct ohci_hcd *ohci;
 
@@ -435,19 +431,6 @@ static void _ohci_shutdown(struct usb_hcd *hcd)
 	ohci->rh_state = OHCI_RH_HALTED;
 }
 
-<<<<<<< HEAD
-=======
-static void ohci_shutdown(struct usb_hcd *hcd)
-{
-	struct ohci_hcd	*ohci = hcd_to_ohci(hcd);
-	unsigned long flags;
-
-	spin_lock_irqsave(&ohci->lock, flags);
-	_ohci_shutdown(hcd);
-	spin_unlock_irqrestore(&ohci->lock, flags);
-}
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /*-------------------------------------------------------------------------*
  * HC functions
  *-------------------------------------------------------------------------*/
@@ -766,11 +749,7 @@ static void io_watchdog_func(unsigned long _ohci)
  died:
 			usb_hc_died(ohci_to_hcd(ohci));
 			ohci_dump(ohci);
-<<<<<<< HEAD
 			ohci_shutdown(ohci_to_hcd(ohci));
-=======
-			_ohci_shutdown(ohci_to_hcd(ohci));
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			goto done;
 		} else {
 			/* No write back because the done queue was empty */

@@ -1334,11 +1334,7 @@ static __init int init_uprobe_trace(void)
 	struct dentry *d_tracer;
 
 	d_tracer = tracing_init_dentry();
-<<<<<<< HEAD
 	if (!d_tracer)
-=======
-	if (IS_ERR(d_tracer))
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		return 0;
 
 	trace_create_file("uprobe_events", 0644, d_tracer,

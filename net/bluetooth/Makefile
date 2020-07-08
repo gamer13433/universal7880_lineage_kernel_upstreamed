@@ -3,17 +3,10 @@
 #
 
 obj-$(CONFIG_BT)	+= bluetooth.o
-<<<<<<< HEAD
 #obj-$(CONFIG_BT_RFCOMM)	+= rfcomm/
 #obj-$(CONFIG_BT_BNEP)	+= bnep/
 obj-$(CONFIG_BT_CMTP)	+= cmtp/
 #obj-$(CONFIG_BT_HIDP)	+= hidp/
-=======
-obj-$(CONFIG_BT_RFCOMM)	+= rfcomm/
-obj-$(CONFIG_BT_BNEP)	+= bnep/
-obj-$(CONFIG_BT_CMTP)	+= cmtp/
-obj-$(CONFIG_BT_HIDP)	+= hidp/
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 obj-$(CONFIG_BT_6LOWPAN) += bluetooth_6lowpan.o
 
 bluetooth_6lowpan-y := 6lowpan.o

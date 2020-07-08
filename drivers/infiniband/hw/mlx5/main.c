@@ -874,11 +874,7 @@ static ssize_t show_fw_ver(struct device *device, struct device_attribute *attr,
 {
 	struct mlx5_ib_dev *dev =
 		container_of(device, struct mlx5_ib_dev, ib_dev.dev);
-<<<<<<< HEAD
 	return sprintf(buf, "%d.%d.%d\n", fw_rev_maj(dev->mdev),
-=======
-	return sprintf(buf, "%d.%d.%04d\n", fw_rev_maj(dev->mdev),
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		       fw_rev_min(dev->mdev), fw_rev_sub(dev->mdev));
 }
 
@@ -935,21 +931,14 @@ static void mlx5_ib_event(struct mlx5_core_dev *dev, void *context,
 		break;
 
 	case MLX5_DEV_EVENT_PORT_DOWN:
-<<<<<<< HEAD
-=======
-	case MLX5_DEV_EVENT_PORT_INITIALIZED:
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		ibev.event = IB_EVENT_PORT_ERR;
 		port = (u8)param;
 		break;
 
-<<<<<<< HEAD
 	case MLX5_DEV_EVENT_PORT_INITIALIZED:
 		/* not used by ULPs */
 		return;
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	case MLX5_DEV_EVENT_LID_CHANGE:
 		ibev.event = IB_EVENT_LID_CHANGE;
 		port = (u8)param;

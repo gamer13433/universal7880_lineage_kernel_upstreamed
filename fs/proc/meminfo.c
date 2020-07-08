@@ -27,14 +27,10 @@ static int meminfo_proc_show(struct seq_file *m, void *v)
 	struct vmalloc_info vmi;
 	long cached;
 	long available;
-<<<<<<< HEAD
 	unsigned long pagecache;
 	unsigned long wmark_low = 0;
 	unsigned long pages[NR_LRU_LISTS];
 	struct zone *zone;
-=======
-	unsigned long pages[NR_LRU_LISTS];
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	int lru;
 
 /*
@@ -55,7 +51,6 @@ static int meminfo_proc_show(struct seq_file *m, void *v)
 	for (lru = LRU_BASE; lru < NR_LRU_LISTS; lru++)
 		pages[lru] = global_page_state(NR_LRU_BASE + lru);
 
-<<<<<<< HEAD
 	for_each_zone(zone)
 		wmark_low += zone->watermark[WMARK_LOW];
 
@@ -86,9 +81,6 @@ static int meminfo_proc_show(struct seq_file *m, void *v)
 
 	if (available < 0)
 		available = 0;
-=======
-	available = si_mem_available();
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	/*
 	 * Tagged format, for easy grepping and expansion.

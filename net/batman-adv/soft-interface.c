@@ -970,13 +970,7 @@ void batadv_softif_destroy_sysfs(struct net_device *soft_iface)
 static void batadv_softif_destroy_netlink(struct net_device *soft_iface,
 					  struct list_head *head)
 {
-<<<<<<< HEAD
 	struct batadv_hard_iface *hard_iface;
-=======
-	struct batadv_priv *bat_priv = netdev_priv(soft_iface);
-	struct batadv_hard_iface *hard_iface;
-	struct batadv_softif_vlan *vlan;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	list_for_each_entry(hard_iface, &batadv_hardif_list, list) {
 		if (hard_iface->soft_iface == soft_iface)
@@ -984,16 +978,6 @@ static void batadv_softif_destroy_netlink(struct net_device *soft_iface,
 							BATADV_IF_CLEANUP_KEEP);
 	}
 
-<<<<<<< HEAD
-=======
-	/* destroy the "untagged" VLAN */
-	vlan = batadv_softif_vlan_get(bat_priv, BATADV_NO_FLAGS);
-	if (vlan) {
-		batadv_softif_destroy_vlan(bat_priv, vlan);
-		batadv_softif_vlan_free_ref(vlan);
-	}
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	batadv_sysfs_del_meshif(soft_iface);
 	unregister_netdevice_queue(soft_iface, head);
 }

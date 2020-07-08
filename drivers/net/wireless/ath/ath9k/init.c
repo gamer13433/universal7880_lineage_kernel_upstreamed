@@ -802,13 +802,8 @@ static void ath9k_set_hw_capab(struct ath_softc *sc, struct ieee80211_hw *hw)
 			BIT(NL80211_IFTYPE_MESH_POINT) |
 			BIT(NL80211_IFTYPE_WDS);
 
-<<<<<<< HEAD
 			hw->wiphy->iface_combinations = if_comb;
 			hw->wiphy->n_iface_combinations = ARRAY_SIZE(if_comb);
-=======
-		hw->wiphy->iface_combinations = if_comb;
-		hw->wiphy->n_iface_combinations = ARRAY_SIZE(if_comb);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 	hw->wiphy->flags &= ~WIPHY_FLAG_PS_ON_BY_DEFAULT;

@@ -26,17 +26,10 @@
 
 int can_do_mlock(void)
 {
-<<<<<<< HEAD
 	if (capable(CAP_IPC_LOCK))
 		return 1;
 	if (rlimit(RLIMIT_MEMLOCK) != 0)
 		return 1;
-=======
-	if (rlimit(RLIMIT_MEMLOCK) != 0)
-		return 1;
-	if (capable(CAP_IPC_LOCK))
-		return 1;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return 0;
 }
 EXPORT_SYMBOL(can_do_mlock);
@@ -179,11 +172,7 @@ static void __munlock_isolation_failed(struct page *page)
  */
 unsigned int munlock_vma_page(struct page *page)
 {
-<<<<<<< HEAD
 	unsigned int nr_pages;
-=======
-	int nr_pages;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	struct zone *zone = page_zone(page);
 
 	/* For try_to_munlock() and to serialize with page migration */

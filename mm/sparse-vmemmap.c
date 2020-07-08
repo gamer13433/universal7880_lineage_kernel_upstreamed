@@ -126,7 +126,6 @@ pmd_t * __meminit vmemmap_pmd_populate(pud_t *pud, unsigned long addr, int node)
 
 pud_t * __meminit vmemmap_pud_populate(pgd_t *pgd, unsigned long addr, int node)
 {
-<<<<<<< HEAD
 #ifdef CONFIG_TIMA_RKP
 	int rkp_do = 0; 
 #endif 	
@@ -148,11 +147,6 @@ pud_t * __meminit vmemmap_pud_populate(pgd_t *pgd, unsigned long addr, int node)
 #else /* !CONFIG_TIMA_RKP */
 		p = vmemmap_alloc_block(PAGE_SIZE, node);
 #endif
-=======
-	pud_t *pud = pud_offset(pgd, addr);
-	if (pud_none(*pud)) {
-		void *p = vmemmap_alloc_block(PAGE_SIZE, node);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		if (!p)
 			return NULL;
 		pud_populate(&init_mm, pud, p);

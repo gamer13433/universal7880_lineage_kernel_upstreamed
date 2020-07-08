@@ -180,14 +180,6 @@ check_stack(unsigned long ip, unsigned long *stack)
 	local_irq_restore(flags);
 }
 
-<<<<<<< HEAD
-=======
-/* Some archs may not define MCOUNT_INSN_SIZE */
-#ifndef MCOUNT_INSN_SIZE
-# define MCOUNT_INSN_SIZE 0
-#endif
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static void
 stack_trace_call(unsigned long ip, unsigned long parent_ip,
 		 struct ftrace_ops *op, struct pt_regs *pt_regs)
@@ -470,11 +462,7 @@ static __init int stack_trace_init(void)
 	struct dentry *d_tracer;
 
 	d_tracer = tracing_init_dentry();
-<<<<<<< HEAD
 	if (!d_tracer)
-=======
-	if (IS_ERR(d_tracer))
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		return 0;
 
 	trace_create_file("stack_max_size", 0644, d_tracer,

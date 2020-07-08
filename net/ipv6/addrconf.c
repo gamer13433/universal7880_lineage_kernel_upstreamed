@@ -532,11 +532,7 @@ void inet6_netconf_notify_devconf(struct net *net, int type, int ifindex,
 	struct sk_buff *skb;
 	int err = -ENOBUFS;
 
-<<<<<<< HEAD
 	skb = nlmsg_new(inet6_netconf_msgsize_devconf(type), GFP_ATOMIC);
-=======
-	skb = nlmsg_new(inet6_netconf_msgsize_devconf(type), GFP_KERNEL);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (skb == NULL)
 		goto errout;
 
@@ -548,11 +544,7 @@ void inet6_netconf_notify_devconf(struct net *net, int type, int ifindex,
 		kfree_skb(skb);
 		goto errout;
 	}
-<<<<<<< HEAD
 	rtnl_notify(skb, net, 0, RTNLGRP_IPV6_NETCONF, NULL, GFP_ATOMIC);
-=======
-	rtnl_notify(skb, net, 0, RTNLGRP_IPV6_NETCONF, NULL, GFP_KERNEL);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return;
 errout:
 	rtnl_set_sk_err(net, RTNLGRP_IPV6_NETCONF, err);
@@ -582,11 +574,7 @@ static int inet6_netconf_get_devconf(struct sk_buff *in_skb,
 	if (err < 0)
 		goto errout;
 
-<<<<<<< HEAD
 	err = EINVAL;
-=======
-	err = -EINVAL;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (!tb[NETCONFA_IFINDEX])
 		goto errout;
 
@@ -774,18 +762,7 @@ static int addrconf_fixup_forwarding(struct ctl_table *table, int *p, int newf)
 	}
 
 	if (p == &net->ipv6.devconf_all->forwarding) {
-<<<<<<< HEAD
 		net->ipv6.devconf_dflt->forwarding = newf;
-=======
-		int old_dflt = net->ipv6.devconf_dflt->forwarding;
-
-		net->ipv6.devconf_dflt->forwarding = newf;
-		if ((!newf) ^ (!old_dflt))
-			inet6_netconf_notify_devconf(net, NETCONFA_FORWARDING,
-						     NETCONFA_IFINDEX_DEFAULT,
-						     net->ipv6.devconf_dflt);
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		addrconf_forward_change(net, newf);
 		if ((!newf) ^ (!old))
 			inet6_netconf_notify_devconf(net, NETCONFA_FORWARDING,
@@ -824,12 +801,9 @@ void inet6_ifa_finish_destroy(struct inet6_ifaddr *ifp)
 
 	kfree_rcu(ifp, rcu);
 }
-<<<<<<< HEAD
 #ifdef CONFIG_MPTCP
 EXPORT_SYMBOL(inet6_ifa_finish_destroy);
 #endif
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 static void
 ipv6_link_dev_addr(struct inet6_dev *idev, struct inet6_ifaddr *ifp)
@@ -1984,10 +1958,7 @@ static int addrconf_ifid_ip6tnl(u8 *eui, struct net_device *dev)
 
 static int ipv6_generate_eui64(u8 *eui, struct net_device *dev)
 {
-<<<<<<< HEAD
 	pr_crit("%s: dev type: %d\n", __func__, dev->type);
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	switch (dev->type) {
 	case ARPHRD_ETHER:
 	case ARPHRD_FDDI:
@@ -2007,7 +1978,6 @@ static int ipv6_generate_eui64(u8 *eui, struct net_device *dev)
 		return addrconf_ifid_ieee1394(eui, dev);
 	case ARPHRD_TUNNEL6:
 		return addrconf_ifid_ip6tnl(eui, dev);
-<<<<<<< HEAD
 	case ARPHRD_RAWIP:
 	case ARPHRD_PPP: {
 		struct in6_addr lladdr;
@@ -2019,8 +1989,6 @@ static int ipv6_generate_eui64(u8 *eui, struct net_device *dev)
 
 		return 0;
 	}
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 	return -1;
 }
@@ -2933,11 +2901,8 @@ static void addrconf_dev_config(struct net_device *dev)
 	if ((dev->type != ARPHRD_ETHER) &&
 	    (dev->type != ARPHRD_FDDI) &&
 	    (dev->type != ARPHRD_ARCNET) &&
-<<<<<<< HEAD
 	    (dev->type != ARPHRD_RAWIP) &&
 	    (dev->type != ARPHRD_PPP) &&
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	    (dev->type != ARPHRD_INFINIBAND) &&
 	    (dev->type != ARPHRD_IEEE802154) &&
 	    (dev->type != ARPHRD_IEEE1394) &&

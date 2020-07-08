@@ -153,14 +153,8 @@ static inline int cmp_reg(const struct coproc_reg *i1,
 #define is64		.is_64 = true
 #define is32		.is_64 = false
 
-<<<<<<< HEAD
 bool access_sctlr(struct kvm_vcpu *vcpu,
 		  const struct coproc_params *p,
 		  const struct coproc_reg *r);
-=======
-bool access_vm_reg(struct kvm_vcpu *vcpu,
-		   const struct coproc_params *p,
-		   const struct coproc_reg *r);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #endif /* __ARM_KVM_COPROC_LOCAL_H__ */

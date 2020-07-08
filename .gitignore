@@ -19,10 +19,7 @@
 *.so.dbg
 *.mod.c
 *.i
-<<<<<<< HEAD
 *.rej
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 *.lst
 *.symtypes
 *.order
@@ -48,10 +45,7 @@ Module.symvers
 /linux
 /vmlinux
 /vmlinuz
-<<<<<<< HEAD
 /build.sh
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /System.map
 /Module.markers
 
@@ -104,9 +98,3 @@ x509.genkey
 
 # Kconfig presets
 all.config
-<<<<<<< HEAD
-=======
-
-# fetched Android config fragments
-android/configs/android-*.cfg
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012

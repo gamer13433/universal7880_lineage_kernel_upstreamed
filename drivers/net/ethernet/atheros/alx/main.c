@@ -86,20 +86,9 @@ static int alx_refill_rx_ring(struct alx_priv *alx, gfp_t gfp)
 	while (!cur_buf->skb && next != rxq->read_idx) {
 		struct alx_rfd *rfd = &rxq->rfd[cur];
 
-<<<<<<< HEAD
 		skb = __netdev_alloc_skb(alx->dev, alx->rxbuf_size, gfp);
 		if (!skb)
 			break;
-=======
-		skb = __netdev_alloc_skb(alx->dev, alx->rxbuf_size + 64, gfp);
-		if (!skb)
-			break;
-
-		/* Workround for the HW RX DMA overflow issue */
-		if (((unsigned long)skb->data & 0xfff) == 0xfc0)
-			skb_reserve(skb, 64);
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		dma = dma_map_single(&alx->hw.pdev->dev,
 				     skb->data, alx->rxbuf_size,
 				     DMA_FROM_DEVICE);

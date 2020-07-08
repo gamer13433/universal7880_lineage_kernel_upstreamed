@@ -17,10 +17,6 @@
 #include <linux/slab.h>
 #include <linux/errno.h>
 #include <linux/mutex.h>
-<<<<<<< HEAD
-=======
-#include <linux/rwsem.h>
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #include <linux/uaccess.h>
 #include <linux/usb.h>
 
@@ -60,11 +56,6 @@ struct usb_lcd {
 							   using up all RAM */
 	struct usb_anchor	submitted;		/* URBs to wait for
 							   before suspend */
-<<<<<<< HEAD
-=======
-	struct rw_semaphore	io_rwsem;
-	unsigned long		disconnected:1;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 #define to_lcd_dev(d) container_of(d, struct usb_lcd, kref)
 
@@ -150,16 +141,6 @@ static ssize_t lcd_read(struct file *file, char __user * buffer,
 
 	dev = file->private_data;
 
-<<<<<<< HEAD
-=======
-	down_read(&dev->io_rwsem);
-
-	if (dev->disconnected) {
-		retval = -ENODEV;
-		goto out_up_io;
-	}
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/* do a blocking bulk read to get data from the device */
 	retval = usb_bulk_msg(dev->udev,
 			      usb_rcvbulkpipe(dev->udev,
@@ -176,12 +157,6 @@ static ssize_t lcd_read(struct file *file, char __user * buffer,
 			retval = bytes_read;
 	}
 
-<<<<<<< HEAD
-=======
-out_up_io:
-	up_read(&dev->io_rwsem);
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return retval;
 }
 
@@ -261,25 +236,11 @@ static ssize_t lcd_write(struct file *file, const char __user * user_buffer,
 	if (r < 0)
 		return -EINTR;
 
-<<<<<<< HEAD
-=======
-	down_read(&dev->io_rwsem);
-
-	if (dev->disconnected) {
-		retval = -ENODEV;
-		goto err_up_io;
-	}
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/* create a urb, and a buffer for it, and copy the data to the urb */
 	urb = usb_alloc_urb(0, GFP_KERNEL);
 	if (!urb) {
 		retval = -ENOMEM;
-<<<<<<< HEAD
 		goto err_no_buf;
-=======
-		goto err_up_io;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 	buf = usb_alloc_coherent(dev->udev, count, GFP_KERNEL,
@@ -316,10 +277,6 @@ static ssize_t lcd_write(struct file *file, const char __user * user_buffer,
 	   the USB core will eventually free it entirely */
 	usb_free_urb(urb);
 
-<<<<<<< HEAD
-=======
-	up_read(&dev->io_rwsem);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 exit:
 	return count;
 error_unanchor:
@@ -327,12 +284,7 @@ error_unanchor:
 error:
 	usb_free_coherent(dev->udev, count, buf, urb->transfer_dma);
 	usb_free_urb(urb);
-<<<<<<< HEAD
 err_no_buf:
-=======
-err_up_io:
-	up_read(&dev->io_rwsem);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	up(&dev->limit_sem);
 	return retval;
 }
@@ -375,10 +327,6 @@ static int lcd_probe(struct usb_interface *interface,
 	}
 	kref_init(&dev->kref);
 	sema_init(&dev->limit_sem, USB_LCD_CONCURRENT_WRITES);
-<<<<<<< HEAD
-=======
-	init_rwsem(&dev->io_rwsem);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	init_usb_anchor(&dev->submitted);
 
 	dev->udev = usb_get_dev(interface_to_usbdev(interface));
@@ -489,15 +437,6 @@ static void lcd_disconnect(struct usb_interface *interface)
 	/* give back our minor */
 	usb_deregister_dev(interface, &lcd_class);
 
-<<<<<<< HEAD
-=======
-	down_write(&dev->io_rwsem);
-	dev->disconnected = 1;
-	up_write(&dev->io_rwsem);
-
-	usb_kill_anchored_urbs(&dev->submitted);
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/* decrement our usage count */
 	kref_put(&dev->kref, lcd_delete);
 

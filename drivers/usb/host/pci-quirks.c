@@ -178,11 +178,7 @@ int usb_amd_find_chipset_info(void)
 {
 	unsigned long flags;
 	struct amd_chipset_info info;
-<<<<<<< HEAD
 	int ret;
-=======
-	int need_pll_quirk = 0;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	spin_lock_irqsave(&amd_lock, flags);
 
@@ -196,7 +192,6 @@ int usb_amd_find_chipset_info(void)
 	spin_unlock_irqrestore(&amd_lock, flags);
 
 	if (!amd_chipset_sb_type_init(&info)) {
-<<<<<<< HEAD
 		ret = 0;
 		goto commit;
 	}
@@ -207,34 +202,11 @@ int usb_amd_find_chipset_info(void)
 			info.sb_type.gen == AMD_CHIPSET_YANGTZE ||
 			(info.sb_type.gen == AMD_CHIPSET_SB700 &&
 			info.sb_type.rev > 0x3b)) {
-=======
-		goto commit;
-	}
-
-	switch (info.sb_type.gen) {
-	case AMD_CHIPSET_SB700:
-		need_pll_quirk = info.sb_type.rev <= 0x3B;
-		break;
-	case AMD_CHIPSET_SB800:
-	case AMD_CHIPSET_HUDSON2:
-	case AMD_CHIPSET_BOLTON:
-		need_pll_quirk = 1;
-		break;
-	default:
-		need_pll_quirk = 0;
-		break;
-	}
-
-	if (!need_pll_quirk) {
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		if (info.smbus_dev) {
 			pci_dev_put(info.smbus_dev);
 			info.smbus_dev = NULL;
 		}
-<<<<<<< HEAD
 		ret = 0;
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		goto commit;
 	}
 
@@ -253,11 +225,7 @@ int usb_amd_find_chipset_info(void)
 		}
 	}
 
-<<<<<<< HEAD
 	ret = info.probe_result = 1;
-=======
-	need_pll_quirk = info.probe_result = 1;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	printk(KERN_DEBUG "QUIRK: Enable AMD PLL fix\n");
 
 commit:
@@ -268,11 +236,7 @@ commit:
 
 		/* Mark that we where here */
 		amd_chipset.probe_count++;
-<<<<<<< HEAD
 		ret = amd_chipset.probe_result;
-=======
-		need_pll_quirk = amd_chipset.probe_result;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 		spin_unlock_irqrestore(&amd_lock, flags);
 
@@ -288,11 +252,7 @@ commit:
 		spin_unlock_irqrestore(&amd_lock, flags);
 	}
 
-<<<<<<< HEAD
 	return ret;
-=======
-	return need_pll_quirk;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 EXPORT_SYMBOL_GPL(usb_amd_find_chipset_info);
 

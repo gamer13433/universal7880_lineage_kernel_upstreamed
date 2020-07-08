@@ -2,11 +2,7 @@
  * arch/parisc/mm/ioremap.c
  *
  * (C) Copyright 1995 1996 Linus Torvalds
-<<<<<<< HEAD
  * (C) Copyright 2001-2006 Helge Deller <deller@gmx.de>
-=======
- * (C) Copyright 2001-2019 Helge Deller <deller@gmx.de>
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
  * (C) Copyright 2005 Kyle McMartin <kyle@parisc-linux.org>
  */
 
@@ -87,11 +83,7 @@ void __iomem * __ioremap(unsigned long phys_addr, unsigned long size, unsigned l
 	addr = (void __iomem *) area->addr;
 	if (ioremap_page_range((unsigned long)addr, (unsigned long)addr + size,
 			       phys_addr, pgprot)) {
-<<<<<<< HEAD
 		vfree(addr);
-=======
-		vunmap(addr);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		return NULL;
 	}
 
@@ -99,18 +91,9 @@ void __iomem * __ioremap(unsigned long phys_addr, unsigned long size, unsigned l
 }
 EXPORT_SYMBOL(__ioremap);
 
-<<<<<<< HEAD
 void iounmap(const volatile void __iomem *addr)
 {
 	if (addr > high_memory)
 		return vfree((void *) (PAGE_MASK & (unsigned long __force) addr));
-=======
-void iounmap(const volatile void __iomem *io_addr)
-{
-	unsigned long addr = (unsigned long)io_addr & PAGE_MASK;
-
-	if (is_vmalloc_addr((void *)addr))
-		vunmap((void *)addr);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 EXPORT_SYMBOL(iounmap);

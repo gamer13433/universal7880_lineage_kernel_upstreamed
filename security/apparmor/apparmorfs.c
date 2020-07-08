@@ -331,10 +331,6 @@ static int aa_fs_seq_hash_show(struct seq_file *seq, void *v)
 			seq_printf(seq, "%.2x", profile->hash[i]);
 		seq_puts(seq, "\n");
 	}
-<<<<<<< HEAD
-=======
-	aa_put_profile(profile);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	return 0;
 }
@@ -383,11 +379,6 @@ void __aa_fs_profile_migrate_dents(struct aa_profile *old,
 
 	for (i = 0; i < AAFS_PROF_SIZEOF; i++) {
 		new->dents[i] = old->dents[i];
-<<<<<<< HEAD
-=======
-		if (new->dents[i])
-			new->dents[i]->d_inode->i_mtime = CURRENT_TIME;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		old->dents[i] = NULL;
 	}
 }

@@ -347,10 +347,6 @@ static int pc300_pci_init_one(struct pci_dev *pdev,
 	    card->rambase == NULL) {
 		pr_err("ioremap() failed\n");
 		pc300_pci_remove_one(pdev);
-<<<<<<< HEAD
-=======
-		return -ENOMEM;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 	/* PLX PCI 9050 workaround for local configuration register read bug */

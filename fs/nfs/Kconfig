@@ -89,11 +89,7 @@ config NFS_V4
 config NFS_SWAP
 	bool "Provide swap over NFS support"
 	default n
-<<<<<<< HEAD
 	depends on NFS_FS
-=======
-	depends on NFS_FS && SWAP
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	select SUNRPC_SWAP
 	help
 	  This option enables swapon to work on files located on NFS mounts.

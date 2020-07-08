@@ -221,11 +221,7 @@ void __init clkdev_add_table(struct clk_lookup *cl, size_t num)
 }
 
 #define MAX_DEV_ID	20
-<<<<<<< HEAD
 #define MAX_CON_ID	40
-=======
-#define MAX_CON_ID	16
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 struct clk_lookup_alloc {
 	struct clk_lookup cl;

@@ -18,11 +18,7 @@
 #include <net/pkt_sched.h>
 #include <net/inet_ecn.h>
 #include <net/red.h>
-<<<<<<< HEAD
 #include <net/flow_keys.h>
-=======
-#include <net/flow_dissector.h>
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /*
    CHOKe stateless AQM for fair bandwidth allocation
@@ -180,21 +176,13 @@ static bool choke_match_flow(struct sk_buff *skb1,
 
 	if (!choke_skb_cb(skb1)->keys_valid) {
 		choke_skb_cb(skb1)->keys_valid = 1;
-<<<<<<< HEAD
 		skb_flow_dissect(skb1, &temp);
-=======
-		skb_flow_dissect_flow_keys(skb1, &temp);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		memcpy(&choke_skb_cb(skb1)->keys, &temp, CHOKE_K_LEN);
 	}
 
 	if (!choke_skb_cb(skb2)->keys_valid) {
 		choke_skb_cb(skb2)->keys_valid = 1;
-<<<<<<< HEAD
 		skb_flow_dissect(skb2, &temp);
-=======
-		skb_flow_dissect_flow_keys(skb2, &temp);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		memcpy(&choke_skb_cb(skb2)->keys, &temp, CHOKE_K_LEN);
 	}
 

@@ -629,7 +629,6 @@ static int __init memstick_init(void)
 		return -ENOMEM;
 
 	rc = bus_register(&memstick_bus_type);
-<<<<<<< HEAD
 	if (!rc)
 		rc = class_register(&memstick_host_class);
 
@@ -637,20 +636,6 @@ static int __init memstick_init(void)
 		return 0;
 
 	bus_unregister(&memstick_bus_type);
-=======
-	if (rc)
-		goto error_destroy_workqueue;
-
-	rc = class_register(&memstick_host_class);
-	if (rc)
-		goto error_bus_unregister;
-
-	return 0;
-
-error_bus_unregister:
-	bus_unregister(&memstick_bus_type);
-error_destroy_workqueue:
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	destroy_workqueue(workqueue);
 
 	return rc;

@@ -285,11 +285,6 @@ static int hga_card_detect(void)
 	hga_vram_len  = 0x08000;
 
 	hga_vram = ioremap(0xb0000, hga_vram_len);
-<<<<<<< HEAD
-=======
-	if (!hga_vram)
-		goto error;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if (request_region(0x3b0, 12, "hgafb"))
 		release_io_ports = 1;

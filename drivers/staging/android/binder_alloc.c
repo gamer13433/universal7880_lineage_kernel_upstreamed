@@ -149,7 +149,6 @@ static struct binder_buffer *binder_alloc_prepare_to_free_locked(
 		else {
 			/*
 			 * Guard against user threads attempting to
-<<<<<<< HEAD
 			 * free the buffer twice
 			 */
 			if (buffer->free_in_progress) {
@@ -158,14 +157,6 @@ static struct binder_buffer *binder_alloc_prepare_to_free_locked(
 				return NULL;
 			}
 			buffer->free_in_progress = 1;
-=======
-			 * free the buffer when in use by kernel or
-			 * after it's already been freed.
-			 */
-			if (!buffer->allow_user_free)
-				return ERR_PTR(-EPERM);
-			buffer->allow_user_free = 0;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			return buffer;
 		}
 	}
@@ -195,20 +186,12 @@ struct binder_buffer *binder_alloc_prepare_to_free(struct binder_alloc *alloc,
 }
 
 static int binder_update_page_range(struct binder_alloc *alloc, int allocate,
-<<<<<<< HEAD
 				    void *start, void *end,
 				    struct vm_area_struct *vma)
-=======
-				    void *start, void *end)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	void *page_addr;
 	unsigned long user_page_addr;
 	struct binder_lru_page *page;
-<<<<<<< HEAD
-=======
-	struct vm_area_struct *vma = NULL;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	struct mm_struct *mm = NULL;
 	bool need_mm = false;
 
@@ -232,26 +215,17 @@ static int binder_update_page_range(struct binder_alloc *alloc, int allocate,
 		}
 	}
 
-<<<<<<< HEAD
 	if (!vma && need_mm)
 		mm = get_task_mm(alloc->tsk);
-=======
-	/* Same as mmget_not_zero() in later kernel versions */
-	if (need_mm && atomic_inc_not_zero(&alloc->vma_vm_mm->mm_users))
-		mm = alloc->vma_vm_mm;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if (mm) {
 		down_write(&mm->mmap_sem);
 		vma = alloc->vma;
-<<<<<<< HEAD
 		if (vma && mm != alloc->vma_vm_mm) {
 			pr_err("%d: vma mm and task mm mismatch\n",
 				alloc->pid);
 			vma = NULL;
 		}
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 	if (!vma && need_mm) {
@@ -312,12 +286,6 @@ static int binder_update_page_range(struct binder_alloc *alloc, int allocate,
 			goto err_vm_insert_page_failed;
 		}
 
-<<<<<<< HEAD
-=======
-		if (index + 1 > alloc->pages_high)
-			alloc->pages_high = index + 1;
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		trace_binder_alloc_page_end(alloc, index);
 		/* vm_insert_page does not seem to increment the refcount */
 	}
@@ -474,11 +442,7 @@ struct binder_buffer *binder_alloc_new_buf_locked(struct binder_alloc *alloc,
 	if (end_page_addr > has_page_addr)
 		end_page_addr = has_page_addr;
 	ret = binder_update_page_range(alloc, 1,
-<<<<<<< HEAD
 	    (void *)PAGE_ALIGN((uintptr_t)buffer->data), end_page_addr, NULL);
-=======
-	    (void *)PAGE_ALIGN((uintptr_t)buffer->data), end_page_addr);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (ret)
 		return ERR_PTR(ret);
 
@@ -499,11 +463,7 @@ struct binder_buffer *binder_alloc_new_buf_locked(struct binder_alloc *alloc,
 
 	rb_erase(best_fit, &alloc->free_buffers);
 	buffer->free = 0;
-<<<<<<< HEAD
 	buffer->free_in_progress = 0;
-=======
-	buffer->allow_user_free = 0;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	binder_insert_allocated_buffer_locked(alloc, buffer);
 	binder_alloc_debug(BINDER_DEBUG_BUFFER_ALLOC,
 		     "%d: binder_alloc_buf size %zd got %pK\n",
@@ -523,11 +483,7 @@ struct binder_buffer *binder_alloc_new_buf_locked(struct binder_alloc *alloc,
 err_alloc_buf_struct_failed:
 	binder_update_page_range(alloc, 0,
 				 (void *)PAGE_ALIGN((uintptr_t)buffer->data),
-<<<<<<< HEAD
 				 end_page_addr, NULL);
-=======
-				 end_page_addr);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return ERR_PTR(-ENOMEM);
 }
 
@@ -609,16 +565,10 @@ static void binder_delete_free_buffer(struct binder_alloc *alloc,
 		binder_alloc_debug(BINDER_DEBUG_BUFFER_ALLOC,
 				   "%d: merge free, buffer %pK do not share page with %pK or %pK\n",
 				   alloc->pid, buffer->data,
-<<<<<<< HEAD
 				   prev->data, next->data);
 		binder_update_page_range(alloc, 0, buffer_start_page(buffer),
 					 buffer_start_page(buffer) + PAGE_SIZE,
 					 NULL);
-=======
-				   prev->data, next ? next->data : NULL);
-		binder_update_page_range(alloc, 0, buffer_start_page(buffer),
-					 buffer_start_page(buffer) + PAGE_SIZE);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 	list_del(&buffer->entry);
 	kfree(buffer);
@@ -655,12 +605,8 @@ static void binder_free_buf_locked(struct binder_alloc *alloc,
 
 	binder_update_page_range(alloc, 0,
 		(void *)PAGE_ALIGN((uintptr_t)buffer->data),
-<<<<<<< HEAD
 		(void *)(((uintptr_t)buffer->data + buffer_size) & PAGE_MASK),
 		NULL);
-=======
-		(void *)(((uintptr_t)buffer->data + buffer_size) & PAGE_MASK));
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	rb_erase(&buffer->rb_node, &alloc->allocated_buffers);
 	buffer->free = 1;
@@ -774,11 +720,6 @@ int binder_alloc_mmap_handler(struct binder_alloc *alloc,
 	barrier();
 	alloc->vma = vma;
 	alloc->vma_vm_mm = vma->vm_mm;
-<<<<<<< HEAD
-=======
-	/* Same as mmgrab() in later kernel versions */
-	atomic_inc(&alloc->vma_vm_mm->mm_count);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	return 0;
 
@@ -854,11 +795,6 @@ void binder_alloc_deferred_release(struct binder_alloc *alloc)
 		vfree(alloc->buffer);
 	}
 	mutex_unlock(&alloc->mutex);
-<<<<<<< HEAD
-=======
-	if (alloc->vma_vm_mm)
-		mmdrop(alloc->vma_vm_mm);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	binder_alloc_debug(BINDER_DEBUG_OPEN_CLOSE,
 		     "%s: %d buffers %d, pages %d\n",
@@ -921,10 +857,6 @@ void binder_alloc_print_pages(struct seq_file *m,
 	}
 	mutex_unlock(&alloc->mutex);
 	seq_printf(m, "  pages: %d:%d:%d\n", active, lru, free);
-<<<<<<< HEAD
-=======
-	seq_printf(m, "  pages high watermark: %zu\n", alloc->pages_high);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 /**
@@ -957,10 +889,7 @@ int binder_alloc_get_allocated_count(struct binder_alloc *alloc)
 void binder_alloc_vma_close(struct binder_alloc *alloc)
 {
 	WRITE_ONCE(alloc->vma, NULL);
-<<<<<<< HEAD
 	WRITE_ONCE(alloc->vma_vm_mm, NULL);
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 /**
@@ -994,7 +923,6 @@ enum lru_status binder_alloc_free_page(struct list_head *item,
 
 	index = page - alloc->pages;
 	page_addr = (uintptr_t)alloc->buffer + index * PAGE_SIZE;
-<<<<<<< HEAD
 	vma = alloc->vma;
 	if (vma) {
 		mm = get_task_mm(alloc->tsk);
@@ -1003,16 +931,6 @@ enum lru_status binder_alloc_free_page(struct list_head *item,
 		if (!down_write_trylock(&mm->mmap_sem))
 			goto err_down_write_mmap_sem_failed;
 	}
-=======
-
-	mm = alloc->vma_vm_mm;
-	/* Same as mmget_not_zero() in later kernel versions */
-	if (!atomic_inc_not_zero(&alloc->vma_vm_mm->mm_users))
-		goto err_mmget;
-	if (!down_write_trylock(&mm->mmap_sem))
-		goto err_down_write_mmap_sem_failed;
-	vma = alloc->vma;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	list_del_init(item);
 	spin_unlock(lock);
@@ -1026,16 +944,10 @@ enum lru_status binder_alloc_free_page(struct list_head *item,
 			       PAGE_SIZE, NULL);
 
 		trace_binder_unmap_user_end(alloc, index);
-<<<<<<< HEAD
 
 		up_write(&mm->mmap_sem);
 		mmput(mm);
 	}
-=======
-	}
-	up_write(&mm->mmap_sem);
-	mmput(mm);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	trace_binder_unmap_kernel_start(alloc, index);
 
@@ -1051,11 +963,7 @@ enum lru_status binder_alloc_free_page(struct list_head *item,
 
 err_down_write_mmap_sem_failed:
 	mmput_async(mm);
-<<<<<<< HEAD
 err_get_task_mm_failed:
-=======
-err_mmget:
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 err_page_already_freed:
 	mutex_unlock(&alloc->mutex);
 err_get_alloc_mutex_failed:
@@ -1079,11 +987,7 @@ binder_shrink_scan(struct shrinker *shrink, struct shrink_control *sc)
 	return ret;
 }
 
-<<<<<<< HEAD
 struct shrinker binder_shrinker = {
-=======
-static struct shrinker binder_shrinker = {
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	.count_objects = binder_shrink_count,
 	.scan_objects = binder_shrink_scan,
 	.seeks = DEFAULT_SEEKS,
@@ -1098,10 +1002,7 @@ static struct shrinker binder_shrinker = {
  */
 void binder_alloc_init(struct binder_alloc *alloc)
 {
-<<<<<<< HEAD
 	alloc->tsk = current->group_leader;
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	alloc->pid = current->group_leader->pid;
 	mutex_init(&alloc->mutex);
 	INIT_LIST_HEAD(&alloc->buffers);

@@ -2049,16 +2049,7 @@ retry_open:
 	}
 
 	if (tty) {
-<<<<<<< HEAD
 		tty_lock(tty);
-=======
-		retval = tty_lock_interruptible(tty);
-		if (retval) {
-			if (retval == -EINTR)
-				retval = -ERESTARTSYS;
-			goto err_unref;
-		}
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		retval = tty_reopen(tty);
 		if (retval < 0) {
 			tty_unlock(tty);
@@ -2133,10 +2124,6 @@ retry_open:
 	return 0;
 err_unlock:
 	mutex_unlock(&tty_mutex);
-<<<<<<< HEAD
-=======
-err_unref:
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/* after locks to avoid deadlock */
 	if (!IS_ERR_OR_NULL(driver))
 		tty_driver_kref_put(driver);

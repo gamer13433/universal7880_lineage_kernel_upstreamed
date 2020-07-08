@@ -84,20 +84,6 @@ static const struct dmi_system_id pci_crs_quirks[] __initconst = {
 			DMI_MATCH(DMI_BIOS_VENDOR, "Phoenix Technologies, LTD"),
 		},
 	},
-<<<<<<< HEAD
-=======
-	/* https://bugs.launchpad.net/ubuntu/+source/alsa-driver/+bug/931368 */
-	/* https://bugs.launchpad.net/ubuntu/+source/alsa-driver/+bug/1033299 */
-	{
-		.callback = set_use_crs,
-		.ident = "Foxconn K8M890-8237A",
-		.matches = {
-			DMI_MATCH(DMI_BOARD_VENDOR, "Foxconn"),
-			DMI_MATCH(DMI_BOARD_NAME, "K8M890-8237A"),
-			DMI_MATCH(DMI_BIOS_VENDOR, "Phoenix Technologies, LTD"),
-		},
-	},
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	/* Now for the blacklist.. */
 
@@ -138,15 +124,8 @@ void __init pci_acpi_crs_quirks(void)
 {
 	int year;
 
-<<<<<<< HEAD
 	if (dmi_get_date(DMI_BIOS_DATE, &year, NULL, NULL) && year < 2008)
 		pci_use_crs = false;
-=======
-	if (dmi_get_date(DMI_BIOS_DATE, &year, NULL, NULL) && year < 2008) {
-		if (iomem_resource.end <= 0xffffffff)
-			pci_use_crs = false;
-	}
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	dmi_check_system(pci_crs_quirks);
 

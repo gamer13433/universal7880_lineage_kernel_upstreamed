@@ -80,10 +80,7 @@ if INET
 source "net/ipv4/Kconfig"
 source "net/ipv6/Kconfig"
 source "net/netlabel/Kconfig"
-<<<<<<< HEAD
 source "net/mptcp/Kconfig"
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 endif # if INET
 
@@ -246,10 +243,7 @@ source "net/vmw_vsock/Kconfig"
 source "net/netlink/Kconfig"
 source "net/mpls/Kconfig"
 source "net/hsr/Kconfig"
-<<<<<<< HEAD
 source "net/ncm/Kconfig"
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 config RPS
 	boolean "RPS"

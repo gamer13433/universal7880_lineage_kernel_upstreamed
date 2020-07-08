@@ -17,10 +17,6 @@
 
 #include <linux/types.h>
 
-<<<<<<< HEAD
-=======
-#include <linux/l2tp.h>
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /* Structure used to connect() the socket to a particular tunnel UDP
  * socket over IPv4.
@@ -93,7 +89,6 @@ enum {
 	PPPOL2TP_SO_REORDERTO	= 5,
 };
 
-<<<<<<< HEAD
 /* Debug message categories for the DEBUG socket option */
 enum {
 	PPPOL2TP_MSG_DEBUG	= (1 << 0),	/* verbose debug (if
@@ -102,14 +97,6 @@ enum {
 						 * interface */
 	PPPOL2TP_MSG_SEQ	= (1 << 2),	/* sequence numbers */
 	PPPOL2TP_MSG_DATA	= (1 << 3),	/* data packets */
-=======
-/* Debug message categories for the DEBUG socket option (deprecated) */
-enum {
-	PPPOL2TP_MSG_DEBUG	= L2TP_MSG_DEBUG,
-	PPPOL2TP_MSG_CONTROL	= L2TP_MSG_CONTROL,
-	PPPOL2TP_MSG_SEQ	= L2TP_MSG_SEQ,
-	PPPOL2TP_MSG_DATA	= L2TP_MSG_DATA,
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 

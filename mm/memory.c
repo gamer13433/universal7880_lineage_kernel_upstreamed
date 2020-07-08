@@ -49,10 +49,7 @@
 #include <linux/rmap.h>
 #include <linux/export.h>
 #include <linux/delayacct.h>
-<<<<<<< HEAD
 #include <linux/delay.h>
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #include <linux/init.h>
 #include <linux/writeback.h>
 #include <linux/memcontrol.h>
@@ -788,49 +785,6 @@ out:
 	return pfn_to_page(pfn);
 }
 
-<<<<<<< HEAD
-=======
-#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-struct page *vm_normal_page_pmd(struct vm_area_struct *vma, unsigned long addr,
-				pmd_t pmd)
-{
-	unsigned long pfn = pmd_pfn(pmd);
-
-	/*
-	 * There is no pmd_special() but there may be special pmds, e.g.
-	 * in a direct-access (dax) mapping, so let's just replicate the
-	 * !HAVE_PTE_SPECIAL case from vm_normal_page() here.
-	 */
-	if (unlikely(vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP))) {
-		if (vma->vm_flags & VM_MIXEDMAP) {
-			if (!pfn_valid(pfn))
-				return NULL;
-			goto out;
-		} else {
-			unsigned long off;
-			off = (addr - vma->vm_start) >> PAGE_SHIFT;
-			if (pfn == vma->vm_pgoff + off)
-				return NULL;
-			if (!is_cow_mapping(vma->vm_flags))
-				return NULL;
-		}
-	}
-
-	if (is_zero_pfn(pfn))
-		return NULL;
-	if (unlikely(pfn > highest_memmap_pfn))
-		return NULL;
-
-	/*
-	 * NOTE! We still have PageReserved() pages in the page tables.
-	 * eg. VDSO mappings can cause them to exist.
-	 */
-out:
-	return pfn_to_page(pfn);
-}
-#endif
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /*
  * copy one vm_area from one task to the other. Assumes the page tables
  * already present in the new task to be cleared in the whole range
@@ -2458,7 +2412,6 @@ static int do_swap_page(struct mm_struct *mm, struct vm_area_struct *vma,
 	entry = pte_to_swp_entry(orig_pte);
 	if (unlikely(non_swap_entry(entry))) {
 		if (is_migration_entry(entry)) {
-<<<<<<< HEAD
 #ifdef CONFIG_DMA_CMA
 			/*
 			 * FIXME: mszyprow: cruel, brute-force method for
@@ -2469,8 +2422,6 @@ static int do_swap_page(struct mm_struct *mm, struct vm_area_struct *vma,
 			 */
 			mdelay(10);
 #endif
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			migration_entry_wait(mm, pmd, address);
 		} else if (is_hwpoison_entry(entry)) {
 			ret = VM_FAULT_HWPOISON;
@@ -2782,11 +2733,7 @@ void do_set_pte(struct vm_area_struct *vma, unsigned long address,
 }
 
 static unsigned long fault_around_bytes __read_mostly =
-<<<<<<< HEAD
 	rounddown_pow_of_two(4096);
-=======
-	rounddown_pow_of_two(65536);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #ifdef CONFIG_DEBUG_FS
 static int fault_around_bytes_get(void *data, u64 *val)
@@ -3212,11 +3159,7 @@ out:
  * The mmap_sem may have been released depending on flags and our
  * return value.  See filemap_fault() and __lock_page_or_retry().
  */
-<<<<<<< HEAD
 int handle_pte_fault(struct mm_struct *mm,
-=======
-static int handle_pte_fault(struct mm_struct *mm,
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		     struct vm_area_struct *vma, unsigned long address,
 		     pte_t *pte, pmd_t *pmd, unsigned int flags)
 {
@@ -3229,10 +3172,7 @@ static int handle_pte_fault(struct mm_struct *mm,
 			if (vma->vm_ops)
 				return do_linear_fault(mm, vma, address,
 						pte, pmd, flags, entry);
-<<<<<<< HEAD
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			return do_anonymous_page(mm, vma, address,
 						 pte, pmd, flags);
 		}

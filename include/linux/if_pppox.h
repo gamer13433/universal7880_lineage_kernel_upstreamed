@@ -56,14 +56,9 @@ struct pppopns_opt {
 	__u16		remote;
 	__u32		recv_sequence;
 	__u32		xmit_sequence;
-<<<<<<< HEAD
 	void		(*data_ready)(struct sock *sk_raw, int length);
 	int		(*backlog_rcv)(struct sock *sk_raw, struct sk_buff *skb);
 	int 		ppp_flags;
-=======
-	void		(*data_ready)(struct sock *sk_raw);
-	int		(*backlog_rcv)(struct sock *sk_raw, struct sk_buff *skb);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 #include <net/sock.h>
@@ -79,11 +74,8 @@ struct pppox_sock {
 		struct pppolac_opt lac;
 		struct pppopns_opt pns;
 	} proto;
-<<<<<<< HEAD
 	struct timer_list recv_queue_timer;
 	spinlock_t recv_queue_lock;
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	__be16			num;
 };
 #define pppoe_dev	proto.pppoe.dev
@@ -114,12 +106,6 @@ extern int register_pppox_proto(int proto_num, const struct pppox_proto *pp);
 extern void unregister_pppox_proto(int proto_num);
 extern void pppox_unbind_sock(struct sock *sk);/* delete ppp-channel binding */
 extern int pppox_ioctl(struct socket *sock, unsigned int cmd, unsigned long arg);
-<<<<<<< HEAD
-=======
-extern int pppox_compat_ioctl(struct socket *sock, unsigned int cmd, unsigned long arg);
-
-#define PPPOEIOCSFWD32    _IOW(0xB1 ,0, compat_size_t)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /* PPPoX socket states */
 enum {

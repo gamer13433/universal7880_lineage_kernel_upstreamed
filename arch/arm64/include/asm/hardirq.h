@@ -20,7 +20,6 @@
 #include <linux/threads.h>
 #include <asm/irq.h>
 
-<<<<<<< HEAD
 #define NR_IPI	7
 
 typedef struct {
@@ -28,13 +27,6 @@ typedef struct {
 #ifdef CONFIG_SMP
 	unsigned int ipi_irqs[NR_IPI];
 #endif
-=======
-#define NR_IPI	6
-
-typedef struct {
-	unsigned int __softirq_pending;
-	unsigned int ipi_irqs[NR_IPI];
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 } ____cacheline_aligned irq_cpustat_t;
 
 #include <linux/irq_cpustat.h>	/* Standard mappings for irq_cpustat_t above */
@@ -42,15 +34,10 @@ typedef struct {
 #define __inc_irq_stat(cpu, member)	__IRQ_STAT(cpu, member)++
 #define __get_irq_stat(cpu, member)	__IRQ_STAT(cpu, member)
 
-<<<<<<< HEAD
 #ifdef CONFIG_SMP
 u64 smp_irq_stat_cpu(unsigned int cpu);
 #define arch_irq_stat_cpu	smp_irq_stat_cpu
 #endif
-=======
-u64 smp_irq_stat_cpu(unsigned int cpu);
-#define arch_irq_stat_cpu	smp_irq_stat_cpu
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #define __ARCH_IRQ_EXIT_IRQS_DISABLED	1
 

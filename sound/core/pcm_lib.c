@@ -363,11 +363,7 @@ static int snd_pcm_update_hw_ptr0(struct snd_pcm_substream *substream,
 		if (delta > new_hw_ptr) {
 			/* check for double acknowledged interrupts */
 			hdelta = curr_jiffies - runtime->hw_ptr_jiffies;
-<<<<<<< HEAD
 			if (hdelta > runtime->hw_ptr_buffer_jiffies/2 + 1) {
-=======
-			if (hdelta > runtime->hw_ptr_buffer_jiffies/2) {
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 				hw_base += runtime->buffer_size;
 				if (hw_base >= runtime->boundary) {
 					hw_base = 0;
@@ -505,15 +501,8 @@ static int snd_pcm_update_hw_ptr0(struct snd_pcm_substream *substream,
 	}
 
  no_delta_check:
-<<<<<<< HEAD
 	if (runtime->status->hw_ptr == new_hw_ptr)
 		return 0;
-=======
-	if (runtime->status->hw_ptr == new_hw_ptr) {
-		runtime->hw_ptr_jiffies = curr_jiffies;
-		return 0;
-	}
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK &&
 	    runtime->silence_size > 0)
@@ -1857,7 +1846,6 @@ void snd_pcm_period_elapsed(struct snd_pcm_substream *substream)
 	struct snd_pcm_runtime *runtime;
 	unsigned long flags;
 
-<<<<<<< HEAD
 	if (PCM_RUNTIME_CHECK(substream))
 		return;
 	runtime = substream->runtime;
@@ -1866,16 +1854,6 @@ void snd_pcm_period_elapsed(struct snd_pcm_substream *substream)
 		runtime->transfer_ack_begin(substream);
 
 	snd_pcm_stream_lock_irqsave(substream, flags);
-=======
-	if (snd_BUG_ON(!substream))
-		return;
-
-	snd_pcm_stream_lock_irqsave(substream, flags);
-	if (PCM_RUNTIME_CHECK(substream))
-		goto _unlock;
-	runtime = substream->runtime;
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (!snd_pcm_running(substream) ||
 	    snd_pcm_update_hw_ptr0(substream, 1) < 0)
 		goto _end;
@@ -1883,14 +1861,9 @@ void snd_pcm_period_elapsed(struct snd_pcm_substream *substream)
 	if (substream->timer_running)
 		snd_timer_interrupt(substream->timer, 1);
  _end:
-<<<<<<< HEAD
 	if (runtime->transfer_ack_end)
 		runtime->transfer_ack_end(substream);
 	kill_fasync(&runtime->fasync, SIGIO, POLL_IN);
-=======
-	kill_fasync(&runtime->fasync, SIGIO, POLL_IN);
- _unlock:
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	snd_pcm_stream_unlock_irqrestore(substream, flags);
 }
 

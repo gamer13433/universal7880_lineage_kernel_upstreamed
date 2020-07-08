@@ -37,13 +37,10 @@
 #include "../base.h"
 #include "power.h"
 
-<<<<<<< HEAD
 #ifdef CONFIG_SEC_DEBUG
 #include <linux/sec_debug.h>
 #endif
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 typedef int (*pm_callback_t)(struct device *);
 
 /*
@@ -66,15 +63,12 @@ struct suspend_stats suspend_stats;
 static DEFINE_MUTEX(dpm_list_mtx);
 static pm_message_t pm_transition;
 
-<<<<<<< HEAD
 static void dpm_drv_timeout(unsigned long data);
 struct dpm_drv_wd_data {
 	struct device *dev;
 	struct task_struct *tsk;
 };
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static int async_error;
 
 static char *pm_verb(int event)
@@ -204,7 +198,6 @@ void device_pm_move_last(struct device *dev)
 	list_move_tail(&dev->power.entry, &dpm_list);
 }
 
-<<<<<<< HEAD
 /**
  * device_pm_move_first - Move device to first of the PM core's list of devices.
  * @dev: Device to move in dpm_list.
@@ -216,8 +209,6 @@ void device_pm_move_first(struct device *dev)
 	list_move(&dev->power.entry, &dpm_list);
 }
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static ktime_t initcall_debug_start(struct device *dev)
 {
 	ktime_t calltime = ktime_set(0, 0);
@@ -416,13 +407,9 @@ static int dpm_run_callback(pm_callback_t cb, struct device *dev,
 
 	pm_dev_dbg(dev, state, info);
 	trace_device_pm_callback_start(dev, info, state.event);
-<<<<<<< HEAD
 	exynos_ss_suspend(cb, dev, ESS_FLAG_IN);
 	error = cb(dev);
 	exynos_ss_suspend(cb, dev, ESS_FLAG_OUT);
-=======
-	error = cb(dev);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	trace_device_pm_callback_end(dev, error);
 	suspend_report_result(cb, error);
 
@@ -454,12 +441,9 @@ static void dpm_watchdog_handler(unsigned long data)
 	struct dpm_watchdog *wd = (void *)data;
 
 	dev_emerg(wd->dev, "**** DPM device timeout ****\n");
-<<<<<<< HEAD
 #ifdef CONFIG_SEC_DEBUG_EXTRA_INFO
 	sec_debug_set_extra_info_dpm_timeout(dev_name(wd->dev));
 #endif	
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	show_stack(wd->tsk, NULL);
 	panic("%s %s: unrecoverable failure\n",
 		dev_driver_string(wd->dev), dev_name(wd->dev));
@@ -710,13 +694,10 @@ void dpm_resume_early(pm_message_t state)
 	struct device *dev;
 	ktime_t starttime = ktime_get();
 
-<<<<<<< HEAD
 #ifdef CONFIG_BOEFFLA_WL_BLOCKER
 	pm_print_active_wakeup_sources();
 #endif
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	trace_suspend_resume(TPS("dpm_resume_early"), state.event, true);
 	mutex_lock(&dpm_list_mtx);
 	pm_transition = state;
@@ -878,7 +859,6 @@ static void async_resume(void *data, async_cookie_t cookie)
 }
 
 /**
-<<<<<<< HEAD
  *	dpm_drv_timeout - Driver suspend / resume watchdog handler
  *	@data: struct device which timed out
  *
@@ -907,8 +887,6 @@ static void dpm_drv_timeout(unsigned long data)
 }
 
 /**
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
  * dpm_resume - Execute "resume" callbacks for non-sysdev devices.
  * @state: PM transition of the system being carried out.
  *
@@ -1418,11 +1396,8 @@ static int __device_suspend(struct device *dev, pm_message_t state, bool async)
 	pm_callback_t callback = NULL;
 	char *info = NULL;
 	int error = 0;
-<<<<<<< HEAD
 	struct timer_list timer;
 	struct dpm_drv_wd_data data;
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	char suspend_abort[MAX_SUSPEND_ABORT_LEN];
 	DECLARE_DPM_WATCHDOG_ON_STACK(wd);
 
@@ -1446,17 +1421,12 @@ static int __device_suspend(struct device *dev, pm_message_t state, bool async)
 		pm_get_active_wakeup_sources(suspend_abort,
 			MAX_SUSPEND_ABORT_LEN);
 		log_suspend_abort_reason(suspend_abort);
-<<<<<<< HEAD
-=======
-		dev->power.direct_complete = false;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		async_error = -EBUSY;
 		goto Complete;
 	}
 
 	if (dev->power.syscore)
 		goto Complete;
-<<<<<<< HEAD
 	
 	data.dev = dev;
 	data.tsk = get_current();
@@ -1465,12 +1435,6 @@ static int __device_suspend(struct device *dev, pm_message_t state, bool async)
 	timer.function = dpm_drv_timeout;
 	timer.data = (unsigned long)&data;
 	add_timer(&timer);
-=======
-
-	/* Avoid direct_complete to let wakeup_path propagate. */
-	if (device_may_wakeup(dev) || dev->power.wakeup_path)
-		dev->power.direct_complete = false;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if (dev->power.direct_complete) {
 		if (pm_runtime_status_suspended(dev)) {
@@ -1551,12 +1515,9 @@ static int __device_suspend(struct device *dev, pm_message_t state, bool async)
 	device_unlock(dev);
 	dpm_watchdog_clear(&wd);
 
-<<<<<<< HEAD
 	del_timer_sync(&timer);
 	destroy_timer_on_stack(&timer);
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
  Complete:
 	complete_all(&dev->power.completion);
 	if (error)

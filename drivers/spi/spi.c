@@ -764,11 +764,6 @@ static int spi_map_msg(struct spi_master *master, struct spi_message *msg)
 		if (max_tx || max_rx) {
 			list_for_each_entry(xfer, &msg->transfers,
 					    transfer_list) {
-<<<<<<< HEAD
-=======
-				if (!xfer->len)
-					continue;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 				if (!xfer->tx_buf)
 					xfer->tx_buf = master->dummy_tx;
 				if (!xfer->rx_buf)
@@ -1064,12 +1059,9 @@ void spi_finalize_current_message(struct spi_master *master)
 
 	spin_lock_irqsave(&master->queue_lock, flags);
 	mesg = master->cur_msg;
-<<<<<<< HEAD
 	master->cur_msg = NULL;
 
 	queue_kthread_work(&master->kworker, &master->pump_messages);
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	spin_unlock_irqrestore(&master->queue_lock, flags);
 
 	spi_unmap_msg(master, mesg);
@@ -1082,19 +1074,9 @@ void spi_finalize_current_message(struct spi_master *master)
 		}
 	}
 
-<<<<<<< HEAD
 	trace_spi_message_done(mesg);
 
 	master->cur_msg_prepared = false;
-=======
-	spin_lock_irqsave(&master->queue_lock, flags);
-	master->cur_msg = NULL;
-	master->cur_msg_prepared = false;
-	queue_kthread_work(&master->kworker, &master->pump_messages);
-	spin_unlock_irqrestore(&master->queue_lock, flags);
-
-	trace_spi_message_done(mesg);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	mesg->state = NULL;
 	if (mesg->complete)
@@ -1708,29 +1690,18 @@ static int __unregister(struct device *dev, void *null)
  */
 void spi_unregister_master(struct spi_master *master)
 {
-<<<<<<< HEAD
 	int dummy;
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (master->queued) {
 		if (spi_destroy_queue(master))
 			dev_err(&master->dev, "queue remove failed\n");
 	}
 
-<<<<<<< HEAD
-=======
-	device_for_each_child(&master->dev, NULL, __unregister);
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	mutex_lock(&board_lock);
 	list_del(&master->list);
 	mutex_unlock(&board_lock);
 
-<<<<<<< HEAD
 	dummy = device_for_each_child(&master->dev, NULL, __unregister);
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	device_unregister(&master->dev);
 }
 EXPORT_SYMBOL_GPL(spi_unregister_master);

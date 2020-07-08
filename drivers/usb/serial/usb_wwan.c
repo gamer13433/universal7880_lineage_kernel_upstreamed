@@ -271,13 +271,6 @@ static void usb_wwan_indat_callback(struct urb *urb)
 	if (status) {
 		dev_dbg(dev, "%s: nonzero status: %d on endpoint %02x.\n",
 			__func__, status, endpoint);
-<<<<<<< HEAD
-=======
-
-		/* don't resubmit on fatal errors */
-		if (status == -ESHUTDOWN || status == -ENOENT)
-			return;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	} else {
 		if (urb->actual_length) {
 			tty_insert_flip_string(&port->port, data,

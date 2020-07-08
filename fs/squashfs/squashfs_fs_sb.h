@@ -49,11 +49,7 @@ struct squashfs_cache_entry {
 	int			num_waiters;
 	wait_queue_head_t	wait_queue;
 	struct squashfs_cache	*cache;
-<<<<<<< HEAD
 	void			**data;
-=======
-	struct page		**page;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	struct squashfs_page_actor	*actor;
 };
 

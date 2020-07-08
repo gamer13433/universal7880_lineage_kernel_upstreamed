@@ -306,16 +306,9 @@ static void sg_complete(struct urb *urb)
 		 */
 		spin_unlock(&io->lock);
 		for (i = 0, found = 0; i < io->entries; i++) {
-<<<<<<< HEAD
 			if (!io->urbs[i] || !io->urbs[i]->dev)
 				continue;
 			if (found) {
-=======
-			if (!io->urbs[i])
-				continue;
-			if (found) {
-				usb_block_urb(io->urbs[i]);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 				retval = usb_unlink_urb(io->urbs[i]);
 				if (retval != -EINPROGRESS &&
 				    retval != -ENODEV &&
@@ -526,19 +519,12 @@ void usb_sg_wait(struct usb_sg_request *io)
 		int retval;
 
 		io->urbs[i]->dev = io->dev;
-<<<<<<< HEAD
 		retval = usb_submit_urb(io->urbs[i], GFP_ATOMIC);
 
 		/* after we submit, let completions or cancellations fire;
 		 * we handshake using io->status.
 		 */
 		spin_unlock_irq(&io->lock);
-=======
-		spin_unlock_irq(&io->lock);
-
-		retval = usb_submit_urb(io->urbs[i], GFP_NOIO);
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		switch (retval) {
 			/* maybe we retrying will recover */
 		case -ENXIO:	/* hc didn't queue this one */
@@ -596,7 +582,6 @@ EXPORT_SYMBOL_GPL(usb_sg_wait);
 void usb_sg_cancel(struct usb_sg_request *io)
 {
 	unsigned long flags;
-<<<<<<< HEAD
 
 	spin_lock_irqsave(&io->lock, flags);
 
@@ -621,36 +606,6 @@ void usb_sg_cancel(struct usb_sg_request *io)
 		}
 		spin_lock(&io->lock);
 	}
-=======
-	int i, retval;
-
-	spin_lock_irqsave(&io->lock, flags);
-	if (io->status || io->count == 0) {
-		spin_unlock_irqrestore(&io->lock, flags);
-		return;
-	}
-	/* shut everything down */
-	io->status = -ECONNRESET;
-	io->count++;		/* Keep the request alive until we're done */
-	spin_unlock_irqrestore(&io->lock, flags);
-
-	for (i = io->entries - 1; i >= 0; --i) {
-		usb_block_urb(io->urbs[i]);
-
-		retval = usb_unlink_urb(io->urbs[i]);
-		if (retval != -EINPROGRESS
-		    && retval != -ENODEV
-		    && retval != -EBUSY
-		    && retval != -EIDRM)
-			dev_warn(&io->dev->dev, "%s, unlink --> %d\n",
-				 __func__, retval);
-	}
-
-	spin_lock_irqsave(&io->lock, flags);
-	io->count--;
-	if (!io->count)
-		complete(&io->complete);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	spin_unlock_irqrestore(&io->lock, flags);
 }
 EXPORT_SYMBOL_GPL(usb_sg_cancel);
@@ -1122,19 +1077,11 @@ void usb_disable_endpoint(struct usb_device *dev, unsigned int epaddr,
 
 	if (usb_endpoint_out(epaddr)) {
 		ep = dev->ep_out[epnum];
-<<<<<<< HEAD
 		if (reset_hardware)
 			dev->ep_out[epnum] = NULL;
 	} else {
 		ep = dev->ep_in[epnum];
 		if (reset_hardware)
-=======
-		if (reset_hardware && epnum != 0)
-			dev->ep_out[epnum] = NULL;
-	} else {
-		ep = dev->ep_in[epnum];
-		if (reset_hardware && epnum != 0)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			dev->ep_in[epnum] = NULL;
 	}
 	if (ep) {

@@ -8,22 +8,16 @@ menu "File systems"
 config DCACHE_WORD_ACCESS
        bool
 
-<<<<<<< HEAD
 config INTERRUPTIBLE_SYNC
 	bool "Support interruptible sync for Samsung Mobile Device"
 	default y
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 if BLOCK
 
 source "fs/ext2/Kconfig"
 source "fs/ext3/Kconfig"
 source "fs/ext4/Kconfig"
-<<<<<<< HEAD
 source "fs/sdcardfs/Kconfig"
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 config FS_XIP
 # execute in place
@@ -72,11 +66,6 @@ config FILE_LOCKING
           for filesystems like NFS and for the flock() system
           call. Disabling this option saves about 11k.
 
-<<<<<<< HEAD
-=======
-source "fs/crypto/Kconfig"
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 source "fs/notify/Kconfig"
 
 source "fs/quota/Kconfig"
@@ -105,11 +94,8 @@ if BLOCK
 menu "DOS/FAT/NT Filesystems"
 
 source "fs/fat/Kconfig"
-<<<<<<< HEAD
 source "fs/sdfat/Kconfig"
 source "fs/exfat/Kconfig"
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 source "fs/ntfs/Kconfig"
 
 endmenu
@@ -207,10 +193,6 @@ if MISC_FILESYSTEMS
 source "fs/adfs/Kconfig"
 source "fs/affs/Kconfig"
 source "fs/ecryptfs/Kconfig"
-<<<<<<< HEAD
-=======
-source "fs/sdcardfs/Kconfig"
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 source "fs/hfs/Kconfig"
 source "fs/hfsplus/Kconfig"
 source "fs/befs/Kconfig"

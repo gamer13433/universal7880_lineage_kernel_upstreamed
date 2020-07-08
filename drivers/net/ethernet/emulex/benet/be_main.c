@@ -3601,17 +3601,8 @@ int be_update_queues(struct be_adapter *adapter)
 	struct net_device *netdev = adapter->netdev;
 	int status;
 
-<<<<<<< HEAD
 	if (netif_running(netdev))
 		be_close(netdev);
-=======
-	if (netif_running(netdev)) {
-		/* device cannot transmit now, avoid dev_watchdog timeouts */
-		netif_carrier_off(netdev);
-
-		be_close(netdev);
-	}
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	be_cancel_worker(adapter);
 

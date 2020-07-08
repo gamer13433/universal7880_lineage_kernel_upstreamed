@@ -58,7 +58,6 @@ obj-$(CONFIG_ECHO)		+= echo/
 obj-$(CONFIG_VEXPRESS_SYSCFG)	+= vexpress-syscfg.o
 obj-$(CONFIG_CXL_BASE)		+= cxl/
 obj-$(CONFIG_UID_SYS_STATS) += uid_sys_stats.o
-<<<<<<< HEAD
 obj-$(CONFIG_MCU_IPC)		+= mcu_ipc/
 obj-$(CONFIG_UART_SEL)	+= uart_sel/
 obj-$(CONFIG_SEC_SIPC_MODEM_IF)	+= modem_v1/
@@ -74,6 +73,3 @@ obj-$(CONFIG_DM_VERITY)		+= dmverity_query.o
 
 # Secure OS Mobicore Interface
 obj-$(CONFIG_TRUSTONIC_TEE)	+= tzic64.o
-=======
-obj-$(CONFIG_MEMORY_STATE_TIME) += memory_state_time.o
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012

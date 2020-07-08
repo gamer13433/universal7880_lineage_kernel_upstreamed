@@ -212,7 +212,6 @@ config BATTERY_MAX17042
 	  with MAX17042. This driver also supports max17047/50 chips which are
 	  improved version of max17042.
 
-<<<<<<< HEAD
 config BATTERY_ANDROID
         tristate "Battery driver for Android"
         help
@@ -224,8 +223,6 @@ config BATTERY_ANDROID
           etc.
 
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 config BATTERY_Z2
 	tristate "Z2 battery driver"
 	depends on I2C && MACH_ZIPIT2
@@ -382,7 +379,6 @@ config CHARGER_BQ24735
 	help
 	  Say Y to enable support for the TI BQ24735 battery charger.
 
-<<<<<<< HEAD
 config SEC_CHARGER_S2MU003
 	tristate "Samsung S2MU003 charger driver"
 	depends on MFD_S2MU003 && I2C
@@ -419,8 +415,6 @@ config FUELGAUGE_MAX17058_POWER
 	 Say Y to include support
 	 for MAXIM MAX17058 fuel gauge driver.
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 config CHARGER_SMB347
 	tristate "Summit Microelectronics SMB347 Battery Charger"
 	depends on I2C

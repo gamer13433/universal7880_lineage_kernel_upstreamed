@@ -391,10 +391,7 @@ struct page *read_swap_cache_async(swp_entry_t entry, gfp_t gfp_mask,
 	return found_page;
 }
 
-<<<<<<< HEAD
 #ifdef CONFIG_SWAP_ENABLE_READAHEAD
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static unsigned long swapin_nr_pages(unsigned long offset)
 {
 	static unsigned long prev_offset;
@@ -438,10 +435,7 @@ static unsigned long swapin_nr_pages(unsigned long offset)
 
 	return pages;
 }
-<<<<<<< HEAD
 #endif
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /**
  * swapin_readahead - swap in pages in hope we need them soon
@@ -465,10 +459,7 @@ static unsigned long swapin_nr_pages(unsigned long offset)
 struct page *swapin_readahead(swp_entry_t entry, gfp_t gfp_mask,
 			struct vm_area_struct *vma, unsigned long addr)
 {
-<<<<<<< HEAD
 #ifdef CONFIG_SWAP_ENABLE_READAHEAD
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	struct page *page;
 	unsigned long entry_offset = swp_offset(entry);
 	unsigned long offset = entry_offset;
@@ -501,9 +492,6 @@ struct page *swapin_readahead(swp_entry_t entry, gfp_t gfp_mask,
 
 	lru_add_drain();	/* Push any new pages onto the LRU now */
 skip:
-<<<<<<< HEAD
 #endif
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return read_swap_cache_async(entry, gfp_mask, vma, addr);
 }

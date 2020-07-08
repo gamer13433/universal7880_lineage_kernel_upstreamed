@@ -1521,14 +1521,9 @@ out:
 	return err;
 }
 
-<<<<<<< HEAD
 static void lo_release(struct gendisk *disk, fmode_t mode)
 {
 	struct loop_device *lo = disk->private_data;
-=======
-static void __lo_release(struct loop_device *lo)
-{
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	int err;
 
 	mutex_lock(&lo->lo_ctl_mutex);
@@ -1556,16 +1551,6 @@ out:
 	mutex_unlock(&lo->lo_ctl_mutex);
 }
 
-<<<<<<< HEAD
-=======
-static void lo_release(struct gendisk *disk, fmode_t mode)
-{
-	mutex_lock(&loop_index_mutex);
-	__lo_release(disk->private_data);
-	mutex_unlock(&loop_index_mutex);
-}
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static const struct block_device_operations lo_fops = {
 	.owner =	THIS_MODULE,
 	.open =		lo_open,

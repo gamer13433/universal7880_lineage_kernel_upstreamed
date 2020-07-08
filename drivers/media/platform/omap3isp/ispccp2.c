@@ -1025,10 +1025,6 @@ int omap3isp_ccp2_register_entities(struct isp_ccp2_device *ccp2,
 	int ret;
 
 	/* Register the subdev and video nodes. */
-<<<<<<< HEAD
-=======
-	ccp2->subdev.dev = vdev->mdev->dev;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	ret = v4l2_device_register_subdev(vdev, &ccp2->subdev);
 	if (ret < 0)
 		goto error;

@@ -38,7 +38,6 @@ config DEVFREQ_GOV_SIMPLE_ONDEMAND
 	  values that imply the usage rate. A device may provide tuned
 	  values to the governor with data field at devfreq_add_device().
 
-<<<<<<< HEAD
 config DEVFREQ_GOV_SIMPLE_USAGE
 	tristate "Simple Usage"
 	help
@@ -49,8 +48,6 @@ config DEVFREQ_GOV_SIMPLE_EXYNOS
 	help
 	  Chooses frequency based on the threshold of target device.
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 config DEVFREQ_GOV_PERFORMANCE
 	tristate "Performance"
 	help
@@ -78,7 +75,6 @@ config DEVFREQ_GOV_USERSPACE
 
 comment "DEVFREQ Drivers"
 
-<<<<<<< HEAD
 config ARM_EXYNOS_DEVFREQ
 	bool "ARM Exynos Memory Bus DEVFREQ Common driver"
 	depends on ARCH_EXYNOS
@@ -91,8 +87,6 @@ config ARM_EXYNOS_DEVFREQ_DEBUG
 	bool "ARM Exynos DEVFREQ sysfs for Debug"
 	depends on ARM_EXYNOS_DEVFREQ
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 config ARM_EXYNOS4_BUS_DEVFREQ
 	bool "ARM Exynos4210/4212/4412 Memory Bus DEVFREQ Driver"
 	depends on (CPU_EXYNOS4210 || SOC_EXYNOS4212 || SOC_EXYNOS4412) && !ARCH_MULTIPLATFORM
@@ -115,7 +109,6 @@ config ARM_EXYNOS5_BUS_DEVFREQ
 	  It reads PPMU counters of memory controllers and adjusts the
 	  operating frequencies and voltages with OPP support.
 
-<<<<<<< HEAD
 config ARM_EXYNOS8890_BUS_DEVFREQ
 	bool "ARM Exynos8890 Memory Bus DEVFREQ Driver"
 	default y
@@ -146,6 +139,4 @@ config ARM_EXYNOS7880_BUS_DEVFREQ
 	help
 	  This adds the DEVFREQ driver for Exynos7880 memory and int.
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 endif # PM_DEVFREQ

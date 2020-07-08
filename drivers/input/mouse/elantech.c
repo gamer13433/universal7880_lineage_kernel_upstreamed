@@ -1386,18 +1386,10 @@ static bool elantech_is_signature_valid(const unsigned char *param)
 		return true;
 
 	/*
-<<<<<<< HEAD
 	 * Some models have a revision higher then 20. Meaning param[2] may
 	 * be 10 or 20, skip the rates check for these.
 	 */
 	if (param[0] == 0x46 && (param[1] & 0xef) == 0x0f && param[2] < 40)
-=======
-	 * Some hw_version >= 4 models have a revision higher then 20. Meaning
-	 * that param[2] may be 10 or 20, skip the rates check for these.
-	 */
-	if ((param[0] & 0x0f) >= 0x06 && (param[1] & 0xaf) == 0x0f &&
-	    param[2] < 40)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		return true;
 
 	for (i = 0; i < ARRAY_SIZE(rates); i++)
@@ -1520,16 +1512,6 @@ static const struct dmi_system_id elantech_dmi_force_crc_enabled[] = {
 		},
 	},
 	{
-<<<<<<< HEAD
-=======
-		/* Fujitsu LIFEBOOK E544  does not work with crc_enabled == 0 */
-		.matches = {
-			DMI_MATCH(DMI_SYS_VENDOR, "FUJITSU"),
-			DMI_MATCH(DMI_PRODUCT_NAME, "LIFEBOOK E544"),
-		},
-	},
-	{
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		/* Fujitsu LIFEBOOK E554  does not work with crc_enabled == 0 */
 		.matches = {
 			DMI_MATCH(DMI_SYS_VENDOR, "FUJITSU"),
@@ -1537,17 +1519,10 @@ static const struct dmi_system_id elantech_dmi_force_crc_enabled[] = {
 		},
 	},
 	{
-<<<<<<< HEAD
 		/* Fujitsu LIFEBOOK E544  does not work with crc_enabled == 0 */
 		.matches = {
 			DMI_MATCH(DMI_SYS_VENDOR, "FUJITSU"),
 			DMI_MATCH(DMI_PRODUCT_NAME, "LIFEBOOK E544"),
-=======
-		/* Fujitsu LIFEBOOK E556 does not work with crc_enabled == 0 */
-		.matches = {
-			DMI_MATCH(DMI_SYS_VENDOR, "FUJITSU"),
-			DMI_MATCH(DMI_PRODUCT_NAME, "LIFEBOOK E556"),
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		},
 	},
 #endif

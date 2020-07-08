@@ -5,8 +5,5 @@ comment "CAPI hardware drivers"
 
 source "drivers/isdn/hardware/avm/Kconfig"
 
-<<<<<<< HEAD
 source "drivers/isdn/hardware/eicon/Kconfig"
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012

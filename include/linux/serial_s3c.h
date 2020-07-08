@@ -234,10 +234,7 @@
 #ifndef __ASSEMBLY__
 
 #include <linux/serial_core.h>
-<<<<<<< HEAD
 struct uart_port;
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /* configuration structure for per-machine configurations for the
  * serial port
@@ -246,12 +243,9 @@ struct uart_port;
  * arch/arm/mach-s3c2410/ directory.
 */
 
-<<<<<<< HEAD
 typedef void (*s3c_wake_peer_t)(struct uart_port *port);
 extern s3c_wake_peer_t s3c2410_serial_wake_peer[CONFIG_SERIAL_SAMSUNG_UARTS];
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 struct s3c2410_uartcfg {
 	unsigned char	   hwport;	 /* hardware port number */
 	unsigned char	   unused;
@@ -264,11 +258,8 @@ struct s3c2410_uartcfg {
 	unsigned long	   ucon;	 /* value of ucon for port */
 	unsigned long	   ulcon;	 /* value of ulcon for port */
 	unsigned long	   ufcon;	 /* value of ufcon for port */
-<<<<<<< HEAD
 
 	s3c_wake_peer_t wake_peer[CONFIG_SERIAL_SAMSUNG_UARTS];
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 #endif /* __ASSEMBLY__ */

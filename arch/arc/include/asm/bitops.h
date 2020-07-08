@@ -103,15 +103,6 @@ static inline int test_and_set_bit(unsigned long nr, volatile unsigned long *m)
 	if (__builtin_constant_p(nr))
 		nr &= 0x1f;
 
-<<<<<<< HEAD
-=======
-	/*
-	 * Explicit full memory barrier needed before/after as
-	 * LLOCK/SCOND themselves don't provide any such semantics
-	 */
-	smp_mb();
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	__asm__ __volatile__(
 	"1:	llock   %0, [%2]	\n"
 	"	bset    %1, %0, %3	\n"
@@ -121,11 +112,6 @@ static inline int test_and_set_bit(unsigned long nr, volatile unsigned long *m)
 	: "r"(m), "ir"(nr)
 	: "cc");
 
-<<<<<<< HEAD
-=======
-	smp_mb();
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return (old & (1 << nr)) != 0;
 }
 
@@ -139,11 +125,6 @@ test_and_clear_bit(unsigned long nr, volatile unsigned long *m)
 	if (__builtin_constant_p(nr))
 		nr &= 0x1f;
 
-<<<<<<< HEAD
-=======
-	smp_mb();
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	__asm__ __volatile__(
 	"1:	llock   %0, [%2]	\n"
 	"	bclr    %1, %0, %3	\n"
@@ -153,11 +134,6 @@ test_and_clear_bit(unsigned long nr, volatile unsigned long *m)
 	: "r"(m), "ir"(nr)
 	: "cc");
 
-<<<<<<< HEAD
-=======
-	smp_mb();
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return (old & (1 << nr)) != 0;
 }
 
@@ -171,11 +147,6 @@ test_and_change_bit(unsigned long nr, volatile unsigned long *m)
 	if (__builtin_constant_p(nr))
 		nr &= 0x1f;
 
-<<<<<<< HEAD
-=======
-	smp_mb();
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	__asm__ __volatile__(
 	"1:	llock   %0, [%2]	\n"
 	"	bxor    %1, %0, %3	\n"
@@ -185,11 +156,6 @@ test_and_change_bit(unsigned long nr, volatile unsigned long *m)
 	: "r"(m), "ir"(nr)
 	: "cc");
 
-<<<<<<< HEAD
-=======
-	smp_mb();
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return (old & (1 << nr)) != 0;
 }
 
@@ -269,12 +235,6 @@ static inline int test_and_set_bit(unsigned long nr, volatile unsigned long *m)
 	if (__builtin_constant_p(nr))
 		nr &= 0x1f;
 
-<<<<<<< HEAD
-=======
-	/*
-	 * spin lock/unlock provide the needed smp_mb() before/after
-	 */
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	bitops_lock(flags);
 
 	old = *m;

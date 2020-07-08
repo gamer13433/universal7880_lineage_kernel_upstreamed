@@ -727,13 +727,6 @@ static int mts_usb_probe(struct usb_interface *intf,
 
 	}
 
-<<<<<<< HEAD
-=======
-	if (ep_in_current != &ep_in_set[2]) {
-		MTS_WARNING("couldn't find two input bulk endpoints. Bailing out.\n");
-		return -ENODEV;
-	}
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if ( ep_out == -1 ) {
 		MTS_WARNING( "couldn't find an output bulk endpoint. Bailing out.\n" );

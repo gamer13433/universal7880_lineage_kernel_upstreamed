@@ -721,13 +721,6 @@ static int rcar_pcie_enable_msi(struct rcar_pcie *pcie)
 
 	/* setup MSI data target */
 	msi->pages = __get_free_pages(GFP_KERNEL, 0);
-<<<<<<< HEAD
-=======
-	if (!msi->pages) {
-		err = -ENOMEM;
-		goto err;
-	}
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	base = virt_to_phys((void *)msi->pages);
 
 	rcar_pci_write_reg(pcie, base | MSIFE, PCIEMSIALR);

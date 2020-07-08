@@ -630,13 +630,6 @@ static struct cxgbi_sock *cxgbi_check_route(struct sockaddr *dst_addr)
 
 	if (ndev->flags & IFF_LOOPBACK) {
 		ndev = ip_dev_find(&init_net, daddr->sin_addr.s_addr);
-<<<<<<< HEAD
-=======
-		if (!ndev) {
-			err = -ENETUNREACH;
-			goto rel_neigh;
-		}
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		mtu = ndev->mtu;
 		pr_info("rt dev %s, loopback -> %s, mtu %u.\n",
 			n->dev->name, ndev->name, mtu);
@@ -691,10 +684,6 @@ static struct rt6_info *find_route_ipv6(const struct in6_addr *saddr,
 {
 	struct flowi6 fl;
 
-<<<<<<< HEAD
-=======
-	memset(&fl, 0, sizeof(fl));
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (saddr)
 		memcpy(&fl.saddr, saddr, sizeof(struct in6_addr));
 	if (daddr)
@@ -739,11 +728,7 @@ static struct cxgbi_sock *cxgbi_check_route6(struct sockaddr *dst_addr)
 	}
 	ndev = n->dev;
 
-<<<<<<< HEAD
 	if (ipv6_addr_is_multicast(&rt->rt6i_dst.addr)) {
-=======
-	if (ipv6_addr_is_multicast(&daddr6->sin6_addr)) {
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		pr_info("multi-cast route %pI6 port %u, dev %s.\n",
 			daddr6->sin6_addr.s6_addr,
 			ntohs(daddr6->sin6_port), ndev->name);

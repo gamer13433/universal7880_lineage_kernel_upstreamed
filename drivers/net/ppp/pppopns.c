@@ -37,11 +37,7 @@
 #include <asm/uaccess.h>
 
 #define GRE_HEADER_SIZE		8
-<<<<<<< HEAD
 #define SC_GRE_SEQ_CHK  0x00008000  
-=======
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #define PPTP_GRE_BITS		htons(0x2001)
 #define PPTP_GRE_BITS_MASK	htons(0xEF7F)
 #define PPTP_GRE_SEQ_BIT	htons(0x1000)
@@ -69,7 +65,6 @@ static inline struct meta *skb_meta(struct sk_buff *skb)
 	return (struct meta *)skb->cb;
 }
 
-<<<<<<< HEAD
 static void recv_queue_timer_callback(unsigned long data);
 static void traverse_receive_queue(struct sock *sk)
 {
@@ -126,8 +121,6 @@ static void recv_queue_timer_callback(unsigned long data)
   spin_unlock_irqrestore(&pppox_sk(sk)->recv_queue_lock, flags);
 }
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /******************************************************************************/
 
 static int pppopns_recv_core(struct sock *sk_raw, struct sk_buff *skb)
@@ -137,10 +130,7 @@ static int pppopns_recv_core(struct sock *sk_raw, struct sk_buff *skb)
 	struct meta *meta = skb_meta(skb);
 	__u32 now = jiffies;
 	struct header *hdr;
-<<<<<<< HEAD
     unsigned long flags;
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	/* Skip transport header */
 	skb_pull(skb, skb_transport_header(skb) - skb->data);
@@ -189,29 +179,21 @@ static int pppopns_recv_core(struct sock *sk_raw, struct sk_buff *skb)
 	if (hdr->bits & PPTP_GRE_SEQ_BIT) {
 		struct sk_buff *skb1;
 
-<<<<<<< HEAD
 		if (timer_pending(&pppox_sk(sk)->recv_queue_timer)) {
 			del_timer_sync(&pppox_sk(sk)->recv_queue_timer);
 		}
 
 		spin_lock_irqsave(&pppox_sk(sk)->recv_queue_lock, flags);
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		/* Insert the packet into receive queue in order. */
 		skb_set_owner_r(skb, sk);
 		skb_queue_walk(&sk->sk_receive_queue, skb1) {
 			struct meta *meta1 = skb_meta(skb1);
 			__s32 order = meta->sequence - meta1->sequence;
-<<<<<<< HEAD
 			if (order == 0) {
 				spin_unlock_irqrestore(&pppox_sk(sk)->recv_queue_lock, flags);
 				goto drop;
 			}
-=======
-			if (order == 0)
-				goto drop;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			if (order < 0) {
 				meta->timestamp = meta1->timestamp;
 				skb_insert(skb1, skb, &sk->sk_receive_queue);
@@ -223,28 +205,9 @@ static int pppopns_recv_core(struct sock *sk_raw, struct sk_buff *skb)
 			meta->timestamp = now;
 			skb_queue_tail(&sk->sk_receive_queue, skb);
 		}
-<<<<<<< HEAD
 		
 		traverse_receive_queue(sk);
 		spin_unlock_irqrestore(&pppox_sk(sk)->recv_queue_lock, flags);
-=======
-
-		/* Remove packets from receive queue as long as
-		 * 1. the receive buffer is full,
-		 * 2. they are queued longer than one second, or
-		 * 3. there are no missing packets before them. */
-		skb_queue_walk_safe(&sk->sk_receive_queue, skb, skb1) {
-			meta = skb_meta(skb);
-			if (atomic_read(&sk->sk_rmem_alloc) < sk->sk_rcvbuf &&
-					now - meta->timestamp < HZ &&
-					meta->sequence != opt->recv_sequence)
-				break;
-			skb_unlink(skb, &sk->sk_receive_queue);
-			opt->recv_sequence = meta->sequence + 1;
-			skb_orphan(skb);
-			ppp_input(&pppox_sk(sk)->chan, skb);
-		}
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		return NET_RX_SUCCESS;
 	}
 
@@ -382,11 +345,7 @@ static int pppopns_connect(struct socket *sock, struct sockaddr *useraddr,
 	po->chan.mtu = PPP_MRU - 80;
 	po->proto.pns.local = addr->local;
 	po->proto.pns.remote = addr->remote;
-<<<<<<< HEAD
 	po->proto.pns.data_ready = (void *)sk_raw->sk_data_ready;
-=======
-	po->proto.pns.data_ready = sk_raw->sk_data_ready;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	po->proto.pns.backlog_rcv = sk_raw->sk_backlog_rcv;
 
 	error = ppp_register_channel(&po->chan);
@@ -395,11 +354,7 @@ static int pppopns_connect(struct socket *sock, struct sockaddr *useraddr,
 
 	sk->sk_state = PPPOX_CONNECTED;
 	lock_sock(sk_raw);
-<<<<<<< HEAD
 	sk_raw->sk_data_ready = (void *)pppopns_recv;
-=======
-	sk_raw->sk_data_ready = pppopns_recv;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	sk_raw->sk_backlog_rcv = pppopns_recv_core;
 	sk_raw->sk_user_data = sk;
 	release_sock(sk_raw);
@@ -415,11 +370,8 @@ out:
 static int pppopns_release(struct socket *sock)
 {
 	struct sock *sk = sock->sk;
-<<<<<<< HEAD
 	struct pppox_sock *po = pppox_sk(sk);
     unsigned long flags;
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if (!sk)
 		return 0;
@@ -430,7 +382,6 @@ static int pppopns_release(struct socket *sock)
 		return -EBADF;
 	}
 
-<<<<<<< HEAD
 	if (po) {
 		spin_lock_irqsave(&po->recv_queue_lock, flags);
 		if (po && timer_pending( &po->recv_queue_timer )) {	    
@@ -439,18 +390,12 @@ static int pppopns_release(struct socket *sock)
 		spin_unlock_irqrestore(&po->recv_queue_lock, flags);
 	}
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (sk->sk_state != PPPOX_NONE) {
 		struct sock *sk_raw = (struct sock *)pppox_sk(sk)->chan.private;
 		lock_sock(sk_raw);
 		skb_queue_purge(&sk->sk_receive_queue);
 		pppox_unbind_sock(sk);
-<<<<<<< HEAD
 		sk_raw->sk_data_ready = (void *)pppox_sk(sk)->proto.pns.data_ready;
-=======
-		sk_raw->sk_data_ready = pppox_sk(sk)->proto.pns.data_ready;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		sk_raw->sk_backlog_rcv = pppox_sk(sk)->proto.pns.backlog_rcv;
 		sk_raw->sk_user_data = NULL;
 		release_sock(sk_raw);
@@ -495,11 +440,8 @@ static struct proto_ops pppopns_proto_ops = {
 static int pppopns_create(struct net *net, struct socket *sock)
 {
 	struct sock *sk;
-<<<<<<< HEAD
 	struct pppox_sock *po;
 	struct pppopns_opt *opt;
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	sk = sk_alloc(net, PF_PPPOX, GFP_KERNEL, &pppopns_proto);
 	if (!sk)
@@ -510,7 +452,6 @@ static int pppopns_create(struct net *net, struct socket *sock)
 	sock->ops = &pppopns_proto_ops;
 	sk->sk_protocol = PX_PROTO_OPNS;
 	sk->sk_state = PPPOX_NONE;
-<<<<<<< HEAD
 
 	po = pppox_sk(sk);
 	opt = &po->proto.pns;
@@ -551,19 +492,11 @@ static int pppopns_ioctl(struct socket *sock, unsigned int cmd, unsigned long ar
 	return err;
 }
 
-=======
-	return 0;
-}
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /******************************************************************************/
 
 static struct pppox_proto pppopns_pppox_proto = {
 	.create = pppopns_create,
-<<<<<<< HEAD
 	.ioctl = pppopns_ioctl,
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	.owner = THIS_MODULE,
 };
 

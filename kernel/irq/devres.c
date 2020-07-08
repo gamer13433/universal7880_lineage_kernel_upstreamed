@@ -104,11 +104,7 @@ int devm_request_any_context_irq(struct device *dev, unsigned int irq,
 		return -ENOMEM;
 
 	rc = request_any_context_irq(irq, handler, irqflags, devname, dev_id);
-<<<<<<< HEAD
 	if (rc) {
-=======
-	if (rc < 0) {
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		devres_free(dr);
 		return rc;
 	}
@@ -117,11 +113,7 @@ int devm_request_any_context_irq(struct device *dev, unsigned int irq,
 	dr->dev_id = dev_id;
 	devres_add(dev, dr);
 
-<<<<<<< HEAD
 	return 0;
-=======
-	return rc;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 EXPORT_SYMBOL(devm_request_any_context_irq);
 

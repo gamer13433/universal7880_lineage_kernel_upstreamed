@@ -448,11 +448,7 @@ arm1022_crval:
 
 	.align
 
-<<<<<<< HEAD
 	.section ".proc.info.init", #alloc, #execinstr
-=======
-	.section ".proc.info.init", #alloc
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	.type	__arm1022_proc_info,#object
 __arm1022_proc_info:
@@ -466,11 +462,7 @@ __arm1022_proc_info:
 		PMD_BIT4 | \
 		PMD_SECT_AP_WRITE | \
 		PMD_SECT_AP_READ
-<<<<<<< HEAD
 	b	__arm1022_setup
-=======
-	initfn	__arm1022_setup, __arm1022_proc_info
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	.long	cpu_arch_name
 	.long	cpu_elf_name
 	.long	HWCAP_SWP | HWCAP_HALF | HWCAP_THUMB | HWCAP_EDSP

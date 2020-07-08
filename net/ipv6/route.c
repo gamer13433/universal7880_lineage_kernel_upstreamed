@@ -1018,17 +1018,11 @@ static struct rt6_info *ip6_pol_route_output(struct net *net, struct fib6_table 
 	return ip6_pol_route(net, table, fl6->flowi6_oif, fl6, flags);
 }
 
-<<<<<<< HEAD
 struct dst_entry *ip6_route_output(struct net *net, const struct sock *sk,
 				    struct flowi6 *fl6)
 {
 	int flags = 0;
 
-=======
-struct dst_entry *ip6_route_output_flags(struct net *net, const struct sock *sk,
-					 struct flowi6 *fl6, int flags)
-{
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	fl6->flowi6_iif = LOOPBACK_IFINDEX;
 
 	if ((sk && sk->sk_bound_dev_if) || rt6_need_strict(&fl6->daddr))
@@ -1041,11 +1035,7 @@ struct dst_entry *ip6_route_output_flags(struct net *net, const struct sock *sk,
 
 	return fib6_rule_lookup(net, fl6, flags, ip6_pol_route_output);
 }
-<<<<<<< HEAD
 EXPORT_SYMBOL(ip6_route_output);
-=======
-EXPORT_SYMBOL_GPL(ip6_route_output_flags);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 struct dst_entry *ip6_blackhole_route(struct net *net, struct dst_entry *dst_orig)
 {
@@ -1265,11 +1255,7 @@ static struct dst_entry *ip6_route_redirect(struct net *net,
 }
 
 void ip6_redirect(struct sk_buff *skb, struct net *net, int oif, u32 mark,
-<<<<<<< HEAD
 					kuid_t uid)
-=======
-		  kuid_t uid)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	const struct ipv6hdr *iph = (struct ipv6hdr *) skb->data;
 	struct dst_entry *dst;
@@ -1314,11 +1300,7 @@ void ip6_redirect_no_header(struct sk_buff *skb, struct net *net, int oif,
 void ip6_sk_redirect(struct sk_buff *skb, struct sock *sk)
 {
 	ip6_redirect(skb, sock_net(sk), sk->sk_bound_dev_if, sk->sk_mark,
-<<<<<<< HEAD
 					sk->sk_uid);
-=======
-		     sk->sk_uid);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 EXPORT_SYMBOL_GPL(ip6_sk_redirect);
 
@@ -2342,20 +2324,12 @@ void rt6_mtu_change(struct net_device *dev, unsigned int mtu)
 
 static const struct nla_policy rtm_ipv6_policy[RTA_MAX+1] = {
 	[RTA_GATEWAY]           = { .len = sizeof(struct in6_addr) },
-<<<<<<< HEAD
-=======
-	[RTA_PREFSRC]		= { .len = sizeof(struct in6_addr) },
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	[RTA_OIF]               = { .type = NLA_U32 },
 	[RTA_IIF]		= { .type = NLA_U32 },
 	[RTA_PRIORITY]          = { .type = NLA_U32 },
 	[RTA_METRICS]           = { .type = NLA_NESTED },
 	[RTA_MULTIPATH]		= { .len = sizeof(struct rtnexthop) },
 	[RTA_UID]		= { .type = NLA_U32 },
-<<<<<<< HEAD
-=======
-	[RTA_TABLE]		= { .type = NLA_U32 },
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 static int rtm_to_fib6_config(struct sk_buff *skb, struct nlmsghdr *nlh,

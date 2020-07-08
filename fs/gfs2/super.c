@@ -846,17 +846,10 @@ static int gfs2_make_fs_ro(struct gfs2_sbd *sdp)
 	clear_bit(SDF_JOURNAL_LIVE, &sdp->sd_flags);
 	up_write(&sdp->sd_log_flush_lock);
 
-<<<<<<< HEAD
 	kthread_stop(sdp->sd_quotad_process);
 	kthread_stop(sdp->sd_logd_process);
 
 	flush_workqueue(gfs2_delete_workqueue);
-=======
-	flush_workqueue(gfs2_delete_workqueue);
-	kthread_stop(sdp->sd_quotad_process);
-	kthread_stop(sdp->sd_logd_process);
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	gfs2_quota_sync(sdp->sd_vfs, 0);
 	gfs2_statfs_sync(sdp->sd_vfs, 0);
 

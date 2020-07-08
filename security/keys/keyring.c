@@ -1181,13 +1181,8 @@ void __key_link_end(struct key *keyring,
 
 	if (edit) {
 		if (!edit->dead_leaf) {
-<<<<<<< HEAD
 		key_payload_reserve(keyring,
 				    keyring->datalen - KEYQUOTA_LINK_BYTES);
-=======
-			key_payload_reserve(keyring,
-				keyring->datalen - KEYQUOTA_LINK_BYTES);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		}
 		assoc_array_cancel_edit(edit);
 	}

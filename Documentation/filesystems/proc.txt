@@ -366,10 +366,7 @@ is not associated with a file:
 
  [heap]                   = the heap of the program
  [stack]                  = the stack of the main process
-<<<<<<< HEAD
  [stack:1001]             = the stack of the thread with tid 1001
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
  [vdso]                   = the "virtual dynamic shared object",
                             the kernel system call handler
  [anon:<name>]            = an anonymous mapping that has been
@@ -377,7 +374,6 @@ is not associated with a file:
 
  or if empty, the mapping is anonymous.
 
-<<<<<<< HEAD
 The /proc/PID/task/TID/maps is a view of the virtual memory from the viewpoint
 of the individual tasks of a process. In this file you will see a mapping marked
 as [stack] if that task sees it as a stack. This is a key difference from the
@@ -406,8 +402,6 @@ a8044000-a8045000 rw-p 0001c000 03:00 8317       /lib/ld-linux.so.2
 aff35000-aff4a000 rw-p 00000000 00:00 0
 ffffe000-fffff000 r-xp 00000000 00:00 0          [vdso]
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 The /proc/PID/smaps is an extension based on maps, showing the memory
 consumption for each of the process's mappings. For each of mappings there
 is a series of lines such as the following:
@@ -445,10 +439,7 @@ a single pte mapped, i.e.  is currently used by only one process, is accounted
 as private and not as shared.
 "Referenced" indicates the amount of memory currently marked as referenced or
 accessed.
-<<<<<<< HEAD
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 "Anonymous" shows the amount of memory that does not belong to any file.  Even
 a mapping associated with a file may contain anonymous pages: when MAP_PRIVATE
 and a page is modified, the file page is replaced by a private anonymous copy.

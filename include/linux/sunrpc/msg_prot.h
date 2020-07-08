@@ -152,15 +152,9 @@ typedef __be32	rpc_fraghdr;
 
 /*
  * Note that RFC 1833 does not put any size restrictions on the
-<<<<<<< HEAD
  * netid string, but all currently defined netid's fit in 4 bytes.
  */
 #define RPCBIND_MAXNETIDLEN	(4u)
-=======
- * netid string, but all currently defined netid's fit in 5 bytes.
- */
-#define RPCBIND_MAXNETIDLEN	(5u)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /*
  * Universal addresses are introduced in RFC 1833 and further spelled

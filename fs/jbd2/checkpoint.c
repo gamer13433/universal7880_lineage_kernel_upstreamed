@@ -95,7 +95,6 @@ static int __try_to_free_cp_buf(struct journal_head *jh)
 	struct buffer_head *bh = jh2bh(jh);
 
 	if (jh->b_transaction == NULL && !buffer_locked(bh) &&
-<<<<<<< HEAD
 	    !buffer_dirty(bh)) {
 		if (likely(!buffer_write_io_error(bh))) {
 			JBUFFER_TRACE(jh, "remove from checkpoint list");
@@ -114,11 +113,6 @@ static int __try_to_free_cp_buf(struct journal_head *jh)
 					(long unsigned int) bh->b_blocknr);
 			jbd2_journal_abort(journal, -EIO);
 		}
-=======
-	    !buffer_dirty(bh) && !buffer_write_io_error(bh)) {
-		JBUFFER_TRACE(jh, "remove from checkpoint list");
-		ret = __jbd2_journal_remove_checkpoint(jh) + 1;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 	return ret;
 }
@@ -189,11 +183,7 @@ void __jbd2_log_wait_for_space(journal_t *journal)
 				       "journal space in %s\n", __func__,
 				       journal->j_devname);
 				WARN_ON(1);
-<<<<<<< HEAD
 				jbd2_journal_abort(journal, 0);
-=======
-				jbd2_journal_abort(journal, -EIO);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			}
 			write_lock(&journal->j_state_lock);
 		} else {
@@ -415,11 +405,7 @@ int jbd2_cleanup_journal_tail(journal_t *journal)
 	unsigned long	blocknr;
 
 	if (is_journal_aborted(journal))
-<<<<<<< HEAD
 		return 1;
-=======
-		return -EIO;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if (!jbd2_journal_get_log_tail(journal, &first_tid, &blocknr))
 		return 1;
@@ -434,16 +420,10 @@ int jbd2_cleanup_journal_tail(journal_t *journal)
 	 * jbd2_cleanup_journal_tail() doesn't get called all that often.
 	 */
 	if (journal->j_flags & JBD2_BARRIER)
-<<<<<<< HEAD
 		blkdev_issue_flush(journal->j_fs_dev, GFP_KERNEL, NULL);
 
 	__jbd2_update_log_tail(journal, first_tid, blocknr);
 	return 0;
-=======
-		blkdev_issue_flush(journal->j_fs_dev, GFP_NOFS, NULL);
-
-	return __jbd2_update_log_tail(journal, first_tid, blocknr);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 

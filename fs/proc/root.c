@@ -128,7 +128,6 @@ static struct dentry *proc_mount(struct file_system_type *fs_type,
 	 */
 	sb->s_stack_depth = FILESYSTEM_MAX_STACK_DEPTH;
 
-<<<<<<< HEAD
 	/*
 	 * procfs isn't actually a stacking filesystem; however, there is
 	 * too much magic going on inside it to permit stacking things on
@@ -136,8 +135,6 @@ static struct dentry *proc_mount(struct file_system_type *fs_type,
 	 */
 	sb->s_stack_depth = FILESYSTEM_MAX_STACK_DEPTH;
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (!proc_parse_options(options, ns)) {
 		deactivate_locked_super(sb);
 		return ERR_PTR(-EINVAL);
@@ -176,7 +173,6 @@ static struct file_system_type proc_fs_type = {
 	.fs_flags	= FS_USERNS_VISIBLE | FS_USERNS_MOUNT,
 };
 
-<<<<<<< HEAD
 #ifdef CONFIG_DEFERRED_INITCALLS
 extern void do_deferred_initcalls(void);
 
@@ -209,8 +205,6 @@ static const struct file_operations deferred_initcalls_fops = {
 };
 #endif
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 void __init proc_root_init(void)
 {
 	int err;
@@ -221,13 +215,10 @@ void __init proc_root_init(void)
 		return;
 
 	proc_self_init();
-<<<<<<< HEAD
 
 #ifdef CONFIG_DEFERRED_INITCALLS
 	proc_create("deferred_initcalls", 0, NULL, &deferred_initcalls_fops);
 #endif	
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	proc_thread_self_init();
 	proc_symlink("mounts", NULL, "self/mounts");
 

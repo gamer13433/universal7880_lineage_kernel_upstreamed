@@ -2011,19 +2011,11 @@ static struct rbd_obj_request *rbd_obj_request_create(const char *object_name,
 	rbd_assert(obj_request_type_valid(type));
 
 	size = strlen(object_name) + 1;
-<<<<<<< HEAD
 	name = kmalloc(size, GFP_KERNEL);
 	if (!name)
 		return NULL;
 
 	obj_request = kmem_cache_zalloc(rbd_obj_request_cache, GFP_KERNEL);
-=======
-	name = kmalloc(size, GFP_NOIO);
-	if (!name)
-		return NULL;
-
-	obj_request = kmem_cache_zalloc(rbd_obj_request_cache, GFP_NOIO);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (!obj_request) {
 		kfree(name);
 		return NULL;

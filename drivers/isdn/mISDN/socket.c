@@ -395,11 +395,7 @@ data_sock_ioctl(struct socket *sock, unsigned int cmd, unsigned long arg)
 			memcpy(di.channelmap, dev->channelmap,
 			       sizeof(di.channelmap));
 			di.nrbchan = dev->nrbchan;
-<<<<<<< HEAD
 			strcpy(di.name, dev_name(&dev->dev));
-=======
-			strscpy(di.name, dev_name(&dev->dev), sizeof(di.name));
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			if (copy_to_user((void __user *)arg, &di, sizeof(di)))
 				err = -EFAULT;
 		} else
@@ -683,11 +679,7 @@ base_sock_ioctl(struct socket *sock, unsigned int cmd, unsigned long arg)
 			memcpy(di.channelmap, dev->channelmap,
 			       sizeof(di.channelmap));
 			di.nrbchan = dev->nrbchan;
-<<<<<<< HEAD
 			strcpy(di.name, dev_name(&dev->dev));
-=======
-			strscpy(di.name, dev_name(&dev->dev), sizeof(di.name));
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			if (copy_to_user((void __user *)arg, &di, sizeof(di)))
 				err = -EFAULT;
 		} else
@@ -701,10 +693,6 @@ base_sock_ioctl(struct socket *sock, unsigned int cmd, unsigned long arg)
 			err = -EFAULT;
 			break;
 		}
-<<<<<<< HEAD
-=======
-		dn.name[sizeof(dn.name) - 1] = '\0';
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		dev = get_mdevice(dn.id);
 		if (dev)
 			err = device_rename(&dev->dev, dn.name);
@@ -775,11 +763,6 @@ base_sock_create(struct net *net, struct socket *sock, int protocol)
 
 	if (sock->type != SOCK_RAW)
 		return -ESOCKTNOSUPPORT;
-<<<<<<< HEAD
-=======
-	if (!capable(CAP_NET_RAW))
-		return -EPERM;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	sk = sk_alloc(net, PF_ISDN, GFP_KERNEL, &mISDN_proto);
 	if (!sk)

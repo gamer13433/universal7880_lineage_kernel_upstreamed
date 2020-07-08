@@ -559,13 +559,6 @@ static int snd_pcm_hw_params(struct snd_pcm_substream *substream,
 	while (runtime->boundary * 2 <= LONG_MAX - runtime->buffer_size)
 		runtime->boundary *= 2;
 
-<<<<<<< HEAD
-=======
-	/* clear the buffer for avoiding possible kernel info leaks */
-	if (runtime->dma_area && !substream->ops->copy)
-		memset(runtime->dma_area, 0, runtime->dma_bytes);
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	snd_pcm_timer_resolution_change(substream);
 	snd_pcm_set_state(substream, SNDRV_PCM_STATE_SETUP);
 
@@ -1232,20 +1225,8 @@ static int snd_pcm_pause(struct snd_pcm_substream *substream, int push)
 static int snd_pcm_pre_suspend(struct snd_pcm_substream *substream, int state)
 {
 	struct snd_pcm_runtime *runtime = substream->runtime;
-<<<<<<< HEAD
 	if (runtime->status->state == SNDRV_PCM_STATE_SUSPENDED)
 		return -EBUSY;
-=======
-	switch (runtime->status->state) {
-	case SNDRV_PCM_STATE_SUSPENDED:
-		return -EBUSY;
-	/* unresumable PCM state; return -EBUSY for skipping suspend */
-	case SNDRV_PCM_STATE_OPEN:
-	case SNDRV_PCM_STATE_SETUP:
-	case SNDRV_PCM_STATE_DISCONNECTED:
-		return -EBUSY;
-	}
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	runtime->trigger_master = substream;
 	return 0;
 }
@@ -1812,14 +1793,6 @@ static int snd_pcm_link(struct snd_pcm_substream *substream, int fd)
 	}
 	pcm_file = f.file->private_data;
 	substream1 = pcm_file->substream;
-<<<<<<< HEAD
-=======
-	if (substream == substream1) {
-		res = -EINVAL;
-		goto _badf;
-	}
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	group = kmalloc(sizeof(*group), GFP_KERNEL);
 	if (!group) {
 		res = -ENOMEM;

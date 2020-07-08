@@ -213,13 +213,7 @@ void fuse_finish_open(struct inode *inode, struct file *file)
 		file->f_op = &fuse_direct_io_file_operations;
 	if (!(ff->open_flags & FOPEN_KEEP_CACHE))
 		invalidate_inode_pages2(inode->i_mapping);
-<<<<<<< HEAD
 	if (ff->open_flags & FOPEN_NONSEEKABLE)
-=======
-	if (ff->open_flags & FOPEN_STREAM)
-		stream_open(inode, file);
-	else if (ff->open_flags & FOPEN_NONSEEKABLE)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		nonseekable_open(inode, file);
 	if (fc->atomic_o_trunc && (file->f_flags & O_TRUNC)) {
 		struct fuse_inode *fi = get_fuse_inode(inode);
@@ -240,11 +234,7 @@ int fuse_open_common(struct inode *inode, struct file *file, bool isdir)
 {
 	struct fuse_conn *fc = get_fuse_conn(inode);
 	int err;
-<<<<<<< HEAD
 	bool lock_inode = (file->f_flags & O_TRUNC) &&
-=======
-	bool is_wb_truncate = (file->f_flags & O_TRUNC) &&
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			  fc->atomic_o_trunc &&
 			  fc->writeback_cache;
 
@@ -252,30 +242,16 @@ int fuse_open_common(struct inode *inode, struct file *file, bool isdir)
 	if (err)
 		return err;
 
-<<<<<<< HEAD
 	if (lock_inode)
 		mutex_lock(&inode->i_mutex);
-=======
-	if (is_wb_truncate) {
-		mutex_lock(&inode->i_mutex);
-		fuse_set_nowrite(inode);
-	}
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	err = fuse_do_open(fc, get_node_id(inode), file, isdir);
 
 	if (!err)
 		fuse_finish_open(inode, file);
 
-<<<<<<< HEAD
 	if (lock_inode)
 		mutex_unlock(&inode->i_mutex);
-=======
-	if (is_wb_truncate) {
-		fuse_release_nowrite(inode);
-		mutex_unlock(&inode->i_mutex);
-	}
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	return err;
 }
@@ -939,7 +915,6 @@ static int fuse_readpages_fill(void *_data, struct page *page)
 		return -EIO;
 	}
 
-<<<<<<< HEAD
 #ifdef CONFIG_CMA
 	if (is_cma_pageblock(page)) {
 		struct page *oldpage = page, *newpage;
@@ -978,8 +953,6 @@ static int fuse_readpages_fill(void *_data, struct page *page)
 	}
 #endif
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	page_cache_get(page);
 	req->pages[req->num_pages] = page;
 	req->page_descs[req->num_pages].length = PAGE_SIZE;
@@ -1658,11 +1631,7 @@ __acquires(fc->lock)
 {
 	struct fuse_conn *fc = get_fuse_conn(inode);
 	struct fuse_inode *fi = get_fuse_inode(inode);
-<<<<<<< HEAD
 	size_t crop = i_size_read(inode);
-=======
-	loff_t crop = i_size_read(inode);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	struct fuse_req *req;
 
 	while (fi->writectr >= 0 && !list_empty(&fi->queued_writes)) {
@@ -1832,10 +1801,6 @@ static int fuse_writepage(struct page *page, struct writeback_control *wbc)
 		WARN_ON(wbc->sync_mode == WB_SYNC_ALL);
 
 		redirty_page_for_writepage(wbc, page);
-<<<<<<< HEAD
-=======
-		unlock_page(page);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		return 0;
 	}
 
@@ -2974,10 +2939,6 @@ fuse_direct_IO(int rw, struct kiocb *iocb, struct iov_iter *iter,
 	loff_t i_size;
 	size_t count = iov_iter_count(iter);
 	struct fuse_io_priv *io;
-<<<<<<< HEAD
-=======
-	bool is_sync = is_sync_kiocb(iocb);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	pos = offset;
 	inode = file->f_mapping->host;
@@ -3017,11 +2978,7 @@ fuse_direct_IO(int rw, struct kiocb *iocb, struct iov_iter *iter,
 	 * to wait on real async I/O requests, so we must submit this request
 	 * synchronously.
 	 */
-<<<<<<< HEAD
 	if (!is_sync_kiocb(iocb) && (offset + count > i_size) && rw == WRITE)
-=======
-	if (!is_sync && (offset + count > i_size) && rw == WRITE)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		io->async = false;
 
 	if (rw == WRITE)
@@ -3033,11 +2990,7 @@ fuse_direct_IO(int rw, struct kiocb *iocb, struct iov_iter *iter,
 		fuse_aio_complete(io, ret < 0 ? ret : 0, -1);
 
 		/* we have a non-extending, async request, so return */
-<<<<<<< HEAD
 		if (!is_sync_kiocb(iocb))
-=======
-		if (!is_sync)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			return -EIOCBQUEUED;
 
 		ret = wait_on_sync_kiocb(iocb);
@@ -3092,16 +3045,6 @@ static long fuse_file_fallocate(struct file *file, int mode, loff_t offset,
 		}
 	}
 
-<<<<<<< HEAD
-=======
-	if (!(mode & FALLOC_FL_KEEP_SIZE) &&
-	    offset + length > i_size_read(inode)) {
-		err = inode_newsize_ok(inode, offset + length);
-		if (err)
-			goto out;
-	}
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (!(mode & FALLOC_FL_KEEP_SIZE))
 		set_bit(FUSE_I_SIZE_UNSTABLE, &fi->state);
 

@@ -31,10 +31,6 @@
 
 #include <asm/fpsimd.h>
 #include <asm/hw_breakpoint.h>
-<<<<<<< HEAD
-=======
-#include <asm/pgtable-hwdef.h>
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #include <asm/ptrace.h>
 #include <asm/types.h>
 
@@ -170,10 +166,4 @@ static inline void spin_lock_prefetch(const void *x)
 
 #endif
 
-<<<<<<< HEAD
-=======
-void cpu_enable_pan(void *__unused);
-void cpu_enable_uao(void *__unused);
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #endif /* __ASM_PROCESSOR_H */

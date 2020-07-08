@@ -1626,15 +1626,9 @@ static enum sci_status atapi_d2h_reg_frame_handler(struct isci_request *ireq,
 
 	if (status == SCI_SUCCESS) {
 		if (ireq->stp.rsp.status & ATA_ERR)
-<<<<<<< HEAD
 			status = SCI_IO_FAILURE_RESPONSE_VALID;
 	} else {
 		status = SCI_IO_FAILURE_RESPONSE_VALID;
-=======
-			status = SCI_FAILURE_IO_RESPONSE_VALID;
-	} else {
-		status = SCI_FAILURE_IO_RESPONSE_VALID;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 	if (status != SCI_SUCCESS) {

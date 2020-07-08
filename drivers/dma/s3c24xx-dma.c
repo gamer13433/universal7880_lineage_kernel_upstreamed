@@ -889,12 +889,8 @@ static struct dma_async_tx_descriptor *s3c24xx_dma_prep_memcpy(
 
 static struct dma_async_tx_descriptor *s3c24xx_dma_prep_dma_cyclic(
 	struct dma_chan *chan, dma_addr_t addr, size_t size, size_t period,
-<<<<<<< HEAD
 	enum dma_transfer_direction direction, unsigned long flags,
 	void *context)
-=======
-	enum dma_transfer_direction direction, unsigned long flags)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	struct s3c24xx_dma_chan *s3cchan = to_s3c24xx_dma_chan(chan);
 	struct s3c24xx_dma_engine *s3cdma = s3cchan->host;

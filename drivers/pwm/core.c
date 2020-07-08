@@ -273,19 +273,10 @@ int pwmchip_add(struct pwm_chip *chip)
 	if (IS_ENABLED(CONFIG_OF))
 		of_pwmchip_add(chip);
 
-<<<<<<< HEAD
 	pwmchip_sysfs_export(chip);
 
 out:
 	mutex_unlock(&pwm_lock);
-=======
-out:
-	mutex_unlock(&pwm_lock);
-
-	if (!ret)
-		pwmchip_sysfs_export(chip);
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return ret;
 }
 EXPORT_SYMBOL_GPL(pwmchip_add);
@@ -302,11 +293,7 @@ int pwmchip_remove(struct pwm_chip *chip)
 	unsigned int i;
 	int ret = 0;
 
-<<<<<<< HEAD
 	pwmchip_sysfs_unexport_children(chip);
-=======
-	pwmchip_sysfs_unexport(chip);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	mutex_lock(&pwm_lock);
 
@@ -326,11 +313,8 @@ int pwmchip_remove(struct pwm_chip *chip)
 
 	free_pwms(chip);
 
-<<<<<<< HEAD
 	pwmchip_sysfs_unexport(chip);
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 out:
 	mutex_unlock(&pwm_lock);
 	return ret;
@@ -716,10 +700,6 @@ void pwm_put(struct pwm_device *pwm)
 	if (pwm->chip->ops->free)
 		pwm->chip->ops->free(pwm->chip, pwm);
 
-<<<<<<< HEAD
-=======
-	pwm_set_chip_data(pwm, NULL);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	pwm->label = NULL;
 
 	module_put(pwm->chip->ops->owner);
@@ -824,11 +804,7 @@ EXPORT_SYMBOL_GPL(devm_pwm_put);
   */
 bool pwm_can_sleep(struct pwm_device *pwm)
 {
-<<<<<<< HEAD
 	return pwm->chip->can_sleep;
-=======
-	return true;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 EXPORT_SYMBOL_GPL(pwm_can_sleep);
 

@@ -41,10 +41,6 @@ static inline int st_magn_allocate_ring(struct iio_dev *indio_dev)
 static inline void st_magn_deallocate_ring(struct iio_dev *indio_dev)
 {
 }
-<<<<<<< HEAD
-=======
-#define ST_MAGN_TRIGGER_SET_STATE NULL
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #endif /* CONFIG_IIO_BUFFER */
 
 #endif /* ST_MAGN_H */

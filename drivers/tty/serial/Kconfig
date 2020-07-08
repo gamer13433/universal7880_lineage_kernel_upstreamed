@@ -256,7 +256,6 @@ config SERIAL_SAMSUNG_UARTS_4
 
 config SERIAL_SAMSUNG_UARTS
 	int
-<<<<<<< HEAD
 	depends on PLAT_SAMSUNG || ARCH_EXYNOS
 	default 4 if SERIAL_SAMSUNG_UARTS_4 || CPU_S3C2416
 	default 10
@@ -264,15 +263,6 @@ config SERIAL_SAMSUNG_UARTS
 	  Select the number of available UART ports for the Samsung S3C
 	  serial driver
 
-=======
-	depends on PLAT_SAMSUNG
-	default 4 if SERIAL_SAMSUNG_UARTS_4 || CPU_S3C2416
-	default 3
-	help
-	  Select the number of available UART ports for the Samsung S3C
-	  serial driver
-	
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 config SERIAL_SAMSUNG_DEBUG
 	bool "Samsung SoC serial debug"
 	depends on SERIAL_SAMSUNG && DEBUG_LL
@@ -286,10 +276,7 @@ config SERIAL_SAMSUNG_CONSOLE
 	bool "Support for console on Samsung SoC serial port"
 	depends on SERIAL_SAMSUNG=y
 	select SERIAL_CORE_CONSOLE
-<<<<<<< HEAD
 	select SERIAL_EARLYCON
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	help
 	  Allow selection of the S3C24XX on-board serial ports for use as
 	  an virtual console.
@@ -301,7 +288,6 @@ config SERIAL_SAMSUNG_CONSOLE
 	  your boot loader about how to pass options to the kernel at
 	  boot time.)
 
-<<<<<<< HEAD
 config S3C_LOWLEVEL_UART_PORT
 	int "S3C UART to use for low-level messages"
 	default 0
@@ -311,8 +297,6 @@ config S3C_LOWLEVEL_UART_PORT
 	  this configuration should be between zero and five. The port
 	  must have been initialised by the boot-loader before use.
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 config SERIAL_SIRFSOC
         tristate "SiRF SoC Platform Serial port support"
         depends on ARCH_SIRF

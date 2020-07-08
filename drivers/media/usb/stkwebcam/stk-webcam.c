@@ -644,12 +644,8 @@ static int v4l_stk_release(struct file *fp)
 		dev->owner = NULL;
 	}
 
-<<<<<<< HEAD
 	if (is_present(dev))
 		usb_autopm_put_interface(dev->interface);
-=======
-	usb_autopm_put_interface(dev->interface);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	mutex_unlock(&dev->lock);
 	return v4l2_fh_release(fp);
 }

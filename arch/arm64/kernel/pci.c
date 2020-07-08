@@ -46,7 +46,6 @@ int pcibios_add_device(struct pci_dev *dev)
 
 	return 0;
 }
-<<<<<<< HEAD
 
 
 #ifdef CONFIG_PCI_DOMAINS_GENERIC
@@ -69,5 +68,3 @@ void pci_bus_assign_domain_nr(struct pci_bus *bus, struct device *parent)
 	bus->domain_nr = domain;
 }
 #endif
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012

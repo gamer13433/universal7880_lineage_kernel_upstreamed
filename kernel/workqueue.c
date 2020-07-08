@@ -48,10 +48,7 @@
 #include <linux/nodemask.h>
 #include <linux/moduleparam.h>
 #include <linux/uaccess.h>
-<<<<<<< HEAD
 #include <linux/exynos-ss.h>
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #include "workqueue_internal.h"
 
@@ -556,19 +553,6 @@ static struct pool_workqueue *unbound_pwq_by_node(struct workqueue_struct *wq,
 						  int node)
 {
 	assert_rcu_or_wq_mutex(wq);
-<<<<<<< HEAD
-=======
-
-	/*
-	 * XXX: @node can be NUMA_NO_NODE if CPU goes offline while a
-	 * delayed item is pending.  The plan is to keep CPU -> NODE
-	 * mapping valid and stable across CPU on/offlines.  Once that
-	 * happens, this workaround can be removed.
-	 */
-	if (unlikely(node == NUMA_NO_NODE))
-		return wq->dfl_pwq;
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return rcu_dereference_raw(wq->numa_pwq_tbl[node]);
 }
 
@@ -1745,13 +1729,9 @@ static struct worker *create_worker(struct worker_pool *pool)
 		goto fail;
 
 	set_user_nice(worker->task, pool->attrs->nice);
-<<<<<<< HEAD
 
 	/* prevent userland from meddling with cpumask of workqueue workers */
 	worker->task->flags |= PF_NO_SETAFFINITY;
-=======
-	kthread_bind_mask(worker->task, pool->attrs->cpumask);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	/* successful, attach the worker to the pool */
 	worker_attach_to_pool(worker, pool);
@@ -2062,13 +2042,9 @@ __acquires(&pool->lock)
 	lock_map_acquire_read(&pwq->wq->lockdep_map);
 	lock_map_acquire(&lockdep_map);
 	trace_workqueue_execute_start(work);
-<<<<<<< HEAD
 	exynos_ss_work(worker, work, worker->current_func, ESS_FLAG_IN);
 	worker->current_func(work);
 	exynos_ss_work(worker, work, worker->current_func, ESS_FLAG_OUT);
-=======
-	worker->current_func(work);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/*
 	 * While we must be careful to not use "work" after this, the trace
 	 * point will only record its address.
@@ -4178,11 +4154,7 @@ struct workqueue_struct *__alloc_workqueue_key(const char *fmt,
 		}
 
 		wq->rescuer = rescuer;
-<<<<<<< HEAD
 		rescuer->task->flags |= PF_NO_SETAFFINITY;
-=======
-		kthread_bind_mask(rescuer->task, cpu_possible_mask);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		wake_up_process(rescuer->task);
 	}
 

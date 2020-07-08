@@ -3493,10 +3493,6 @@ static void hci_sync_conn_complete_evt(struct hci_dev *hdev,
 	case 0x11:	/* Unsupported Feature or Parameter Value */
 	case 0x1c:	/* SCO interval rejected */
 	case 0x1a:	/* Unsupported Remote Feature */
-<<<<<<< HEAD
-=======
-	case 0x1e:	/* Invalid LMP Parameters */
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	case 0x1f:	/* Unspecified error */
 	case 0x20:	/* Unsupported LMP Parameter value */
 		if (conn->out) {

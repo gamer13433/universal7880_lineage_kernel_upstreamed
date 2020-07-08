@@ -533,10 +533,7 @@ static void ti_close(struct usb_serial_port *port)
 	struct ti_port *tport;
 	int port_number;
 	int status;
-<<<<<<< HEAD
 	int do_unlock;
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	unsigned long flags;
 
 	tdev = usb_get_serial_data(port->serial);
@@ -563,7 +560,6 @@ static void ti_close(struct usb_serial_port *port)
 			"%s - cannot send close port command, %d\n"
 							, __func__, status);
 
-<<<<<<< HEAD
 	/* if mutex_lock is interrupted, continue anyway */
 	do_unlock = !mutex_lock_interruptible(&tdev->td_open_close_lock);
 	--tport->tp_tdev->td_open_port_count;
@@ -574,15 +570,6 @@ static void ti_close(struct usb_serial_port *port)
 	}
 	if (do_unlock)
 		mutex_unlock(&tdev->td_open_close_lock);
-=======
-	mutex_lock(&tdev->td_open_close_lock);
-	--tport->tp_tdev->td_open_port_count;
-	if (tport->tp_tdev->td_open_port_count == 0) {
-		/* last port is closed, shut down interrupt urb */
-		usb_kill_urb(port->serial->port[0]->interrupt_in_urb);
-	}
-	mutex_unlock(&tdev->td_open_close_lock);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 

@@ -35,10 +35,6 @@
 #include <asm/hyperv.h>
 #include <asm/hypervisor.h>
 #include <asm/mshyperv.h>
-<<<<<<< HEAD
-=======
-#include <linux/random.h>
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #include "hyperv_vmbus.h"
 
 static struct acpi_device  *hv_acpi_dev;
@@ -693,11 +689,6 @@ static void vmbus_isr(void)
 	/* Check if there are actual msgs to be processed */
 	if (msg->header.message_type != HVMSG_NONE)
 		tasklet_schedule(&msg_dpc);
-<<<<<<< HEAD
-=======
-
-	add_interrupt_randomness(HYPERVISOR_CALLBACK_VECTOR, 0);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 /*
@@ -738,21 +729,12 @@ static int vmbus_bus_init(int irq)
 	on_each_cpu(hv_synic_init, NULL, 1);
 	ret = vmbus_connect();
 	if (ret)
-<<<<<<< HEAD
 		goto err_alloc;
-=======
-		goto err_connect;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	vmbus_request_offers();
 
 	return 0;
 
-<<<<<<< HEAD
-=======
-err_connect:
-	on_each_cpu(hv_synic_cleanup, NULL, 1);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 err_alloc:
 	hv_synic_free();
 	hv_remove_vmbus_irq();

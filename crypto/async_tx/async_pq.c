@@ -354,11 +354,8 @@ async_syndrome_val(struct page **blocks, unsigned int offset, int disks,
 
 		dma_set_unmap(tx, unmap);
 		async_tx_submit(chan, tx, submit);
-<<<<<<< HEAD
 
 		return tx;
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	} else {
 		struct page *p_src = P(blocks, disks);
 		struct page *q_src = Q(blocks, disks);
@@ -413,17 +410,9 @@ async_syndrome_val(struct page **blocks, unsigned int offset, int disks,
 		submit->cb_param = cb_param_orig;
 		submit->flags = flags_orig;
 		async_tx_sync_epilog(submit);
-<<<<<<< HEAD
 
 		return NULL;
 	}
-=======
-		tx = NULL;
-	}
-	dmaengine_unmap_put(unmap);
-
-	return tx;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 EXPORT_SYMBOL_GPL(async_syndrome_val);
 

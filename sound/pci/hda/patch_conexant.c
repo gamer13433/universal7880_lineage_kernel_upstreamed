@@ -237,10 +237,6 @@ enum {
 	CXT_FIXUP_HP_530,
 	CXT_FIXUP_CAP_MIX_AMP_5047,
 	CXT_FIXUP_MUTE_LED_EAPD,
-<<<<<<< HEAD
-=======
-	CXT_FIXUP_HP_SPECTRE,
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 /* for hda_fixup_thinkpad_acpi() */
@@ -748,17 +744,6 @@ static const struct hda_fixup cxt_fixups[] = {
 		.type = HDA_FIXUP_FUNC,
 		.v.func = cxt_fixup_mute_led_eapd,
 	},
-<<<<<<< HEAD
-=======
-	[CXT_FIXUP_HP_SPECTRE] = {
-		.type = HDA_FIXUP_PINS,
-		.v.pins = (const struct hda_pintbl[]) {
-			/* enable NID 0x1d for the speaker on top */
-			{ 0x1d, 0x91170111 },
-			{ }
-		}
-	},
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 static const struct snd_pci_quirk cxt5045_fixups[] = {
@@ -808,10 +793,6 @@ static const struct snd_pci_quirk cxt5066_fixups[] = {
 	SND_PCI_QUIRK(0x1025, 0x0543, "Acer Aspire One 522", CXT_FIXUP_STEREO_DMIC),
 	SND_PCI_QUIRK(0x1025, 0x054c, "Acer Aspire 3830TG", CXT_FIXUP_ASPIRE_DMIC),
 	SND_PCI_QUIRK(0x1025, 0x054f, "Acer Aspire 4830T", CXT_FIXUP_ASPIRE_DMIC),
-<<<<<<< HEAD
-=======
-	SND_PCI_QUIRK(0x103c, 0x8174, "HP Spectre x360", CXT_FIXUP_HP_SPECTRE),
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	SND_PCI_QUIRK(0x1043, 0x138d, "Asus", CXT_FIXUP_HEADPHONE_MIC_PIN),
 	SND_PCI_QUIRK(0x152d, 0x0833, "OLPC XO-1.5", CXT_FIXUP_OLPC_XO),
 	SND_PCI_QUIRK(0x17aa, 0x20f2, "Lenovo T400", CXT_PINCFG_LENOVO_TP410),
@@ -819,10 +800,6 @@ static const struct snd_pci_quirk cxt5066_fixups[] = {
 	SND_PCI_QUIRK(0x17aa, 0x215f, "Lenovo T510", CXT_PINCFG_LENOVO_TP410),
 	SND_PCI_QUIRK(0x17aa, 0x21ce, "Lenovo T420", CXT_PINCFG_LENOVO_TP410),
 	SND_PCI_QUIRK(0x17aa, 0x21cf, "Lenovo T520", CXT_PINCFG_LENOVO_TP410),
-<<<<<<< HEAD
-=======
-	SND_PCI_QUIRK(0x17aa, 0x21d2, "Lenovo T420s", CXT_PINCFG_LENOVO_TP410),
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	SND_PCI_QUIRK(0x17aa, 0x21da, "Lenovo X220", CXT_PINCFG_LENOVO_TP410),
 	SND_PCI_QUIRK(0x17aa, 0x21db, "Lenovo X220-tablet", CXT_PINCFG_LENOVO_TP410),
 	SND_PCI_QUIRK(0x17aa, 0x38af, "Lenovo IdeaPad Z560", CXT_FIXUP_MUTE_LED_EAPD),
@@ -997,17 +974,6 @@ static const struct hda_codec_preset snd_hda_preset_conexant[] = {
 	  .patch = patch_conexant_auto },
 	{ .id = 0x14f150b9, .name = "CX20665",
 	  .patch = patch_conexant_auto },
-<<<<<<< HEAD
-=======
-	{ .id = 0x14f150f1, .name = "CX20721",
-	  .patch = patch_conexant_auto },
-	{ .id = 0x14f150f2, .name = "CX20722",
-	  .patch = patch_conexant_auto },
-	{ .id = 0x14f150f3, .name = "CX20723",
-	  .patch = patch_conexant_auto },
-	{ .id = 0x14f150f4, .name = "CX20724",
-	  .patch = patch_conexant_auto },
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	{ .id = 0x14f1510f, .name = "CX20751/2",
 	  .patch = patch_conexant_auto },
 	{ .id = 0x14f15110, .name = "CX20751/2",
@@ -1042,13 +1008,6 @@ MODULE_ALIAS("snd-hda-codec-id:14f150ab");
 MODULE_ALIAS("snd-hda-codec-id:14f150ac");
 MODULE_ALIAS("snd-hda-codec-id:14f150b8");
 MODULE_ALIAS("snd-hda-codec-id:14f150b9");
-<<<<<<< HEAD
-=======
-MODULE_ALIAS("snd-hda-codec-id:14f150f1");
-MODULE_ALIAS("snd-hda-codec-id:14f150f2");
-MODULE_ALIAS("snd-hda-codec-id:14f150f3");
-MODULE_ALIAS("snd-hda-codec-id:14f150f4");
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 MODULE_ALIAS("snd-hda-codec-id:14f1510f");
 MODULE_ALIAS("snd-hda-codec-id:14f15110");
 MODULE_ALIAS("snd-hda-codec-id:14f15111");

@@ -256,11 +256,7 @@ static int alloc_pebs_buffer(int cpu)
 	if (!x86_pmu.pebs)
 		return 0;
 
-<<<<<<< HEAD
 	buffer = kzalloc_node(PEBS_BUFFER_SIZE, GFP_KERNEL, node);
-=======
-	buffer = kzalloc_node(x86_pmu.pebs_buffer_size, GFP_KERNEL, node);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (unlikely(!buffer))
 		return -ENOMEM;
 
@@ -277,11 +273,7 @@ static int alloc_pebs_buffer(int cpu)
 		per_cpu(insn_buffer, cpu) = ibuffer;
 	}
 
-<<<<<<< HEAD
 	max = PEBS_BUFFER_SIZE / x86_pmu.pebs_record_size;
-=======
-	max = x86_pmu.pebs_buffer_size / x86_pmu.pebs_record_size;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	ds->pebs_buffer_base = (u64)(unsigned long)buffer;
 	ds->pebs_index = ds->pebs_buffer_base;
@@ -1032,10 +1024,6 @@ void __init intel_ds_init(void)
 
 	x86_pmu.bts  = boot_cpu_has(X86_FEATURE_BTS);
 	x86_pmu.pebs = boot_cpu_has(X86_FEATURE_PEBS);
-<<<<<<< HEAD
-=======
-	x86_pmu.pebs_buffer_size = PEBS_BUFFER_SIZE;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (x86_pmu.pebs) {
 		char pebs_type = x86_pmu.intel_cap.pebs_trap ?  '+' : '-';
 		int format = x86_pmu.intel_cap.pebs_format;
@@ -1044,17 +1032,6 @@ void __init intel_ds_init(void)
 		case 0:
 			printk(KERN_CONT "PEBS fmt0%c, ", pebs_type);
 			x86_pmu.pebs_record_size = sizeof(struct pebs_record_core);
-<<<<<<< HEAD
-=======
-			/*
-			 * Using >PAGE_SIZE buffers makes the WRMSR to
-			 * PERF_GLOBAL_CTRL in intel_pmu_enable_all()
-			 * mysteriously hang on Core2.
-			 *
-			 * As a workaround, we don't do this.
-			 */
-			x86_pmu.pebs_buffer_size = PAGE_SIZE;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			x86_pmu.drain_pebs = intel_pmu_drain_pebs_core;
 			break;
 

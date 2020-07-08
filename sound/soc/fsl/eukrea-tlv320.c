@@ -136,21 +136,13 @@ static int eukrea_tlv320_probe(struct platform_device *pdev)
 		if (ret) {
 			dev_err(&pdev->dev,
 				"fsl,mux-int-port node missing or invalid.\n");
-<<<<<<< HEAD
 			return ret;
-=======
-			goto err;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		}
 		ret = of_property_read_u32(np, "fsl,mux-ext-port", &ext_port);
 		if (ret) {
 			dev_err(&pdev->dev,
 				"fsl,mux-ext-port node missing or invalid.\n");
-<<<<<<< HEAD
 			return ret;
-=======
-			goto err;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		}
 
 		/*

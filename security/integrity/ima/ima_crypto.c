@@ -327,16 +327,8 @@ static int ima_calc_file_hash_atfm(struct file *file,
 		/* read buffer */
 		rbuf_len = min_t(loff_t, i_size - offset, rbuf_size[active]);
 		rc = ima_kernel_read(file, offset, rbuf[active], rbuf_len);
-<<<<<<< HEAD
 		if (rc != rbuf_len)
 			goto out3;
-=======
-		if (rc != rbuf_len) {
-			if (rc >= 0)
-				rc = -EINVAL;
-			goto out3;
-		}
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 		if (rbuf[1] && offset) {
 			/* Using two buffers, and it is not the first

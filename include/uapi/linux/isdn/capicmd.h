@@ -15,10 +15,6 @@
 #define CAPI_MSG_BASELEN		8
 #define CAPI_DATA_B3_REQ_LEN		(CAPI_MSG_BASELEN+4+4+2+2+2)
 #define CAPI_DATA_B3_RESP_LEN		(CAPI_MSG_BASELEN+4+2)
-<<<<<<< HEAD
-=======
-#define CAPI_DISCONNECT_B3_RESP_LEN	(CAPI_MSG_BASELEN+4)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /*----- CAPI commands -----*/
 #define CAPI_ALERT		    0x01

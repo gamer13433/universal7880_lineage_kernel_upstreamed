@@ -320,11 +320,7 @@ static int v9fs_xattr_set_acl(struct dentry *dentry, const char *name,
 	case ACL_TYPE_ACCESS:
 		name = POSIX_ACL_XATTR_ACCESS;
 		if (acl) {
-<<<<<<< HEAD
 			struct iattr iattr;
-=======
-			struct iattr iattr = { 0 };
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			struct posix_acl *old_acl = acl;
 
 			retval = posix_acl_update_mode(inode, &iattr.ia_mode, &acl);

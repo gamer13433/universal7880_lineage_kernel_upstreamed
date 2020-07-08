@@ -26,25 +26,14 @@
 #include <linux/stat.h>
 #include <linux/uaccess.h>
 
-<<<<<<< HEAD
 #include <asm/debug-monitors.h>
 #include <asm/cputype.h>
-=======
-#include <asm/cpufeature.h>
-#include <asm/cputype.h>
-#include <asm/debug-monitors.h>
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #include <asm/system_misc.h>
 
 /* Determine debug architecture. */
 u8 debug_monitors_arch(void)
 {
-<<<<<<< HEAD
 	return read_cpuid(ID_AA64DFR0_EL1) & 0xf;
-=======
-	return cpuid_feature_extract_field(read_system_reg(SYS_ID_AA64DFR0_EL1),
-						ID_AA64DFR0_DEBUGVER_SHIFT);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 /*
@@ -194,7 +183,6 @@ static void clear_regs_spsr_ss(struct pt_regs *regs)
 
 /* EL1 Single Step Handler hooks */
 static LIST_HEAD(step_hook);
-<<<<<<< HEAD
 static DEFINE_RWLOCK(step_hook_lock);
 
 void register_step_hook(struct step_hook *hook)
@@ -202,29 +190,13 @@ void register_step_hook(struct step_hook *hook)
 	write_lock(&step_hook_lock);
 	list_add(&hook->node, &step_hook);
 	write_unlock(&step_hook_lock);
-=======
-static DEFINE_SPINLOCK(step_hook_lock);
-
-void register_step_hook(struct step_hook *hook)
-{
-	spin_lock(&step_hook_lock);
-	list_add_rcu(&hook->node, &step_hook);
-	spin_unlock(&step_hook_lock);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 void unregister_step_hook(struct step_hook *hook)
 {
-<<<<<<< HEAD
 	write_lock(&step_hook_lock);
 	list_del(&hook->node);
 	write_unlock(&step_hook_lock);
-=======
-	spin_lock(&step_hook_lock);
-	list_del_rcu(&hook->node);
-	spin_unlock(&step_hook_lock);
-	synchronize_rcu();
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 /*
@@ -238,25 +210,15 @@ static int call_step_hook(struct pt_regs *regs, unsigned int esr)
 	struct step_hook *hook;
 	int retval = DBG_HOOK_ERROR;
 
-<<<<<<< HEAD
 	read_lock(&step_hook_lock);
 
 	list_for_each_entry(hook, &step_hook, node)	{
-=======
-	rcu_read_lock();
-
-	list_for_each_entry_rcu(hook, &step_hook, node)	{
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		retval = hook->fn(regs, esr);
 		if (retval == DBG_HOOK_HANDLED)
 			break;
 	}
 
-<<<<<<< HEAD
 	read_unlock(&step_hook_lock);
-=======
-	rcu_read_unlock();
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	return retval;
 }
@@ -456,15 +418,8 @@ int kernel_active_single_step(void)
 /* ptrace API */
 void user_enable_single_step(struct task_struct *task)
 {
-<<<<<<< HEAD
 	set_ti_thread_flag(task_thread_info(task), TIF_SINGLESTEP);
 	set_regs_spsr_ss(task_pt_regs(task));
-=======
-	struct thread_info *ti = task_thread_info(task);
-
-	if (!test_and_set_ti_thread_flag(ti, TIF_SINGLESTEP))
-		set_regs_spsr_ss(task_pt_regs(task));
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 void user_disable_single_step(struct task_struct *task)

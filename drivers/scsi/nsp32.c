@@ -607,11 +607,7 @@ static int nsp32_selection_autoscsi(struct scsi_cmnd *SCpnt)
 	 * check bus line
 	 */
 	phase = nsp32_read1(base, SCSI_BUS_MONITOR);
-<<<<<<< HEAD
 	if(((phase & BUSMON_BSY) == 1) || (phase & BUSMON_SEL) == 1) {
-=======
-	if ((phase & BUSMON_BSY) || (phase & BUSMON_SEL)) {
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		nsp32_msg(KERN_WARNING, "bus busy");
 		SCpnt->result = DID_BUS_BUSY << 16;
 		status = 1;

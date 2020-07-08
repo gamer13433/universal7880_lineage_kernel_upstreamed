@@ -132,10 +132,6 @@ static struct genl_family hsr_genl_family = {
 	.name = "HSR",
 	.version = 1,
 	.maxattr = HSR_A_MAX,
-<<<<<<< HEAD
-=======
-	.netnsok = true,
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 static const struct genl_multicast_group hsr_mcgrps[] = {
@@ -263,7 +259,6 @@ static int hsr_get_node_status(struct sk_buff *skb_in, struct genl_info *info)
 	if (!na)
 		goto invalid;
 
-<<<<<<< HEAD
 	hsr_dev = __dev_get_by_index(genl_info_net(info),
 					nla_get_u32(info->attrs[HSR_A_IFINDEX]));
 	if (!hsr_dev)
@@ -275,18 +270,6 @@ static int hsr_get_node_status(struct sk_buff *skb_in, struct genl_info *info)
 	/* Send reply */
 
 	skb_out = genlmsg_new(NLMSG_GOODSIZE, GFP_KERNEL);
-=======
-	rcu_read_lock();
-	hsr_dev = dev_get_by_index_rcu(genl_info_net(info),
-				       nla_get_u32(info->attrs[HSR_A_IFINDEX]));
-	if (!hsr_dev)
-		goto rcu_unlock;
-	if (!is_hsr_master(hsr_dev))
-		goto rcu_unlock;
-
-	/* Send reply */
-	skb_out = genlmsg_new(NLMSG_GOODSIZE, GFP_ATOMIC);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (!skb_out) {
 		res = -ENOMEM;
 		goto fail;
@@ -338,18 +321,12 @@ static int hsr_get_node_status(struct sk_buff *skb_in, struct genl_info *info)
 	res = nla_put_u16(skb_out, HSR_A_IF1_SEQ, hsr_node_if1_seq);
 	if (res < 0)
 		goto nla_put_failure;
-<<<<<<< HEAD
 	rcu_read_lock();
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	port = hsr_port_get_hsr(hsr, HSR_PT_SLAVE_A);
 	if (port)
 		res = nla_put_u32(skb_out, HSR_A_IF1_IFINDEX,
 				  port->dev->ifindex);
-<<<<<<< HEAD
 	rcu_read_unlock();
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (res < 0)
 		goto nla_put_failure;
 
@@ -359,36 +336,20 @@ static int hsr_get_node_status(struct sk_buff *skb_in, struct genl_info *info)
 	res = nla_put_u16(skb_out, HSR_A_IF2_SEQ, hsr_node_if2_seq);
 	if (res < 0)
 		goto nla_put_failure;
-<<<<<<< HEAD
 	rcu_read_lock();
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	port = hsr_port_get_hsr(hsr, HSR_PT_SLAVE_B);
 	if (port)
 		res = nla_put_u32(skb_out, HSR_A_IF2_IFINDEX,
 				  port->dev->ifindex);
-<<<<<<< HEAD
 	rcu_read_unlock();
 	if (res < 0)
 		goto nla_put_failure;
 
-=======
-	if (res < 0)
-		goto nla_put_failure;
-
-	rcu_read_unlock();
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	genlmsg_end(skb_out, msg_head);
 	genlmsg_unicast(genl_info_net(info), skb_out, info->snd_portid);
 
 	return 0;
 
-<<<<<<< HEAD
-=======
-rcu_unlock:
-	rcu_read_unlock();
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 invalid:
 	netlink_ack(skb_in, nlmsg_hdr(skb_in), -EINVAL);
 	return 0;
@@ -398,10 +359,6 @@ nla_put_failure:
 	/* Fall through */
 
 fail:
-<<<<<<< HEAD
-=======
-	rcu_read_unlock();
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return res;
 }
 
@@ -409,7 +366,6 @@ fail:
  */
 static int hsr_get_node_list(struct sk_buff *skb_in, struct genl_info *info)
 {
-<<<<<<< HEAD
 	/* For receiving */
 	struct nlattr *na;
 	struct net_device *hsr_dev;
@@ -420,16 +376,6 @@ static int hsr_get_node_list(struct sk_buff *skb_in, struct genl_info *info)
 	struct hsr_priv *hsr;
 	void *pos;
 	unsigned char addr[ETH_ALEN];
-=======
-	unsigned char addr[ETH_ALEN];
-	struct net_device *hsr_dev;
-	struct sk_buff *skb_out;
-	struct hsr_priv *hsr;
-	bool restart = false;
-	struct nlattr *na;
-	void *pos = NULL;
-	void *msg_head;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	int res;
 
 	if (!info)
@@ -439,7 +385,6 @@ static int hsr_get_node_list(struct sk_buff *skb_in, struct genl_info *info)
 	if (!na)
 		goto invalid;
 
-<<<<<<< HEAD
 	hsr_dev = __dev_get_by_index(genl_info_net(info),
 				     nla_get_u32(info->attrs[HSR_A_IFINDEX]));
 	if (!hsr_dev)
@@ -451,19 +396,6 @@ static int hsr_get_node_list(struct sk_buff *skb_in, struct genl_info *info)
 	/* Send reply */
 
 	skb_out = genlmsg_new(NLMSG_GOODSIZE, GFP_KERNEL);
-=======
-	rcu_read_lock();
-	hsr_dev = dev_get_by_index_rcu(genl_info_net(info),
-				       nla_get_u32(info->attrs[HSR_A_IFINDEX]));
-	if (!hsr_dev)
-		goto rcu_unlock;
-	if (!is_hsr_master(hsr_dev))
-		goto rcu_unlock;
-
-restart:
-	/* Send reply */
-	skb_out = genlmsg_new(GENLMSG_DEFAULT_SIZE, GFP_ATOMIC);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (!skb_out) {
 		res = -ENOMEM;
 		goto fail;
@@ -477,7 +409,6 @@ restart:
 		goto nla_put_failure;
 	}
 
-<<<<<<< HEAD
 	res = nla_put_u32(skb_out, HSR_A_IFINDEX, hsr_dev->ifindex);
 	if (res < 0)
 		goto nla_put_failure;
@@ -490,28 +421,6 @@ restart:
 		res = nla_put(skb_out, HSR_A_NODE_ADDR, ETH_ALEN, addr);
 		if (res < 0) {
 			rcu_read_unlock();
-=======
-	if (!restart) {
-		res = nla_put_u32(skb_out, HSR_A_IFINDEX, hsr_dev->ifindex);
-		if (res < 0)
-			goto nla_put_failure;
-	}
-
-	hsr = netdev_priv(hsr_dev);
-
-	if (!pos)
-		pos = hsr_get_next_node(hsr, NULL, addr);
-	while (pos) {
-		res = nla_put(skb_out, HSR_A_NODE_ADDR, ETH_ALEN, addr);
-		if (res < 0) {
-			if (res == -EMSGSIZE) {
-				genlmsg_end(skb_out, msg_head);
-				genlmsg_unicast(genl_info_net(info), skb_out,
-						info->snd_portid);
-				restart = true;
-				goto restart;
-			}
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			goto nla_put_failure;
 		}
 		pos = hsr_get_next_node(hsr, pos, addr);
@@ -523,28 +432,15 @@ restart:
 
 	return 0;
 
-<<<<<<< HEAD
-=======
-rcu_unlock:
-	rcu_read_unlock();
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 invalid:
 	netlink_ack(skb_in, nlmsg_hdr(skb_in), -EINVAL);
 	return 0;
 
 nla_put_failure:
-<<<<<<< HEAD
 	kfree_skb(skb_out);
 	/* Fall through */
 
 fail:
-=======
-	nlmsg_free(skb_out);
-	/* Fall through */
-
-fail:
-	rcu_read_unlock();
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return res;
 }
 

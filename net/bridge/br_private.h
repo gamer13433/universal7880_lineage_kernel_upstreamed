@@ -261,10 +261,6 @@ struct net_bridge
 	u8				multicast_disabled:1;
 	u8				multicast_querier:1;
 	u8				multicast_query_use_ifaddr:1;
-<<<<<<< HEAD
-=======
-	u8				has_ipv6_addr:1;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	u32				hash_elasticity;
 	u32				hash_max;
@@ -506,29 +502,10 @@ static inline bool br_multicast_is_router(struct net_bridge *br)
 
 static inline bool
 __br_multicast_querier_exists(struct net_bridge *br,
-<<<<<<< HEAD
 			      struct bridge_mcast_other_query *querier)
 {
 	return time_is_before_jiffies(querier->delay_time) &&
 	       (br->multicast_querier || timer_pending(&querier->timer));
-=======
-				struct bridge_mcast_other_query *querier,
-				const bool is_ipv6)
-{
-	bool own_querier_enabled;
-
-	if (br->multicast_querier) {
-		if (is_ipv6 && !br->has_ipv6_addr)
-			own_querier_enabled = false;
-		else
-			own_querier_enabled = true;
-	} else {
-		own_querier_enabled = false;
-	}
-
-	return time_is_before_jiffies(querier->delay_time) &&
-	       (own_querier_enabled || timer_pending(&querier->timer));
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 static inline bool br_multicast_querier_exists(struct net_bridge *br,
@@ -536,19 +513,10 @@ static inline bool br_multicast_querier_exists(struct net_bridge *br,
 {
 	switch (eth->h_proto) {
 	case (htons(ETH_P_IP)):
-<<<<<<< HEAD
 		return __br_multicast_querier_exists(br, &br->ip4_other_query);
 #if IS_ENABLED(CONFIG_IPV6)
 	case (htons(ETH_P_IPV6)):
 		return __br_multicast_querier_exists(br, &br->ip6_other_query);
-=======
-		return __br_multicast_querier_exists(br,
-			&br->ip4_other_query, false);
-#if IS_ENABLED(CONFIG_IPV6)
-	case (htons(ETH_P_IPV6)):
-		return __br_multicast_querier_exists(br,
-			&br->ip6_other_query, true);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #endif
 	default:
 		return false;

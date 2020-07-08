@@ -53,12 +53,9 @@
 #include <linux/pm_runtime.h>
 #include <asm/uaccess.h>
 #include <asm/unaligned.h>
-<<<<<<< HEAD
 #ifdef CONFIG_USB_STORAGE_DETECT
 #include <linux/kthread.h>
 #endif
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #include <scsi/scsi.h>
 #include <scsi/scsi_cmnd.h>
@@ -182,12 +179,7 @@ cache_type_store(struct device *dev, struct device_attribute *attr,
 
 	for (i = 0; i < ARRAY_SIZE(sd_cache_types); i++) {
 		len = strlen(sd_cache_types[i]);
-<<<<<<< HEAD
 		if (strncmp(sd_cache_types[i], buf, len) == 0) {
-=======
-		if (strncmp(sd_cache_types[i], buf, len) == 0 &&
-		    buf[len] == '\n') {
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			ct = i;
 			break;
 		}
@@ -1337,11 +1329,7 @@ static int sd_ioctl(struct block_device *bdev, fmode_t mode,
 	struct scsi_device *sdp = sdkp->device;
 	void __user *p = (void __user *)arg;
 	int error;
-<<<<<<< HEAD
 
-=======
-    
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	SCSI_LOG_IOCTL(1, sd_printk(KERN_INFO, sdkp, "sd_ioctl: disk=%s, "
 				    "cmd=0x%x\n", disk->disk_name, cmd));
 
@@ -1368,11 +1356,8 @@ static int sd_ioctl(struct block_device *bdev, fmode_t mode,
 	switch (cmd) {
 		case SCSI_IOCTL_GET_IDLUN:
 		case SCSI_IOCTL_GET_BUS_NUMBER:
-<<<<<<< HEAD
 		case SCSI_IOCTL_SECURITY_PROTOCOL_IN:
 		case SCSI_IOCTL_SECURITY_PROTOCOL_OUT:
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			error = scsi_ioctl(sdp, cmd, p);
 			break;
 		default:
@@ -1941,15 +1926,8 @@ static int sd_read_protection_type(struct scsi_disk *sdkp, unsigned char *buffer
 	u8 type;
 	int ret = 0;
 
-<<<<<<< HEAD
 	if (scsi_device_protection(sdp) == 0 || (buffer[12] & 1) == 0)
 		return ret;
-=======
-	if (scsi_device_protection(sdp) == 0 || (buffer[12] & 1) == 0) {
-		sdkp->protection_type = 0;
-		return ret;
-	}
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	type = ((buffer[12] >> 1) & 7) + 1; /* P_TYPE 0 = Type 1 */
 
@@ -2350,10 +2328,7 @@ sd_read_write_protect_flag(struct scsi_disk *sdkp, unsigned char *buffer)
 	int res;
 	struct scsi_device *sdp = sdkp->device;
 	struct scsi_mode_data data;
-<<<<<<< HEAD
 	int disk_ro = get_disk_ro(sdkp->disk);
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	int old_wp = sdkp->write_prot;
 
 	set_disk_ro(sdkp->disk, 0);
@@ -2394,11 +2369,7 @@ sd_read_write_protect_flag(struct scsi_disk *sdkp, unsigned char *buffer)
 			  "Test WP failed, assume Write Enabled\n");
 	} else {
 		sdkp->write_prot = ((data.device_specific & 0x80) != 0);
-<<<<<<< HEAD
 		set_disk_ro(sdkp->disk, sdkp->write_prot || disk_ro);
-=======
-		set_disk_ro(sdkp->disk, sdkp->write_prot);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		if (sdkp->first_scan || old_wp != sdkp->write_prot) {
 			sd_printk(KERN_NOTICE, sdkp, "Write Protect is %s\n",
 				  sdkp->write_prot ? "on" : "off");
@@ -2838,13 +2809,10 @@ static int sd_revalidate_disk(struct gendisk *disk)
 	 * react badly if we do.
 	 */
 	if (sdkp->media_present) {
-<<<<<<< HEAD
 #ifdef CONFIG_USB_STORAGE_DETECT
 		if (sdp->host->by_usb)
 			disk->flags |= GENHD_FL_MEDIA_PRESENT;
 #endif
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		sd_read_capacity(sdkp, buffer);
 
 		if (sd_try_extended_inquiry(sdp)) {
@@ -2947,7 +2915,6 @@ static int sd_format_disk_name(char *prefix, int index, char *buf, int buflen)
 	return 0;
 }
 
-<<<<<<< HEAD
 #ifdef CONFIG_USB_STORAGE_DETECT
 static void sd_media_state_emit(struct scsi_disk *sdkp)
 {
@@ -3046,8 +3013,6 @@ static int sd_media_scan_thread(void *__sdkp)
 	complete_and_exit(&sdkp->scanning_done, 0);
 }
 #endif
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /*
  * The asynchronous part of sd_probe
  */
@@ -3092,7 +3057,6 @@ static void sd_probe_async(void *data, async_cookie_t cookie)
 		gd->flags |= GENHD_FL_REMOVABLE;
 		gd->events |= DISK_EVENT_MEDIA_CHANGE;
 	}
-<<<<<<< HEAD
 #ifdef CONFIG_USB_STORAGE_DETECT
 	if (sdp->host->by_usb) {
 		gd->flags |= GENHD_FL_IF_USB;
@@ -3106,11 +3070,6 @@ static void sd_probe_async(void *data, async_cookie_t cookie)
 	if (sdp->host->by_usb)
 		sdkp->prv_media_present = sdkp->media_present;
 #endif
-=======
-
-	blk_pm_runtime_init(sdp->request_queue, dev);
-	add_disk(gd);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (sdkp->capacity)
 		sd_dif_config_host(sdkp);
 
@@ -3120,15 +3079,12 @@ static void sd_probe_async(void *data, async_cookie_t cookie)
 		  sdp->removable ? "removable " : "");
 	scsi_autopm_put_device(sdp);
 	put_device(&sdkp->dev);
-<<<<<<< HEAD
 #ifdef CONFIG_USB_STORAGE_DETECT
 	if (sdp->host->by_usb) {
 		if (!IS_ERR(sdkp->th))
 			wake_up_process(sdkp->th);
 	}
 #endif
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 /**
@@ -3219,7 +3175,6 @@ static int sd_probe(struct device *dev)
 
 	get_device(dev);
 	dev_set_drvdata(dev, sdkp);
-<<<<<<< HEAD
 #ifdef CONFIG_USB_STORAGE_DETECT
 	if (sdp->host->by_usb) {
 		init_waitqueue_head(&sdkp->delay_wait);
@@ -3233,8 +3188,6 @@ static int sd_probe(struct device *dev)
 		}
 	}
 #endif
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	get_device(&sdkp->dev);	/* prevent release before async_schedule */
 	async_schedule_domain(sd_probe_async, sdkp, &scsi_sd_probe_domain);
@@ -3273,7 +3226,6 @@ static int sd_remove(struct device *dev)
 	sdkp = dev_get_drvdata(dev);
 	devt = disk_devt(sdkp->disk);
 	scsi_autopm_get_device(sdkp->device);
-<<<<<<< HEAD
 #ifdef CONFIG_USB_STORAGE_DETECT
 	sd_printk(KERN_INFO, sdkp, "%s\n", __func__);
 	if (sdkp->device->host->by_usb) {
@@ -3284,8 +3236,6 @@ static int sd_remove(struct device *dev)
 		sd_printk(KERN_NOTICE, sdkp, "scan thread kill success\n");
 	}
 #endif
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	async_synchronize_full_domain(&scsi_sd_pm_domain);
 	async_synchronize_full_domain(&scsi_sd_probe_domain);
@@ -3374,12 +3324,9 @@ static int sd_start_stop_device(struct scsi_disk *sdkp, int start)
 static void sd_shutdown(struct device *dev)
 {
 	struct scsi_disk *sdkp = scsi_disk_get_from_dev(dev);
-<<<<<<< HEAD
 	struct scsi_device *sdp = to_scsi_device(dev);
 	struct request_queue *q = sdp->request_queue;
 	unsigned long flags;
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if (!sdkp)
 		return;         /* this can happen */
@@ -3398,15 +3345,12 @@ static void sd_shutdown(struct device *dev)
 	}
 
 exit:
-<<<<<<< HEAD
 	if (sdp->host->by_ufs) {
 		spin_lock_irqsave(q->queue_lock, flags);
 		blk_stop_queue(q);
 		spin_unlock_irqrestore(q->queue_lock, flags);
 	}
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	scsi_disk_put(sdkp);
 }
 

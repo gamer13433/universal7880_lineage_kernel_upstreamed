@@ -111,15 +111,10 @@ static __inline__ struct ipv6_pinfo *inet6_sk_generic(struct sock *sk)
 	return (struct ipv6_pinfo *)(((u8 *)sk) + offset);
 }
 
-<<<<<<< HEAD
 #ifndef CONFIG_MPTCP
 static
 #endif
 int inet6_create(struct net *net, struct socket *sock, int protocol, int kern)
-=======
-static int inet6_create(struct net *net, struct socket *sock, int protocol,
-			int kern)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	struct inet_sock *inet;
 	struct ipv6_pinfo *np;
@@ -130,12 +125,9 @@ static int inet6_create(struct net *net, struct socket *sock, int protocol,
 	int try_loading_module = 0;
 	int err;
 
-<<<<<<< HEAD
 	if (protocol < 0 || protocol >= IPPROTO_MAX)
 		return -EINVAL;
 	
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (!current_has_network())
 		return -EACCES;
 
@@ -508,7 +500,6 @@ int inet6_getname(struct socket *sock, struct sockaddr *uaddr,
 }
 EXPORT_SYMBOL(inet6_getname);
 
-<<<<<<< HEAD
 int inet6_killaddr_ioctl(struct net *net, void __user *arg) {
 	struct in6_ifreq ireq;
 	struct sockaddr_in6 sin6;
@@ -524,8 +515,6 @@ int inet6_killaddr_ioctl(struct net *net, void __user *arg) {
 	return tcp_nuke_addr(net, (struct sockaddr *) &sin6);
 }
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 int inet6_ioctl(struct socket *sock, unsigned int cmd, unsigned long arg)
 {
 	struct sock *sk = sock->sk;
@@ -549,11 +538,8 @@ int inet6_ioctl(struct socket *sock, unsigned int cmd, unsigned long arg)
 		return addrconf_del_ifaddr(net, (void __user *) arg);
 	case SIOCSIFDSTADDR:
 		return addrconf_set_dstaddr(net, (void __user *) arg);
-<<<<<<< HEAD
 	case SIOCKILLADDR:
 		return inet6_killaddr_ioctl(net, (void __user *) arg);
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	default:
 		if (!sk->sk_prot->ioctl)
 			return -ENOIOCTLCMD;
@@ -722,11 +708,7 @@ int inet6_sk_rebuild_header(struct sock *sk)
 					 &final);
 		rcu_read_unlock();
 
-<<<<<<< HEAD
 		dst = ip6_dst_lookup_flow(sk, &fl6, final_p);
-=======
-		dst = ip6_dst_lookup_flow(sock_net(sk), sk, &fl6, final_p);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		if (IS_ERR(dst)) {
 			sk->sk_route_caps = 0;
 			sk->sk_err_soft = -PTR_ERR(dst);
@@ -1069,19 +1051,11 @@ netfilter_fail:
 igmp_fail:
 	ndisc_cleanup();
 ndisc_fail:
-<<<<<<< HEAD
 	ip6_mr_cleanup();
 icmp_fail:
 	unregister_pernet_subsys(&inet6_net_ops);
 ipmr_fail:
 	icmpv6_cleanup();
-=======
-	icmpv6_cleanup();
-icmp_fail:
-	ip6_mr_cleanup();
-ipmr_fail:
-	unregister_pernet_subsys(&inet6_net_ops);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 register_pernet_fail:
 	sock_unregister(PF_INET6);
 	rtnl_unregister_all(PF_INET6);

@@ -132,13 +132,6 @@ ath6kl_usb_alloc_urb_from_pipe(struct ath6kl_usb_pipe *pipe)
 	struct ath6kl_urb_context *urb_context = NULL;
 	unsigned long flags;
 
-<<<<<<< HEAD
-=======
-	/* bail if this pipe is not initialized */
-	if (!pipe->ar_usb)
-		return NULL;
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	spin_lock_irqsave(&pipe->ar_usb->cs_lock, flags);
 	if (!list_empty(&pipe->urb_list_head)) {
 		urb_context =
@@ -157,13 +150,6 @@ static void ath6kl_usb_free_urb_to_pipe(struct ath6kl_usb_pipe *pipe,
 {
 	unsigned long flags;
 
-<<<<<<< HEAD
-=======
-	/* bail if this pipe is not initialized */
-	if (!pipe->ar_usb)
-		return;
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	spin_lock_irqsave(&pipe->ar_usb->cs_lock, flags);
 	pipe->urb_cnt++;
 

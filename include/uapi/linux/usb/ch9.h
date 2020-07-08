@@ -663,10 +663,7 @@ struct usb_qualifier_descriptor {
 	__u8  bRESERVED;
 } __attribute__ ((packed));
 
-<<<<<<< HEAD
 #define USB_DT_INTERFACE_ASSOCIATION_SIZE	8
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /*-------------------------------------------------------------------------*/
 
@@ -709,11 +706,7 @@ struct usb_interface_assoc_descriptor {
 	__u8  iFunction;
 } __attribute__ ((packed));
 
-<<<<<<< HEAD
 #define USB_DT_INTERFACE_ASSOCIATION_SIZE   8
-=======
-#define USB_DT_INTERFACE_ASSOCIATION_SIZE	8
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /*-------------------------------------------------------------------------*/
 
@@ -922,10 +915,6 @@ enum usb_device_speed {
 	USB_SPEED_HIGH,				/* usb 2.0 */
 	USB_SPEED_WIRELESS,			/* wireless (usb 2.5) */
 	USB_SPEED_SUPER,			/* usb 3.0 */
-<<<<<<< HEAD
-=======
-	USB_SPEED_SUPER_PLUS,			/* usb 3.1 */
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 

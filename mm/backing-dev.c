@@ -69,17 +69,10 @@ static int bdi_debug_stats_show(struct seq_file *m, void *v)
 	unsigned long background_thresh;
 	unsigned long dirty_thresh;
 	unsigned long bdi_thresh;
-<<<<<<< HEAD
 	unsigned long nr_dirty, nr_io, nr_more_io;
 	struct inode *inode;
 
 	nr_dirty = nr_io = nr_more_io = 0;
-=======
-	unsigned long nr_dirty, nr_io, nr_more_io, nr_dirty_time;
-	struct inode *inode;
-
-	nr_dirty = nr_io = nr_more_io = nr_dirty_time = 0;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	spin_lock(&wb->list_lock);
 	list_for_each_entry(inode, &wb->b_dirty, i_wb_list)
 		nr_dirty++;
@@ -87,12 +80,6 @@ static int bdi_debug_stats_show(struct seq_file *m, void *v)
 		nr_io++;
 	list_for_each_entry(inode, &wb->b_more_io, i_wb_list)
 		nr_more_io++;
-<<<<<<< HEAD
-=======
-	list_for_each_entry(inode, &wb->b_dirty_time, i_wb_list)
-		if (inode->i_state & I_DIRTY_TIME)
-			nr_dirty_time++;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	spin_unlock(&wb->list_lock);
 
 	global_dirty_limits(&background_thresh, &dirty_thresh);
@@ -111,10 +98,6 @@ static int bdi_debug_stats_show(struct seq_file *m, void *v)
 		   "b_dirty:            %10lu\n"
 		   "b_io:               %10lu\n"
 		   "b_more_io:          %10lu\n"
-<<<<<<< HEAD
-=======
-		   "b_dirty_time:       %10lu\n"
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		   "bdi_list:           %10u\n"
 		   "state:              %10lx\n",
 		   (unsigned long) K(bdi_stat(bdi, BDI_WRITEBACK)),
@@ -128,10 +111,6 @@ static int bdi_debug_stats_show(struct seq_file *m, void *v)
 		   nr_dirty,
 		   nr_io,
 		   nr_more_io,
-<<<<<<< HEAD
-=======
-		   nr_dirty_time,
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		   !list_empty(&bdi->bdi_list), bdi->state);
 #undef K
 
@@ -439,10 +418,6 @@ static void bdi_wb_init(struct bdi_writeback *wb, struct backing_dev_info *bdi)
 	INIT_LIST_HEAD(&wb->b_dirty);
 	INIT_LIST_HEAD(&wb->b_io);
 	INIT_LIST_HEAD(&wb->b_more_io);
-<<<<<<< HEAD
-=======
-	INIT_LIST_HEAD(&wb->b_dirty_time);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	spin_lock_init(&wb->list_lock);
 	INIT_DELAYED_WORK(&wb->dwork, bdi_writeback_workfn);
 }
@@ -483,13 +458,10 @@ int bdi_init(struct backing_dev_info *bdi)
 	bdi->write_bandwidth = INIT_BW;
 	bdi->avg_write_bandwidth = INIT_BW;
 
-<<<<<<< HEAD
 	bdi->last_thresh = 0;
 	bdi->last_nr_dirty = 0;
 	bdi->paused_total = 0;
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	err = fprop_local_init_percpu(&bdi->completions, GFP_KERNEL);
 
 	if (err) {

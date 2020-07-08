@@ -33,11 +33,7 @@
 #define I2SLVL3ADDR	0x3c
 #define I2SSTR1		0x40
 #define I2SVER		0x44
-<<<<<<< HEAD
 #define I2SFIC1		0x48
-=======
-#define I2SFIC2		0x48
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #define I2STDM		0x4c
 
 #define CON_RSTCLR		(1 << 31)
@@ -92,16 +88,12 @@
 #define MOD_C1DD_LHALF		(1 << 18)
 #define MOD_DC2_EN		(1 << 17)
 #define MOD_DC1_EN		(1 << 16)
-<<<<<<< HEAD
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #define MOD_BLC_16BIT		(0 << 13)
 #define MOD_BLC_8BIT		(1 << 13)
 #define MOD_BLC_24BIT		(2 << 13)
 #define MOD_BLC_MASK		(3 << 13)
 
-<<<<<<< HEAD
 #define MOD_CDCLKCON		(1 << 12)
 #define MOD_SLAVE		(1 << 11)
 #define MOD_RCLKSRC		(1 << 10)
@@ -124,36 +116,19 @@
 #define MOD_LR_LLOW		0
 #define MOD_LR_RLOW		1
 
-=======
-#define MOD_IMS_SYSMUX		(1 << 10)
-#define MOD_SLAVE		(1 << 11)
-#define MOD_TXONLY		(0 << 8)
-#define MOD_RXONLY		(1 << 8)
-#define MOD_TXRX		(2 << 8)
-#define MOD_MASK		(3 << 8)
-#define MOD_LRP_SHIFT		7
-#define MOD_LR_LLOW		0
-#define MOD_LR_RLOW		1
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #define MOD_SDF_SHIFT		5
 #define MOD_SDF_IIS		0
 #define MOD_SDF_MSB		1
 #define MOD_SDF_LSB		2
 #define MOD_SDF_MASK		3
-<<<<<<< HEAD
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #define MOD_RCLK_SHIFT		3
 #define MOD_RCLK_256FS		0
 #define MOD_RCLK_512FS		1
 #define MOD_RCLK_384FS		2
 #define MOD_RCLK_768FS		3
 #define MOD_RCLK_MASK		3
-<<<<<<< HEAD
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #define MOD_BCLK_SHIFT		1
 #define MOD_BCLK_32FS		0
 #define MOD_BCLK_48FS		1
@@ -162,7 +137,6 @@
 #define MOD_BCLK_MASK		3
 #define MOD_8BIT		(1 << 0)
 
-<<<<<<< HEAD
 #define I2S_STR_MOD_LRP_SHIFT		15
 #define I2S_STR_MOD_LRP			BIT(I2S_STR_MOD_LRP_SHIFT)
 #define I2S_STR_MOD_CDCLKCON		MOD_CDCLKCON
@@ -186,11 +160,6 @@
 #define EXYNOS5420_MOD_SDF_SHIFT	6
 #define EXYNOS5420_MOD_RCLK_SHIFT	4
 #define EXYNOS5420_MOD_RCLK_MASK	MOD_RCLK_MASK
-=======
-#define EXYNOS5420_MOD_LRP_SHIFT	15
-#define EXYNOS5420_MOD_SDF_SHIFT	6
-#define EXYNOS5420_MOD_RCLK_SHIFT	4
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #define EXYNOS5420_MOD_BCLK_SHIFT	0
 #define EXYNOS5420_MOD_BCLK_64FS	4
 #define EXYNOS5420_MOD_BCLK_96FS	5
@@ -199,7 +168,6 @@
 #define EXYNOS5420_MOD_BCLK_256FS	8
 #define EXYNOS5420_MOD_BCLK_MASK	0xf
 
-<<<<<<< HEAD
 #define EXYNOS5430_MOD_LRP		EXYNOS5420_MOD_LRP
 #define EXYNOS5430_MOD_CDCLKCON		(1 << 22)
 #define EXYNOS5430_MOD_SLAVE		(1 << 12)
@@ -217,9 +185,6 @@
 #define EXYNOS5430_MOD_BCLK_SHIFT	EXYNOS5420_MOD_BCLK_SHIFT
 #define EXYNOS5430_MOD_BCLK_MASK	EXYNOS5420_MOD_BCLK_MASK
 
-=======
-#define MOD_CDCLKCON		(1 << 12)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #define PSR_PSREN		(1 << 15)
 
@@ -244,7 +209,6 @@
 #define I2SSIZE_TRNMSK		(0xffff)
 #define I2SSIZE_SHIFT		(16)
 
-<<<<<<< HEAD
 #define TDM_LRCLK_WIDTH_SHIFT	12
 #define TDM_LRCLK_WIDTH_MASK	0xFF
 #define TDM_RX_SLOTS_SHIFT	8
@@ -259,8 +223,6 @@
 #define TDM_RX_SLOTS_MAX	2
 #define TDM_TX_SLOTS_MAX	8
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #endif /* __SND_SOC_SAMSUNG_I2S_REGS_H */
 
 

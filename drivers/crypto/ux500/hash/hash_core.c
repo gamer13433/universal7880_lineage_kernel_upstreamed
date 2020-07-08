@@ -1682,15 +1682,9 @@ static int ux500_hash_probe(struct platform_device *pdev)
 
 	device_data->phybase = res->start;
 	device_data->base = ioremap(res->start, resource_size(res));
-<<<<<<< HEAD
 	if (!device_data->base) {
 		dev_err(dev, "%s: ioremap() failed!\n", __func__);
 		ret = -ENOMEM;
-=======
-	if (IS_ERR(device_data->base)) {
-		dev_err(dev, "%s: ioremap() failed!\n", __func__);
-		ret = PTR_ERR(device_data->base);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		goto out_free_mem;
 	}
 	spin_lock_init(&device_data->ctx_lock);

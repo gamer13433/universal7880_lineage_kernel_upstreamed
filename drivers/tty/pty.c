@@ -658,7 +658,6 @@ static void pty_unix98_remove(struct tty_driver *driver, struct tty_struct *tty)
 /* this is called once with whichever end is closed last */
 static void pty_unix98_shutdown(struct tty_struct *tty)
 {
-<<<<<<< HEAD
 	struct inode *ptmx_inode;
 
 	if (tty->driver->subtype == PTY_TYPE_MASTER)
@@ -667,16 +666,6 @@ static void pty_unix98_shutdown(struct tty_struct *tty)
 		ptmx_inode = tty->link->driver_data;
 	devpts_kill_index(ptmx_inode, tty->index);
 	devpts_del_ref(ptmx_inode);
-=======
-	struct pts_fs_info *fsi;
-
-	if (tty->driver->subtype == PTY_TYPE_MASTER)
-		fsi = tty->driver_data;
-	else
-		fsi = tty->link->driver_data;
-	devpts_kill_index(fsi, tty->index);
-	devpts_put_ref(fsi);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 static const struct tty_operations ptm_unix98_ops = {
@@ -729,10 +718,6 @@ static const struct tty_operations pty_unix98_ops = {
 
 static int ptmx_open(struct inode *inode, struct file *filp)
 {
-<<<<<<< HEAD
-=======
-	struct pts_fs_info *fsi;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	struct tty_struct *tty;
 	struct inode *slave_inode;
 	int retval;
@@ -747,7 +732,6 @@ static int ptmx_open(struct inode *inode, struct file *filp)
 	if (retval)
 		return retval;
 
-<<<<<<< HEAD
 	/* find a device that is not in use. */
 	mutex_lock(&devpts_mutex);
 	index = devpts_new_index(inode);
@@ -767,30 +751,10 @@ static int ptmx_open(struct inode *inode, struct file *filp)
 		goto out;
 	}
 
-=======
-	fsi = devpts_get_ref(inode, filp);
-	retval = -ENODEV;
-	if (!fsi)
-		goto out_free_file;
-
-	/* find a device that is not in use. */
-	mutex_lock(&devpts_mutex);
-	index = devpts_new_index(fsi);
-	mutex_unlock(&devpts_mutex);
-
-	retval = index;
-	if (index < 0)
-		goto out_put_ref;
-
-
-	mutex_lock(&tty_mutex);
-	tty = tty_init_dev(ptm_driver, index);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/* The tty returned here is locked so we can safely
 	   drop the mutex */
 	mutex_unlock(&tty_mutex);
 
-<<<<<<< HEAD
 	set_bit(TTY_PTY_LOCK, &tty->flags); /* LOCK THE SLAVE */
 	tty->driver_data = inode;
 
@@ -809,22 +773,6 @@ static int ptmx_open(struct inode *inode, struct file *filp)
 	tty_add_file(tty, filp);
 
 	slave_inode = devpts_pty_new(inode,
-=======
-	retval = PTR_ERR(tty);
-	if (IS_ERR(tty))
-		goto out;
-
-	/*
-	 * From here on out, the tty is "live", and the index and
-	 * fsi will be killed/put by the tty_release()
-	 */
-	set_bit(TTY_PTY_LOCK, &tty->flags); /* LOCK THE SLAVE */
-	tty->driver_data = fsi;
-
-	tty_add_file(tty, filp);
-
-	slave_inode = devpts_pty_new(fsi,
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			MKDEV(UNIX98_PTY_SLAVE_MAJOR, index), index,
 			tty->link);
 	if (IS_ERR(slave_inode)) {
@@ -841,23 +789,12 @@ static int ptmx_open(struct inode *inode, struct file *filp)
 	return 0;
 err_release:
 	tty_unlock(tty);
-<<<<<<< HEAD
 	tty_release(inode, filp);
 	return retval;
 out:
 	mutex_unlock(&tty_mutex);
 	devpts_kill_index(inode, index);
 err_file:
-=======
-	// This will also put-ref the fsi
-	tty_release(inode, filp);
-	return retval;
-out:
-	devpts_kill_index(fsi, index);
-out_put_ref:
-	devpts_put_ref(fsi);
-out_free_file:
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	tty_free_file(filp);
 	return retval;
 }

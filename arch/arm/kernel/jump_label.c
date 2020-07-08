@@ -19,11 +19,7 @@ static void __arch_jump_label_transform(struct jump_entry *entry,
 		insn = arm_gen_nop();
 
 	if (is_static)
-<<<<<<< HEAD
 		__patch_text(addr, insn);
-=======
-		__patch_text_early(addr, insn);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	else
 		patch_text(addr, insn);
 }

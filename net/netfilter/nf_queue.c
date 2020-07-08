@@ -95,26 +95,6 @@ bool nf_queue_entry_get_refs(struct nf_queue_entry *entry)
 }
 EXPORT_SYMBOL_GPL(nf_queue_entry_get_refs);
 
-<<<<<<< HEAD
-=======
-void nf_queue_nf_hook_drop(struct nf_hook_ops *ops)
-{
-	const struct nf_queue_handler *qh;
-	struct net *net;
-
-	rtnl_lock();
-	rcu_read_lock();
-	qh = rcu_dereference(queue_handler);
-	if (qh) {
-		for_each_net(net) {
-			qh->nf_hook_drop(net, ops);
-		}
-	}
-	rcu_read_unlock();
-	rtnl_unlock();
-}
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /*
  * Any packet that leaves via this function must come back
  * through nf_reinject().

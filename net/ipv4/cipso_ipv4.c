@@ -1341,12 +1341,7 @@ static int cipso_v4_parsetag_rbm(const struct cipso_v4_doi *doi_def,
 			return ret_val;
 		}
 
-<<<<<<< HEAD
 		secattr->flags |= NETLBL_SECATTR_MLS_CAT;
-=======
-		if (secattr->attr.mls.cat)
-			secattr->flags |= NETLBL_SECATTR_MLS_CAT;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 	return 0;
@@ -1527,12 +1522,7 @@ static int cipso_v4_parsetag_rng(const struct cipso_v4_doi *doi_def,
 			return ret_val;
 		}
 
-<<<<<<< HEAD
 		secattr->flags |= NETLBL_SECATTR_MLS_CAT;
-=======
-		if (secattr->attr.mls.cat)
-			secattr->flags |= NETLBL_SECATTR_MLS_CAT;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 	return 0;
@@ -1817,10 +1807,6 @@ void cipso_v4_error(struct sk_buff *skb, int error, u32 gateway)
 {
 	unsigned char optbuf[sizeof(struct ip_options) + 40];
 	struct ip_options *opt = (struct ip_options *)optbuf;
-<<<<<<< HEAD
-=======
-	int res;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if (ip_hdr(skb)->protocol == IPPROTO_ICMP || error != -EACCES)
 		return;
@@ -1832,15 +1818,7 @@ void cipso_v4_error(struct sk_buff *skb, int error, u32 gateway)
 
 	memset(opt, 0, sizeof(struct ip_options));
 	opt->optlen = ip_hdr(skb)->ihl*4 - sizeof(struct iphdr);
-<<<<<<< HEAD
 	if (__ip_options_compile(dev_net(skb->dev), opt, skb, NULL))
-=======
-	rcu_read_lock();
-	res = __ip_options_compile(dev_net(skb->dev), opt, skb, NULL);
-	rcu_read_unlock();
-
-	if (res)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		return;
 
 	if (gateway)

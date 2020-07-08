@@ -19,10 +19,7 @@ obj-$(CONFIG_PARISC)		+= parisc/
 obj-$(CONFIG_RAPIDIO)		+= rapidio/
 obj-y				+= video/
 obj-y				+= idle/
-<<<<<<< HEAD
 obj-y				+= trace/
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 # IPMI must come before ACPI in order to provide IPMI opregion support
 obj-$(CONFIG_IPMI_HANDLER)	+= char/ipmi/
@@ -63,13 +60,10 @@ obj-$(CONFIG_CONNECTOR)		+= connector/
 obj-$(CONFIG_FB_I810)           += video/fbdev/i810/
 obj-$(CONFIG_FB_INTEL)          += video/fbdev/intelfb/
 
-<<<<<<< HEAD
 obj-$(CONFIG_USE_MUIC)      += muic/
 
 obj-$(CONFIG_USE_CCIC)      += ccic/
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 obj-$(CONFIG_PARPORT)		+= parport/
 obj-y				+= base/ block/ misc/ mfd/ nfc/
 obj-$(CONFIG_DMA_SHARED_BUFFER) += dma-buf/
@@ -163,14 +157,11 @@ obj-$(CONFIG_VIRT_DRIVERS)	+= virt/
 obj-$(CONFIG_HYPERV)		+= hv/
 
 obj-$(CONFIG_PM_DEVFREQ)	+= devfreq/
-<<<<<<< HEAD
 ifeq ($(CONFIG_BATTERY_SAMSUNG_V2), y)
   obj-$(CONFIG_BATTERY_SAMSUNG)   += battery_v2/
 else
   obj-$(CONFIG_BATTERY_SAMSUNG)   += battery/
 endif
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 obj-$(CONFIG_EXTCON)		+= extcon/
 obj-$(CONFIG_MEMORY)		+= memory/
 obj-$(CONFIG_IIO)		+= iio/
@@ -182,7 +173,6 @@ obj-$(CONFIG_POWERCAP)		+= powercap/
 obj-$(CONFIG_MCB)		+= mcb/
 obj-$(CONFIG_RAS)		+= ras/
 obj-$(CONFIG_THUNDERBOLT)	+= thunderbolt/
-<<<<<<< HEAD
 obj-$(CONFIG_EXYNOS_BTS)	+= bts/
 obj-$(CONFIG_MARVELL_DRIVERS)	+= marvell/
 # Mobicore driver
@@ -195,5 +185,3 @@ obj-$(CONFIG_GPS_BCMxxxxx)	+= gps/
 #Fingerprint
 obj-$(CONFIG_SENSORS_FINGERPRINT)       += fingerprint/
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012

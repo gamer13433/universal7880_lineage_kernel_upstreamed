@@ -2140,19 +2140,6 @@ static void put_vol_mute(struct hda_codec *codec, unsigned int amp_caps,
 	snd_hda_codec_write(codec, nid, 0, AC_VERB_SET_AMP_GAIN_MUTE, parm);
 }
 
-<<<<<<< HEAD
-=======
-/* meta hook to call each driver's vmaster hook */
-static void vmaster_hook(void *private_data, int enabled)
-{
-	struct hda_vmaster_mute_hook *hook = private_data;
-
-	if (hook->mute_mode != HDA_VMUTE_FOLLOW_MASTER)
-		enabled = hook->mute_mode;
-	hook->hook(hook->codec, enabled);
-}
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /**
  * snd_hda_codec_amp_read - Read AMP value
  * @codec: HD-audio codec
@@ -2998,15 +2985,9 @@ int snd_hda_add_vmaster_hook(struct hda_codec *codec,
 
 	if (!hook->hook || !hook->sw_kctl)
 		return 0;
-<<<<<<< HEAD
 	snd_ctl_add_vmaster_hook(hook->sw_kctl, hook->hook, codec);
 	hook->codec = codec;
 	hook->mute_mode = HDA_VMUTE_FOLLOW_MASTER;
-=======
-	hook->codec = codec;
-	hook->mute_mode = HDA_VMUTE_FOLLOW_MASTER;
-	snd_ctl_add_vmaster_hook(hook->sw_kctl, vmaster_hook, hook);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (!expose_enum_ctl)
 		return 0;
 	kctl = snd_ctl_new1(&vmaster_mute_mode, hook);
@@ -3029,7 +3010,6 @@ void snd_hda_sync_vmaster_hook(struct hda_vmaster_mute_hook *hook)
 	 */
 	if (hook->codec->bus->shutdown)
 		return;
-<<<<<<< HEAD
 	switch (hook->mute_mode) {
 	case HDA_VMUTE_FOLLOW_MASTER:
 		snd_ctl_sync_vmaster_hook(hook->sw_kctl);
@@ -3038,9 +3018,6 @@ void snd_hda_sync_vmaster_hook(struct hda_vmaster_mute_hook *hook)
 		hook->hook(hook->codec, hook->mute_mode);
 		break;
 	}
-=======
-	snd_ctl_sync_vmaster_hook(hook->sw_kctl);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 EXPORT_SYMBOL_GPL(snd_hda_sync_vmaster_hook);
 
@@ -5773,11 +5750,7 @@ void snd_print_pcm_bits(int pcm, char *buf, int buflen)
 
 	for (i = 0, j = 0; i < ARRAY_SIZE(bits); i++)
 		if (pcm & (AC_SUPPCM_BITS_8 << i))
-<<<<<<< HEAD
 			j += snprintf(buf + j, buflen - j,  " %d", bits[i]);
-=======
-			j += scnprintf(buf + j, buflen - j,  " %d", bits[i]);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	buf[j] = '\0'; /* necessary when j == 0 */
 }

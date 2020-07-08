@@ -157,17 +157,6 @@ static struct dmi_system_id __initdata reboot_dmi_table[] = {
 			DMI_MATCH(DMI_PRODUCT_NAME, "MacBook5"),
 		},
 	},
-<<<<<<< HEAD
-=======
-	{	/* Handle problems with rebooting on Apple MacBook6,1 */
-		.callback = set_pci_reboot,
-		.ident = "Apple MacBook6,1",
-		.matches = {
-			DMI_MATCH(DMI_SYS_VENDOR, "Apple Inc."),
-			DMI_MATCH(DMI_PRODUCT_NAME, "MacBook6,1"),
-		},
-	},
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	{	/* Handle problems with rebooting on Apple MacBookPro5 */
 		.callback = set_pci_reboot,
 		.ident = "Apple MacBookPro5",
@@ -192,17 +181,6 @@ static struct dmi_system_id __initdata reboot_dmi_table[] = {
 			DMI_MATCH(DMI_PRODUCT_NAME, "iMac9,1"),
 		},
 	},
-<<<<<<< HEAD
-=======
-	{	/* Handle problems with rebooting on the iMac10,1. */
-		.callback = set_pci_reboot,
-		.ident = "Apple iMac10,1",
-		.matches = {
-		    DMI_MATCH(DMI_SYS_VENDOR, "Apple Inc."),
-		    DMI_MATCH(DMI_PRODUCT_NAME, "iMac10,1"),
-		},
-	},
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	/* ASRock */
 	{	/* Handle problems with rebooting on ASRock Q1900DC-ITX */

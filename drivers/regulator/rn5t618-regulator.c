@@ -138,10 +138,6 @@ static struct platform_driver rn5t618_regulator_driver = {
 
 module_platform_driver(rn5t618_regulator_driver);
 
-<<<<<<< HEAD
-=======
-MODULE_ALIAS("platform:rn5t618-regulator");
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 MODULE_AUTHOR("Beniamino Galvani <b.galvani@gmail.com>");
 MODULE_DESCRIPTION("RN5T618 regulator driver");
 MODULE_LICENSE("GPL v2");

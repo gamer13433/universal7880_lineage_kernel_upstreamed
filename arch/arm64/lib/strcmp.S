@@ -231,8 +231,4 @@ CPU_BE(	orr	syndrome, diff, has_nul )
 	lsr	data1, data1, #56
 	sub	result, data1, data2, lsr #56
 	ret
-<<<<<<< HEAD
 ENDPROC(strcmp)
-=======
-ENDPIPROC(strcmp)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012

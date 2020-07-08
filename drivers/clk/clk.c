@@ -446,10 +446,7 @@ DEFINE_SIMPLE_ATTRIBUTE(freq_stats_fops, freq_stats_get,
 			freq_stats_set, "%llu\n");
 #endif /*CONFIG_COMMON_CLK_FREQ_STATS_ACCOUNTING*/
 
-<<<<<<< HEAD
 /* caller must hold prepare_lock */
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static int clk_debug_create_one(struct clk *clk, struct dentry *pdentry)
 {
 	struct dentry *d;
@@ -561,7 +558,6 @@ unlock:
 static void clk_debug_unregister(struct clk *clk)
 {
 	mutex_lock(&clk_debug_lock);
-<<<<<<< HEAD
 	if (!clk->dentry)
 		goto out;
 
@@ -569,11 +565,6 @@ static void clk_debug_unregister(struct clk *clk)
 	debugfs_remove_recursive(clk->dentry);
 	clk->dentry = NULL;
 out:
-=======
-	hlist_del_init(&clk->debug_node);
-	debugfs_remove_recursive(clk->dentry);
-	clk->dentry = NULL;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	mutex_unlock(&clk_debug_lock);
 }
 
@@ -1816,13 +1807,6 @@ int clk_set_rate(struct clk *clk, unsigned long rate)
 	/* prevent racing with updates to the clock topology */
 	clk_prepare_lock();
 
-<<<<<<< HEAD
-=======
-	/* bail early if nothing to do */
-	if (rate == clk_get_rate(clk))
-		goto out;
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if ((clk->flags & CLK_SET_RATE_GATE) && clk->prepare_count) {
 		ret = -EBUSY;
 		goto out;
@@ -1965,12 +1949,6 @@ int clk_set_parent(struct clk *clk, struct clk *parent)
 	/* prevent racing with updates to the clock topology */
 	clk_prepare_lock();
 
-<<<<<<< HEAD
-=======
-	if (clk->parent == parent)
-		goto out;
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/* check that we are allowed to re-parent if the clock is in use */
 	if ((clk->flags & CLK_SET_PARENT_GATE) && clk->prepare_count) {
 		ret = -EBUSY;
@@ -2010,12 +1988,9 @@ int clk_set_parent(struct clk *clk, struct clk *parent)
 out:
 	clk_prepare_unlock();
 
-<<<<<<< HEAD
 	if (!ret)
 		clk_debug_register(clk);
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return ret;
 }
 EXPORT_SYMBOL_GPL(clk_set_parent);
@@ -2233,10 +2208,7 @@ int __clk_init(struct device *dev, struct clk *clk)
 	else
 		clk->rate = 0;
 
-<<<<<<< HEAD
 	clk_debug_register(clk);
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/*
 	 * walk the list of orphan clocks and reparent any that are children of
 	 * this clock
@@ -2271,12 +2243,6 @@ int __clk_init(struct device *dev, struct clk *clk)
 out:
 	clk_prepare_unlock();
 
-<<<<<<< HEAD
-=======
-	if (!ret)
-		clk_debug_register(clk);
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return ret;
 }
 
@@ -2576,27 +2542,14 @@ int __clk_get(struct clk *clk)
 
 void __clk_put(struct clk *clk)
 {
-<<<<<<< HEAD
-=======
-	struct module *owner;
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (!clk || WARN_ON_ONCE(IS_ERR(clk)))
 		return;
 
 	clk_prepare_lock();
-<<<<<<< HEAD
 	kref_put(&clk->ref, __clk_release);
 	clk_prepare_unlock();
 
 	module_put(clk->owner);
-=======
-	owner = clk->owner;
-	kref_put(&clk->ref, __clk_release);
-	clk_prepare_unlock();
-
-	module_put(owner);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 /***        clk rate change notifiers        ***/

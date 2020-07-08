@@ -92,11 +92,7 @@ static struct i2c_board_info acs5k_i2c_devs[] __initdata = {
 	},
 };
 
-<<<<<<< HEAD
 static void acs5k_i2c_init(void)
-=======
-static void __init acs5k_i2c_init(void)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	/* The gpio interface */
 	platform_device_register(&acs5k_i2c_device);

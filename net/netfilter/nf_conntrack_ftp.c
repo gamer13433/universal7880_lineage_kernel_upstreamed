@@ -334,11 +334,7 @@ static int find_pattern(const char *data, size_t dlen,
 		i++;
 	}
 
-<<<<<<< HEAD
 	pr_debug("Skipped up to `%c'!\n", skip);
-=======
-	pr_debug("Skipped up to 0x%hhx delimiter!\n", skip);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	*numoff = i;
 	*numlen = getnum(data + i, dlen - i, cmd, term, numoff);

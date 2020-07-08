@@ -829,11 +829,7 @@ ret_err_rqe:
 			((u64)err_entry->data.err_warn_bitmap_hi << 32) |
 			(u64)err_entry->data.err_warn_bitmap_lo;
 		for (i = 0; i < BNX2FC_NUM_ERR_BITS; i++) {
-<<<<<<< HEAD
 			if (err_warn_bit_map & (u64) (1 << i)) {
-=======
-			if (err_warn_bit_map & ((u64)1 << i)) {
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 				err_warn = i;
 				break;
 			}

@@ -1531,12 +1531,7 @@ static int bnx2x_get_module_info(struct net_device *dev,
 	}
 
 	if (!sff8472_comp ||
-<<<<<<< HEAD
 	    (diag_type & SFP_EEPROM_DIAG_ADDR_CHANGE_REQ)) {
-=======
-	    (diag_type & SFP_EEPROM_DIAG_ADDR_CHANGE_REQ) ||
-	    !(diag_type & SFP_EEPROM_DDM_IMPLEMENTED)) {
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		modinfo->type = ETH_MODULE_SFF_8079;
 		modinfo->eeprom_len = ETH_MODULE_SFF_8079_LEN;
 	} else {

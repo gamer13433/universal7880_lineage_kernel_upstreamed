@@ -161,16 +161,8 @@ static int appledisplay_bl_update_status(struct backlight_device *bd)
 		pdata->msgdata, 2,
 		ACD_USB_TIMEOUT);
 	mutex_unlock(&pdata->sysfslock);
-<<<<<<< HEAD
 	
 	return retval;
-=======
-
-	if (retval < 0)
-		return retval;
-	else
-		return 0;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 static int appledisplay_bl_get_brightness(struct backlight_device *bd)
@@ -188,16 +180,7 @@ static int appledisplay_bl_get_brightness(struct backlight_device *bd)
 		0,
 		pdata->msgdata, 2,
 		ACD_USB_TIMEOUT);
-<<<<<<< HEAD
 	brightness = pdata->msgdata[1];
-=======
-	if (retval < 2) {
-		if (retval >= 0)
-			retval = -EMSGSIZE;
-	} else {
-		brightness = pdata->msgdata[1];
-	}
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	mutex_unlock(&pdata->sysfslock);
 
 	if (retval < 0)
@@ -343,10 +326,6 @@ error:
 	if (pdata) {
 		if (pdata->urb) {
 			usb_kill_urb(pdata->urb);
-<<<<<<< HEAD
-=======
-			cancel_delayed_work_sync(&pdata->work);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			if (pdata->urbdata)
 				usb_free_coherent(pdata->udev, ACD_URB_BUFFER_LEN,
 					pdata->urbdata, pdata->urb->transfer_dma);

@@ -281,15 +281,8 @@ static inline int TLV_SET(void *tlv, __u16 type, void *data, __u16 len)
 	tlv_ptr = (struct tlv_desc *)tlv;
 	tlv_ptr->tlv_type = htons(type);
 	tlv_ptr->tlv_len  = htons(tlv_len);
-<<<<<<< HEAD
 	if (len && data)
 		memcpy(TLV_DATA(tlv_ptr), data, tlv_len);
-=======
-	if (len && data) {
-		memcpy(TLV_DATA(tlv_ptr), data, len);
-		memset(TLV_DATA(tlv_ptr) + len, 0, TLV_SPACE(len) - tlv_len);
-	}
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return TLV_SPACE(len);
 }
 
@@ -386,15 +379,8 @@ static inline int TCM_SET(void *msg, __u16 cmd, __u16 flags,
 	tcm_hdr->tcm_len   = htonl(msg_len);
 	tcm_hdr->tcm_type  = htons(cmd);
 	tcm_hdr->tcm_flags = htons(flags);
-<<<<<<< HEAD
 	if (data_len && data)
 		memcpy(TCM_DATA(msg), data, data_len);
-=======
-	if (data_len && data) {
-		memcpy(TCM_DATA(msg), data, data_len);
-		memset(TCM_DATA(msg) + data_len, 0, TCM_SPACE(data_len) - msg_len);
-	}
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return TCM_SPACE(data_len);
 }
 

@@ -89,7 +89,6 @@
 #include <asm/smp.h>
 #endif
 
-<<<<<<< HEAD
 #ifdef CONFIG_TIMA_RKP
 #include <linux/vmm.h>
 #include <linux/rkp_entry.h> 
@@ -107,19 +106,14 @@ int boot_mode_security;
 EXPORT_SYMBOL(boot_mode_security);
 #endif
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static int kernel_init(void *);
 
 extern void init_IRQ(void);
 extern void fork_init(unsigned long);
 extern void radix_tree_init(void);
-<<<<<<< HEAD
 #ifndef CONFIG_DEBUG_RODATA
 static inline void mark_rodata_ro(void) { }
 #endif
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /*
  * Debug helper: via this flag we know that we are in 'early bootup code'
@@ -456,7 +450,6 @@ static int __init do_early_param(char *param, char *val, const char *unused)
 		}
 	}
 	/* We accept everything at this stage. */
-<<<<<<< HEAD
 #ifdef CONFIG_KNOX_KAP
 	if ((strncmp(param, "androidboot.security_mode", 26) == 0)) {
 		pr_warn("val = %d\n",*val);
@@ -466,8 +459,6 @@ static int __init do_early_param(char *param, char *val, const char *unused)
 		}
 	}
 #endif
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return 0;
 }
 
@@ -532,7 +523,6 @@ static void __init mm_init(void)
 	vmalloc_init();
 }
 
-<<<<<<< HEAD
 #ifdef	CONFIG_TIMA_RKP
 extern void* vmm_extra_mem;
 u8 rkp_started = 0;
@@ -569,8 +559,6 @@ static void rkp_init(void)
 }
 #endif
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 asmlinkage __visible void __init start_kernel(void)
 {
 	char *command_line;
@@ -624,7 +612,6 @@ asmlinkage __visible void __init start_kernel(void)
 		parse_args("Setting init args", after_dashes, NULL, 0, -1, -1,
 			   set_init_arg);
 
-<<<<<<< HEAD
 
 #ifdef CONFIG_TIMA_RKP
 #ifdef CONFIG_KNOX_KAP
@@ -637,8 +624,6 @@ asmlinkage __visible void __init start_kernel(void)
 #endif //CONFIG_KNOX_KAP
 #endif //CONFIG_TIMA_RKP
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/*
 	 * These use large bootmem allocations and must precede
 	 * kmem_cache_init()
@@ -649,13 +634,9 @@ asmlinkage __visible void __init start_kernel(void)
 	sort_main_extable();
 	trap_init();
 	mm_init();
-<<<<<<< HEAD
 #ifdef CONFIG_SEC_BSP
 	sec_boot_stat_get_start_kernel();
 #endif
-=======
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/*
 	 * Set up the scheduler prior starting any interrupts (such as the
 	 * timer interrupt). Full topology setup happens at smp_init()
@@ -672,13 +653,6 @@ asmlinkage __visible void __init start_kernel(void)
 		local_irq_disable();
 	idr_init_cache();
 	rcu_init();
-<<<<<<< HEAD
-=======
-
-	/* trace_printk() and trace points may be used after this */
-	trace_init();
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	context_tracking_init();
 	radix_tree_init();
 	/* init some links before init_ISA_irqs() */
@@ -750,7 +724,6 @@ asmlinkage __visible void __init start_kernel(void)
 	init_espfix_bsp();
 #endif
 	thread_info_cache_init();
-<<<<<<< HEAD
 
 #ifdef CONFIG_TIMA_RKP
 
@@ -760,8 +733,6 @@ asmlinkage __visible void __init start_kernel(void)
 		rkp_init();
 
 #endif /* CONFIG_TIMA_RKP */
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	cred_init();
 	fork_init(totalram_pages);
 	proc_caches_init();
@@ -793,11 +764,6 @@ asmlinkage __visible void __init start_kernel(void)
 
 	/* Do the rest non-__init'ed, we're now alive */
 	rest_init();
-<<<<<<< HEAD
-=======
-
-	prevent_tail_call_optimization();
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 /* Call all constructor functions linked into the kernel. */
@@ -893,14 +859,11 @@ static int __init_or_module do_one_initcall_debug(initcall_t fn)
 	printk(KERN_DEBUG "initcall %pF returned %d after %lld usecs\n",
 		 fn, ret, duration);
 
-<<<<<<< HEAD
 #ifdef CONFIG_SEC_INITCALL_DEBUG
 	if (SEC_INITCALL_DEBUG_MIN_TIME < duration)
 		sec_initcall_debug_add(fn, duration);
 #endif
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return ret;
 }
 
@@ -913,21 +876,14 @@ int __init_or_module do_one_initcall(initcall_t fn)
 	if (initcall_blacklisted(fn))
 		return -EPERM;
 
-<<<<<<< HEAD
 #ifdef CONFIG_SEC_INITCALL_DEBUG
 	ret = do_one_initcall_debug(fn);
 #else
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (initcall_debug)
 		ret = do_one_initcall_debug(fn);
 	else
 		ret = fn();
-<<<<<<< HEAD
 #endif
-=======
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	msgbuf[0] = 0;
 
 	if (preempt_count() != count) {
@@ -992,13 +948,10 @@ static void __init do_initcall_level(int level)
 
 	for (fn = initcall_levels[level]; fn < initcall_levels[level+1]; fn++)
 		do_one_initcall(*fn);
-<<<<<<< HEAD
 
 #ifdef CONFIG_SEC_BSP
 	sec_boot_stat_add_initcall(initcall_level_names[level]);
 #endif
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 static void __init do_initcalls(void)
@@ -1056,7 +1009,6 @@ static int run_init_process(const char *init_filename)
 		(const char __user *const __user *)envp_init);
 }
 
-<<<<<<< HEAD
 #ifdef CONFIG_DEFERRED_INITCALLS
 extern initcall_t __deferred_initcall_start[], __deferred_initcall_end[];
 
@@ -1085,8 +1037,6 @@ void __ref do_deferred_initcalls(void)
 }
 #endif
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static int try_to_run_init_process(const char *init_filename)
 {
 	int ret;
@@ -1101,45 +1051,17 @@ static int try_to_run_init_process(const char *init_filename)
 	return ret;
 }
 
-<<<<<<< HEAD
 #ifdef CONFIG_SEC_GPIO_DVS
 extern void gpio_dvs_check_initgpio(void);
 #endif
  
 static noinline void __init kernel_init_freeable(void);
 
-=======
-static noinline void __init kernel_init_freeable(void);
-
-#ifdef CONFIG_DEBUG_RODATA
-static bool rodata_enabled = true;
-static int __init set_debug_rodata(char *str)
-{
-	return strtobool(str, &rodata_enabled);
-}
-__setup("rodata=", set_debug_rodata);
-
-static void mark_readonly(void)
-{
-	if (rodata_enabled)
-		mark_rodata_ro();
-	else
-		pr_info("Kernel memory protection disabled.\n");
-}
-#else
-static inline void mark_readonly(void)
-{
-	pr_warn("This architecture does not have kernel memory protection.\n");
-}
-#endif
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static int __ref kernel_init(void *unused)
 {
 	int ret;
 
 	kernel_init_freeable();
-<<<<<<< HEAD
 #ifdef CONFIG_SEC_GPIO_DVS
 	/************************ Caution !!! ****************************/
 	/* This function must be located in appropriate INIT position
@@ -1155,12 +1077,6 @@ static int __ref kernel_init(void *unused)
 	free_initmem();
 #endif
 	mark_rodata_ro();
-=======
-	/* need to finish all async __init code before freeing the memory */
-	async_synchronize_full();
-	free_initmem();
-	mark_readonly();
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	system_state = SYSTEM_RUNNING;
 	numa_default_policy();
 

@@ -608,13 +608,10 @@ static int prepare_uprobe(struct uprobe *uprobe, struct file *file,
 	if (ret)
 		goto out;
 
-<<<<<<< HEAD
 	/* uprobe_write_opcode() assumes we don't cross page boundary */
 	BUG_ON((uprobe->offset & ~PAGE_MASK) +
 			UPROBE_SWBP_INSN_SIZE > PAGE_SIZE);
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	smp_wmb(); /* pairs with the smp_rmb() in handle_swbp() */
 	set_bit(UPROBE_COPY_INSN, &uprobe->flags);
 
@@ -893,16 +890,6 @@ int uprobe_register(struct inode *inode, loff_t offset, struct uprobe_consumer *
 	if (offset > i_size_read(inode))
 		return -EINVAL;
 
-<<<<<<< HEAD
-=======
-	/*
-	 * This ensures that copy_from_page() and copy_to_page()
-	 * can't cross page boundary.
-	 */
-	if (!IS_ALIGNED(offset, UPROBE_SWBP_INSN_SIZE))
-		return -EINVAL;
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
  retry:
 	uprobe = alloc_uprobe(inode, offset);
 	if (!uprobe)
@@ -1686,12 +1673,6 @@ static int is_trap_at_addr(struct mm_struct *mm, unsigned long vaddr)
 	uprobe_opcode_t opcode;
 	int result;
 
-<<<<<<< HEAD
-=======
-	if (WARN_ON_ONCE(!IS_ALIGNED(vaddr, UPROBE_SWBP_INSN_SIZE)))
-		return -EINVAL;
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	pagefault_disable();
 	result = __copy_from_user_inatomic(&opcode, (void __user*)vaddr,
 							sizeof(opcode));
@@ -1939,11 +1920,7 @@ static void handle_singlestep(struct uprobe_task *utask, struct pt_regs *regs)
 
 	if (unlikely(err)) {
 		uprobe_warn(current, "execute the probed insn, sending SIGILL.");
-<<<<<<< HEAD
 		force_sig_info(SIGILL, SEND_SIG_FORCED, current);
-=======
-		force_sig(SIGILL, current);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 }
 

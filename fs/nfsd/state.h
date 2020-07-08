@@ -514,11 +514,7 @@ struct nfs4_ol_stateid {
 	unsigned char			st_access_bmap;
 	unsigned char			st_deny_bmap;
 	struct nfs4_ol_stateid		*st_openstp;
-<<<<<<< HEAD
 	struct rw_semaphore		st_rwsem;
-=======
-	struct mutex			st_mutex;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 static inline struct nfs4_ol_stateid *openlockstateid(struct nfs4_stid *s)

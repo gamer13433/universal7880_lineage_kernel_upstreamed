@@ -1640,24 +1640,6 @@ nothing_to_do:
 	return 1;
 }
 
-<<<<<<< HEAD
-=======
-static bool ata_check_nblocks(struct scsi_cmnd *scmd, u32 n_blocks)
-{
-	struct request *rq = scmd->request;
-	u32 req_blocks;
-
-	if (!blk_rq_is_passthrough(rq))
-		return true;
-
-	req_blocks = blk_rq_bytes(rq) / scmd->device->sector_size;
-	if (n_blocks > req_blocks)
-		return false;
-
-	return true;
-}
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /**
  *	ata_scsi_rw_xlat - Translate SCSI r/w command into an ATA one
  *	@qc: Storage for translated ATA taskfile
@@ -1697,11 +1679,6 @@ static unsigned int ata_scsi_rw_xlat(struct ata_queued_cmd *qc)
 		scsi_10_lba_len(cdb, &block, &n_block);
 		if (cdb[1] & (1 << 3))
 			tf_flags |= ATA_TFLAG_FUA;
-<<<<<<< HEAD
-=======
-		if (!ata_check_nblocks(scmd, n_block))
-			goto invalid_fld;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		break;
 	case READ_6:
 	case WRITE_6:
@@ -1714,11 +1691,6 @@ static unsigned int ata_scsi_rw_xlat(struct ata_queued_cmd *qc)
 		 */
 		if (!n_block)
 			n_block = 256;
-<<<<<<< HEAD
-=======
-		if (!ata_check_nblocks(scmd, n_block))
-			goto invalid_fld;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		break;
 	case READ_16:
 	case WRITE_16:
@@ -1727,11 +1699,6 @@ static unsigned int ata_scsi_rw_xlat(struct ata_queued_cmd *qc)
 		scsi_16_lba_len(cdb, &block, &n_block);
 		if (cdb[1] & (1 << 3))
 			tf_flags |= ATA_TFLAG_FUA;
-<<<<<<< HEAD
-=======
-		if (!ata_check_nblocks(scmd, n_block))
-			goto invalid_fld;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		break;
 	default:
 		DPRINTK("no-byte command\n");
@@ -3689,36 +3656,22 @@ int ata_scsi_add_hosts(struct ata_host *host, struct scsi_host_template *sht)
 		 */
 		shost->max_host_blocked = 1;
 
-<<<<<<< HEAD
 		rc = scsi_add_host_with_dma(ap->scsi_host,
 						&ap->tdev, ap->host->dev);
 		if (rc)
 			goto err_add;
-=======
-		rc = scsi_add_host_with_dma(shost, &ap->tdev, ap->host->dev);
-		if (rc)
-			goto err_alloc;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 	return 0;
 
-<<<<<<< HEAD
  err_add:
 	scsi_host_put(host->ports[i]->scsi_host);
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
  err_alloc:
 	while (--i >= 0) {
 		struct Scsi_Host *shost = host->ports[i]->scsi_host;
 
-<<<<<<< HEAD
 		scsi_remove_host(shost);
 		scsi_host_put(shost);
-=======
-		/* scsi_host_put() is in ata_devres_release() */
-		scsi_remove_host(shost);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 	return rc;
 }

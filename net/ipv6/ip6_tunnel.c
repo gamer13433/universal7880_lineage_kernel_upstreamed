@@ -1094,11 +1094,6 @@ ip4ip6_tnl_xmit(struct sk_buff *skb, struct net_device *dev)
 	if (!pskb_may_pull(skb, sizeof(struct iphdr)))
 		return -1;
 
-<<<<<<< HEAD
-=======
-	memset(&(IPCB(skb)->opt), 0, sizeof(IPCB(skb)->opt));
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	iph = ip_hdr(skb);
 
 	if ((t->parms.proto != IPPROTO_IPIP && t->parms.proto != 0) ||

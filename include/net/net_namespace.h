@@ -16,12 +16,9 @@
 #include <net/netns/packet.h>
 #include <net/netns/ipv4.h>
 #include <net/netns/ipv6.h>
-<<<<<<< HEAD
 #ifdef CONFIG_MPTCP
 #include <net/netns/mptcp.h>
 #endif
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #include <net/netns/ieee802154_6lowpan.h>
 #include <net/netns/sctp.h>
 #include <net/netns/dccp.h>
@@ -100,14 +97,11 @@ struct net {
 #if IS_ENABLED(CONFIG_IPV6)
 	struct netns_ipv6	ipv6;
 #endif
-<<<<<<< HEAD
 #ifdef CONFIG_MPTCP
 #if IS_ENABLED(CONFIG_MPTCP)
 	struct netns_mptcp	mptcp;
 #endif
 #endif
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #if IS_ENABLED(CONFIG_IEEE802154_6LOWPAN)
 	struct netns_ieee802154_lowpan	ieee802154_lowpan;
 #endif

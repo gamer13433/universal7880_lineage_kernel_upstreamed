@@ -25,12 +25,9 @@ enum mapping_flags {
 	AS_MM_ALL_LOCKS	= __GFP_BITS_SHIFT + 2,	/* under mm_take_all_locks() */
 	AS_UNEVICTABLE	= __GFP_BITS_SHIFT + 3,	/* e.g., ramdisk, SHM_LOCK */
 	AS_EXITING	= __GFP_BITS_SHIFT + 4, /* final truncate in progress */
-<<<<<<< HEAD
 #ifdef CONFIG_SDP
 	AS_SENSITIVE = __GFP_BITS_SHIFT + 5, /* Group of sensitive pages to be cleaned up */
 #endif
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 static inline void mapping_set_error(struct address_space *mapping, int error)
@@ -85,7 +82,6 @@ static inline void mapping_set_gfp_mask(struct address_space *m, gfp_t mask)
 				(__force unsigned long)mask;
 }
 
-<<<<<<< HEAD
 #ifdef CONFIG_SDP
 static inline void mapping_set_sensitive(struct address_space *mapping)
 {
@@ -105,8 +101,6 @@ static inline int mapping_sensitive(struct address_space *mapping)
 }
 #endif
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /*
  * The page cache can be done in larger chunks than
  * one page, because it allows for more efficient
@@ -244,7 +238,6 @@ extern struct page *__page_cache_alloc(gfp_t gfp);
 #else
 static inline struct page *__page_cache_alloc(gfp_t gfp)
 {
-<<<<<<< HEAD
 	struct page *page = alloc_pages(gfp, 0);
 
 	if (page && is_cma_pageblock(page)) {
@@ -253,9 +246,6 @@ static inline struct page *__page_cache_alloc(gfp_t gfp)
 	}
 
 	return page;
-=======
-	return alloc_pages(gfp, 0);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 #endif
 
@@ -391,21 +381,8 @@ unsigned find_get_pages(struct address_space *mapping, pgoff_t start,
 			unsigned int nr_pages, struct page **pages);
 unsigned find_get_pages_contig(struct address_space *mapping, pgoff_t start,
 			       unsigned int nr_pages, struct page **pages);
-<<<<<<< HEAD
 unsigned find_get_pages_tag(struct address_space *mapping, pgoff_t *index,
 			int tag, unsigned int nr_pages, struct page **pages);
-=======
-unsigned find_get_pages_range_tag(struct address_space *mapping, pgoff_t *index,
-			pgoff_t end, int tag, unsigned int nr_pages,
-			struct page **pages);
-static inline unsigned find_get_pages_tag(struct address_space *mapping,
-			pgoff_t *index, int tag, unsigned int nr_pages,
-			struct page **pages)
-{
-	return find_get_pages_range_tag(mapping, index, (pgoff_t)-1, tag,
-					nr_pages, pages);
-}
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 struct page *grab_cache_page_write_begin(struct address_space *mapping,
 			pgoff_t index, unsigned flags);

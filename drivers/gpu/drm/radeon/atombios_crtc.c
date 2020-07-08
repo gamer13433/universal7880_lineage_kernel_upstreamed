@@ -580,12 +580,9 @@ static u32 atombios_adjust_pll(struct drm_crtc *crtc,
 		else
 			radeon_crtc->pll_flags |= RADEON_PLL_PREFER_LOW_REF_DIV;
 
-<<<<<<< HEAD
 		/* if there is no audio, set MINM_OVER_MAXP  */
 		if (!drm_detect_monitor_audio(radeon_connector_edid(connector)))
 			radeon_crtc->pll_flags |= RADEON_PLL_PREFER_MINM_OVER_MAXP;
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		if (rdev->family < CHIP_RV770)
 			radeon_crtc->pll_flags |= RADEON_PLL_PREFER_MINM_OVER_MAXP;
 		/* use frac fb div on APUs */
@@ -1805,13 +1802,9 @@ static int radeon_get_shared_nondp_ppll(struct drm_crtc *crtc)
 			if ((crtc->mode.clock == test_crtc->mode.clock) &&
 			    (adjusted_clock == test_adjusted_clock) &&
 			    (radeon_crtc->ss_enabled == test_radeon_crtc->ss_enabled) &&
-<<<<<<< HEAD
 			    (test_radeon_crtc->pll_id != ATOM_PPLL_INVALID) &&
 			    (drm_detect_monitor_audio(radeon_connector_edid(test_radeon_crtc->connector)) ==
 			     drm_detect_monitor_audio(radeon_connector_edid(radeon_crtc->connector))))
-=======
-			    (test_radeon_crtc->pll_id != ATOM_PPLL_INVALID))
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 				return test_radeon_crtc->pll_id;
 		}
 	}

@@ -161,7 +161,6 @@ static int quota_getquota(struct super_block *sb, int type, qid_t id,
 	return 0;
 }
 
-<<<<<<< HEAD
 /*
  * Return quota for next active quota >= this id, if any exists,
  * otherwise return -ENOENT via ->get_nextdqblk
@@ -190,8 +189,6 @@ static int quota_getnextquota(struct super_block *sb, int type, qid_t id,
 	return 0;
 }
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static void copy_from_if_dqblk(struct qc_dqblk *dst, struct if_dqblk *src)
 {
 	dst->d_spc_hardlimit = qbtos(src->dqb_bhardlimit);
@@ -421,7 +418,6 @@ static int quota_getxquota(struct super_block *sb, int type, qid_t id,
 	return ret;
 }
 
-<<<<<<< HEAD
 /*
  * Return quota for next active quota >= this id, if any exists,
  * otherwise return -ENOENT via ->get_nextdqblk.
@@ -450,8 +446,6 @@ static int quota_getnextxquota(struct super_block *sb, int type, qid_t id,
 	return ret;
 }
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static int quota_rmxquota(struct super_block *sb, void __user *addr)
 {
 	__u32 flags;
@@ -493,11 +487,8 @@ static int do_quotactl(struct super_block *sb, int type, int cmd, qid_t id,
 		return quota_setinfo(sb, type, addr);
 	case Q_GETQUOTA:
 		return quota_getquota(sb, type, id, addr);
-<<<<<<< HEAD
 	case Q_GETNEXTQUOTA:
 		return quota_getnextquota(sb, type, id, addr);
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	case Q_SETQUOTA:
 		return quota_setquota(sb, type, id, addr);
 	case Q_SYNC:
@@ -517,11 +508,8 @@ static int do_quotactl(struct super_block *sb, int type, int cmd, qid_t id,
 		return quota_setxquota(sb, type, id, addr);
 	case Q_XGETQUOTA:
 		return quota_getxquota(sb, type, id, addr);
-<<<<<<< HEAD
 	case Q_XGETNEXTQUOTA:
 		return quota_getnextxquota(sb, type, id, addr);
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	case Q_XQUOTASYNC:
 		if (sb->s_flags & MS_RDONLY)
 			return -EROFS;
@@ -537,14 +525,11 @@ static int do_quotactl(struct super_block *sb, int type, int cmd, qid_t id,
 /* Return 1 if 'cmd' will block on frozen filesystem */
 static int quotactl_cmd_write(int cmd)
 {
-<<<<<<< HEAD
 	/*
 	 * We cannot allow Q_GETQUOTA and Q_GETNEXTQUOTA without write access
 	 * as dquot_acquire() may allocate space for new structure and OCFS2
 	 * needs to increment on-disk use count.
 	 */
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	switch (cmd) {
 	case Q_GETFMT:
 	case Q_GETINFO:
@@ -552,10 +537,7 @@ static int quotactl_cmd_write(int cmd)
 	case Q_XGETQSTAT:
 	case Q_XGETQSTATV:
 	case Q_XGETQUOTA:
-<<<<<<< HEAD
 	case Q_XGETNEXTQUOTA:
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	case Q_XQUOTASYNC:
 		return 0;
 	}

@@ -176,15 +176,6 @@ asmlinkage __visible void smp_reboot_interrupt(void)
 	irq_exit();
 }
 
-<<<<<<< HEAD
-=======
-static int register_stop_handler(void)
-{
-	return register_nmi_handler(NMI_LOCAL, smp_stop_nmi_callback,
-				    NMI_FLAG_FIRST, "smp_stop");
-}
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static void native_stop_other_cpus(int wait)
 {
 	unsigned long flags;
@@ -218,7 +209,6 @@ static void native_stop_other_cpus(int wait)
 		apic->send_IPI_allbutself(REBOOT_VECTOR);
 
 		/*
-<<<<<<< HEAD
 		 * Don't wait longer than a second if the caller
 		 * didn't ask us to wait.
 		 */
@@ -245,47 +235,13 @@ static void native_stop_other_cpus(int wait)
 		/*
 		 * Don't wait longer than a 10 ms if the caller
 		 * didn't ask us to wait.
-=======
-		 * Don't wait longer than a second for IPI completion. The
-		 * wait request is not checked here because that would
-		 * prevent an NMI shutdown attempt in case that not all
-		 * CPUs reach shutdown state.
-		 */
-		timeout = USEC_PER_SEC;
-		while (num_online_cpus() > 1 && timeout--)
-			udelay(1);
-	}
-
-	/* if the REBOOT_VECTOR didn't work, try with the NMI */
-	if (num_online_cpus() > 1) {
-		/*
-		 * If NMI IPI is enabled, try to register the stop handler
-		 * and send the IPI. In any case try to wait for the other
-		 * CPUs to stop.
-		 */
-		if (!smp_no_nmi_ipi && !register_stop_handler()) {
-			/* Sync above data before sending IRQ */
-			wmb();
-
-			pr_emerg("Shutting down cpus with NMI\n");
-
-			apic->send_IPI_allbutself(NMI_VECTOR);
-		}
-		/*
-		 * Don't wait longer than 10 ms if the caller didn't
-		 * reqeust it. If wait is true, the machine hangs here if
-		 * one or more CPUs do not reach shutdown state.
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		 */
 		timeout = USEC_PER_MSEC * 10;
 		while (num_online_cpus() > 1 && (wait || timeout--))
 			udelay(1);
 	}
 
-<<<<<<< HEAD
 finish:
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	local_irq_save(flags);
 	disable_local_APIC();
 	local_irq_restore(flags);

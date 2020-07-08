@@ -881,11 +881,7 @@ kvp_get_ip_info(int family, char *if_name, int op,
 	int sn_offset = 0;
 	int error = 0;
 	char *buffer;
-<<<<<<< HEAD
 	struct hv_kvp_ipaddr_value *ip_buffer;
-=======
-	struct hv_kvp_ipaddr_value *ip_buffer = NULL;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	char cidr_mask[5]; /* /xyz */
 	int weight;
 	int i;

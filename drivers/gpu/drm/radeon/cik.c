@@ -4523,34 +4523,6 @@ void cik_compute_set_wptr(struct radeon_device *rdev,
 	WDOORBELL32(ring->doorbell_index, ring->wptr);
 }
 
-<<<<<<< HEAD
-=======
-static void cik_compute_stop(struct radeon_device *rdev,
-			     struct radeon_ring *ring)
-{
-	u32 j, tmp;
-
-	cik_srbm_select(rdev, ring->me, ring->pipe, ring->queue, 0);
-	/* Disable wptr polling. */
-	tmp = RREG32(CP_PQ_WPTR_POLL_CNTL);
-	tmp &= ~WPTR_POLL_EN;
-	WREG32(CP_PQ_WPTR_POLL_CNTL, tmp);
-	/* Disable HQD. */
-	if (RREG32(CP_HQD_ACTIVE) & 1) {
-		WREG32(CP_HQD_DEQUEUE_REQUEST, 1);
-		for (j = 0; j < rdev->usec_timeout; j++) {
-			if (!(RREG32(CP_HQD_ACTIVE) & 1))
-				break;
-			udelay(1);
-		}
-		WREG32(CP_HQD_DEQUEUE_REQUEST, 0);
-		WREG32(CP_HQD_PQ_RPTR, 0);
-		WREG32(CP_HQD_PQ_WPTR, 0);
-	}
-	cik_srbm_select(rdev, 0, 0, 0, 0);
-}
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /**
  * cik_cp_compute_enable - enable/disable the compute CP MEs
  *
@@ -4564,18 +4536,6 @@ static void cik_cp_compute_enable(struct radeon_device *rdev, bool enable)
 	if (enable)
 		WREG32(CP_MEC_CNTL, 0);
 	else {
-<<<<<<< HEAD
-=======
-		/*
-		 * To make hibernation reliable we need to clear compute ring
-		 * configuration before halting the compute ring.
-		 */
-		mutex_lock(&rdev->srbm_mutex);
-		cik_compute_stop(rdev,&rdev->ring[CAYMAN_RING_TYPE_CP1_INDEX]);
-		cik_compute_stop(rdev,&rdev->ring[CAYMAN_RING_TYPE_CP2_INDEX]);
-		mutex_unlock(&rdev->srbm_mutex);
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		WREG32(CP_MEC_CNTL, (MEC_ME1_HALT | MEC_ME2_HALT));
 		rdev->ring[CAYMAN_RING_TYPE_CP1_INDEX].ready = false;
 		rdev->ring[CAYMAN_RING_TYPE_CP2_INDEX].ready = false;
@@ -7282,13 +7242,8 @@ static int cik_irq_init(struct radeon_device *rdev)
 	}
 
 	/* setup interrupt control */
-<<<<<<< HEAD
 	/* XXX this should actually be a bus address, not an MC address. same on older asics */
 	WREG32(INTERRUPT_CNTL2, rdev->ih.gpu_addr >> 8);
-=======
-	/* set dummy read address to dummy page address */
-	WREG32(INTERRUPT_CNTL2, rdev->dummy_page.addr >> 8);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	interrupt_cntl = RREG32(INTERRUPT_CNTL);
 	/* IH_DUMMY_RD_OVERRIDE=0 - dummy read disabled with msi, enabled without msi
 	 * IH_DUMMY_RD_OVERRIDE=1 - dummy read controlled by IH_DUMMY_RD_EN

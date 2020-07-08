@@ -1062,12 +1062,7 @@ int ieee80211_mesh_finish_csa(struct ieee80211_sub_if_data *sdata)
 	ifmsh->chsw_ttl = 0;
 
 	/* Remove the CSA and MCSP elements from the beacon */
-<<<<<<< HEAD
 	tmp_csa_settings = rcu_dereference(ifmsh->csa);
-=======
-	tmp_csa_settings = rcu_dereference_protected(ifmsh->csa,
-					    lockdep_is_held(&sdata->wdev.mtx));
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	RCU_INIT_POINTER(ifmsh->csa, NULL);
 	if (tmp_csa_settings)
 		kfree_rcu(tmp_csa_settings, rcu_head);
@@ -1089,11 +1084,6 @@ int ieee80211_mesh_csa_beacon(struct ieee80211_sub_if_data *sdata,
 	struct mesh_csa_settings *tmp_csa_settings;
 	int ret = 0;
 
-<<<<<<< HEAD
-=======
-	lockdep_assert_held(&sdata->wdev.mtx);
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	tmp_csa_settings = kmalloc(sizeof(*tmp_csa_settings),
 				   GFP_ATOMIC);
 	if (!tmp_csa_settings)

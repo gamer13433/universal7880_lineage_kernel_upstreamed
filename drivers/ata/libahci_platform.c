@@ -49,11 +49,7 @@ static struct scsi_host_template ahci_platform_sht = {
  * RETURNS:
  * 0 on success otherwise a negative error code
  */
-<<<<<<< HEAD
 static int ahci_platform_enable_phys(struct ahci_host_priv *hpriv)
-=======
-int ahci_platform_enable_phys(struct ahci_host_priv *hpriv)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	int rc, i;
 
@@ -81,10 +77,6 @@ disable_phys:
 	}
 	return rc;
 }
-<<<<<<< HEAD
-=======
-EXPORT_SYMBOL_GPL(ahci_platform_enable_phys);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /**
  * ahci_platform_disable_phys - Disable PHYs
@@ -92,11 +84,7 @@ EXPORT_SYMBOL_GPL(ahci_platform_enable_phys);
  *
  * This function disables all PHYs found in hpriv->phys.
  */
-<<<<<<< HEAD
 static void ahci_platform_disable_phys(struct ahci_host_priv *hpriv)
-=======
-void ahci_platform_disable_phys(struct ahci_host_priv *hpriv)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	int i;
 
@@ -108,10 +96,6 @@ void ahci_platform_disable_phys(struct ahci_host_priv *hpriv)
 		phy_exit(hpriv->phys[i]);
 	}
 }
-<<<<<<< HEAD
-=======
-EXPORT_SYMBOL_GPL(ahci_platform_disable_phys);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /**
  * ahci_platform_enable_clks - Enable platform clocks

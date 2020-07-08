@@ -2053,11 +2053,7 @@ static int wpa_supplicant_ioctl(struct net_device *dev, struct iw_point *p)
 	struct ieee_param *param;
 	uint ret = 0;
 
-<<<<<<< HEAD
 	if (p->length < sizeof(struct ieee_param) || !p->pointer) {
-=======
-	if (!p->pointer || p->length != sizeof(struct ieee_param)) {
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		ret = -EINVAL;
 		goto out;
 	}
@@ -2874,11 +2870,7 @@ static int rtw_hostapd_ioctl(struct net_device *dev, struct iw_point *p)
 		goto out;
 	}
 
-<<<<<<< HEAD
 	if (!p->pointer) {
-=======
-	if (!p->pointer || p->length != sizeof(struct ieee_param)) {
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		ret = -EINVAL;
 		goto out;
 	}

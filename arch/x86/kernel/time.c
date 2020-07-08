@@ -22,13 +22,10 @@
 #include <asm/hpet.h>
 #include <asm/time.h>
 
-<<<<<<< HEAD
 #ifdef CONFIG_X86_64
 __visible DEFINE_VVAR(volatile unsigned long, jiffies) = INITIAL_JIFFIES;
 #endif
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 unsigned long profile_pc(struct pt_regs *regs)
 {
 	unsigned long pc = instruction_pointer(regs);

@@ -1547,16 +1547,9 @@ static int iw_conn_req_handler(struct iw_cm_id *cm_id,
 		conn_id->cm_id.iw = NULL;
 		cma_exch(conn_id, RDMA_CM_DESTROYING);
 		mutex_unlock(&conn_id->handler_mutex);
-<<<<<<< HEAD
 		cma_deref_id(conn_id);
 		rdma_destroy_id(&conn_id->id);
 		goto out;
-=======
-		mutex_unlock(&listen_id->handler_mutex);
-		cma_deref_id(conn_id);
-		rdma_destroy_id(&conn_id->id);
-		return ret;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 	mutex_unlock(&conn_id->handler_mutex);
@@ -1968,10 +1961,6 @@ static int cma_resolve_iboe_route(struct rdma_id_private *id_priv)
 err2:
 	kfree(route->path_rec);
 	route->path_rec = NULL;
-<<<<<<< HEAD
-=======
-	route->num_paths = 0;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 err1:
 	kfree(work);
 	return ret;
@@ -3363,12 +3352,6 @@ int rdma_join_multicast(struct rdma_cm_id *id, struct sockaddr *addr,
 	struct cma_multicast *mc;
 	int ret;
 
-<<<<<<< HEAD
-=======
-	if (!id->device)
-		return -EINVAL;
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	id_priv = container_of(id, struct rdma_id_private, id);
 	if (!cma_comp(id_priv, RDMA_CM_ADDR_BOUND) &&
 	    !cma_comp(id_priv, RDMA_CM_ADDR_RESOLVED))
@@ -3651,11 +3634,7 @@ static int cma_get_id_stats(struct sk_buff *skb, struct netlink_callback *cb)
 					  RDMA_NL_RDMA_CM_ATTR_SRC_ADDR))
 				goto out;
 			if (ibnl_put_attr(skb, nlh,
-<<<<<<< HEAD
 					  rdma_addr_size(cma_src_addr(id_priv)),
-=======
-					  rdma_addr_size(cma_dst_addr(id_priv)),
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 					  cma_dst_addr(id_priv),
 					  RDMA_NL_RDMA_CM_ATTR_DST_ADDR))
 				goto out;

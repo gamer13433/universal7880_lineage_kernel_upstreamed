@@ -844,18 +844,7 @@ static int panel_simple_dsi_probe(struct mipi_dsi_device *dsi)
 	dsi->format = desc->format;
 	dsi->lanes = desc->lanes;
 
-<<<<<<< HEAD
 	return mipi_dsi_attach(dsi);
-=======
-	err = mipi_dsi_attach(dsi);
-	if (err) {
-		struct panel_simple *panel = dev_get_drvdata(&dsi->dev);
-
-		drm_panel_remove(&panel->base);
-	}
-
-	return err;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 static int panel_simple_dsi_remove(struct mipi_dsi_device *dsi)

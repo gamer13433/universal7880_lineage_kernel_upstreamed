@@ -444,11 +444,7 @@ static struct notifier_block gic_cpu_notifier = {
 static u16 gic_compute_target_list(int *base_cpu, const struct cpumask *mask,
 				   u64 cluster_id)
 {
-<<<<<<< HEAD
 	int cpu = *base_cpu;
-=======
-	int next_cpu, cpu = *base_cpu;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	u64 mpidr = cpu_logical_map(cpu);
 	u16 tlist = 0;
 
@@ -462,16 +458,9 @@ static u16 gic_compute_target_list(int *base_cpu, const struct cpumask *mask,
 
 		tlist |= 1 << (mpidr & 0xf);
 
-<<<<<<< HEAD
 		cpu = cpumask_next(cpu, mask);
 		if (cpu == nr_cpu_ids)
 			goto out;
-=======
-		next_cpu = cpumask_next(cpu, mask);
-		if (next_cpu >= nr_cpu_ids)
-			goto out;
-		cpu = next_cpu;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 		mpidr = cpu_logical_map(cpu);
 

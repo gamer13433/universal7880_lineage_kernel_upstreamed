@@ -164,11 +164,7 @@ asmlinkage __visible void __init x86_64_start_kernel(char * real_mode_data)
 	clear_bss();
 
 	for (i = 0; i < NUM_EXCEPTION_VECTORS; i++)
-<<<<<<< HEAD
 		set_intr_gate(i, early_idt_handlers[i]);
-=======
-		set_intr_gate(i, early_idt_handler_array[i]);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	load_idt((const struct desc_ptr *)&idt_descr);
 
 	copy_bootdata(__va(real_mode_data));

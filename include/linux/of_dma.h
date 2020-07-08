@@ -43,7 +43,6 @@ extern struct dma_chan *of_dma_simple_xlate(struct of_phandle_args *dma_spec,
 		struct of_dma *ofdma);
 extern struct dma_chan *of_dma_xlate_by_chan_id(struct of_phandle_args *dma_spec,
 		struct of_dma *ofdma);
-<<<<<<< HEAD
 extern unsigned int of_dma_get_mcode_addr(struct device_node *np);
 extern bool of_dma_secure_mode(struct device_node *np);
 extern void __iomem *of_dma_get_arwrapper_address(struct device_node *np, unsigned int num);
@@ -57,9 +56,6 @@ static inline unsigned int of_dma_get_mcode_addr(struct device_node *np)
 {
 	return -ENODEV;
 }
-=======
-#else
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static inline int of_dma_controller_register(struct device_node *np,
 		struct dma_chan *(*of_dma_xlate)
 		(struct of_phandle_args *, struct of_dma *),
@@ -84,7 +80,6 @@ static inline struct dma_chan *of_dma_simple_xlate(struct of_phandle_args *dma_s
 	return NULL;
 }
 
-<<<<<<< HEAD
 static inline void __iomem *of_dma_get_wrapper_address(struct device_node *np, unsigned int num)
 {
 	return NULL;
@@ -121,10 +116,6 @@ static inline bool of_dma_multi_irq(struct device_node *np)
 	return NULL;
 }
 
-=======
-#define of_dma_xlate_by_chan_id NULL
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #endif
 
 #endif /* __LINUX_OF_DMA_H */

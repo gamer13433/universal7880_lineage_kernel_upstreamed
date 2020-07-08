@@ -74,14 +74,11 @@ struct arp_pkt {
 };
 #pragma pack()
 
-<<<<<<< HEAD
 static inline struct arp_pkt *arp_pkt(const struct sk_buff *skb)
 {
 	return (struct arp_pkt *)skb_network_header(skb);
 }
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /* Forward declaration */
 static void alb_send_learning_packets(struct slave *slave, u8 mac_addr[],
 				      bool strict_match);
@@ -580,18 +577,10 @@ static void rlb_req_update_subnet_clients(struct bonding *bond, __be32 src_ip)
 	spin_unlock(&bond->mode_lock);
 }
 
-<<<<<<< HEAD
 static struct slave *rlb_choose_channel(struct sk_buff *skb, struct bonding *bond)
 {
 	struct alb_bond_info *bond_info = &(BOND_ALB_INFO(bond));
 	struct arp_pkt *arp = arp_pkt(skb);
-=======
-static struct slave *rlb_choose_channel(struct sk_buff *skb,
-					struct bonding *bond,
-					const struct arp_pkt *arp)
-{
-	struct alb_bond_info *bond_info = &(BOND_ALB_INFO(bond));
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	struct slave *assigned_slave, *curr_active_slave;
 	struct rlb_client_info *client_info;
 	u32 hash_index = 0;
@@ -688,17 +677,8 @@ static struct slave *rlb_choose_channel(struct sk_buff *skb,
  */
 static struct slave *rlb_arp_xmit(struct sk_buff *skb, struct bonding *bond)
 {
-<<<<<<< HEAD
 	struct arp_pkt *arp = arp_pkt(skb);
 	struct slave *tx_slave = NULL;
-=======
-	struct slave *tx_slave = NULL;
-	struct arp_pkt *arp;
-
-	if (!pskb_network_may_pull(skb, sizeof(*arp)))
-		return NULL;
-	arp = (struct arp_pkt *)skb_network_header(skb);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	/* Don't modify or load balance ARPs that do not originate locally
 	 * (e.g.,arrive via a bridge).
@@ -708,11 +688,7 @@ static struct slave *rlb_arp_xmit(struct sk_buff *skb, struct bonding *bond)
 
 	if (arp->op_code == htons(ARPOP_REPLY)) {
 		/* the arp must be sent on the selected rx channel */
-<<<<<<< HEAD
 		tx_slave = rlb_choose_channel(skb, bond);
-=======
-		tx_slave = rlb_choose_channel(skb, bond, arp);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		if (tx_slave)
 			ether_addr_copy(arp->mac_src, tx_slave->dev->dev_addr);
 		netdev_dbg(bond->dev, "Server sent ARP Reply packet\n");
@@ -722,11 +698,7 @@ static struct slave *rlb_arp_xmit(struct sk_buff *skb, struct bonding *bond)
 		 * When the arp reply is received the entry will be updated
 		 * with the correct unicast address of the client.
 		 */
-<<<<<<< HEAD
 		rlb_choose_channel(skb, bond);
-=======
-		rlb_choose_channel(skb, bond, arp);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 		/* The ARP reply packets must be delayed so that
 		 * they can cancel out the influence of the ARP request.
@@ -1399,49 +1371,26 @@ int bond_alb_xmit(struct sk_buff *skb, struct net_device *bond_dev)
 	bool do_tx_balance = true;
 	u32 hash_index = 0;
 	const u8 *hash_start = NULL;
-<<<<<<< HEAD
 	struct ipv6hdr *ip6hdr;
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	skb_reset_mac_header(skb);
 	eth_data = eth_hdr(skb);
 
 	switch (ntohs(skb->protocol)) {
 	case ETH_P_IP: {
-<<<<<<< HEAD
 		const struct iphdr *iph = ip_hdr(skb);
 
 		if (ether_addr_equal_64bits(eth_data->h_dest, mac_bcast) ||
 		    (iph->daddr == ip_bcast) ||
 		    (iph->protocol == IPPROTO_IGMP)) {
-=======
-		const struct iphdr *iph;
-
-		if (ether_addr_equal_64bits(eth_data->h_dest, mac_bcast) ||
-		    (!pskb_network_may_pull(skb, sizeof(*iph)))) {
-			do_tx_balance = false;
-			break;
-		}
-		iph = ip_hdr(skb);
-		if (iph->daddr == ip_bcast || iph->protocol == IPPROTO_IGMP) {
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			do_tx_balance = false;
 			break;
 		}
 		hash_start = (char *)&(iph->daddr);
 		hash_size = sizeof(iph->daddr);
-<<<<<<< HEAD
 	}
 		break;
 	case ETH_P_IPV6:
-=======
-		break;
-	}
-	case ETH_P_IPV6: {
-		const struct ipv6hdr *ip6hdr;
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		/* IPv6 doesn't really use broadcast mac address, but leave
 		 * that here just in case.
 		 */
@@ -1458,15 +1407,7 @@ int bond_alb_xmit(struct sk_buff *skb, struct net_device *bond_dev)
 			break;
 		}
 
-<<<<<<< HEAD
 		/* Additianally, DAD probes should not be tx-balanced as that
-=======
-		if (!pskb_network_may_pull(skb, sizeof(*ip6hdr))) {
-			do_tx_balance = false;
-			break;
-		}
-		/* Additionally, DAD probes should not be tx-balanced as that
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		 * will lead to false positives for duplicate addresses and
 		 * prevent address configuration from working.
 		 */
@@ -1476,38 +1417,17 @@ int bond_alb_xmit(struct sk_buff *skb, struct net_device *bond_dev)
 			break;
 		}
 
-<<<<<<< HEAD
 		hash_start = (char *)&(ipv6_hdr(skb)->daddr);
 		hash_size = sizeof(ipv6_hdr(skb)->daddr);
 		break;
 	case ETH_P_IPX:
 		if (ipx_hdr(skb)->ipx_checksum != IPX_NO_CHECKSUM) {
-=======
-		hash_start = (char *)&ip6hdr->daddr;
-		hash_size = sizeof(ip6hdr->daddr);
-		break;
-	}
-	case ETH_P_IPX: {
-		const struct ipxhdr *ipxhdr;
-
-		if (pskb_network_may_pull(skb, sizeof(*ipxhdr))) {
-			do_tx_balance = false;
-			break;
-		}
-		ipxhdr = (struct ipxhdr *)skb_network_header(skb);
-
-		if (ipxhdr->ipx_checksum != IPX_NO_CHECKSUM) {
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			/* something is wrong with this packet */
 			do_tx_balance = false;
 			break;
 		}
 
-<<<<<<< HEAD
 		if (ipx_hdr(skb)->ipx_type != IPX_TYPE_NCP) {
-=======
-		if (ipxhdr->ipx_type != IPX_TYPE_NCP) {
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			/* The only protocol worth balancing in
 			 * this family since it has an "ARP" like
 			 * mechanism
@@ -1516,17 +1436,9 @@ int bond_alb_xmit(struct sk_buff *skb, struct net_device *bond_dev)
 			break;
 		}
 
-<<<<<<< HEAD
 		hash_start = (char *)eth_data->h_dest;
 		hash_size = ETH_ALEN;
 		break;
-=======
-		eth_data = eth_hdr(skb);
-		hash_start = (char *)eth_data->h_dest;
-		hash_size = ETH_ALEN;
-		break;
-	}
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	case ETH_P_ARP:
 		do_tx_balance = false;
 		if (bond_info->rlb_enabled)

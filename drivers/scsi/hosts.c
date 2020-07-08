@@ -245,19 +245,10 @@ int scsi_add_host_with_dma(struct Scsi_Host *shost, struct device *dev,
 
 	pm_runtime_set_active(&shost->shost_gendev);
 	pm_runtime_enable(&shost->shost_gendev);
-<<<<<<< HEAD
-=======
-	device_enable_async_suspend(&shost->shost_gendev);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	scsi_host_set_state(shost, SHOST_RUNNING);
 	get_device(shost->shost_gendev.parent);
 
-<<<<<<< HEAD
-=======
-	device_enable_async_suspend(&shost->shost_dev);
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	error = device_add(&shost->shost_dev);
 	if (error)
 		goto out_del_gendev;

@@ -16,15 +16,11 @@
  */
 
 #include <linux/device.h>
-<<<<<<< HEAD
 #include <linux/ion.h>
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #include <linux/slab.h>
 #include <linux/errno.h>
 #include <linux/err.h>
 #include <linux/dma-mapping.h>
-<<<<<<< HEAD
 #include <linux/exynos_ion.h>
 #include <linux/dma-contiguous.h>
 
@@ -36,17 +32,6 @@ struct ion_cma_heap {
 	struct device *dev;
 	unsigned int isolate_count;
 	struct mutex isolate_mutex;
-=======
-
-#include "ion.h"
-#include "ion_priv.h"
-
-#define ION_CMA_ALLOCATE_FAILED -1
-
-struct ion_cma_heap {
-	struct ion_heap heap;
-	struct device *dev;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 #define to_cma_heap(x) container_of(x, struct ion_cma_heap, heap)
@@ -65,26 +50,18 @@ struct ion_cma_buffer_info {
 static int ion_cma_get_sgtable(struct device *dev, struct sg_table *sgt,
 			       void *cpu_addr, dma_addr_t handle, size_t size)
 {
-<<<<<<< HEAD
 	struct page *page = phys_to_page((phys_addr_t)handle);
 	struct scatterlist *sg;
-=======
-	struct page *page = virt_to_page(cpu_addr);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	int ret;
 
 	ret = sg_alloc_table(sgt, 1, GFP_KERNEL);
 	if (unlikely(ret))
 		return ret;
 
-<<<<<<< HEAD
 	sg = sgt->sgl;
 	sg_set_page(sg, page, PAGE_ALIGN(size), 0);
 	sg_dma_address(sg) = sg_phys(sg);
 
-=======
-	sg_set_page(sgt->sgl, page, PAGE_ALIGN(size), 0);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return 0;
 }
 
@@ -95,7 +72,6 @@ static int ion_cma_allocate(struct ion_heap *heap, struct ion_buffer *buffer,
 {
 	struct ion_cma_heap *cma_heap = to_cma_heap(heap);
 	struct device *dev = cma_heap->dev;
-<<<<<<< HEAD
 	struct exynos_ion_platform_heap *pdata =
 			container_of(dev, struct exynos_ion_platform_heap, dev);
 	struct ion_cma_buffer_info *info;
@@ -191,46 +167,12 @@ static int ion_cma_allocate(struct ion_heap *heap, struct ion_buffer *buffer,
 			goto free_table;
 	}
 
-=======
-	struct ion_cma_buffer_info *info;
-
-	dev_dbg(dev, "Request buffer allocation len %ld\n", len);
-
-	if (buffer->flags & ION_FLAG_CACHED)
-		return -EINVAL;
-
-	if (align > PAGE_SIZE)
-		return -EINVAL;
-
-	info = kzalloc(sizeof(struct ion_cma_buffer_info), GFP_KERNEL);
-	if (!info)
-		return ION_CMA_ALLOCATE_FAILED;
-
-	info->cpu_addr = dma_alloc_coherent(dev, len, &(info->handle),
-						GFP_HIGHUSER | __GFP_ZERO);
-
-	if (!info->cpu_addr) {
-		dev_err(dev, "Fail to allocate buffer\n");
-		goto err;
-	}
-
-	info->table = kmalloc(sizeof(struct sg_table), GFP_KERNEL);
-	if (!info->table)
-		goto free_mem;
-
-	if (ion_cma_get_sgtable
-	    (dev, info->table, info->cpu_addr, info->handle, len))
-		goto free_table;
-	/* keep this for memory release */
-	buffer->priv_virt = info;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	dev_dbg(dev, "Allocate buffer %p\n", buffer);
 	return 0;
 
 free_table:
 	kfree(info->table);
 free_mem:
-<<<<<<< HEAD
 	dma_release_from_contiguous(dev, page,
 			(PAGE_ALIGN(len) >> PAGE_SHIFT));
 err_isolate:
@@ -240,19 +182,12 @@ err:
 	kfree(info);
 	ion_debug_heap_usage_show(heap);
 	return ret;
-=======
-	dma_free_coherent(dev, len, info->cpu_addr, info->handle);
-err:
-	kfree(info);
-	return ION_CMA_ALLOCATE_FAILED;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 static void ion_cma_free(struct ion_buffer *buffer)
 {
 	struct ion_cma_heap *cma_heap = to_cma_heap(buffer->heap);
 	struct device *dev = cma_heap->dev;
-<<<<<<< HEAD
 	struct exynos_ion_platform_heap *pdata =
 			container_of(dev, struct exynos_ion_platform_heap, dev);
 	struct ion_cma_buffer_info *info = buffer->priv_virt;
@@ -275,13 +210,6 @@ static void ion_cma_free(struct ion_buffer *buffer)
 			phys_to_page(dma_to_phys(dev, info->handle)),
 			(PAGE_ALIGN(buffer->size) >> PAGE_SHIFT));
 
-=======
-	struct ion_cma_buffer_info *info = buffer->priv_virt;
-
-	dev_dbg(dev, "Release buffer %p\n", buffer);
-	/* release memory */
-	dma_free_coherent(dev, buffer->size, info->cpu_addr, info->handle);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/* release sg table */
 	sg_free_table(info->table);
 	kfree(info->table);
@@ -362,19 +290,13 @@ struct ion_heap *ion_cma_heap_create(struct ion_platform_heap *data)
 	if (!cma_heap)
 		return ERR_PTR(-ENOMEM);
 
-<<<<<<< HEAD
 	dev_set_name(data->priv, data->name);
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	cma_heap->heap.ops = &ion_cma_ops;
 	/* get device from private heaps data, later it will be
 	 * used to make the link with reserved CMA memory */
 	cma_heap->dev = data->priv;
 	cma_heap->heap.type = ION_HEAP_TYPE_DMA;
-<<<<<<< HEAD
 	mutex_init(&cma_heap->isolate_mutex);
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return &cma_heap->heap;
 }
 

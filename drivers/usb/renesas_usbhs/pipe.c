@@ -263,24 +263,6 @@ int usbhs_pipe_is_accessible(struct usbhs_pipe *pipe)
 	return -EBUSY;
 }
 
-<<<<<<< HEAD
-=======
-bool usbhs_pipe_contains_transmittable_data(struct usbhs_pipe *pipe)
-{
-	u16 val;
-
-	/* Do not support for DCP pipe */
-	if (usbhs_pipe_is_dcp(pipe))
-		return false;
-
-	val = usbhsp_pipectrl_get(pipe);
-	if (val & INBUFM)
-		return true;
-
-	return false;
-}
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /*
  *		PID ctrl
  */

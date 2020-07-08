@@ -98,13 +98,10 @@ endif
 
 source "drivers/usb/musb/Kconfig"
 
-<<<<<<< HEAD
 source "drivers/usb/notify/Kconfig"
 
 source "drivers/usb/manager/Kconfig"
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 source "drivers/usb/dwc3/Kconfig"
 
 source "drivers/usb/dwc2/Kconfig"

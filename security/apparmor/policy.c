@@ -916,25 +916,6 @@ static int audit_policy(int op, gfp_t gfp, const char *name, const char *info,
 			&sa, NULL);
 }
 
-<<<<<<< HEAD
-=======
-bool policy_view_capable(void)
-{
-	struct user_namespace *user_ns = current_user_ns();
-	bool response = false;
-
-	if (ns_capable(user_ns, CAP_MAC_ADMIN))
-		response = true;
-
-	return response;
-}
-
-bool policy_admin_capable(void)
-{
-	return policy_view_capable() && !aa_g_lock_policy;
-}
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /**
  * aa_may_manage_policy - can the current task manage policy
  * @op: the policy manipulation operation being done
@@ -949,11 +930,7 @@ bool aa_may_manage_policy(int op)
 		return 0;
 	}
 
-<<<<<<< HEAD
 	if (!capable(CAP_MAC_ADMIN)) {
-=======
-	if (!policy_admin_capable()) {
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		audit_policy(op, GFP_KERNEL, NULL, "not policy admin", -EACCES);
 		return 0;
 	}

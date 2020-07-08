@@ -2061,11 +2061,7 @@ int usb_alloc_streams(struct usb_interface *interface,
 	hcd = bus_to_hcd(dev->bus);
 	if (!hcd->driver->alloc_streams || !hcd->driver->free_streams)
 		return -EINVAL;
-<<<<<<< HEAD
 	if (dev->speed != USB_SPEED_SUPER)
-=======
-	if (dev->speed < USB_SPEED_SUPER)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		return -EINVAL;
 	if (dev->state < USB_STATE_CONFIGURED)
 		return -ENODEV;
@@ -2113,11 +2109,7 @@ int usb_free_streams(struct usb_interface *interface,
 
 	dev = interface_to_usbdev(interface);
 	hcd = bus_to_hcd(dev->bus);
-<<<<<<< HEAD
 	if (dev->speed != USB_SPEED_SUPER)
-=======
-	if (dev->speed < USB_SPEED_SUPER)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		return -EINVAL;
 
 	/* Double-free is not allowed */
@@ -2945,12 +2937,6 @@ usb_hcd_platform_shutdown(struct platform_device *dev)
 {
 	struct usb_hcd *hcd = platform_get_drvdata(dev);
 
-<<<<<<< HEAD
-=======
-	/* No need for pm_runtime_put(), we're shutting down */
-	pm_runtime_get_sync(&dev->dev);
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (hcd->driver->shutdown)
 		hcd->driver->shutdown(hcd);
 }

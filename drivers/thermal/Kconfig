@@ -112,7 +112,6 @@ config CPU_THERMAL
 
 	  If you want this support, you should say Y here.
 
-<<<<<<< HEAD
 config GPU_THERMAL
 	bool "generic gpu cooling support"
 	depends on THERMAL_OF
@@ -137,8 +136,6 @@ config ISP_THERMAL
 
 	  If you want this support, you should say Y here.
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 config THERMAL_EMULATION
 	bool "Thermal emulation mode support"
 	help
@@ -186,7 +183,6 @@ config KIRKWOOD_THERMAL
 	  Support for the Kirkwood thermal sensor driver into the Linux thermal
 	  framework. Only kirkwood 88F6282 and 88F6283 have this sensor.
 
-<<<<<<< HEAD
 config EXYNOS_THERMAL
 	tristate "Temperature sensor on Samsung EXYNOS"
 	depends on (ARCH_EXYNOS4 || ARCH_EXYNOS5 || ARCH_EXYNOS7 || ARCH_EXYNOS8)
@@ -201,8 +197,6 @@ config EXYNOS_SWTRIP
 	help
 	  Support for SWTRIP uevent on SAMSUNG EXYNOS series of SOC
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 config DOVE_THERMAL
 	tristate "Temperature sensor on Marvell Dove SoCs"
 	depends on ARCH_DOVE || MACH_DOVE
@@ -297,7 +291,6 @@ config ACPI_THERMAL_REL
 	tristate
 	depends on ACPI
 
-<<<<<<< HEAD
 config CPU_THERMAL_IPA
 	bool "Enable Intelligent Power Arbiter"
 	depends on THERMAL && CPU_FREQ && EXYNOS_THERMAL
@@ -322,8 +315,6 @@ config CPU_THERMAL_IPA_DEBUG
 	  estimates.  If you want to analyze IPA behaviour, you should
 	  say Y here.
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 menu "Texas Instruments thermal drivers"
 source "drivers/thermal/ti-soc-thermal/Kconfig"
 endmenu
@@ -339,11 +330,8 @@ source "drivers/thermal/st/Kconfig"
 endmenu
 
 endif
-<<<<<<< HEAD
 
 menu "Samsung thermal drivers"
 depends on ARCH_EXYNOS
 source "drivers/thermal/samsung/Kconfig"
 endmenu
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012

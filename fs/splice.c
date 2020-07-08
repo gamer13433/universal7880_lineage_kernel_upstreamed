@@ -1881,15 +1881,7 @@ retry:
 			 * Get a reference to this pipe buffer,
 			 * so we can copy the contents over.
 			 */
-<<<<<<< HEAD
 			ibuf->ops->get(ipipe, ibuf);
-=======
-			if (!pipe_buf_get(ipipe, ibuf)) {
-				if (ret == 0)
-					ret = -EFAULT;
-				break;
-			}
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			*obuf = *ibuf;
 
 			/*
@@ -1961,15 +1953,7 @@ static int link_pipe(struct pipe_inode_info *ipipe,
 		 * Get a reference to this pipe buffer,
 		 * so we can copy the contents over.
 		 */
-<<<<<<< HEAD
 		ibuf->ops->get(ipipe, ibuf);
-=======
-		if (!pipe_buf_get(ipipe, ibuf)) {
-			if (ret == 0)
-				ret = -EFAULT;
-			break;
-		}
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 		obuf = opipe->bufs + nbuf;
 		*obuf = *ibuf;

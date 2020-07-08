@@ -15,10 +15,6 @@
 #include <linux/ftrace.h>
 #include <linux/uaccess.h>
 #include <linux/module.h>
-<<<<<<< HEAD
-=======
-#include <linux/stop_machine.h>
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #include <asm/cacheflush.h>
 #include <asm/opcodes.h>
@@ -39,25 +35,6 @@
 
 #define	OLD_NOP		0xe1a00000	/* mov r0, r0 */
 
-<<<<<<< HEAD
-=======
-static int __ftrace_modify_code(void *data)
-{
-	int *command = data;
-
-	set_kernel_text_rw();
-	ftrace_modify_all_code(*command);
-	set_kernel_text_ro();
-
-	return 0;
-}
-
-void arch_ftrace_update_code(int command)
-{
-	stop_machine(__ftrace_modify_code, &command, NULL);
-}
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static unsigned long ftrace_nop_replace(struct dyn_ftrace *rec)
 {
 	return rec->arch.old_mcount ? OLD_NOP : NOP;
@@ -96,11 +73,6 @@ int ftrace_arch_code_modify_prepare(void)
 int ftrace_arch_code_modify_post_process(void)
 {
 	set_all_modules_text_ro();
-<<<<<<< HEAD
-=======
-	/* Make sure any TLB misses during machine stop are cleared. */
-	flush_tlb_all();
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return 0;
 }
 

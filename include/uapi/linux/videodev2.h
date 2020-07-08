@@ -388,14 +388,6 @@ struct v4l2_pix_format {
 #define V4L2_PIX_FMT_SGBRG10 v4l2_fourcc('G', 'B', '1', '0') /* 10  GBGB.. RGRG.. */
 #define V4L2_PIX_FMT_SGRBG10 v4l2_fourcc('B', 'A', '1', '0') /* 10  GRGR.. BGBG.. */
 #define V4L2_PIX_FMT_SRGGB10 v4l2_fourcc('R', 'G', '1', '0') /* 10  RGRG.. GBGB.. */
-<<<<<<< HEAD
-=======
-	/* 10bit raw bayer packed, 5 bytes for every 4 pixels */
-#define V4L2_PIX_FMT_SBGGR10P v4l2_fourcc('p', 'B', 'A', 'A')
-#define V4L2_PIX_FMT_SGBRG10P v4l2_fourcc('p', 'G', 'A', 'A')
-#define V4L2_PIX_FMT_SGRBG10P v4l2_fourcc('p', 'g', 'A', 'A')
-#define V4L2_PIX_FMT_SRGGB10P v4l2_fourcc('p', 'R', 'A', 'A')
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #define V4L2_PIX_FMT_SBGGR12 v4l2_fourcc('B', 'G', '1', '2') /* 12  BGBG.. GRGR.. */
 #define V4L2_PIX_FMT_SGBRG12 v4l2_fourcc('G', 'B', '1', '2') /* 12  GBGB.. RGRG.. */
 #define V4L2_PIX_FMT_SGRBG12 v4l2_fourcc('B', 'A', '1', '2') /* 12  GRGR.. BGBG.. */
@@ -460,12 +452,6 @@ struct v4l2_pix_format {
 #define V4L2_PIX_FMT_JPGL	v4l2_fourcc('J', 'P', 'G', 'L') /* JPEG-Lite */
 #define V4L2_PIX_FMT_SE401      v4l2_fourcc('S', '4', '0', '1') /* se401 janggu compressed rgb */
 #define V4L2_PIX_FMT_S5C_UYVY_JPG v4l2_fourcc('S', '5', 'C', 'I') /* S5C73M3 interleaved UYVY/JPEG */
-<<<<<<< HEAD
-=======
-#define V4L2_PIX_FMT_Y8I      v4l2_fourcc('Y', '8', 'I', ' ') /* Greyscale 8-bit L/R interleaved */
-#define V4L2_PIX_FMT_Y12I     v4l2_fourcc('Y', '1', '2', 'I') /* Greyscale 12-bit L/R interleaved */
-#define V4L2_PIX_FMT_Z16      v4l2_fourcc('Z', '1', '6', ' ') /* Depth data 16-bit */
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /* SDR formats - used only for Software Defined Radio devices */
 #define V4L2_SDR_FMT_CU8          v4l2_fourcc('C', 'U', '0', '8') /* IQ u8 */
@@ -743,11 +729,8 @@ struct v4l2_buffer {
 #define V4L2_BUF_FLAG_TIMESTAMP_UNKNOWN		0x00000000
 #define V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC	0x00002000
 #define V4L2_BUF_FLAG_TIMESTAMP_COPY		0x00004000
-<<<<<<< HEAD
 /* Expects and returns an Android sync fence */
 #define V4L2_BUF_FLAG_USE_SYNC			0x00008000
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /* Timestamp sources. */
 #define V4L2_BUF_FLAG_TSTAMP_SRC_MASK		0x00070000
 #define V4L2_BUF_FLAG_TSTAMP_SRC_EOF		0x00000000
@@ -1037,7 +1020,6 @@ struct v4l2_standard {
 };
 
 /*
-<<<<<<< HEAD
  *	V I D E O	T I M I N G S	D V	P R E S E T
  */
 struct v4l2_dv_preset {
@@ -1110,8 +1092,6 @@ struct v4l2_dv_enum_preset {
 #define		V4L2_DV_1080P30_TB		44
 
 /*
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
  *	D V 	B T	T I M I N G S
  */
 
@@ -1295,10 +1275,6 @@ struct v4l2_dv_timings_cap {
 	};
 };
 
-<<<<<<< HEAD
-=======
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /*
  *	V I D E O   I N P U T S
  */
@@ -1343,10 +1319,7 @@ struct v4l2_input {
 #define V4L2_IN_ST_VTR         0x04000000  /* VTR time constant */
 
 /* capabilities flags */
-<<<<<<< HEAD
 #define V4L2_IN_CAP_PRESETS		0x00000001 /* Supports S_DV_PRESET */
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #define V4L2_IN_CAP_DV_TIMINGS		0x00000002 /* Supports S_DV_TIMINGS */
 #define V4L2_IN_CAP_CUSTOM_TIMINGS	V4L2_IN_CAP_DV_TIMINGS /* For compatibility */
 #define V4L2_IN_CAP_STD			0x00000004 /* Supports S_STD */
@@ -1370,10 +1343,7 @@ struct v4l2_output {
 #define V4L2_OUTPUT_TYPE_ANALOGVGAOVERLAY	3
 
 /* capabilities flags */
-<<<<<<< HEAD
 #define V4L2_OUT_CAP_PRESETS		0x00000001 /* Supports S_DV_PRESET */
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #define V4L2_OUT_CAP_DV_TIMINGS		0x00000002 /* Supports S_DV_TIMINGS */
 #define V4L2_OUT_CAP_CUSTOM_TIMINGS	V4L2_OUT_CAP_DV_TIMINGS /* For compatibility */
 #define V4L2_OUT_CAP_STD		0x00000004 /* Supports S_STD */
@@ -2168,13 +2138,10 @@ struct v4l2_create_buffers {
 
 #define VIDIOC_S_HW_FREQ_SEEK	 _IOW('V', 82, struct v4l2_hw_freq_seek)
 
-<<<<<<< HEAD
 #define	VIDIOC_ENUM_DV_PRESETS	_IOWR('V', 83, struct v4l2_dv_enum_preset)
 #define	VIDIOC_S_DV_PRESET	_IOWR('V', 84, struct v4l2_dv_preset)
 #define	VIDIOC_G_DV_PRESET	_IOWR('V', 85, struct v4l2_dv_preset)
 #define	VIDIOC_QUERY_DV_PRESET	_IOR('V',  86, struct v4l2_dv_preset)
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #define	VIDIOC_S_DV_TIMINGS	_IOWR('V', 87, struct v4l2_dv_timings)
 #define	VIDIOC_G_DV_TIMINGS	_IOWR('V', 88, struct v4l2_dv_timings)
 #define	VIDIOC_DQEVENT		 _IOR('V', 89, struct v4l2_event)

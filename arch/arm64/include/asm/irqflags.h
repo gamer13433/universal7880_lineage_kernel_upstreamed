@@ -19,10 +19,7 @@
 #ifdef __KERNEL__
 
 #include <asm/ptrace.h>
-<<<<<<< HEAD
 #include <linux/exynos-ss.h>
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /*
  * CPU interrupt mask handling.
@@ -36,19 +33,13 @@ static inline unsigned long arch_local_irq_save(void)
 		: "=r" (flags)
 		:
 		: "memory");
-<<<<<<< HEAD
 	exynos_ss_irqs_disabled(0);
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return flags;
 }
 
 static inline void arch_local_irq_enable(void)
 {
-<<<<<<< HEAD
 	exynos_ss_irqs_disabled(1);
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	asm volatile(
 		"msr	daifclr, #2		// arch_local_irq_enable"
 		:
@@ -63,10 +54,7 @@ static inline void arch_local_irq_disable(void)
 		:
 		:
 		: "memory");
-<<<<<<< HEAD
 	exynos_ss_irqs_disabled(0);
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 #define local_fiq_enable()	asm("msr	daifclr, #1" : : : "memory")
@@ -94,10 +82,7 @@ static inline unsigned long arch_local_save_flags(void)
  */
 static inline void arch_local_irq_restore(unsigned long flags)
 {
-<<<<<<< HEAD
 	exynos_ss_irqs_disabled(flags & PSR_I_BIT);
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	asm volatile(
 		"msr	daif, %0		// arch_local_irq_restore"
 	:

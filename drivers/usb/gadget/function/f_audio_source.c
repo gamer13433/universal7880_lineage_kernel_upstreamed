@@ -295,10 +295,7 @@ static struct config_item_type audio_source_func_type = {
 	.ct_owner       = THIS_MODULE,
 };
 
-<<<<<<< HEAD
 #if 0
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static ssize_t audio_source_pcm_show(struct device *dev,
 		struct device_attribute *attr, char *buf);
 
@@ -308,11 +305,7 @@ static struct device_attribute *audio_source_function_attributes[] = {
 	&dev_attr_pcm,
 	NULL
 };
-<<<<<<< HEAD
 #endif
-=======
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /*--------------------------------------------------------------------------*/
 
 static struct usb_request *audio_request_new(struct usb_ep *ep, int buffer_size)
@@ -591,14 +584,6 @@ static void audio_disable(struct usb_function *f)
 	usb_ep_disable(audio->in_ep);
 }
 
-<<<<<<< HEAD
-=======
-static void audio_free_func(struct usb_function *f)
-{
-	/* no-op */
-}
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /*-------------------------------------------------------------------------*/
 
 static void audio_build_desc(struct audio_dev *audio)
@@ -843,10 +828,6 @@ static struct audio_dev _audio_dev = {
 		.set_alt = audio_set_alt,
 		.setup = audio_setup,
 		.disable = audio_disable,
-<<<<<<< HEAD
-=======
-		.free_func = audio_free_func,
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	},
 	.lock = __SPIN_LOCK_UNLOCKED(_audio_dev.lock),
 	.idle_reqs = LIST_HEAD_INIT(_audio_dev.idle_reqs),
@@ -991,10 +972,7 @@ static void audio_source_free_inst(struct usb_function_instance *fi)
 	kfree(fi_audio->config);
 }
 
-<<<<<<< HEAD
 #if 0
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static ssize_t audio_source_pcm_show(struct device *dev,
 		struct device_attribute *attr, char *buf)
 {
@@ -1004,10 +982,7 @@ static ssize_t audio_source_pcm_show(struct device *dev,
 	/* print PCM card and device numbers */
 	return sprintf(buf, "%d %d\n", config->card, config->device);
 }
-<<<<<<< HEAD
 #endif
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 struct device *create_function_device(char *name);
 
@@ -1036,11 +1011,7 @@ static struct usb_function_instance *audio_source_alloc_inst(void)
 
 	config_group_init_type_name(&fi_audio->func_inst.group, "",
 						&audio_source_func_type);
-<<<<<<< HEAD
 //	dev = create_function_device("f_audio_source");
-=======
-	dev = create_function_device("f_audio_source");
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if (IS_ERR(dev)) {
 		err_ptr = dev;
@@ -1051,11 +1022,7 @@ static struct usb_function_instance *audio_source_alloc_inst(void)
 	fi_audio->config->device = -1;
 	fi_audio->audio_device = dev;
 
-<<<<<<< HEAD
 //	attrs = audio_source_function_attributes;
-=======
-	attrs = audio_source_function_attributes;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (attrs) {
 		while ((attr = *attrs++) && !err)
 			err = device_create_file(dev, attr);
@@ -1088,7 +1055,4 @@ static struct usb_function *audio_source_alloc(struct usb_function_instance *fi)
 DECLARE_USB_FUNCTION_INIT(audio_source, audio_source_alloc_inst,
 			audio_source_alloc);
 MODULE_LICENSE("GPL");
-<<<<<<< HEAD
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012

@@ -1953,11 +1953,7 @@ static void reg_process_pending_hints(void)
 
 	/* When last_request->processed becomes true this will be rescheduled */
 	if (lr && !lr->processed) {
-<<<<<<< HEAD
 		reg_process_hint(lr);
-=======
-		pr_debug("Pending regulatory request, waiting for it to be processed...\n");
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		return;
 	}
 
@@ -2067,10 +2063,7 @@ int regulatory_hint_user(const char *alpha2,
 
 	return 0;
 }
-<<<<<<< HEAD
 EXPORT_SYMBOL(regulatory_hint_user);
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 int regulatory_hint_indoor_user(void)
 {
@@ -2253,7 +2246,6 @@ static void restore_regulatory_settings(bool reset_user)
 	LIST_HEAD(tmp_reg_req_list);
 	struct cfg80211_registered_device *rdev;
 
-<<<<<<< HEAD
 	/*
 	* SAMSUNG FIX : Regulatory Configuration was update
 	* via WIPHY_FLAG_CUSTOM_REGULATORY of Wi-Fi Driver.
@@ -2267,8 +2259,6 @@ static void restore_regulatory_settings(bool reset_user)
 	return;
 #endif
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	ASSERT_RTNL();
 
 	reg_is_indoor = false;

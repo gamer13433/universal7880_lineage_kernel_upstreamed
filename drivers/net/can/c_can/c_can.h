@@ -176,10 +176,6 @@ struct c_can_priv {
 	struct net_device *dev;
 	struct device *device;
 	atomic_t tx_active;
-<<<<<<< HEAD
-=======
-	atomic_t sie_pending;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	unsigned long tx_dir;
 	int last_status;
 	u16 (*read_reg) (const struct c_can_priv *priv, enum reg index);

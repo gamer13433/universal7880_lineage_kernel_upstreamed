@@ -60,11 +60,7 @@ list_set_ktest(struct ip_set *set, const struct sk_buff *skb,
 	/* Don't lookup sub-counters at all */
 	opt->cmdflags &= ~IPSET_FLAG_MATCH_COUNTERS;
 	if (opt->cmdflags & IPSET_FLAG_SKIP_SUBCOUNTER_UPDATE)
-<<<<<<< HEAD
 		opt->cmdflags &= ~IPSET_FLAG_SKIP_COUNTER_UPDATE;
-=======
-		opt->cmdflags |= IPSET_FLAG_SKIP_COUNTER_UPDATE;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	for (i = 0; i < map->size; i++) {
 		e = list_set_elem(set, map, i);
 		if (e->id == IPSET_INVALID_ID)

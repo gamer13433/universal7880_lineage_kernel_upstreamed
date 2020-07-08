@@ -307,17 +307,6 @@ static int hiddev_open(struct inode *inode, struct file *file)
 	spin_unlock_irq(&list->hiddev->list_lock);
 
 	mutex_lock(&hiddev->existancelock);
-<<<<<<< HEAD
-=======
-	/*
-	 * recheck exist with existance lock held to
-	 * avoid opening a disconnected device
-	 */
-	if (!list->hiddev->exist) {
-		res = -ENODEV;
-		goto bail_unlock;
-	}
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (!list->hiddev->open++)
 		if (list->hiddev->exist) {
 			struct hid_device *hid = hiddev->hid;
@@ -332,13 +321,6 @@ static int hiddev_open(struct inode *inode, struct file *file)
 	return 0;
 bail_unlock:
 	mutex_unlock(&hiddev->existancelock);
-<<<<<<< HEAD
-=======
-
-	spin_lock_irq(&list->hiddev->list_lock);
-	list_del(&list->node);
-	spin_unlock_irq(&list->hiddev->list_lock);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 bail:
 	file->private_data = NULL;
 	vfree(list);
@@ -528,7 +510,6 @@ static noinline int hiddev_ioctl_usage(struct hiddev *hiddev, unsigned int cmd, 
 				goto inval;
 
 			field = report->field[uref->field_index];
-<<<<<<< HEAD
 		}
 
 		if (cmd == HIDIOCGCOLLECTIONINDEX) {
@@ -541,19 +522,6 @@ static noinline int hiddev_ioctl_usage(struct hiddev *hiddev, unsigned int cmd, 
 			 (uref_multi->num_values > HID_MAX_MULTI_USAGES ||
 			uref->usage_index + uref_multi->num_values >
 			field->report_count))
-=======
-
-			if (cmd == HIDIOCGCOLLECTIONINDEX) {
-				if (uref->usage_index >= field->maxusage)
-					goto inval;
-			} else if (uref->usage_index >= field->report_count)
-				goto inval;
-		}
-
-		if ((cmd == HIDIOCGUSAGES || cmd == HIDIOCSUSAGES) &&
-		    (uref_multi->num_values > HID_MAX_MULTI_USAGES ||
-		     uref->usage_index + uref_multi->num_values > field->report_count))
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			goto inval;
 
 		switch (cmd) {
@@ -962,15 +930,9 @@ void hiddev_disconnect(struct hid_device *hid)
 	hiddev->exist = 0;
 
 	if (hiddev->open) {
-<<<<<<< HEAD
 		mutex_unlock(&hiddev->existancelock);
 		usbhid_close(hiddev->hid);
 		wake_up_interruptible(&hiddev->wait);
-=======
-		usbhid_close(hiddev->hid);
-		wake_up_interruptible(&hiddev->wait);
-		mutex_unlock(&hiddev->existancelock);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	} else {
 		mutex_unlock(&hiddev->existancelock);
 		kfree(hiddev);

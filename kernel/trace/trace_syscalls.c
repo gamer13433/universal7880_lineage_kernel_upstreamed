@@ -523,11 +523,7 @@ unsigned long __init __weak arch_syscall_addr(int nr)
 	return (unsigned long)sys_call_table[nr];
 }
 
-<<<<<<< HEAD
 static int __init init_ftrace_syscalls(void)
-=======
-void __init init_ftrace_syscalls(void)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	struct syscall_metadata *meta;
 	unsigned long addr;
@@ -537,11 +533,7 @@ void __init init_ftrace_syscalls(void)
 				    GFP_KERNEL);
 	if (!syscalls_metadata) {
 		WARN_ON(1);
-<<<<<<< HEAD
 		return -ENOMEM;
-=======
-		return;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 	for (i = 0; i < NR_syscalls; i++) {
@@ -553,14 +545,10 @@ void __init init_ftrace_syscalls(void)
 		meta->syscall_nr = i;
 		syscalls_metadata[i] = meta;
 	}
-<<<<<<< HEAD
 
 	return 0;
 }
 early_initcall(init_ftrace_syscalls);
-=======
-}
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #ifdef CONFIG_PERF_EVENTS
 

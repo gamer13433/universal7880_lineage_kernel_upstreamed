@@ -562,21 +562,13 @@ static int ipip6_err(struct sk_buff *skb, u32 info)
 
 	if (type == ICMP_DEST_UNREACH && code == ICMP_FRAG_NEEDED) {
 		ipv4_update_pmtu(skb, dev_net(skb->dev), info,
-<<<<<<< HEAD
 				 t->parms.link, 0, IPPROTO_IPV6, 0);
-=======
-				 t->parms.link, 0, iph->protocol, 0);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		err = 0;
 		goto out;
 	}
 	if (type == ICMP_REDIRECT) {
 		ipv4_redirect(skb, dev_net(skb->dev), t->parms.link, 0,
-<<<<<<< HEAD
 			      IPPROTO_IPV6, 0);
-=======
-			      iph->protocol, 0);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		err = 0;
 		goto out;
 	}

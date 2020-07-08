@@ -33,17 +33,6 @@ void __lockfunc tty_lock(struct tty_struct *tty)
 }
 EXPORT_SYMBOL(tty_lock);
 
-<<<<<<< HEAD
-=======
-int tty_lock_interruptible(struct tty_struct *tty)
-{
-	if (WARN(tty->magic != TTY_MAGIC, "L Bad %p\n", tty))
-		return -EIO;
-	tty_kref_get(tty);
-	return mutex_lock_interruptible(&tty->legacy_mutex);
-}
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 void __lockfunc tty_unlock(struct tty_struct *tty)
 {
 	if (tty->magic != TTY_MAGIC) {

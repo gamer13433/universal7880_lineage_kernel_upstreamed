@@ -43,11 +43,7 @@ static void ahci_mvebu_mbus_config(struct ahci_host_priv *hpriv,
 		writel((cs->mbus_attr << 8) |
 		       (dram->mbus_dram_target_id << 4) | 1,
 		       hpriv->mmio + AHCI_WINDOW_CTRL(i));
-<<<<<<< HEAD
 		writel(cs->base, hpriv->mmio + AHCI_WINDOW_BASE(i));
-=======
-		writel(cs->base >> 16, hpriv->mmio + AHCI_WINDOW_BASE(i));
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		writel(((cs->size - 1) & 0xffff0000),
 		       hpriv->mmio + AHCI_WINDOW_SIZE(i));
 	}

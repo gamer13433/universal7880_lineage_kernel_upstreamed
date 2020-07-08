@@ -464,14 +464,8 @@ static const struct ideapad_rfk_data ideapad_rfk_data[] = {
 static int ideapad_rfk_set(void *data, bool blocked)
 {
 	struct ideapad_rfk_priv *priv = data;
-<<<<<<< HEAD
 
 	return write_ec_cmd(priv->priv->adev->handle, priv->dev, !blocked);
-=======
-	int opcode = ideapad_rfk_data[priv->dev].opcode;
-
-	return write_ec_cmd(priv->priv->adev->handle, opcode, !blocked);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 static struct rfkill_ops ideapad_rfk_ops = {

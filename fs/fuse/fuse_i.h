@@ -351,12 +351,6 @@ struct fuse_req {
 	/** Inode used in the request or NULL */
 	struct inode *inode;
 
-<<<<<<< HEAD
-=======
-	/** Path used for completing d_canonical_path */
-	struct path *canonical_path;
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/** AIO control block */
 	struct fuse_io_priv *io;
 
@@ -837,11 +831,6 @@ void fuse_ctl_remove_conn(struct fuse_conn *fc);
  */
 int fuse_valid_type(int m);
 
-<<<<<<< HEAD
-=======
-bool fuse_invalid_attr(struct fuse_attr *attr);
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /**
  * Is current process allowed to perform filesystem operation?
  */

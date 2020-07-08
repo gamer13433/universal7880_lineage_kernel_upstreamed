@@ -200,11 +200,7 @@ static int lm3630a_bank_a_update_status(struct backlight_device *bl)
 				      LM3630A_LEDA_ENABLE, LM3630A_LEDA_ENABLE);
 	if (ret < 0)
 		goto out_i2c_err;
-<<<<<<< HEAD
 	return bl->props.brightness;
-=======
-	return 0;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 out_i2c_err:
 	dev_err(pchip->dev, "i2c failed to access\n");
@@ -281,11 +277,7 @@ static int lm3630a_bank_b_update_status(struct backlight_device *bl)
 				      LM3630A_LEDB_ENABLE, LM3630A_LEDB_ENABLE);
 	if (ret < 0)
 		goto out_i2c_err;
-<<<<<<< HEAD
 	return bl->props.brightness;
-=======
-	return 0;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 out_i2c_err:
 	dev_err(pchip->dev, "i2c failed to access REG_CTRL\n");

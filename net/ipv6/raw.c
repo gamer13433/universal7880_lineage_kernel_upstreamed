@@ -283,13 +283,7 @@ static int rawv6_bind(struct sock *sk, struct sockaddr *uaddr, int addr_len)
 			/* Binding to link-local address requires an interface */
 			if (!sk->sk_bound_dev_if)
 				goto out_unlock;
-<<<<<<< HEAD
 
-=======
-		}
-
-		if (sk->sk_bound_dev_if) {
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			err = -ENODEV;
 			dev = dev_get_by_index_rcu(sock_net(sk),
 						   sk->sk_bound_dev_if);
@@ -498,11 +492,7 @@ static int rawv6_recvmsg(struct kiocb *iocb, struct sock *sk,
 			goto csum_copy_err;
 		err = skb_copy_datagram_iovec(skb, 0, msg->msg_iov, copied);
 	} else {
-<<<<<<< HEAD
 		err = skb_copy_and_csum_datagram_iovec(skb, 0, msg->msg_iov, copied);
-=======
-		err = skb_copy_and_csum_datagram_iovec(skb, 0, msg->msg_iov);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		if (err == -EINVAL)
 			goto csum_copy_err;
 	}
@@ -634,11 +624,6 @@ static int rawv6_send_hdrinc(struct sock *sk, void *from, int length,
 		ipv6_local_error(sk, EMSGSIZE, fl6, rt->dst.dev->mtu);
 		return -EMSGSIZE;
 	}
-<<<<<<< HEAD
-=======
-	if (length < sizeof(struct ipv6hdr))
-		return -EINVAL;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (flags&MSG_PROBE)
 		goto out;
 
@@ -750,10 +735,6 @@ static int rawv6_probe_proto_opt(struct flowi6 *fl6, struct msghdr *msg)
 static int rawv6_sendmsg(struct kiocb *iocb, struct sock *sk,
 		   struct msghdr *msg, size_t len)
 {
-<<<<<<< HEAD
-=======
-	struct ipv6_txoptions *opt_to_free = NULL;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	struct ipv6_txoptions opt_space;
 	DECLARE_SOCKADDR(struct sockaddr_in6 *, sin6, msg->msg_name);
 	struct in6_addr *daddr, *final_p, final;
@@ -860,15 +841,8 @@ static int rawv6_sendmsg(struct kiocb *iocb, struct sock *sk,
 		if (!(opt->opt_nflen|opt->opt_flen))
 			opt = NULL;
 	}
-<<<<<<< HEAD
 	if (opt == NULL)
 		opt = np->opt;
-=======
-	if (!opt) {
-		opt = txopt_get(np);
-		opt_to_free = opt;
-	}
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (flowlabel)
 		opt = fl6_merge_options(&opt_space, flowlabel, opt);
 	opt = ipv6_fixup_options(&opt_space, opt);
@@ -893,11 +867,7 @@ static int rawv6_sendmsg(struct kiocb *iocb, struct sock *sk,
 		fl6.flowi6_oif = np->ucast_oif;
 	security_sk_classify_flow(sk, flowi6_to_flowi(&fl6));
 
-<<<<<<< HEAD
 	dst = ip6_dst_lookup_flow(sk, &fl6, final_p);
-=======
-	dst = ip6_dst_lookup_flow(sock_net(sk), sk, &fl6, final_p);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (IS_ERR(dst)) {
 		err = PTR_ERR(dst);
 		goto out;
@@ -933,10 +903,6 @@ done:
 	dst_release(dst);
 out:
 	fl6_sock_release(flowlabel);
-<<<<<<< HEAD
-=======
-	txopt_put(opt_to_free);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return err < 0 ? err : len;
 do_confirm:
 	dst_confirm(dst);

@@ -509,11 +509,7 @@ static void check_holdout_task(struct task_struct *t,
 	if (!needreport)
 		return;
 	if (*firstreport) {
-<<<<<<< HEAD
 		pr_auto(ASL1, "INFO: rcu_tasks detected stalls on tasks:\n");
-=======
-		pr_err("INFO: rcu_tasks detected stalls on tasks:\n");
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		*firstreport = false;
 	}
 	cpu = task_cpu(t);

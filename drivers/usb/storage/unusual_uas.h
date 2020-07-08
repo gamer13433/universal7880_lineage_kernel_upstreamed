@@ -40,16 +40,6 @@
  * and don't forget to CC: the USB development list <linux-usb@vger.kernel.org>
  */
 
-<<<<<<< HEAD
-=======
-/* Reported-by: Julian Groß <julian.g@posteo.de> */
-UNUSUAL_DEV(0x059f, 0x105f, 0x0000, 0x9999,
-		"LaCie",
-		"2Big Quadra USB3",
-		USB_SC_DEVICE, USB_PR_DEVICE, NULL,
-		US_FL_NO_REPORT_OPCODES),
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /*
  * Apricorn USB3 dongle sometimes returns "USBSUSBSUSBS" in response to SCSI
  * commands in UAS mode.  Observed with the 1.28 firmware; are there others?
@@ -149,11 +139,7 @@ UNUSUAL_DEV(0x152d, 0x0567, 0x0000, 0x9999,
 		"JMicron",
 		"JMS567",
 		USB_SC_DEVICE, USB_PR_DEVICE, NULL,
-<<<<<<< HEAD
 		US_FL_NO_REPORT_OPCODES),
-=======
-		US_FL_BROKEN_FUA | US_FL_NO_REPORT_OPCODES),
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /* Most ASM1051 based devices have issues with uas, blacklist them all */
 /* Reported-by: Hans de Goede <hdegoede@redhat.com> */
@@ -184,23 +170,12 @@ UNUSUAL_DEV(0x2537, 0x1068, 0x0000, 0x9999,
 		USB_SC_DEVICE, USB_PR_DEVICE, NULL,
 		US_FL_IGNORE_UAS),
 
-<<<<<<< HEAD
 /* Reported-by: Takeo Nakayama <javhera@gmx.com> */
-=======
-/*
- * Initially Reported-by: Takeo Nakayama <javhera@gmx.com>
- * UAS Ignore Reported by Steven Ellis <sellis@redhat.com>
- */
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 UNUSUAL_DEV(0x357d, 0x7788, 0x0000, 0x9999,
 		"JMicron",
 		"JMS566",
 		USB_SC_DEVICE, USB_PR_DEVICE, NULL,
-<<<<<<< HEAD
 		US_FL_NO_REPORT_OPCODES),
-=======
-		US_FL_NO_REPORT_OPCODES | US_FL_IGNORE_UAS),
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /* Reported-by: Hans de Goede <hdegoede@redhat.com> */
 UNUSUAL_DEV(0x4971, 0x1012, 0x0000, 0x9999,

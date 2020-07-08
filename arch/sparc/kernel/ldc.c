@@ -2312,11 +2312,7 @@ void *ldc_alloc_exp_dring(struct ldc_channel *lp, unsigned int len,
 	if (len & (8UL - 1))
 		return ERR_PTR(-EINVAL);
 
-<<<<<<< HEAD
 	buf = kzalloc(len, GFP_KERNEL);
-=======
-	buf = kzalloc(len, GFP_ATOMIC);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (!buf)
 		return ERR_PTR(-ENOMEM);
 

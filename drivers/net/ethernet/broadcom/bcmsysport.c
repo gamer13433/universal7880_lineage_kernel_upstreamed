@@ -393,11 +393,7 @@ static void bcm_sysport_get_stats(struct net_device *dev,
 		else
 			p = (char *)priv;
 		p += s->stat_offset;
-<<<<<<< HEAD
 		data[i] = *(u32 *)p;
-=======
-		data[i] = *(unsigned long *)p;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 }
 
@@ -465,12 +461,7 @@ static int bcm_sysport_rx_refill(struct bcm_sysport_priv *priv,
 	dma_addr_t mapping;
 	int ret;
 
-<<<<<<< HEAD
 	cb->skb = netdev_alloc_skb(priv->netdev, RX_BUF_LENGTH);
-=======
-	cb->skb = __netdev_alloc_skb(priv->netdev, RX_BUF_LENGTH,
-				     GFP_ATOMIC | __GFP_NOWARN);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (!cb->skb) {
 		netif_err(priv, rx_err, ndev, "SKB alloc failed\n");
 		return -ENOMEM;
@@ -1674,11 +1665,7 @@ static int bcm_sysport_probe(struct platform_device *pdev)
 
 	priv->phy_interface = of_get_phy_mode(dn);
 	/* Default to GMII interface mode */
-<<<<<<< HEAD
 	if (priv->phy_interface < 0)
-=======
-	if ((int)priv->phy_interface < 0)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		priv->phy_interface = PHY_INTERFACE_MODE_GMII;
 
 	/* In the case of a fixed PHY, the DT node associated
@@ -1881,12 +1868,6 @@ static int bcm_sysport_resume(struct device *d)
 
 	umac_reset(priv);
 
-<<<<<<< HEAD
-=======
-	/* Disable the UniMAC RX/TX */
-	umac_enable_set(priv, CMD_RX_EN | CMD_TX_EN, 0);
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/* We may have been suspended and never received a WOL event that
 	 * would turn off MPD detection, take care of that now
 	 */

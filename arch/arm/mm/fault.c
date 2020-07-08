@@ -212,11 +212,7 @@ static inline bool access_error(unsigned int fsr, struct vm_area_struct *vma)
 {
 	unsigned int mask = VM_READ | VM_WRITE | VM_EXEC;
 
-<<<<<<< HEAD
 	if (fsr & FSR_WRITE)
-=======
-	if ((fsr & FSR_WRITE) && !(fsr & FSR_CM))
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		mask = VM_WRITE;
 	if (fsr & FSR_LNX_PF)
 		mask = VM_EXEC;
@@ -286,11 +282,7 @@ do_page_fault(unsigned long addr, unsigned int fsr, struct pt_regs *regs)
 
 	if (user_mode(regs))
 		flags |= FAULT_FLAG_USER;
-<<<<<<< HEAD
 	if (fsr & FSR_WRITE)
-=======
-	if ((fsr & FSR_WRITE) && !(fsr & FSR_CM))
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		flags |= FAULT_FLAG_WRITE;
 
 	/*

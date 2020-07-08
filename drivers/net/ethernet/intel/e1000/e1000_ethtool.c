@@ -629,10 +629,6 @@ static int e1000_set_ringparam(struct net_device *netdev,
 	for (i = 0; i < adapter->num_rx_queues; i++)
 		rxdr[i].count = rxdr->count;
 
-<<<<<<< HEAD
-=======
-	err = 0;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (netif_running(adapter->netdev)) {
 		/* Try to get new resources before deleting old */
 		err = e1000_setup_all_rx_resources(adapter);
@@ -653,22 +649,14 @@ static int e1000_set_ringparam(struct net_device *netdev,
 		adapter->rx_ring = rxdr;
 		adapter->tx_ring = txdr;
 		err = e1000_up(adapter);
-<<<<<<< HEAD
 		if (err)
 			goto err_setup;
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 	kfree(tx_old);
 	kfree(rx_old);
 
 	clear_bit(__E1000_RESETTING, &adapter->flags);
-<<<<<<< HEAD
 	return 0;
-=======
-	return err;
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 err_setup_tx:
 	e1000_free_all_rx_resources(adapter);
 err_setup_rx:
@@ -680,10 +668,7 @@ err_alloc_rx:
 err_alloc_tx:
 	if (netif_running(adapter->netdev))
 		e1000_up(adapter);
-<<<<<<< HEAD
 err_setup:
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	clear_bit(__E1000_RESETTING, &adapter->flags);
 	return err;
 }

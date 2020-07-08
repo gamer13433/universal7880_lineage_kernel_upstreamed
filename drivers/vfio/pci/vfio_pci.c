@@ -150,7 +150,6 @@ static void vfio_pci_disable(struct vfio_pci_device *vdev)
 	pci_write_config_word(pdev, PCI_COMMAND, PCI_COMMAND_INTX_DISABLE);
 
 	/*
-<<<<<<< HEAD
 	 * Try to reset the device.  The success of this is dependent on
 	 * being able to lock the device, which is not always possible.
 	 */
@@ -161,21 +160,6 @@ static void vfio_pci_disable(struct vfio_pci_device *vdev)
 				__func__, dev_name(&pdev->dev), ret);
 		else
 			vdev->needs_reset = false;
-=======
-	 * Try to get the locks ourselves to prevent a deadlock. The
-	 * success of this is dependent on being able to lock the device,
-	 * which is not always possible.
-	 * We can not use the "try" reset interface here, which will
-	 * overwrite the previously restored configuration information.
-	 */
-	if (vdev->reset_works && pci_cfg_access_trylock(pdev)) {
-		if (device_trylock(&pdev->dev)) {
-			if (!__pci_reset_function_locked(pdev))
-				vdev->needs_reset = false;
-			device_unlock(&pdev->dev);
-		}
-		pci_cfg_access_unlock(pdev);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 	pci_restore_state(pdev);
@@ -431,10 +415,6 @@ static long vfio_pci_ioctl(void *device_data,
 		{
 			void __iomem *io;
 			size_t size;
-<<<<<<< HEAD
-=======
-			u16 orig_cmd;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 			info.offset = VFIO_PCI_INDEX_TO_OFFSET(info.index);
 			info.flags = 0;
@@ -444,7 +424,6 @@ static long vfio_pci_ioctl(void *device_data,
 			if (!info.size)
 				break;
 
-<<<<<<< HEAD
 			/* Is it really there? */
 			io = pci_map_rom(pdev, &size);
 			if (!io || !size) {
@@ -454,25 +433,6 @@ static long vfio_pci_ioctl(void *device_data,
 			pci_unmap_rom(pdev, io);
 
 			info.flags = VFIO_REGION_INFO_FLAG_READ;
-=======
-			/*
-			 * Is it really there?  Enable memory decode for
-			 * implicit access in pci_map_rom().
-			 */
-			pci_read_config_word(pdev, PCI_COMMAND, &orig_cmd);
-			pci_write_config_word(pdev, PCI_COMMAND,
-					      orig_cmd | PCI_COMMAND_MEMORY);
-
-			io = pci_map_rom(pdev, &size);
-			if (io) {
-				info.flags = VFIO_REGION_INFO_FLAG_READ;
-				pci_unmap_rom(pdev, io);
-			} else {
-				info.size = 0;
-			}
-
-			pci_write_config_word(pdev, PCI_COMMAND, orig_cmd);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			break;
 		}
 		case VFIO_PCI_VGA_REGION_INDEX:

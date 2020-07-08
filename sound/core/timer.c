@@ -299,26 +299,8 @@ int snd_timer_open(struct snd_timer_instance **ti,
 		get_device(&timer->card->card_dev);
 	timeri->slave_class = tid->dev_sclass;
 	timeri->slave_id = slave_id;
-<<<<<<< HEAD
 	if (list_empty(&timer->open_list_head) && timer->hw.open)
 		timer->hw.open(timer);
-=======
-
-	if (list_empty(&timer->open_list_head) && timer->hw.open) {
-		int err = timer->hw.open(timer);
-		if (err) {
-			kfree(timeri->owner);
-			kfree(timeri);
-
-			if (timer->card)
-				put_device(&timer->card->card_dev);
-			module_put(timer->module);
-			mutex_unlock(&register_mutex);
-			return err;
-		}
-	}
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	list_add_tail(&timeri->open_list, &timer->open_list_head);
 	snd_timer_check_master(timeri);
 	mutex_unlock(&register_mutex);
@@ -555,13 +537,6 @@ static int snd_timer_stop1(struct snd_timer_instance *timeri, bool stop)
 		}
 	}
 	timeri->flags &= ~(SNDRV_TIMER_IFLG_RUNNING | SNDRV_TIMER_IFLG_START);
-<<<<<<< HEAD
-=======
-	if (stop)
-		timeri->flags &= ~SNDRV_TIMER_IFLG_PAUSED;
-	else
-		timeri->flags |= SNDRV_TIMER_IFLG_PAUSED;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	snd_timer_notify1(timeri, stop ? SNDRV_TIMER_EVENT_STOP :
 			  SNDRV_TIMER_EVENT_CONTINUE);
  unlock:
@@ -623,13 +598,6 @@ int snd_timer_stop(struct snd_timer_instance *timeri)
  */
 int snd_timer_continue(struct snd_timer_instance *timeri)
 {
-<<<<<<< HEAD
-=======
-	/* timer can continue only after pause */
-	if (!(timeri->flags & SNDRV_TIMER_IFLG_PAUSED))
-		return -EINVAL;
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (timeri->flags & SNDRV_TIMER_IFLG_SLAVE)
 		return snd_timer_start_slave(timeri, false);
 	else
@@ -695,12 +663,9 @@ static void snd_timer_tasklet(unsigned long arg)
 	if (timer->card && timer->card->shutdown)
 		return;
 
-<<<<<<< HEAD
 	if (timer->card && timer->card->shutdown)
 		return;
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	spin_lock_irqsave(&timer->lock, flags);
 	/* now process all callbacks */
 	while (!list_empty(&timer->sack_list_head)) {
@@ -744,12 +709,9 @@ void snd_timer_interrupt(struct snd_timer * timer, unsigned long ticks_left)
 	if (timer->card && timer->card->shutdown)
 		return;
 
-<<<<<<< HEAD
 	if (timer->card && timer->card->shutdown)
 		return;
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	spin_lock_irqsave(&timer->lock, flags);
 
 	/* remember the current resolution */
@@ -779,13 +741,8 @@ void snd_timer_interrupt(struct snd_timer * timer, unsigned long ticks_left)
 			ti->cticks = ti->ticks;
 		} else {
 			ti->flags &= ~SNDRV_TIMER_IFLG_RUNNING;
-<<<<<<< HEAD
 			if (--timer->running)
 				list_del_init(&ti->active_list);
-=======
-			--timer->running;
-			list_del_init(&ti->active_list);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		}
 		if ((timer->hw.flags & SNDRV_TIMER_HW_TASKLET) ||
 		    (ti->flags & SNDRV_TIMER_IFLG_FAST))
@@ -1993,20 +1950,13 @@ static ssize_t snd_timer_user_read(struct file *file, char __user *buffer,
 			add_wait_queue(&tu->qchange_sleep, &wait);
 
 			spin_unlock_irq(&tu->qlock);
-<<<<<<< HEAD
 			schedule();
-=======
-			mutex_unlock(&tu->ioctl_lock);
-			schedule();
-			mutex_lock(&tu->ioctl_lock);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			spin_lock_irq(&tu->qlock);
 
 			remove_wait_queue(&tu->qchange_sleep, &wait);
 
 			if (tu->disconnected) {
 				err = -ENODEV;
-<<<<<<< HEAD
 				break;
 			}
 			if (signal_pending(current)) {
@@ -2043,42 +1993,6 @@ static ssize_t snd_timer_user_read(struct file *file, char __user *buffer,
 	}
 	spin_unlock_irq(&tu->qlock);
  _error:
-=======
-				goto _error;
-			}
-			if (signal_pending(current)) {
-				err = -ERESTARTSYS;
-				goto _error;
-			}
-		}
-
-		qhead = tu->qhead++;
-		tu->qhead %= tu->queue_size;
-		tu->qused--;
-		spin_unlock_irq(&tu->qlock);
-
-		mutex_lock(&tu->ioctl_lock);
-		if (tu->tread) {
-			if (copy_to_user(buffer, &tu->tqueue[qhead],
-					 sizeof(struct snd_timer_tread)))
-				err = -EFAULT;
-		} else {
-			if (copy_to_user(buffer, &tu->queue[qhead],
-					 sizeof(struct snd_timer_read)))
-				err = -EFAULT;
-		}
-		mutex_unlock(&tu->ioctl_lock);
-
-		spin_lock_irq(&tu->qlock);
-		if (err < 0)
-			goto _error;
-		result += unit;
-		buffer += unit;
-	}
- _error:
-	spin_unlock_irq(&tu->qlock);
-	mutex_unlock(&tu->ioctl_lock);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return result > 0 ? result : err;
 }
 

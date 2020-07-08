@@ -148,15 +148,8 @@ static int configure_kgdboc(void)
 	char *cptr = config;
 	struct console *cons;
 
-<<<<<<< HEAD
 	if (!strlen(config) || isspace(config[0]))
 		goto noconfig;
-=======
-	if (!strlen(config) || isspace(config[0])) {
-		err = 0;
-		goto noconfig;
-	}
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	kgdboc_io_ops.is_console = 0;
 	kgdb_tty_driver = NULL;

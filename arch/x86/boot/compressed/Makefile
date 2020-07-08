@@ -4,23 +4,16 @@
 # create a compressed vmlinux image from the original vmlinux
 #
 
-<<<<<<< HEAD
 KASAN_SANITIZE := n
 
 # Prevents link failures: __sanitizer_cov_trace_pc() is not linked in.
 KCOV_INSTRUMENT		:= n
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 targets := vmlinux vmlinux.bin vmlinux.bin.gz vmlinux.bin.bz2 vmlinux.bin.lzma \
 	vmlinux.bin.xz vmlinux.bin.lzo vmlinux.bin.lz4
 
 KBUILD_CFLAGS := -m$(BITS) -D__KERNEL__ $(LINUX_INCLUDE) -O2
-<<<<<<< HEAD
 KBUILD_CFLAGS += -fno-strict-aliasing -fPIC
-=======
-KBUILD_CFLAGS += -fno-strict-aliasing $(call cc-option, -fPIE, -fPIC)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 KBUILD_CFLAGS += -DDISABLE_BRANCH_PROFILING
 cflags-$(CONFIG_X86_32) := -march=i386
 cflags-$(CONFIG_X86_64) := -mcmodel=small
@@ -33,21 +26,6 @@ KBUILD_AFLAGS  := $(KBUILD_CFLAGS) -D__ASSEMBLY__
 GCOV_PROFILE := n
 
 LDFLAGS := -m elf_$(UTS_MACHINE)
-<<<<<<< HEAD
-=======
-ifeq ($(CONFIG_RELOCATABLE),y)
-# If kernel is relocatable, build compressed kernel as PIE.
-ifeq ($(CONFIG_X86_32),y)
-LDFLAGS += $(call ld-option, -pie) $(call ld-option, --no-dynamic-linker)
-else
-# To build 64-bit compressed kernel as PIE, we disable relocation
-# overflow check to avoid relocation overflow error with a new linker
-# command-line option, -z noreloc-overflow.
-LDFLAGS += $(shell $(LD) --help 2>&1 | grep -q "\-z noreloc-overflow" \
-	&& echo "-z noreloc-overflow -pie --no-dynamic-linker")
-endif
-endif
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 LDFLAGS_vmlinux := -T
 
 hostprogs-y	:= mkpiggy

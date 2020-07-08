@@ -125,11 +125,7 @@
 			};
 
 			eth2: ethernet@30000 {
-<<<<<<< HEAD
 				compatible = "marvell,armada-370-neta";
-=======
-				compatible = "marvell,armada-xp-neta";
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 				reg = <0x30000 0x4000>;
 				interrupts = <12>;
 				clocks = <&gateclk 2>;
@@ -172,17 +168,6 @@
 				};
 			};
 
-<<<<<<< HEAD
-=======
-			ethernet@70000 {
-				compatible = "marvell,armada-xp-neta";
-			};
-
-			ethernet@74000 {
-				compatible = "marvell,armada-xp-neta";
-			};
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			xor@f0900 {
 				compatible = "marvell,orion-xor";
 				reg = <0xF0900 0x100

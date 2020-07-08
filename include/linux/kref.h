@@ -34,14 +34,6 @@ static inline void kref_init(struct kref *kref)
 	atomic_set(&kref->refcount, 1);
 }
 
-<<<<<<< HEAD
-=======
-static inline int kref_read(const struct kref *kref)
-{
-	return atomic_read(&kref->refcount);
-}
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /**
  * kref_get - increment refcount for object.
  * @kref: object.

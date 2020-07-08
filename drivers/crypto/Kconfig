@@ -436,9 +436,6 @@ config CRYPTO_DEV_QCE
 	  hardware. To compile this driver as a module, choose M here. The
 	  module will be called qcrypto.
 
-<<<<<<< HEAD
 source "drivers/crypto/fmp/Kconfig"
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 endif # CRYPTO_HW

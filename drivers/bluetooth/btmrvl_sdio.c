@@ -1049,12 +1049,7 @@ static int btmrvl_sdio_download_fw(struct btmrvl_sdio_card *card)
 	 */
 	if (btmrvl_sdio_verify_fw_download(card, pollnum)) {
 		BT_ERR("FW failed to be active in time!");
-<<<<<<< HEAD
 		return -ETIMEDOUT;
-=======
-		ret = -ETIMEDOUT;
-		goto done;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 	return 0;

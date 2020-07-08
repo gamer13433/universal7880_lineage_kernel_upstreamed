@@ -831,22 +831,10 @@ lookup_out:
 static int
 cifs_d_revalidate(struct dentry *direntry, unsigned int flags)
 {
-<<<<<<< HEAD
-=======
-	struct inode *inode;
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (flags & LOOKUP_RCU)
 		return -ECHILD;
 
 	if (direntry->d_inode) {
-<<<<<<< HEAD
-=======
-		inode = d_inode(direntry);
-		if ((flags & LOOKUP_REVAL) && !CIFS_CACHE_READ(CIFS_I(inode)))
-			CIFS_I(inode)->time = 0; /* force reval */
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		if (cifs_revalidate_dentry(direntry))
 			return 0;
 		else {
@@ -857,11 +845,7 @@ cifs_d_revalidate(struct dentry *direntry, unsigned int flags)
 			 * attributes will have been updated by
 			 * cifs_revalidate_dentry().
 			 */
-<<<<<<< HEAD
 			if (IS_AUTOMOUNT(direntry->d_inode) &&
-=======
-			if (IS_AUTOMOUNT(inode) &&
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			   !(direntry->d_flags & DCACHE_NEED_AUTOMOUNT)) {
 				spin_lock(&direntry->d_lock);
 				direntry->d_flags |= DCACHE_NEED_AUTOMOUNT;

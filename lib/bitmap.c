@@ -12,10 +12,6 @@
 #include <linux/bitmap.h>
 #include <linux/bitops.h>
 #include <linux/bug.h>
-<<<<<<< HEAD
-=======
-#include <linux/slab.h>
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #include <asm/uaccess.h>
 
 /*
@@ -1196,25 +1192,3 @@ void bitmap_copy_le(void *dst, const unsigned long *src, int nbits)
 	}
 }
 EXPORT_SYMBOL(bitmap_copy_le);
-<<<<<<< HEAD
-=======
-
-unsigned long *bitmap_alloc(unsigned int nbits, gfp_t flags)
-{
-	return kmalloc_array(BITS_TO_LONGS(nbits), sizeof(unsigned long),
-			     flags);
-}
-EXPORT_SYMBOL(bitmap_alloc);
-
-unsigned long *bitmap_zalloc(unsigned int nbits, gfp_t flags)
-{
-	return bitmap_alloc(nbits, flags | __GFP_ZERO);
-}
-EXPORT_SYMBOL(bitmap_zalloc);
-
-void bitmap_free(const unsigned long *bitmap)
-{
-	kfree(bitmap);
-}
-EXPORT_SYMBOL(bitmap_free);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012

@@ -40,11 +40,6 @@
 #include "blk-cgroup.h"
 #include "blk-mq.h"
 
-<<<<<<< HEAD
-=======
-#include <linux/math64.h>
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 EXPORT_TRACEPOINT_SYMBOL_GPL(block_bio_remap);
 EXPORT_TRACEPOINT_SYMBOL_GPL(block_rq_remap);
 EXPORT_TRACEPOINT_SYMBOL_GPL(block_bio_complete);
@@ -614,12 +609,6 @@ struct request_queue *blk_alloc_queue_node(gfp_t gfp_mask, int node_id)
 
 	kobject_init(&q->kobj, &blk_queue_ktype);
 
-<<<<<<< HEAD
-=======
-#ifdef CONFIG_BLK_DEV_IO_TRACE
-	mutex_init(&q->blk_trace_mutex);
-#endif
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	mutex_init(&q->sysfs_lock);
 	spin_lock_init(&q->__queue_lock);
 
@@ -756,10 +745,6 @@ blk_init_allocated_queue(struct request_queue *q, request_fn_proc *rfn,
 
 fail:
 	blk_free_flush_queue(q->fq);
-<<<<<<< HEAD
-=======
-	q->fq = NULL;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return NULL;
 }
 EXPORT_SYMBOL(blk_init_allocated_queue);
@@ -2122,11 +2107,8 @@ void blk_account_io_completion(struct request *req, unsigned int bytes)
 		cpu = part_stat_lock();
 		part = req->part;
 		part_stat_add(cpu, part, sectors[rw], bytes >> 9);
-<<<<<<< HEAD
 		if (req->cmd_flags & REQ_DISCARD)
 			part_stat_add(cpu, part, discard_sectors, bytes >> 9);
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		part_stat_unlock();
 	}
 }
@@ -2151,23 +2133,17 @@ void blk_account_io_done(struct request *req)
 		part_stat_add(cpu, part, ticks[rw], duration);
 		part_round_stats(cpu, part);
 		part_dec_in_flight(part, rw);
-<<<<<<< HEAD
 		if (req->cmd_flags & REQ_DISCARD)
 			part_stat_inc(cpu, part, discard_ios);
 		if (!(req->cmd_flags & REQ_STARTED))
 			part_stat_inc(cpu, part, flush_ios);
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 		hd_struct_put(part);
 		part_stat_unlock();
 	}
-<<<<<<< HEAD
 
 	if (req->cmd_flags & REQ_FLUSH_SEQ)
 		req->q->flush_ios++;
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 #ifdef CONFIG_PM_RUNTIME
@@ -2348,11 +2324,8 @@ void blk_dequeue_request(struct request *rq)
 	 * the driver side.
 	 */
 	if (blk_account_rq(rq)) {
-<<<<<<< HEAD
 		if (!queue_in_flight(q))
 			q->in_flight_stamp = ktime_get();
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		q->in_flight[rq_is_sync(rq)]++;
 		set_io_start_time_ns(rq);
 	}
@@ -3362,55 +3335,3 @@ int __init blk_dev_init(void)
 
 	return 0;
 }
-<<<<<<< HEAD
-=======
-
-/*
- * Blk IO latency support. We want this to be as cheap as possible, so doing
- * this lockless (and avoiding atomics), a few off by a few errors in this
- * code is not harmful, and we don't want to do anything that is
- * perf-impactful.
- * TODO : If necessary, we can make the histograms per-cpu and aggregate
- * them when printing them out.
- */
-ssize_t
-blk_latency_hist_show(char* name, struct io_latency_state *s, char *buf,
-		int buf_size)
-{
-	int i;
-	int bytes_written = 0;
-	u_int64_t num_elem, elem;
-	int pct;
-	u_int64_t average;
-
-       num_elem = s->latency_elems;
-       if (num_elem > 0) {
-	       average = div64_u64(s->latency_sum, s->latency_elems);
-	       bytes_written += scnprintf(buf + bytes_written,
-			       buf_size - bytes_written,
-			       "IO svc_time %s Latency Histogram (n = %llu,"
-			       " average = %llu):\n", name, num_elem, average);
-	       for (i = 0;
-		    i < ARRAY_SIZE(latency_x_axis_us);
-		    i++) {
-		       elem = s->latency_y_axis[i];
-		       pct = div64_u64(elem * 100, num_elem);
-		       bytes_written += scnprintf(buf + bytes_written,
-				       PAGE_SIZE - bytes_written,
-				       "\t< %6lluus%15llu%15d%%\n",
-				       latency_x_axis_us[i],
-				       elem, pct);
-	       }
-	       /* Last element in y-axis table is overflow */
-	       elem = s->latency_y_axis[i];
-	       pct = div64_u64(elem * 100, num_elem);
-	       bytes_written += scnprintf(buf + bytes_written,
-			       PAGE_SIZE - bytes_written,
-			       "\t>=%6lluus%15llu%15d%%\n",
-			       latency_x_axis_us[i - 1], elem, pct);
-	}
-
-	return bytes_written;
-}
-EXPORT_SYMBOL(blk_latency_hist_show);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012

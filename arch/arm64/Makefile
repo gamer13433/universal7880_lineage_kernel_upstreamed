@@ -21,11 +21,6 @@ KBUILD_DEFCONFIG := defconfig
 
 KBUILD_CFLAGS	+= -mgeneral-regs-only
 KBUILD_CFLAGS	+= -fno-pic
-<<<<<<< HEAD
-=======
-KBUILD_CFLAGS	+= $(call cc-option, -mpc-relative-literal-loads)
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 ifeq ($(CONFIG_CPU_BIG_ENDIAN), y)
 KBUILD_CPPFLAGS	+= -mbig-endian
 AS		+= -EB
@@ -49,13 +44,9 @@ head-y		:= arch/arm64/kernel/head.o
 ifeq ($(CONFIG_ARM64_RANDOMIZE_TEXT_OFFSET), y)
 TEXT_OFFSET := $(shell awk 'BEGIN {srand(); printf "0x%03x000\n", int(512 * rand())}')
 else
-<<<<<<< HEAD
 textofs-y	:= 0x00080000
 textofs-$(CONFIG_TEXT_OFFSET_OVERRIDE)	:= $(CONFIG_TEXT_OFFSET)
 TEXT_OFFSET := $(textofs-y)
-=======
-TEXT_OFFSET := 0x00080000
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 endif
 
 export	TEXT_OFFSET GZFLAGS
@@ -78,13 +69,10 @@ endif
 
 KBUILD_DTBS	:= dtbs
 
-<<<<<<< HEAD
 ifeq ($(CONFIG_EXYNOS_DTBTOOL),y)
 KBUILD_DTBS	+= dtb.img
 endif
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 all:	$(KBUILD_IMAGE) $(KBUILD_DTBS)
 
 boot := arch/arm64/boot
@@ -101,14 +89,10 @@ zinstall install: vmlinux
 dtbs: scripts
 	$(Q)$(MAKE) $(build)=$(boot)/dts dtbs
 
-<<<<<<< HEAD
 dtb.img: prepare scripts dtbs
 	$(Q)$(MAKE) $(build)=$(boot) $(boot)/$@
 
 Image.gz-dtb: vmlinux scripts dtbs
-=======
-Image-dtb Image.gz-dtb: vmlinux scripts dtbs
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	$(Q)$(MAKE) $(build)=$(boot) $(boot)/$@
 
 PHONY += vdso_install
@@ -119,26 +103,10 @@ vdso_install:
 archclean:
 	$(Q)$(MAKE) $(clean)=$(boot)
 
-<<<<<<< HEAD
 define archhelp
   echo  '* Image.gz      - Compressed kernel image (arch/$(ARCH)/boot/Image.gz)'
   echo  '  Image         - Uncompressed kernel image (arch/$(ARCH)/boot/Image)'
   echo  '  dtb.img       - Build device tree image (arch/$(ARCH)/boot/dtb.img)'
-=======
-# We need to generate vdso-offsets.h before compiling certain files in kernel/.
-# In order to do that, we should use the archprepare target, but we can't since
-# asm-offsets.h is included in some files used to generate vdso-offsets.h, and
-# asm-offsets.h is built in prepare0, for which archprepare is a dependency.
-# Therefore we need to generate the header after prepare0 has been made, hence
-# this hack.
-prepare: vdso_prepare
-vdso_prepare: prepare0
-	$(Q)$(MAKE) $(build)=arch/arm64/kernel/vdso include/generated/vdso-offsets.h
-
-define archhelp
-  echo  '* Image.gz      - Compressed kernel image (arch/$(ARCH)/boot/Image.gz)'
-  echo  '  Image         - Uncompressed kernel image (arch/$(ARCH)/boot/Image)'
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
   echo  '* dtbs          - Build device tree blobs for enabled boards'
   echo  '  install       - Install uncompressed kernel'
   echo  '  zinstall      - Install compressed kernel'

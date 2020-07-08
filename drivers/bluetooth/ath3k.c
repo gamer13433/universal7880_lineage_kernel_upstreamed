@@ -80,10 +80,6 @@ static const struct usb_device_id ath3k_table[] = {
 	{ USB_DEVICE(0x0489, 0xe057) },
 	{ USB_DEVICE(0x0489, 0xe056) },
 	{ USB_DEVICE(0x0489, 0xe05f) },
-<<<<<<< HEAD
-=======
-	{ USB_DEVICE(0x0489, 0xe076) },
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	{ USB_DEVICE(0x0489, 0xe078) },
 	{ USB_DEVICE(0x0489, 0xe095) },
 	{ USB_DEVICE(0x04c5, 0x1330) },
@@ -93,11 +89,6 @@ static const struct usb_device_id ath3k_table[] = {
 	{ USB_DEVICE(0x04CA, 0x3007) },
 	{ USB_DEVICE(0x04CA, 0x3008) },
 	{ USB_DEVICE(0x04CA, 0x300b) },
-<<<<<<< HEAD
-=======
-	{ USB_DEVICE(0x04CA, 0x300d) },
-	{ USB_DEVICE(0x04CA, 0x300f) },
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	{ USB_DEVICE(0x04CA, 0x3010) },
 	{ USB_DEVICE(0x04CA, 0x3014) },
 	{ USB_DEVICE(0x04CA, 0x3018) },
@@ -153,10 +144,6 @@ static const struct usb_device_id ath3k_blist_tbl[] = {
 	{ USB_DEVICE(0x0489, 0xe056), .driver_info = BTUSB_ATH3012 },
 	{ USB_DEVICE(0x0489, 0xe057), .driver_info = BTUSB_ATH3012 },
 	{ USB_DEVICE(0x0489, 0xe05f), .driver_info = BTUSB_ATH3012 },
-<<<<<<< HEAD
-=======
-	{ USB_DEVICE(0x0489, 0xe076), .driver_info = BTUSB_ATH3012 },
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	{ USB_DEVICE(0x0489, 0xe078), .driver_info = BTUSB_ATH3012 },
 	{ USB_DEVICE(0x0489, 0xe095), .driver_info = BTUSB_ATH3012 },
 	{ USB_DEVICE(0x04c5, 0x1330), .driver_info = BTUSB_ATH3012 },
@@ -166,11 +153,6 @@ static const struct usb_device_id ath3k_blist_tbl[] = {
 	{ USB_DEVICE(0x04ca, 0x3007), .driver_info = BTUSB_ATH3012 },
 	{ USB_DEVICE(0x04ca, 0x3008), .driver_info = BTUSB_ATH3012 },
 	{ USB_DEVICE(0x04ca, 0x300b), .driver_info = BTUSB_ATH3012 },
-<<<<<<< HEAD
-=======
-	{ USB_DEVICE(0x04ca, 0x300d), .driver_info = BTUSB_ATH3012 },
-	{ USB_DEVICE(0x04ca, 0x300f), .driver_info = BTUSB_ATH3012 },
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	{ USB_DEVICE(0x04ca, 0x3010), .driver_info = BTUSB_ATH3012 },
 	{ USB_DEVICE(0x04ca, 0x3014), .driver_info = BTUSB_ATH3012 },
 	{ USB_DEVICE(0x04ca, 0x3018), .driver_info = BTUSB_ATH3012 },

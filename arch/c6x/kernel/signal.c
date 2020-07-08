@@ -68,11 +68,7 @@ asmlinkage int do_rt_sigreturn(struct pt_regs *regs)
 	sigset_t set;
 
 	/* Always make any pending restarted system calls return -EINTR */
-<<<<<<< HEAD
 	current_thread_info()->restart_block.fn = do_no_restart_syscall;
-=======
-	current->restart_block.fn = do_no_restart_syscall;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	/*
 	 * Since we stacked the signal on a dword boundary,

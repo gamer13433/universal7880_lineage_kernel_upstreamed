@@ -924,13 +924,7 @@ static int stmmac_set_bfsize(int mtu, int bufsize)
 {
 	int ret = bufsize;
 
-<<<<<<< HEAD
 	if (mtu >= BUF_SIZE_4KiB)
-=======
-	if (mtu >= BUF_SIZE_8KiB)
-		ret = BUF_SIZE_16KiB;
-	else if (mtu >= BUF_SIZE_4KiB)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		ret = BUF_SIZE_8KiB;
 	else if (mtu >= BUF_SIZE_2KiB)
 		ret = BUF_SIZE_4KiB;
@@ -959,19 +953,11 @@ static void stmmac_clear_descriptors(struct stmmac_priv *priv)
 		if (priv->extend_desc)
 			priv->hw->desc->init_rx_desc(&priv->dma_erx[i].basic,
 						     priv->use_riwt, priv->mode,
-<<<<<<< HEAD
 						     (i == rxsize - 1));
 		else
 			priv->hw->desc->init_rx_desc(&priv->dma_rx[i],
 						     priv->use_riwt, priv->mode,
 						     (i == rxsize - 1));
-=======
-						     (i == rxsize - 1), priv->dma_buf_sz);
-		else
-			priv->hw->desc->init_rx_desc(&priv->dma_rx[i],
-						     priv->use_riwt, priv->mode,
-						     (i == rxsize - 1), priv->dma_buf_sz);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	for (i = 0; i < txsize; i++)
 		if (priv->extend_desc)
 			priv->hw->desc->init_tx_desc(&priv->dma_etx[i].basic,
@@ -1192,7 +1178,6 @@ static int alloc_dma_desc_resources(struct stmmac_priv *priv)
 		goto err_tx_skbuff;
 
 	if (priv->extend_desc) {
-<<<<<<< HEAD
 		priv->dma_erx = dma_alloc_coherent(priv->device, rxsize *
 						   sizeof(struct
 							  dma_extended_desc),
@@ -1228,43 +1213,6 @@ static int alloc_dma_desc_resources(struct stmmac_priv *priv)
 			dma_free_coherent(priv->device, priv->dma_rx_size *
 					sizeof(struct dma_desc),
 					priv->dma_rx, priv->dma_rx_phy);
-=======
-		priv->dma_erx = dma_zalloc_coherent(priv->device, rxsize *
-						    sizeof(struct
-							   dma_extended_desc),
-						    &priv->dma_rx_phy,
-						    GFP_KERNEL);
-		if (!priv->dma_erx)
-			goto err_dma;
-
-		priv->dma_etx = dma_zalloc_coherent(priv->device, txsize *
-						    sizeof(struct
-							   dma_extended_desc),
-						    &priv->dma_tx_phy,
-						    GFP_KERNEL);
-		if (!priv->dma_etx) {
-			dma_free_coherent(priv->device, priv->dma_rx_size *
-					  sizeof(struct dma_extended_desc),
-					  priv->dma_erx, priv->dma_rx_phy);
-			goto err_dma;
-		}
-	} else {
-		priv->dma_rx = dma_zalloc_coherent(priv->device, rxsize *
-						   sizeof(struct dma_desc),
-						   &priv->dma_rx_phy,
-						   GFP_KERNEL);
-		if (!priv->dma_rx)
-			goto err_dma;
-
-		priv->dma_tx = dma_zalloc_coherent(priv->device, txsize *
-						   sizeof(struct dma_desc),
-						   &priv->dma_tx_phy,
-						   GFP_KERNEL);
-		if (!priv->dma_tx) {
-			dma_free_coherent(priv->device, priv->dma_rx_size *
-					  sizeof(struct dma_desc),
-					  priv->dma_rx, priv->dma_rx_phy);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			goto err_dma;
 		}
 	}
@@ -2171,12 +2119,8 @@ static inline void stmmac_rx_refill(struct stmmac_priv *priv)
 static int stmmac_rx(struct stmmac_priv *priv, int limit)
 {
 	unsigned int rxsize = priv->dma_rx_size;
-<<<<<<< HEAD
 	unsigned int entry = priv->cur_rx % rxsize;
 	unsigned int next_entry;
-=======
-	unsigned int next_entry = priv->cur_rx % rxsize;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	unsigned int count = 0;
 	int coe = priv->hw->rx_csum;
 
@@ -2188,17 +2132,9 @@ static int stmmac_rx(struct stmmac_priv *priv, int limit)
 			stmmac_display_ring((void *)priv->dma_rx, rxsize, 0);
 	}
 	while (count < limit) {
-<<<<<<< HEAD
 		int status;
 		struct dma_desc *p;
 
-=======
-		int status, entry;
-		struct dma_desc *p;
-
-		entry = next_entry;
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		if (priv->extend_desc)
 			p = (struct dma_desc *)(priv->dma_erx + entry);
 		else
@@ -2261,11 +2197,7 @@ static int stmmac_rx(struct stmmac_priv *priv, int limit)
 				pr_err("%s: Inconsistent Rx descriptor chain\n",
 				       priv->dev->name);
 				priv->dev->stats.rx_dropped++;
-<<<<<<< HEAD
 				break;
-=======
-				continue;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			}
 			prefetch(skb->data - NET_IP_ALIGN);
 			priv->rx_skbuff[entry] = NULL;
@@ -2296,10 +2228,7 @@ static int stmmac_rx(struct stmmac_priv *priv, int limit)
 			priv->dev->stats.rx_packets++;
 			priv->dev->stats.rx_bytes += frame_len;
 		}
-<<<<<<< HEAD
 		entry = next_entry;
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 	stmmac_rx_refill(priv);

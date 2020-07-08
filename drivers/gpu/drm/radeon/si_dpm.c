@@ -1952,10 +1952,6 @@ static void si_initialize_powertune_defaults(struct radeon_device *rdev)
 		case 0x682C:
 			si_pi->cac_weights = cac_weights_cape_verde_pro;
 			si_pi->dte_data = dte_data_sun_xt;
-<<<<<<< HEAD
-=======
-			update_dte_from_pl2 = true;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			break;
 		case 0x6825:
 		case 0x6827:

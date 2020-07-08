@@ -137,15 +137,7 @@ struct cred {
 	struct user_struct *user;	/* real user ID subscription */
 	struct user_namespace *user_ns; /* user_ns the caps and keyrings are relative to. */
 	struct group_info *group_info;	/* supplementary groups for euid/fsgid */
-<<<<<<< HEAD
 	struct rcu_head	rcu;		/* RCU deletion hook */
-=======
-	/* RCU deletion */
-	union {
-		int non_rcu;			/* Can we skip RCU deletion? */
-		struct rcu_head	rcu;		/* RCU deletion hook */
-	};
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 extern void __put_cred(struct cred *);
@@ -243,10 +235,6 @@ static inline const struct cred *get_cred(const struct cred *cred)
 {
 	struct cred *nonconst_cred = (struct cred *) cred;
 	validate_creds(cred);
-<<<<<<< HEAD
-=======
-	nonconst_cred->non_rcu = 0;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return get_new_cred(nonconst_cred);
 }
 

@@ -45,11 +45,7 @@ static inline void generic_apic_probe(void)
 
 #ifdef CONFIG_X86_LOCAL_APIC
 
-<<<<<<< HEAD
 extern unsigned int apic_verbosity;
-=======
-extern int apic_verbosity;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 extern int local_apic_timer_c2_ok;
 
 extern int disable_apic;
@@ -238,19 +234,7 @@ void register_lapic_address(unsigned long address);
 extern void setup_boot_APIC_clock(void);
 extern void setup_secondary_APIC_clock(void);
 extern int APIC_init_uniprocessor(void);
-<<<<<<< HEAD
 extern int apic_force_enable(unsigned long addr);
-=======
-
-#ifdef CONFIG_X86_64
-static inline int apic_force_enable(unsigned long addr)
-{
-	return -1;
-}
-#else
-extern int apic_force_enable(unsigned long addr);
-#endif
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /*
  * On 32bit this is mach-xxx local

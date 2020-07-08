@@ -213,11 +213,5 @@ struct callback_head {
 };
 #define rcu_head callback_head
 
-<<<<<<< HEAD
-=======
-/* clocksource cycle base type */
-typedef u64 cycle_t;
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #endif /*  __ASSEMBLY__ */
 #endif /* _LINUX_TYPES_H */

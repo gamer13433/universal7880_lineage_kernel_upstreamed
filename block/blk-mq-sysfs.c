@@ -226,47 +226,24 @@ static ssize_t blk_mq_hw_sysfs_active_show(struct blk_mq_hw_ctx *hctx, char *pag
 
 static ssize_t blk_mq_hw_sysfs_cpus_show(struct blk_mq_hw_ctx *hctx, char *page)
 {
-<<<<<<< HEAD
 	unsigned int i, first = 1;
 	ssize_t ret = 0;
-=======
-	const size_t size = PAGE_SIZE - 1;
-	unsigned int i, first = 1;
-	int ret = 0, pos = 0;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	blk_mq_disable_hotplug();
 
 	for_each_cpu(i, hctx->cpumask) {
 		if (first)
-<<<<<<< HEAD
 			ret += sprintf(ret + page, "%u", i);
 		else
 			ret += sprintf(ret + page, ", %u", i);
 
 		first = 0;
-=======
-			ret = snprintf(pos + page, size - pos, "%u", i);
-		else
-			ret = snprintf(pos + page, size - pos, ", %u", i);
-
-		if (ret >= size - pos)
-			break;
-
-		first = 0;
-		pos += ret;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 	blk_mq_enable_hotplug();
 
-<<<<<<< HEAD
 	ret += sprintf(ret + page, "\n");
 	return ret;
-=======
-	ret = snprintf(pos + page, size + 1 - pos, "\n");
-	return pos + ret;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 static struct blk_mq_ctx_sysfs_entry blk_mq_sysfs_dispatched = {

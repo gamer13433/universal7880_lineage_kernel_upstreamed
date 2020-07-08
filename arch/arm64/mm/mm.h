@@ -1,5 +1,4 @@
 extern void __init bootmem_init(void);
-<<<<<<< HEAD
 extern void __init arm64_swiotlb_init(void);
 
 /* For exynos compatible */
@@ -33,7 +32,3 @@ struct static_vm {
 	struct list_head list;
 };
 extern struct list_head static_vmlist;
-=======
-
-void fixup_init(void);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012

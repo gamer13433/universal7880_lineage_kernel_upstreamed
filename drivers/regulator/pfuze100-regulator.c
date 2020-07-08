@@ -498,17 +498,7 @@ static int pfuze100_regulator_probe(struct i2c_client *client,
 
 		/* SW2~SW4 high bit check and modify the voltage value table */
 		if (i >= sw_check_start && i <= sw_check_end) {
-<<<<<<< HEAD
 			regmap_read(pfuze_chip->regmap, desc->vsel_reg, &val);
-=======
-			ret = regmap_read(pfuze_chip->regmap,
-					  desc->vsel_reg, &val);
-			if (ret) {
-				dev_err(&client->dev, "Fails to read from the register.\n");
-				return ret;
-			}
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			if (val & 0x40) {
 				desc->min_uV = 800000;
 				desc->uV_step = 50000;

@@ -30,11 +30,7 @@
 #define BNAD_NUM_TXF_COUNTERS 12
 #define BNAD_NUM_RXF_COUNTERS 10
 #define BNAD_NUM_CQ_COUNTERS (3 + 5)
-<<<<<<< HEAD
 #define BNAD_NUM_RXQ_COUNTERS 6
-=======
-#define BNAD_NUM_RXQ_COUNTERS 7
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #define BNAD_NUM_TXQ_COUNTERS 5
 
 #define BNAD_ETHTOOL_STATS_NUM						\
@@ -659,11 +655,6 @@ bnad_get_strings(struct net_device *netdev, u32 stringset, u8 *string)
 				string += ETH_GSTRING_LEN;
 				sprintf(string, "rxq%d_allocbuf_failed", q_num);
 				string += ETH_GSTRING_LEN;
-<<<<<<< HEAD
-=======
-				sprintf(string, "rxq%d_mapbuf_failed", q_num);
-				string += ETH_GSTRING_LEN;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 				sprintf(string, "rxq%d_producer_index", q_num);
 				string += ETH_GSTRING_LEN;
 				sprintf(string, "rxq%d_consumer_index", q_num);
@@ -684,12 +675,6 @@ bnad_get_strings(struct net_device *netdev, u32 stringset, u8 *string)
 					sprintf(string, "rxq%d_allocbuf_failed",
 								q_num);
 					string += ETH_GSTRING_LEN;
-<<<<<<< HEAD
-=======
-					sprintf(string, "rxq%d_mapbuf_failed",
-						q_num);
-					string += ETH_GSTRING_LEN;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 					sprintf(string, "rxq%d_producer_index",
 								q_num);
 					string += ETH_GSTRING_LEN;

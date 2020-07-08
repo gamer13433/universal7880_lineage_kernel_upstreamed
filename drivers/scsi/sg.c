@@ -434,12 +434,9 @@ sg_read(struct file *filp, char __user *buf, size_t count, loff_t * ppos)
 	struct sg_header *old_hdr = NULL;
 	int retval = 0;
 
-<<<<<<< HEAD
 	if (unlikely(segment_eq(get_fs(), KERNEL_DS)))
 		return -EINVAL;
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/*
 	 * This could cause a response to be stranded. Close the associated
 	 * file descriptor to free up any resources being held.
@@ -552,11 +549,7 @@ sg_read(struct file *filp, char __user *buf, size_t count, loff_t * ppos)
 		old_hdr->result = EIO;
 		break;
 	case DID_ERROR:
-<<<<<<< HEAD
 		old_hdr->result = (srp->sense_b[0] == 0 &&
-=======
-		old_hdr->result = (srp->sense_b[0] == 0 && 
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 				  hp->masked_status == GOOD) ? 0 : EIO;
 		break;
 	default:
@@ -717,15 +710,8 @@ sg_write(struct file *filp, const char __user *buf, size_t count, loff_t * ppos)
 	hp->flags = input_size;	/* structure abuse ... */
 	hp->pack_id = old_hdr.pack_id;
 	hp->usr_ptr = NULL;
-<<<<<<< HEAD
 	if (__copy_from_user(cmnd, buf, cmd_size))
 		return -EFAULT;
-=======
-	if (__copy_from_user(cmnd, buf, cmd_size)) {
-		sg_remove_request(sfp, srp);
-		return -EFAULT;
-	}
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/*
 	 * SG_DXFER_TO_FROM_DEV is functionally equivalent to SG_DXFER_FROM_DEV,
 	 * but is is possible that the app intended SG_DXFER_TO_DEV, because there
@@ -838,15 +824,8 @@ sg_common_write(Sg_fd * sfp, Sg_request * srp,
 			"sg_common_write:  scsi opcode=0x%02x, cmd_size=%d\n",
 			(int) cmnd[0], (int) hp->cmd_len));
 
-<<<<<<< HEAD
 	if (hp->dxfer_len >= SZ_256M)
 		return -EINVAL;
-=======
-	if (hp->dxfer_len >= SZ_256M) {
-		sg_remove_request(sfp, srp);
-		return -EINVAL;
-	}
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	k = sg_start_req(srp, cmnd);
 	if (k) {
@@ -978,15 +957,10 @@ sg_ioctl(struct file *filp, unsigned int cmd_in, unsigned long arg)
 			return -ENXIO;
 		if (!access_ok(VERIFY_WRITE, p, SZ_SG_IO_HDR))
 			return -EFAULT;
-<<<<<<< HEAD
 		mutex_lock(&sfp->parentdp->open_rel_lock);
 		result = sg_new_write(sfp, filp, p, SZ_SG_IO_HDR,
 				 1, read_only, 1, &srp);
 		mutex_unlock(&sfp->parentdp->open_rel_lock);
-=======
-		result = sg_new_write(sfp, filp, p, SZ_SG_IO_HDR,
-				 1, read_only, 1, &srp);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		if (result < 0)
 			return result;
 		result = wait_event_interruptible(sfp->read_wait,
@@ -1019,7 +993,6 @@ sg_ioctl(struct file *filp, unsigned int cmd_in, unsigned long arg)
 				/* strange ..., for backward compatibility */
 		return sfp->timeout_user;
 	case SG_SET_FORCE_LOW_DMA:
-<<<<<<< HEAD
 		result = get_user(val, ip);
 		if (result)
 			return result;
@@ -1040,16 +1013,6 @@ sg_ioctl(struct file *filp, unsigned int cmd_in, unsigned long arg)
 		return 0;
 	case SG_GET_LOW_DMA:
 		return put_user((int) sfp->low_dma, ip);
-=======
-		/*
-		 * N.B. This ioctl never worked properly, but failed to
-		 * return an error value. So returning '0' to keep compability
-		 * with legacy applications.
-		 */
-		return 0;
-	case SG_GET_LOW_DMA:
-		return put_user((int) sdp->device->host->unchecked_isa_dma, ip);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	case SG_GET_SCSI_ID:
 		if (!access_ok(VERIFY_WRITE, p, sizeof (sg_scsi_id_t)))
 			return -EFAULT;
@@ -1113,7 +1076,6 @@ sg_ioctl(struct file *filp, unsigned int cmd_in, unsigned long arg)
                         return -EINVAL;
 		val = min_t(int, val,
 			    max_sectors_bytes(sdp->device->request_queue));
-<<<<<<< HEAD
 		if (val != sfp->reserve.bufflen) {
 			if (sg_res_in_use(sfp) || sfp->mmap_called)
 				return -EBUSY;
@@ -1122,20 +1084,6 @@ sg_ioctl(struct file *filp, unsigned int cmd_in, unsigned long arg)
 			sg_build_reserve(sfp, val);
 			mutex_unlock(&sfp->parentdp->open_rel_lock);
 		}
-=======
-		mutex_lock(&sfp->f_mutex);
-		if (val != sfp->reserve.bufflen) {
-			if (sfp->mmap_called ||
-			    sfp->res_in_use) {
-				mutex_unlock(&sfp->f_mutex);
-				return -EBUSY;
-			}
-
-			sg_remove_scat(sfp, &sfp->reserve);
-			sg_build_reserve(sfp, val);
-		}
-		mutex_unlock(&sfp->f_mutex);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		return 0;
 	case SG_GET_RESERVED_SIZE:
 		val = min_t(int, sfp->reserve.bufflen,
@@ -1176,7 +1124,6 @@ sg_ioctl(struct file *filp, unsigned int cmd_in, unsigned long arg)
 			return -EFAULT;
 		else {
 			sg_req_info_t *rinfo;
-<<<<<<< HEAD
 			unsigned int ms;
 
 			rinfo = kmalloc(SZ_SG_REQ_INFO * SG_MAX_QUEUE,
@@ -1211,15 +1158,6 @@ sg_ioctl(struct file *filp, unsigned int cmd_in, unsigned long arg)
 							srp->header.usr_ptr;
 				}
 			}
-=======
-
-			rinfo = kzalloc(SZ_SG_REQ_INFO * SG_MAX_QUEUE,
-					GFP_KERNEL);
-			if (!rinfo)
-				return -ENOMEM;
-			read_lock_irqsave(&sfp->rq_list_lock, iflags);
-			sg_fill_request_table(sfp, rinfo);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			read_unlock_irqrestore(&sfp->rq_list_lock, iflags);
 			result = __copy_to_user(p, rinfo,
 						SZ_SG_REQ_INFO * SG_MAX_QUEUE);
@@ -1323,22 +1261,14 @@ static long sg_compat_ioctl(struct file *filp, unsigned int cmd_in, unsigned lon
 		return -ENXIO;
 
 	sdev = sdp->device;
-<<<<<<< HEAD
 	if (sdev->host->hostt->compat_ioctl) {
-=======
-	if (sdev->host->hostt->compat_ioctl) { 
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		int ret;
 
 		ret = sdev->host->hostt->compat_ioctl(sdev, cmd_in, (void __user *)arg);
 
 		return ret;
 	}
-<<<<<<< HEAD
 
-=======
-	
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return -ENOIOCTLCMD;
 }
 #endif
@@ -1832,11 +1762,7 @@ init_sg(void)
 	else
 		def_reserved_size = sg_big_buff;
 
-<<<<<<< HEAD
 	rc = register_chrdev_region(MKDEV(SCSI_GENERIC_MAJOR, 0),
-=======
-	rc = register_chrdev_region(MKDEV(SCSI_GENERIC_MAJOR, 0), 
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 				    SG_MAX_DEVS, "sg");
 	if (rc)
 		return rc;
@@ -1979,12 +1905,9 @@ sg_start_req(Sg_request *srp, unsigned char *cmd)
 	if (unlikely(iov_count > UIO_MAXIOV))
 		return -EINVAL;
 
-<<<<<<< HEAD
 	if (unlikely(iov_count > UIO_MAXIOV))
 		return -EINVAL;
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (iov_count) {
 		int len, size = sizeof(struct sg_iovec) * iov_count;
 		struct iovec *iov;
@@ -2279,20 +2202,11 @@ sg_get_rq_mark(Sg_fd * sfp, int pack_id)
 		if ((1 == resp->done) && (!resp->sg_io_owned) &&
 		    ((-1 == pack_id) || (resp->header.pack_id == pack_id))) {
 			resp->done = 2;	/* guard against other readers */
-<<<<<<< HEAD
 			break;
 		}
 	}
 	write_unlock_irqrestore(&sfp->rq_list_lock, iflags);
 	return resp;
-=======
-			write_unlock_irqrestore(&sfp->rq_list_lock, iflags);
-			return resp;
-		}
-	}
-	write_unlock_irqrestore(&sfp->rq_list_lock, iflags);
-	return NULL;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 /* always adds to end of list */
@@ -2517,11 +2431,7 @@ static const struct file_operations adio_fops = {
 };
 
 static int sg_proc_single_open_dressz(struct inode *inode, struct file *file);
-<<<<<<< HEAD
 static ssize_t sg_proc_write_dressz(struct file *filp,
-=======
-static ssize_t sg_proc_write_dressz(struct file *filp, 
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		const char __user *buffer, size_t count, loff_t *off);
 static const struct file_operations dressz_fops = {
 	.owner = THIS_MODULE,
@@ -2661,11 +2571,7 @@ static int sg_proc_single_open_adio(struct inode *inode, struct file *file)
 	return single_open(file, sg_proc_seq_show_int, &sg_allow_dio);
 }
 
-<<<<<<< HEAD
 static ssize_t
-=======
-static ssize_t 
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 sg_proc_write_adio(struct file *filp, const char __user *buffer,
 		   size_t count, loff_t *off)
 {
@@ -2686,11 +2592,7 @@ static int sg_proc_single_open_dressz(struct inode *inode, struct file *file)
 	return single_open(file, sg_proc_seq_show_int, &sg_big_buff);
 }
 
-<<<<<<< HEAD
 static ssize_t
-=======
-static ssize_t 
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 sg_proc_write_dressz(struct file *filp, const char __user *buffer,
 		     size_t count, loff_t *off)
 {
@@ -2844,13 +2746,9 @@ static void sg_proc_debug_helper(struct seq_file *s, Sg_device * sdp)
 		seq_printf(s, "   cmd_q=%d f_packid=%d k_orphan=%d closed=0\n",
 			   (int) fp->cmd_q, (int) fp->force_packid,
 			   (int) fp->keep_orphan);
-<<<<<<< HEAD
 		for (m = 0, srp = fp->headrp;
 				srp != NULL;
 				++m, srp = srp->nextrp) {
-=======
-		list_for_each_entry(srp, &fp->rq_list, entry) {
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			hp = &srp->header;
 			new_interface = (hp->interface_id == '\0') ? 0 : 1;
 			if (srp->res_used) {

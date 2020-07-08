@@ -231,11 +231,8 @@ int regulator_sync_voltage(struct regulator *regulator);
 int regulator_set_current_limit(struct regulator *regulator,
 			       int min_uA, int max_uA);
 int regulator_get_current_limit(struct regulator *regulator);
-<<<<<<< HEAD
 int regulator_get_max_support_voltage(struct regulator *regulator);
 int regulator_get_min_support_voltage(struct regulator *regulator);
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 int regulator_set_mode(struct regulator *regulator, unsigned int mode);
 unsigned int regulator_get_mode(struct regulator *regulator);
@@ -458,7 +455,6 @@ static inline int regulator_is_supported_voltage(struct regulator *regulator,
 	return 0;
 }
 
-<<<<<<< HEAD
 static inline int regulator_get_max_support_voltage(struct regulator *regulator)
 {
 	return -EINVAL;
@@ -469,8 +465,6 @@ static inline int regulator_get_min_support_voltage(struct regulator *regulator)
 	return -EINVAL;
 }
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static inline int regulator_set_current_limit(struct regulator *regulator,
 					     int min_uA, int max_uA)
 {
@@ -496,11 +490,7 @@ static inline unsigned int regulator_get_mode(struct regulator *regulator)
 static inline int regulator_set_optimum_mode(struct regulator *regulator,
 					int load_uA)
 {
-<<<<<<< HEAD
 	return REGULATOR_MODE_NORMAL;
-=======
-	return 0;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 static inline int regulator_allow_bypass(struct regulator *regulator,

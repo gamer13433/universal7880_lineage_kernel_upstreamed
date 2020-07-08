@@ -343,11 +343,7 @@ int _ext4_fname_disk_to_usr(struct inode *inode,
 		memcpy(buf+4, &hinfo->minor_hash, 4);
 	} else
 		memset(buf, 0, 8);
-<<<<<<< HEAD
 	memcpy(buf + 8, iname->name + iname->len - 16, 16);
-=======
-	memcpy(buf + 8, iname->name + ((iname->len - 17) & ~15), 16);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	oname->name[0] = '_';
 	ret = digest_encode(buf, 24, oname->name+1);
 	oname->len = ret + 1;

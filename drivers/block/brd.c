@@ -566,28 +566,6 @@ static struct kobject *brd_probe(dev_t dev, int *part, void *data)
 	return kobj;
 }
 
-<<<<<<< HEAD
-=======
-static inline void brd_check_and_reset_par(void)
-{
-	if (unlikely(!max_part))
-		max_part = 1;
-
-	/*
-	 * make sure 'max_part' can be divided exactly by (1U << MINORBITS),
-	 * otherwise, it is possiable to get same dev_t when adding partitions.
-	 */
-	if ((1U << MINORBITS) % max_part != 0)
-		max_part = 1UL << fls(max_part);
-
-	if (max_part > DISK_MAX_PARTS) {
-		pr_info("brd: max_part can't be larger than %d, reset max_part = %d.\n",
-			DISK_MAX_PARTS, DISK_MAX_PARTS);
-		max_part = DISK_MAX_PARTS;
-	}
-}
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static int __init brd_init(void)
 {
 	int i, nr;
@@ -641,11 +619,6 @@ static int __init brd_init(void)
 	if (register_blkdev(RAMDISK_MAJOR, "ramdisk"))
 		return -EIO;
 
-<<<<<<< HEAD
-=======
-	brd_check_and_reset_par();
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	for (i = 0; i < nr; i++) {
 		brd = brd_alloc(i);
 		if (!brd)

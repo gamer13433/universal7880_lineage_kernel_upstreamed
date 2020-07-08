@@ -557,11 +557,7 @@ static int sdma_load_script(struct sdma_engine *sdma, void *buf, int size,
 	spin_lock_irqsave(&sdma->channel_0_lock, flags);
 
 	bd0->mode.command = C0_SETPM;
-<<<<<<< HEAD
 	bd0->mode.status = BD_DONE | BD_INTR | BD_WRAP | BD_EXTD;
-=======
-	bd0->mode.status = BD_DONE | BD_WRAP | BD_EXTD;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	bd0->mode.count = size / 2;
 	bd0->buffer_addr = buf_phys;
 	bd0->ext_buffer_addr = address;
@@ -826,11 +822,7 @@ static int sdma_load_context(struct sdma_channel *sdmac)
 	context->gReg[7] = sdmac->watermark_level;
 
 	bd0->mode.command = C0_SETDM;
-<<<<<<< HEAD
 	bd0->mode.status = BD_DONE | BD_INTR | BD_WRAP | BD_EXTD;
-=======
-	bd0->mode.status = BD_DONE | BD_WRAP | BD_EXTD;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	bd0->mode.count = sizeof(*context) / 4;
 	bd0->buffer_addr = sdma->context_phys;
 	bd0->ext_buffer_addr = 2048 + (sizeof(*context) / 4) * channel;
@@ -1137,11 +1129,7 @@ err_out:
 static struct dma_async_tx_descriptor *sdma_prep_dma_cyclic(
 		struct dma_chan *chan, dma_addr_t dma_addr, size_t buf_len,
 		size_t period_len, enum dma_transfer_direction direction,
-<<<<<<< HEAD
 		unsigned long flags, void *context)
-=======
-		unsigned long flags)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	struct sdma_channel *sdmac = to_sdma_chan(chan);
 	struct sdma_engine *sdma = sdmac->sdma;

@@ -25,10 +25,6 @@
 #include <asm/cacheflush.h>
 #include <asm/cpu_ops.h>
 #include <asm/cputype.h>
-<<<<<<< HEAD
-=======
-#include <asm/io.h>
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #include <asm/smp_plat.h>
 
 extern void secondary_holding_pen(void);

@@ -61,11 +61,6 @@ static int
 isert_rdma_accept(struct isert_conn *isert_conn);
 struct rdma_cm_id *isert_setup_id(struct isert_np *isert_np);
 
-<<<<<<< HEAD
-=======
-static void isert_release_work(struct work_struct *work);
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static inline bool
 isert_prot_cmd(struct isert_conn *conn, struct se_cmd *cmd)
 {
@@ -629,10 +624,6 @@ isert_connect_request(struct rdma_cm_id *cma_id, struct rdma_cm_event *event)
 	mutex_init(&isert_conn->conn_mutex);
 	spin_lock_init(&isert_conn->conn_lock);
 	INIT_LIST_HEAD(&isert_conn->conn_fr_pool);
-<<<<<<< HEAD
-=======
-	INIT_WORK(&isert_conn->release_work, isert_release_work);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	isert_conn->conn_cm_id = cma_id;
 
@@ -900,7 +891,6 @@ isert_disconnected_handler(struct rdma_cm_id *cma_id,
 			   enum rdma_cm_event_type event)
 {
 	struct isert_np *isert_np = cma_id->context;
-<<<<<<< HEAD
 	struct isert_conn *isert_conn;
 
 	if (isert_np->np_cm_id == cma_id)
@@ -909,35 +899,12 @@ isert_disconnected_handler(struct rdma_cm_id *cma_id,
 	isert_conn = cma_id->qp->qp_context;
 
 	mutex_lock(&isert_conn->conn_mutex);
-=======
-	struct isert_conn *isert_conn = cma_id->qp->qp_context;
-	bool terminating = false;
-
-
-	mutex_lock(&isert_conn->conn_mutex);
-	terminating = (isert_conn->state == ISER_CONN_TERMINATING);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	isert_conn_terminate(isert_conn);
 	mutex_unlock(&isert_conn->conn_mutex);
 
 	pr_info("conn %p completing conn_wait\n", isert_conn);
 	complete(&isert_conn->conn_wait);
 
-<<<<<<< HEAD
-=======
-	if (terminating)
-		goto out;
-
-	mutex_lock(&isert_np->np_accept_mutex);
-	if (!list_empty(&isert_conn->conn_accept_node)) {
-		list_del_init(&isert_conn->conn_accept_node);
-		isert_put_conn(isert_conn);
-		queue_work(isert_release_wq, &isert_conn->release_work);
-	}
-	mutex_unlock(&isert_np->np_accept_mutex);
-
-out:
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return 0;
 }
 
@@ -955,21 +922,11 @@ isert_connect_error(struct rdma_cm_id *cma_id)
 static int
 isert_cma_handler(struct rdma_cm_id *cma_id, struct rdma_cm_event *event)
 {
-<<<<<<< HEAD
-=======
-	struct isert_np *isert_np = cma_id->context;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	int ret = 0;
 
 	pr_debug("isert_cma_handler: event %d status %d conn %p id %p\n",
 		 event->event, event->status, cma_id->context, cma_id);
 
-<<<<<<< HEAD
-=======
-	if (isert_np->np_cm_id == cma_id)
-		return isert_np_cma_handler(cma_id->context, event->event);
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	switch (event->event) {
 	case RDMA_CM_EVENT_CONNECT_REQUEST:
 		ret = isert_connect_request(cma_id, event);
@@ -2532,10 +2489,7 @@ isert_build_rdma_wr(struct isert_conn *isert_conn, struct isert_cmd *isert_cmd,
 	page_off = offset % PAGE_SIZE;
 
 	send_wr->sg_list = ib_sge;
-<<<<<<< HEAD
 	send_wr->num_sge = sg_nents;
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	send_wr->wr_id = (unsigned long)&isert_cmd->tx_desc;
 	/*
 	 * Perform mapping of TCM scatterlist memory ib_sge dma_addr.
@@ -2554,27 +2508,14 @@ isert_build_rdma_wr(struct isert_conn *isert_conn, struct isert_cmd *isert_cmd,
 			 ib_sge->addr, ib_sge->length, ib_sge->lkey);
 		page_off = 0;
 		data_left -= ib_sge->length;
-<<<<<<< HEAD
-=======
-		if (!data_left)
-			break;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		ib_sge++;
 		pr_debug("Incrementing ib_sge pointer to %p\n", ib_sge);
 	}
 
-<<<<<<< HEAD
 	pr_debug("Set outgoing sg_list: %p num_sg: %u from TCM SGLs\n",
 		 send_wr->sg_list, send_wr->num_sge);
 
 	return sg_nents;
-=======
-	send_wr->num_sge = ++i;
-	pr_debug("Set outgoing sg_list: %p num_sg: %u from TCM SGLs\n",
-		 send_wr->sg_list, send_wr->num_sge);
-
-	return send_wr->num_sge;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 static int
@@ -3487,10 +3428,7 @@ static void isert_wait_conn(struct iscsi_conn *conn)
 
 	wait_for_completion(&isert_conn->conn_wait_comp_err);
 
-<<<<<<< HEAD
 	INIT_WORK(&isert_conn->release_work, isert_release_work);
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	queue_work(isert_release_wq, &isert_conn->release_work);
 }
 

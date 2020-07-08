@@ -75,7 +75,6 @@ static int __init init_msp_flash(void)
 
 	printk(KERN_NOTICE "Found %d PMC flash devices\n", fcnt);
 
-<<<<<<< HEAD
 	msp_flash = kmalloc(fcnt * sizeof(struct map_info *), GFP_KERNEL);
 	if (!msp_flash)
 		return -ENOMEM;
@@ -85,17 +84,6 @@ static int __init init_msp_flash(void)
 		goto free_msp_flash;
 
 	msp_maps = kcalloc(fcnt, sizeof(struct mtd_info), GFP_KERNEL);
-=======
-	msp_flash = kcalloc(fcnt, sizeof(*msp_flash), GFP_KERNEL);
-	if (!msp_flash)
-		return -ENOMEM;
-
-	msp_parts = kcalloc(fcnt, sizeof(*msp_parts), GFP_KERNEL);
-	if (!msp_parts)
-		goto free_msp_flash;
-
-	msp_maps = kcalloc(fcnt, sizeof(*msp_maps), GFP_KERNEL);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (!msp_maps)
 		goto free_msp_parts;
 

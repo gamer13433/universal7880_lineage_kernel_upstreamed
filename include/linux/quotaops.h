@@ -21,11 +21,7 @@ static inline struct quota_info *sb_dqopt(struct super_block *sb)
 /* i_mutex must being held */
 static inline bool is_quota_modification(struct inode *inode, struct iattr *ia)
 {
-<<<<<<< HEAD
 	return (ia->ia_valid & ATTR_SIZE && ia->ia_size != inode->i_size) ||
-=======
-	return (ia->ia_valid & ATTR_SIZE) ||
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		(ia->ia_valid & ATTR_UID && !uid_eq(ia->ia_uid, inode->i_uid)) ||
 		(ia->ia_valid & ATTR_GID && !gid_eq(ia->ia_gid, inode->i_gid));
 }
@@ -58,19 +54,6 @@ static inline struct dquot *dqgrab(struct dquot *dquot)
 	atomic_inc(&dquot->dq_count);
 	return dquot;
 }
-<<<<<<< HEAD
-=======
-
-static inline bool dquot_is_busy(struct dquot *dquot)
-{
-	if (test_bit(DQ_MOD_B, &dquot->dq_flags))
-		return true;
-	if (atomic_read(&dquot->dq_count) > 1)
-		return true;
-	return false;
-}
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 void dqput(struct dquot *dquot);
 int dquot_scan_active(struct super_block *sb,
 		      int (*fn)(struct dquot *dquot, unsigned long priv),
@@ -99,10 +82,7 @@ int dquot_commit(struct dquot *dquot);
 int dquot_acquire(struct dquot *dquot);
 int dquot_release(struct dquot *dquot);
 int dquot_commit_info(struct super_block *sb, int type);
-<<<<<<< HEAD
 int dquot_get_next_id(struct super_block *sb, struct kqid *qid);
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 int dquot_mark_dquot_dirty(struct dquot *dquot);
 
 int dquot_file_open(struct inode *inode, struct file *file);
@@ -120,11 +100,8 @@ int dquot_get_dqinfo(struct super_block *sb, int type, struct if_dqinfo *ii);
 int dquot_set_dqinfo(struct super_block *sb, int type, struct if_dqinfo *ii);
 int dquot_get_dqblk(struct super_block *sb, struct kqid id,
 		struct qc_dqblk *di);
-<<<<<<< HEAD
 int dquot_get_next_dqblk(struct super_block *sb, struct kqid *id,
 		struct qc_dqblk *di);
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 int dquot_set_dqblk(struct super_block *sb, struct kqid id,
 		struct qc_dqblk *di);
 

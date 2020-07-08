@@ -246,20 +246,12 @@ bool br_stp_recalculate_bridge_id(struct net_bridge *br)
 	return true;
 }
 
-<<<<<<< HEAD
 /* called under bridge lock */
-=======
-/* Acquires and releases bridge lock */
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 void br_stp_set_bridge_priority(struct net_bridge *br, u16 newprio)
 {
 	struct net_bridge_port *p;
 	int wasroot;
 
-<<<<<<< HEAD
-=======
-	spin_lock_bh(&br->lock);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	wasroot = br_is_root_bridge(br);
 
 	list_for_each_entry(p, &br->port_list, list) {
@@ -277,10 +269,6 @@ void br_stp_set_bridge_priority(struct net_bridge *br, u16 newprio)
 	br_port_state_selection(br);
 	if (br_is_root_bridge(br) && !wasroot)
 		br_become_root_bridge(br);
-<<<<<<< HEAD
-=======
-	spin_unlock_bh(&br->lock);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 /* called under bridge lock */

@@ -796,19 +796,12 @@ static struct kern_ipc_perm *sysvipc_find_ipc(struct ipc_ids *ids, loff_t pos,
 			total++;
 	}
 
-<<<<<<< HEAD
 	if (total >= ids->in_use)
 		return NULL;
-=======
-	ipc = NULL;
-	if (total >= ids->in_use)
-		goto out;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	for (; pos < IPCMNI; pos++) {
 		ipc = idr_find(&ids->ipcs_idr, pos);
 		if (ipc != NULL) {
-<<<<<<< HEAD
 			*new_pos = pos + 1;
 			rcu_read_lock();
 			ipc_lock_object(ipc);
@@ -818,16 +811,6 @@ static struct kern_ipc_perm *sysvipc_find_ipc(struct ipc_ids *ids, loff_t pos,
 
 	/* Out of range - return NULL to terminate iteration */
 	return NULL;
-=======
-			rcu_read_lock();
-			ipc_lock_object(ipc);
-			break;
-		}
-	}
-out:
-	*new_pos = pos + 1;
-	return ipc;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 static void *sysvipc_proc_next(struct seq_file *s, void *it, loff_t *pos)

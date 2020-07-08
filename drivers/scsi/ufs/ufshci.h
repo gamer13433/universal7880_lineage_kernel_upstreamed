@@ -133,7 +133,6 @@ enum {
 #define UFSHCD_ERROR_MASK	(UIC_ERROR |\
 				DEVICE_FATAL_ERROR |\
 				CONTROLLER_FATAL_ERROR |\
-<<<<<<< HEAD
 				SYSTEM_BUS_FATAL_ERROR |\
 				UIC_LINK_LOST)
 
@@ -141,13 +140,6 @@ enum {
 				CONTROLLER_FATAL_ERROR |\
 				SYSTEM_BUS_FATAL_ERROR |\
 				UIC_LINK_LOST)
-=======
-				SYSTEM_BUS_FATAL_ERROR)
-
-#define INT_FATAL_ERRORS	(DEVICE_FATAL_ERROR |\
-				CONTROLLER_FATAL_ERROR |\
-				SYSTEM_BUS_FATAL_ERROR)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /* HCS - Host Controller Status 30h */
 #define DEVICE_PRESENT				UFS_BIT(0)
@@ -178,30 +170,22 @@ enum {
 /* UECDL - Host UIC Error Code Data Link Layer 3Ch */
 #define UIC_DATA_LINK_LAYER_ERROR		UFS_BIT(31)
 #define UIC_DATA_LINK_LAYER_ERROR_CODE_MASK	0x7FFF
-<<<<<<< HEAD
 #define UIC_DATA_LINK_LAYER_ERROR_TCX_REP_TIMER_EXP	UFS_BIT(1)
 #define UIC_DATA_LINK_LAYER_ERROR_AFCX_REQ_TIMER_EXP	UFS_BIT(2)
 #define UIC_DATA_LINK_LAYER_ERROR_FCX_PRO_TIMER_EXP	UFS_BIT(3)
 #define UIC_DATA_LINK_LAYER_ERROR_RX_BUF_OF	UFS_BIT(5)
 #define UIC_DATA_LINK_LAYER_ERROR_PA_INIT	UFS_BIT(13)
-=======
-#define UIC_DATA_LINK_LAYER_ERROR_PA_INIT	0x2000
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /* UECN - Host UIC Error Code Network Layer 40h */
 #define UIC_NETWORK_LAYER_ERROR			UFS_BIT(31)
 #define UIC_NETWORK_LAYER_ERROR_CODE_MASK	0x7
-<<<<<<< HEAD
 #define UIC_NETWORK_UNSUPPORTED_HEADER_TYPE	BIT(0)
 #define UIC_NETWORK_BAD_DEVICEID_ENC		BIT(1)
 #define UIC_NETWORK_LHDR_TRAP_PACKET_DROPPING	BIT(2)
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /* UECT - Host UIC Error Code Transport Layer 44h */
 #define UIC_TRANSPORT_LAYER_ERROR		UFS_BIT(31)
 #define UIC_TRANSPORT_LAYER_ERROR_CODE_MASK	0x7F
-<<<<<<< HEAD
 #define UIC_TRANSPORT_UNSUPPORTED_HEADER_TYPE	BIT(0)
 #define UIC_TRANSPORT_UNKNOWN_CPORTID		BIT(1)
 #define UIC_TRANSPORT_NO_CONNECTION_RX		BIT(2)
@@ -209,8 +193,6 @@ enum {
 #define UIC_TRANSPORT_BAD_TC			BIT(4)
 #define UIC_TRANSPORT_E2E_CREDIT_OVERFOW	BIT(5)
 #define UIC_TRANSPORT_SAFETY_VALUE_DROPPING	BIT(6)
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /* UECDME - Host UIC Error Code DME 48h */
 #define UIC_DME_ERROR			UFS_BIT(31)
@@ -246,7 +228,6 @@ enum {
 #define UIC_ARG_ATTR_TYPE(t)		(((t) & 0xFF) << 16)
 #define UIC_GET_ATTR_ID(v)		(((v) >> 16) & 0xFFFF)
 
-<<<<<<< HEAD
 /*
  * UFS Protector configuration
  */
@@ -257,8 +238,6 @@ enum {
 #define UFSHCI_SECTOR_SIZE			0x1000
 #define MIN_SECTOR_SIZE				0x200
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /* UIC Commands */
 enum uic_cmd_dme {
 	UIC_CMD_DME_GET			= 0x01,
@@ -351,14 +330,11 @@ enum {
 /* The granularity of the data byte count field in the PRDT is 32-bit */
 #define PRDT_DATA_BYTE_COUNT_PAD	4
 
-<<<<<<< HEAD
 /* FMP bypass/encrypt mode */
 #define CLEAR		0
 #define AES_CBC		1
 #define AES_XTS		2
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /**
  * struct ufshcd_sg_entry - UFSHCI PRD Entry
  * @base_addr: Lower 32bit physical address DW-0
@@ -371,7 +347,6 @@ struct ufshcd_sg_entry {
 	__le32    upper_addr;
 	__le32    reserved;
 	__le32    size;
-<<<<<<< HEAD
 #define FKL	BIT(26)
 #define DKL	BIT(27)
 #define SET_FAS(d, v) \
@@ -408,8 +383,6 @@ struct ufshcd_sg_entry {
 	__le32	reserved2;
 	__le32	reserved3;
 #endif
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 /**

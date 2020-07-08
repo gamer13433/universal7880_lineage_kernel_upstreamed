@@ -132,10 +132,7 @@ static inline int avc_audit(u32 ssid, u32 tsid,
 			    int result,
 			    struct common_audit_data *a)
 {
-<<<<<<< HEAD
 #ifdef CONFIG_AUDIT
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	u32 audited, denied;
 	audited = avc_audit_required(requested, avd, result, 0, &denied);
 	if (likely(!audited))
@@ -143,12 +140,9 @@ static inline int avc_audit(u32 ssid, u32 tsid,
 	return slow_avc_audit(ssid, tsid, tclass,
 			      requested, audited, denied, result,
 			      a, 0);
-<<<<<<< HEAD
 #else
 	return 0;
 #endif
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 #define AVC_STRICT 1 /* Ignore permissive mode. */

@@ -215,10 +215,6 @@ int acpi_smbus_unregister_callback(struct acpi_smb_hc *hc)
 	hc->callback = NULL;
 	hc->context = NULL;
 	mutex_unlock(&hc->lock);
-<<<<<<< HEAD
-=======
-	acpi_os_wait_events_complete();
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return 0;
 }
 
@@ -330,10 +326,6 @@ static int acpi_smbus_hc_remove(struct acpi_device *device)
 
 	hc = acpi_driver_data(device);
 	acpi_ec_remove_query_handler(hc->ec, hc->query_bit);
-<<<<<<< HEAD
-=======
-	acpi_os_wait_events_complete();
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	kfree(hc);
 	device->driver_data = NULL;
 	return 0;

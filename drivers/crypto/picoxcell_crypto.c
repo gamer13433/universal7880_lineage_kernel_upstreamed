@@ -1690,14 +1690,6 @@ static bool spacc_is_compatible(struct platform_device *pdev,
 	return false;
 }
 
-<<<<<<< HEAD
-=======
-static void spacc_tasklet_kill(void *data)
-{
-	tasklet_kill(data);
-}
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static int spacc_probe(struct platform_device *pdev)
 {
 	int i, err, ret = -EINVAL;
@@ -1738,17 +1730,6 @@ static int spacc_probe(struct platform_device *pdev)
 		return -ENXIO;
 	}
 
-<<<<<<< HEAD
-=======
-	tasklet_init(&engine->complete, spacc_spacc_complete,
-		     (unsigned long)engine);
-
-	ret = devm_add_action(&pdev->dev, spacc_tasklet_kill,
-			      &engine->complete);
-	if (ret)
-		return ret;
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (devm_request_irq(&pdev->dev, irq->start, spacc_spacc_irq, 0,
 			     engine->name, engine)) {
 		dev_err(engine->dev, "failed to request IRQ\n");
@@ -1811,11 +1792,8 @@ static int spacc_probe(struct platform_device *pdev)
 	INIT_LIST_HEAD(&engine->completed);
 	INIT_LIST_HEAD(&engine->in_progress);
 	engine->in_flight = 0;
-<<<<<<< HEAD
 	tasklet_init(&engine->complete, spacc_spacc_complete,
 		     (unsigned long)engine);
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	platform_set_drvdata(pdev, engine);
 

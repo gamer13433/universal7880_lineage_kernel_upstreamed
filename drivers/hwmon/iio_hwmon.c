@@ -109,7 +109,6 @@ static int iio_hwmon_probe(struct platform_device *pdev)
 
 		switch (type) {
 		case IIO_VOLTAGE:
-<<<<<<< HEAD
 			a->dev_attr.attr.name = kasprintf(GFP_KERNEL,
 							  "in%d_input",
 							  in_i++);
@@ -123,21 +122,6 @@ static int iio_hwmon_probe(struct platform_device *pdev)
 			a->dev_attr.attr.name = kasprintf(GFP_KERNEL,
 							  "curr%d_input",
 							  curr_i++);
-=======
-			a->dev_attr.attr.name = devm_kasprintf(dev, GFP_KERNEL,
-							       "in%d_input",
-							       in_i++);
-			break;
-		case IIO_TEMP:
-			a->dev_attr.attr.name = devm_kasprintf(dev, GFP_KERNEL,
-							       "temp%d_input",
-							       temp_i++);
-			break;
-		case IIO_CURRENT:
-			a->dev_attr.attr.name = devm_kasprintf(dev, GFP_KERNEL,
-							       "curr%d_input",
-							       curr_i++);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			break;
 		default:
 			ret = -EINVAL;

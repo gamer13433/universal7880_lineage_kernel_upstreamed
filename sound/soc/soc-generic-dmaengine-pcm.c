@@ -304,15 +304,6 @@ static int dmaengine_pcm_new(struct snd_soc_pcm_runtime *rtd)
 		 */
 		if (!dmaengine_pcm_can_report_residue(pcm->chan[i]))
 			pcm->flags |= SND_DMAENGINE_PCM_FLAG_NO_RESIDUE;
-<<<<<<< HEAD
-=======
-
-		if (rtd->pcm->streams[i].pcm->name[0] == '\0') {
-			strncpy(rtd->pcm->streams[i].pcm->name,
-				rtd->pcm->streams[i].pcm->id,
-				sizeof(rtd->pcm->streams[i].pcm->name));
-		}
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 	return 0;

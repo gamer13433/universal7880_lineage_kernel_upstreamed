@@ -247,7 +247,6 @@ static int gfs2_write_jdata_pagevec(struct address_space *mapping,
 	for(i = 0; i < nr_pages; i++) {
 		struct page *page = pvec->pages[i];
 
-<<<<<<< HEAD
 		/*
 		 * At this point, the page may be truncated or
 		 * invalidated (changing page->mapping to NULL), or
@@ -264,8 +263,6 @@ static int gfs2_write_jdata_pagevec(struct address_space *mapping,
 			break;
 		}
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		*done_index = page->index;
 
 		lock_page(page);
@@ -385,13 +382,8 @@ retry:
 		tag_pages_for_writeback(mapping, index, end);
 	done_index = index;
 	while (!done && (index <= end)) {
-<<<<<<< HEAD
 		nr_pages = pagevec_lookup_tag(&pvec, mapping, &index, tag,
 			      min(end - index, (pgoff_t)PAGEVEC_SIZE-1) + 1);
-=======
-		nr_pages = pagevec_lookup_range_tag(&pvec, mapping, &index, end,
-				tag);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		if (nr_pages == 0)
 			break;
 

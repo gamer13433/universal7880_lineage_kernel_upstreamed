@@ -47,10 +47,6 @@ struct bug_entry {
 #ifndef HAVE_ARCH_BUG
 #define BUG() do { \
 	printk("BUG: failure at %s:%d/%s()!\n", __FILE__, __LINE__, __func__); \
-<<<<<<< HEAD
-=======
-	barrier_before_unreachable(); \
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	panic("BUG!"); \
 } while (0)
 #endif
@@ -146,11 +142,7 @@ extern void warn_slowpath_null(const char *file, const int line);
 #endif
 
 #ifndef HAVE_ARCH_BUG_ON
-<<<<<<< HEAD
 #define BUG_ON(condition) do { if (condition) ; } while (0)
-=======
-#define BUG_ON(condition) do { if (condition) BUG(); } while (0)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #endif
 
 #ifndef HAVE_ARCH_WARN_ON

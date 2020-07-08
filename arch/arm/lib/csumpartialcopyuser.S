@@ -17,22 +17,6 @@
 
 		.text
 
-<<<<<<< HEAD
-=======
-#ifdef CONFIG_CPU_SW_DOMAIN_PAN
-		.macro	save_regs
-		mrc	p15, 0, ip, c3, c0, 0
-		stmfd	sp!, {r1, r2, r4 - r8, ip, lr}
-		uaccess_enable ip
-		.endm
-
-		.macro	load_regs
-		ldmfd	sp!, {r1, r2, r4 - r8, ip, lr}
-		mcr	p15, 0, ip, c3, c0, 0
-		ret	lr
-		.endm
-#else
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		.macro	save_regs
 		stmfd	sp!, {r1, r2, r4 - r8, lr}
 		.endm
@@ -40,10 +24,6 @@
 		.macro	load_regs
 		ldmfd	sp!, {r1, r2, r4 - r8, pc}
 		.endm
-<<<<<<< HEAD
-=======
-#endif
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 		.macro	load1b,	reg1
 		ldrusr	\reg1, r0, 1

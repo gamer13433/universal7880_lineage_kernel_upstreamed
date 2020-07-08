@@ -14,10 +14,6 @@
 #include <linux/vmalloc.h>
 #include <linux/shrinker.h>
 #include <linux/module.h>
-<<<<<<< HEAD
-=======
-#include <linux/rbtree.h>
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #define DM_MSG_PREFIX "bufio"
 
@@ -52,7 +48,6 @@
 #define DM_BUFIO_INLINE_VECS		16
 
 /*
-<<<<<<< HEAD
  * Buffer hash
  */
 #define DM_BUFIO_HASH_BITS	20
@@ -61,8 +56,6 @@
 	 ((1 << DM_BUFIO_HASH_BITS) - 1))
 
 /*
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
  * Don't try to use kmem_cache_alloc for blocks larger than this.
  * For explanation, see alloc_buffer_data below.
  */
@@ -113,11 +106,7 @@ struct dm_bufio_client {
 
 	unsigned minimum_buffers;
 
-<<<<<<< HEAD
 	struct hlist_head *cache_hash;
-=======
-	struct rb_root buffer_tree;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	wait_queue_head_t free_buffer_wait;
 
 	int async_write_error;
@@ -146,11 +135,7 @@ enum data_mode {
 };
 
 struct dm_buffer {
-<<<<<<< HEAD
 	struct hlist_node hash_list;
-=======
-	struct rb_node node;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	struct list_head lru_list;
 	sector_t block;
 	void *data;
@@ -268,56 +253,6 @@ static LIST_HEAD(dm_bufio_all_clients);
  */
 static DEFINE_MUTEX(dm_bufio_clients_lock);
 
-<<<<<<< HEAD
-=======
-/*----------------------------------------------------------------
- * A red/black tree acts as an index for all the buffers.
- *--------------------------------------------------------------*/
-static struct dm_buffer *__find(struct dm_bufio_client *c, sector_t block)
-{
-	struct rb_node *n = c->buffer_tree.rb_node;
-	struct dm_buffer *b;
-
-	while (n) {
-		b = container_of(n, struct dm_buffer, node);
-
-		if (b->block == block)
-			return b;
-
-		n = (b->block < block) ? n->rb_left : n->rb_right;
-	}
-
-	return NULL;
-}
-
-static void __insert(struct dm_bufio_client *c, struct dm_buffer *b)
-{
-	struct rb_node **new = &c->buffer_tree.rb_node, *parent = NULL;
-	struct dm_buffer *found;
-
-	while (*new) {
-		found = container_of(*new, struct dm_buffer, node);
-
-		if (found->block == b->block) {
-			BUG_ON(found != b);
-			return;
-		}
-
-		parent = *new;
-		new = (found->block < b->block) ?
-			&((*new)->rb_left) : &((*new)->rb_right);
-	}
-
-	rb_link_node(&b->node, parent, new);
-	rb_insert_color(&b->node, &c->buffer_tree);
-}
-
-static void __remove(struct dm_bufio_client *c, struct dm_buffer *b)
-{
-	rb_erase(&b->node, &c->buffer_tree);
-}
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /*----------------------------------------------------------------*/
 
 static void adjust_total_allocated(enum data_mode data_mode, long diff)
@@ -500,11 +435,7 @@ static void __link_buffer(struct dm_buffer *b, sector_t block, int dirty)
 	b->block = block;
 	b->list_mode = dirty;
 	list_add(&b->lru_list, &c->lru[dirty]);
-<<<<<<< HEAD
 	hlist_add_head(&b->hash_list, &c->cache_hash[DM_BUFIO_HASH(block)]);
-=======
-	__insert(b->c, b);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	b->last_accessed = jiffies;
 }
 
@@ -518,11 +449,7 @@ static void __unlink_buffer(struct dm_buffer *b)
 	BUG_ON(!c->n_buffers[b->list_mode]);
 
 	c->n_buffers[b->list_mode]--;
-<<<<<<< HEAD
 	hlist_del(&b->hash_list);
-=======
-	__remove(b->c, b);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	list_del(&b->lru_list);
 }
 
@@ -992,7 +919,6 @@ static void __check_watermark(struct dm_bufio_client *c,
 		__write_dirty_buffers_async(c, 1, write_list);
 }
 
-<<<<<<< HEAD
 /*
  * Find a buffer in the hash.
  */
@@ -1010,8 +936,6 @@ static struct dm_buffer *__find(struct dm_bufio_client *c, sector_t block)
 	return NULL;
 }
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /*----------------------------------------------------------------
  * Getting a buffer
  *--------------------------------------------------------------*/
@@ -1641,15 +1565,11 @@ struct dm_bufio_client *dm_bufio_client_create(struct block_device *bdev, unsign
 		r = -ENOMEM;
 		goto bad_client;
 	}
-<<<<<<< HEAD
 	c->cache_hash = vmalloc(sizeof(struct hlist_head) << DM_BUFIO_HASH_BITS);
 	if (!c->cache_hash) {
 		r = -ENOMEM;
 		goto bad_hash;
 	}
-=======
-	c->buffer_tree = RB_ROOT;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	c->bdev = bdev;
 	c->block_size = block_size;
@@ -1668,12 +1588,9 @@ struct dm_bufio_client *dm_bufio_client_create(struct block_device *bdev, unsign
 		c->n_buffers[i] = 0;
 	}
 
-<<<<<<< HEAD
 	for (i = 0; i < 1 << DM_BUFIO_HASH_BITS; i++)
 		INIT_HLIST_HEAD(&c->cache_hash[i]);
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	mutex_init(&c->lock);
 	INIT_LIST_HEAD(&c->reserved_buffers);
 	c->need_reserved_buffers = reserved_buffers;
@@ -1747,11 +1664,8 @@ bad_cache:
 	}
 	dm_io_client_destroy(c->dm_io);
 bad_dm_io:
-<<<<<<< HEAD
 	vfree(c->cache_hash);
 bad_hash:
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	kfree(c);
 bad_client:
 	return ERR_PTR(r);
@@ -1778,13 +1692,9 @@ void dm_bufio_client_destroy(struct dm_bufio_client *c)
 
 	mutex_unlock(&dm_bufio_clients_lock);
 
-<<<<<<< HEAD
 	for (i = 0; i < 1 << DM_BUFIO_HASH_BITS; i++)
 		BUG_ON(!hlist_empty(&c->cache_hash[i]));
 
-=======
-	BUG_ON(!RB_EMPTY_ROOT(&c->buffer_tree));
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	BUG_ON(c->need_reserved_buffers);
 
 	while (!list_empty(&c->reserved_buffers)) {
@@ -1802,10 +1712,7 @@ void dm_bufio_client_destroy(struct dm_bufio_client *c)
 		BUG_ON(c->n_buffers[i]);
 
 	dm_io_client_destroy(c->dm_io);
-<<<<<<< HEAD
 	vfree(c->cache_hash);
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	kfree(c);
 }
 EXPORT_SYMBOL_GPL(dm_bufio_client_destroy);

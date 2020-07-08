@@ -48,11 +48,7 @@ static int restore_sigcontext(struct pt_regs *regs,
 	int err;
 
 	/* Always make any pending restarted system calls return -EINTR */
-<<<<<<< HEAD
 	current_thread_info()->restart_block.fn = do_no_restart_syscall;
-=======
-	current->restart_block.fn = do_no_restart_syscall;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	err = metag_gp_regs_copyin(regs, 0, sizeof(struct user_gp_regs), NULL,
 				   &sc->regs);

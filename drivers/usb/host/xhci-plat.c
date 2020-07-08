@@ -17,11 +17,8 @@
 #include <linux/of.h>
 #include <linux/platform_device.h>
 #include <linux/slab.h>
-<<<<<<< HEAD
 #include <linux/phy/phy.h>
 #include <linux/usb/phy.h>
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #include <linux/usb/xhci_pdriver.h>
 
 #include "xhci.h"
@@ -53,7 +50,6 @@ static int xhci_plat_setup(struct usb_hcd *hcd)
 			return ret;
 	}
 
-<<<<<<< HEAD
 	ret = xhci_gen_setup(hcd, xhci_plat_quirks);
 
 	/*
@@ -64,9 +60,6 @@ static int xhci_plat_setup(struct usb_hcd *hcd)
 		phy_tune(hcd->phy, OTG_STATE_A_HOST);
 
 	return ret;
-=======
-	return xhci_gen_setup(hcd, xhci_plat_quirks);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 static int xhci_plat_start(struct usb_hcd *hcd)
@@ -82,10 +75,7 @@ static int xhci_plat_start(struct usb_hcd *hcd)
 
 static int xhci_plat_probe(struct platform_device *pdev)
 {
-<<<<<<< HEAD
 	struct device		*parent = pdev->dev.parent;
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	struct device_node	*node = pdev->dev.of_node;
 	struct usb_xhci_pdata	*pdata = dev_get_platdata(&pdev->dev);
 	const struct hc_driver	*driver;
@@ -131,7 +121,6 @@ static int xhci_plat_probe(struct platform_device *pdev)
 		goto put_hcd;
 	}
 
-<<<<<<< HEAD
 	/* Get USB3.0 PHY to tune the PHY */
 	if (parent) {
 		hcd->phy = devm_phy_get(parent, "usb3-phy");
@@ -142,8 +131,6 @@ static int xhci_plat_probe(struct platform_device *pdev)
 		}
 	}
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/*
 	 * Not all platforms have a clk so it is not an error if the
 	 * clock does not exists.
@@ -187,12 +174,9 @@ static int xhci_plat_probe(struct platform_device *pdev)
 	if ((node && of_property_read_bool(node, "usb3-lpm-capable")) ||
 			(pdata && pdata->usb3_lpm_capable))
 		xhci->quirks |= XHCI_LPM_SUPPORT;
-<<<<<<< HEAD
 #ifdef CONFIG_USB_HOST_L1_SUPPORT
 	xhci->quirks |= XHCI_LPM_L1_SUPPORT;
 #endif
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/*
 	 * Set the xHCI pointer before xhci_plat_setup() (aka hcd_driver.reset)
 	 * is called by usb_add_hcd().
@@ -226,15 +210,11 @@ put_hcd:
 
 static int xhci_plat_remove(struct platform_device *dev)
 {
-<<<<<<< HEAD
 	struct device	*parent = dev->dev.parent;
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	struct usb_hcd	*hcd = platform_get_drvdata(dev);
 	struct xhci_hcd	*xhci = hcd_to_xhci(hcd);
 	struct clk *clk = xhci->clk;
 
-<<<<<<< HEAD
 #if defined(CONFIG_USB_HOST_SAMSUNG_FEATURE)
 	pr_info("%s \n", __func__);
 	/* In order to prevent kernel panic */
@@ -260,13 +240,6 @@ static int xhci_plat_remove(struct platform_device *dev)
 	if (parent && hcd->phy)
 		hcd->phy = NULL;
 
-=======
-	xhci->xhc_state |= XHCI_STATE_REMOVING;
-
-	usb_remove_hcd(xhci->shared_hcd);
-	usb_put_hcd(xhci->shared_hcd);
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	usb_remove_hcd(hcd);
 	if (!IS_ERR(clk))
 		clk_disable_unprepare(clk);
@@ -325,10 +298,6 @@ MODULE_DEVICE_TABLE(of, usb_xhci_of_match);
 static struct platform_driver usb_xhci_driver = {
 	.probe	= xhci_plat_probe,
 	.remove	= xhci_plat_remove,
-<<<<<<< HEAD
-=======
-	.shutdown = usb_hcd_platform_shutdown,
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	.driver	= {
 		.name = "xhci-hcd",
 		.pm = DEV_PM_OPS,

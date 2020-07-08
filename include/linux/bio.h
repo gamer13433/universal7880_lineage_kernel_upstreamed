@@ -90,10 +90,7 @@
 #define bio_iter_offset(bio, iter)				\
 	bvec_iter_offset((bio)->bi_io_vec, (iter))
 
-<<<<<<< HEAD
 #define bio_iovec_idx(bio, idx)	(&((bio)->bi_io_vec[(idx)]))
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #define bio_page(bio)		bio_iter_page((bio), (bio)->bi_iter)
 #define bio_offset(bio)		bio_iter_offset((bio), (bio)->bi_iter)
 #define bio_iovec(bio)		bio_iter_iovec((bio), (bio)->bi_iter)
@@ -306,14 +303,11 @@ static inline void bio_get_last_bvec(struct bio *bio, struct bio_vec *bv)
 	struct bvec_iter iter = bio->bi_iter;
 	int idx;
 
-<<<<<<< HEAD
 	if (!bio_flagged(bio, BIO_CLONED)) {
 		*bv = bio->bi_io_vec[bio->bi_vcnt - 1];
 		return;
 	}
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (unlikely(!bio_multiple_segments(bio))) {
 		*bv = bio_iovec(bio);
 		return;

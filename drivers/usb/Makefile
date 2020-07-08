@@ -62,8 +62,5 @@ obj-$(CONFIG_USB_GADGET)	+= gadget/
 obj-$(CONFIG_USB_COMMON)	+= common/
 
 obj-$(CONFIG_USBIP_CORE)	+= usbip/
-<<<<<<< HEAD
 obj-$(CONFIG_USB_NOTIFY_LAYER)	+= notify/
 obj-$(CONFIG_USB_TYPEC_MANAGER_NOTIFIER)	+= manager/
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012

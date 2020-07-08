@@ -597,15 +597,8 @@ retry:
 		dw = (len + 3) >> 2;
 		addr = dma_map_single(&ppd->dd->pcidev->dev, sge->vaddr,
 				      dw << 2, DMA_TO_DEVICE);
-<<<<<<< HEAD
 		if (dma_mapping_error(&ppd->dd->pcidev->dev, addr))
 			goto unmap;
-=======
-		if (dma_mapping_error(&ppd->dd->pcidev->dev, addr)) {
-			ret = -ENOMEM;
-			goto unmap;
-		}
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		sdmadesc[0] = 0;
 		make_sdma_desc(ppd, sdmadesc, (u64) addr, dw, dwoffset);
 		/* SDmaUseLargeBuf has to be set in every descriptor */

@@ -1208,12 +1208,6 @@ lpfc_get_hba_info(struct lpfc_hba *phba,
 		max_vpi = (bf_get(lpfc_mbx_rd_conf_vpi_count, rd_config) > 0) ?
 			(bf_get(lpfc_mbx_rd_conf_vpi_count, rd_config) - 1) : 0;
 
-<<<<<<< HEAD
-=======
-		/* Limit the max we support */
-		if (max_vpi > LPFC_MAX_VPI)
-			max_vpi = LPFC_MAX_VPI;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		if (mvpi)
 			*mvpi = max_vpi;
 		if (avpi)
@@ -1229,18 +1223,8 @@ lpfc_get_hba_info(struct lpfc_hba *phba,
 			*axri = pmb->un.varRdConfig.avail_xri;
 		if (mvpi)
 			*mvpi = pmb->un.varRdConfig.max_vpi;
-<<<<<<< HEAD
 		if (avpi)
 			*avpi = pmb->un.varRdConfig.avail_vpi;
-=======
-		if (avpi) {
-			/* avail_vpi is only valid if link is up and ready */
-			if (phba->link_state == LPFC_HBA_READY)
-				*avpi = pmb->un.varRdConfig.avail_vpi;
-			else
-				*avpi = pmb->un.varRdConfig.max_vpi;
-		}
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 	mempool_free(pmboxq, phba->mbox_mem_pool);

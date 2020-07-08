@@ -472,16 +472,11 @@ static struct sock *__netlink_lookup(struct netlink_table *table, u32 portid,
 		.net = net,
 		.portid = portid,
 	};
-<<<<<<< HEAD
 	u32 hash;
 
 	hash = rhashtable_hashfn(&table->hash, &portid, sizeof(portid));
 
 	return rhashtable_lookup_compare(&table->hash, hash,
-=======
-
-	return rhashtable_lookup_compare(&table->hash, &portid,
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 					 &netlink_compare, &arg);
 }
 
@@ -1318,11 +1313,7 @@ static void do_one_broadcast(struct sock *sk,
 	sock_hold(sk);
 	if (p->skb2 == NULL) {
 		if (skb_shared(p->skb)) {
-<<<<<<< HEAD
 			p->skb2 = skb_copy(p->skb, p->allocation);
-=======
-			p->skb2 = skb_clone(p->skb, p->allocation);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		} else {
 			p->skb2 = skb_get(p->skb);
 			/*
@@ -1988,11 +1979,7 @@ static int netlink_dump(struct sock *sk)
 	struct sk_buff *skb = NULL;
 	struct nlmsghdr *nlh;
 	struct module *module;
-<<<<<<< HEAD
 	int len, err = -ENOBUFS;
-=======
-	int err = -ENOBUFS;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	int alloc_min_size;
 	int alloc_size;
 

@@ -5426,14 +5426,9 @@ qla2x00_dump_mctp_data(scsi_qla_host_t *vha, dma_addr_t req_dma, uint32_t addr,
 	mcp->mb[7] = LSW(MSD(req_dma));
 	mcp->mb[8] = MSW(addr);
 	/* Setting RAM ID to valid */
-<<<<<<< HEAD
 	mcp->mb[10] |= BIT_7;
 	/* For MCTP RAM ID is 0x40 */
 	mcp->mb[10] |= 0x40;
-=======
-	/* For MCTP RAM ID is 0x40 */
-	mcp->mb[10] = BIT_7 | 0x40;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	mcp->out_mb |= MBX_10|MBX_8|MBX_7|MBX_6|MBX_5|MBX_4|MBX_3|MBX_2|MBX_1|
 	    MBX_0;

@@ -714,11 +714,7 @@ irqreturn_t tmio_mmc_sdio_irq(int irq, void *devid)
 	unsigned int sdio_status;
 
 	if (!(pdata->flags & TMIO_MMC_SDIO_IRQ))
-<<<<<<< HEAD
 		return IRQ_HANDLED;
-=======
-		return IRQ_NONE;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	status = sd_ctrl_read16(host, CTL_SDIO_STATUS);
 	ireg = status & TMIO_SDIO_MASK_ALL & ~host->sdcard_irq_mask;
@@ -732,11 +728,7 @@ irqreturn_t tmio_mmc_sdio_irq(int irq, void *devid)
 	if (mmc->caps & MMC_CAP_SDIO_IRQ && ireg & TMIO_SDIO_STAT_IOIRQ)
 		mmc_signal_sdio_irq(mmc);
 
-<<<<<<< HEAD
 	return IRQ_HANDLED;
-=======
-	return IRQ_RETVAL(ireg);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 EXPORT_SYMBOL(tmio_mmc_sdio_irq);
 
@@ -753,13 +745,9 @@ irqreturn_t tmio_mmc_irq(int irq, void *devid)
 	if (__tmio_mmc_sdcard_irq(host, ireg, status))
 		return IRQ_HANDLED;
 
-<<<<<<< HEAD
 	tmio_mmc_sdio_irq(irq, devid);
 
 	return IRQ_HANDLED;
-=======
-	return tmio_mmc_sdio_irq(irq, devid);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 EXPORT_SYMBOL(tmio_mmc_irq);
 

@@ -62,10 +62,6 @@ MODULE_LICENSE("GPL");
 #define MT_QUIRK_ALWAYS_VALID		(1 << 4)
 #define MT_QUIRK_VALID_IS_INRANGE	(1 << 5)
 #define MT_QUIRK_VALID_IS_CONFIDENCE	(1 << 6)
-<<<<<<< HEAD
-=======
-#define MT_QUIRK_CONFIDENCE		(1 << 7)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #define MT_QUIRK_SLOT_IS_CONTACTID_MINUS_ONE	(1 << 8)
 #define MT_QUIRK_NO_AREA		(1 << 9)
 #define MT_QUIRK_IGNORE_DUPLICATES	(1 << 10)
@@ -80,10 +76,6 @@ struct mt_slot {
 	__s32 contactid;	/* the device ContactID assigned to this slot */
 	bool touch_state;	/* is the touch valid? */
 	bool inrange_state;	/* is the finger in proximity of the sensor? */
-<<<<<<< HEAD
-=======
-	bool confidence_state;  /* is the touch made by a finger? */
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 struct mt_class {
@@ -453,12 +445,6 @@ static int mt_touch_input_mapping(struct hid_device *hdev, struct hid_input *hi,
 			mt_store_field(usage, td, hi);
 			return 1;
 		case HID_DG_CONFIDENCE:
-<<<<<<< HEAD
-=======
-			if (cls->name == MT_CLS_WIN_8 &&
-				field->application == HID_DG_TOUCHPAD)
-				cls->quirks |= MT_QUIRK_CONFIDENCE;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			mt_store_field(usage, td, hi);
 			return 1;
 		case HID_DG_TIPSWITCH:
@@ -571,10 +557,6 @@ static void mt_complete_slot(struct mt_device *td, struct input_dev *input)
 		return;
 
 	if (td->curvalid || (td->mtclass.quirks & MT_QUIRK_ALWAYS_VALID)) {
-<<<<<<< HEAD
-=======
-		int active;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		int slotnum = mt_compute_slot(td, input);
 		struct mt_slot *s = &td->curdata;
 		struct input_mt *mt = input->mt;
@@ -589,21 +571,10 @@ static void mt_complete_slot(struct mt_device *td, struct input_dev *input)
 				return;
 		}
 
-<<<<<<< HEAD
 		input_mt_slot(input, slotnum);
 		input_mt_report_slot_state(input, MT_TOOL_FINGER,
 			s->touch_state || s->inrange_state);
 		if (s->touch_state || s->inrange_state) {
-=======
-		if (!(td->mtclass.quirks & MT_QUIRK_CONFIDENCE))
-			s->confidence_state = 1;
-		active = (s->touch_state || s->inrange_state) &&
-							s->confidence_state;
-
-		input_mt_slot(input, slotnum);
-		input_mt_report_slot_state(input, MT_TOOL_FINGER, active);
-		if (active) {
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			/* this finger is in proximity of the sensor */
 			int wide = (s->w > s->h);
 			/* divided by two to match visual scale of touch */
@@ -668,11 +639,6 @@ static void mt_process_mt_event(struct hid_device *hid, struct hid_field *field,
 			td->curdata.touch_state = value;
 			break;
 		case HID_DG_CONFIDENCE:
-<<<<<<< HEAD
-=======
-			if (quirks & MT_QUIRK_CONFIDENCE)
-				td->curdata.confidence_state = value;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			if (quirks & MT_QUIRK_VALID_IS_CONFIDENCE)
 				td->curvalid = value;
 			break;
@@ -1219,12 +1185,6 @@ static const struct hid_device_id mt_devices[] = {
 	{ .driver_data = MT_CLS_EGALAX_SERIAL,
 		MT_USB_DEVICE(USB_VENDOR_ID_DWAV,
 			USB_DEVICE_ID_DWAV_EGALAX_MULTITOUCH_A001) },
-<<<<<<< HEAD
-=======
-	{ .driver_data = MT_CLS_EGALAX,
-		MT_USB_DEVICE(USB_VENDOR_ID_DWAV,
-			USB_DEVICE_ID_DWAV_EGALAX_MULTITOUCH_C002) },
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	/* Elitegroup panel */
 	{ .driver_data = MT_CLS_SERIAL,

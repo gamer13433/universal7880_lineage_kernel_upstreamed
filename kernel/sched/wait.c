@@ -387,11 +387,7 @@ __wait_on_bit(wait_queue_head_t *wq, struct wait_bit_queue *q,
 	do {
 		prepare_to_wait(wq, &q->wait, mode);
 		if (test_bit(q->key.bit_nr, q->key.flags))
-<<<<<<< HEAD
 			ret = (*action)(&q->key, mode);
-=======
-			ret = (*action)(&q->key);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	} while (test_bit(q->key.bit_nr, q->key.flags) && !ret);
 	finish_wait(wq, &q->wait);
 	return ret;
@@ -430,11 +426,7 @@ __wait_on_bit_lock(wait_queue_head_t *wq, struct wait_bit_queue *q,
 		prepare_to_wait_exclusive(wq, &q->wait, mode);
 		if (!test_bit(q->key.bit_nr, q->key.flags))
 			continue;
-<<<<<<< HEAD
 		ret = action(&q->key, mode);
-=======
-		ret = action(&q->key);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		if (!ret)
 			continue;
 		abort_exclusive_wait(wq, &q->wait, mode, &q->key);
@@ -584,41 +576,24 @@ void wake_up_atomic_t(atomic_t *p)
 }
 EXPORT_SYMBOL(wake_up_atomic_t);
 
-<<<<<<< HEAD
 __sched int bit_wait(struct wait_bit_key *word, int mode)
 {
 	schedule();
 	if (signal_pending_state(mode, current))
 		return -EINTR;
-=======
-__sched int bit_wait(struct wait_bit_key *word)
-{
-	if (signal_pending_state(current->state, current))
-		return 1;
-	schedule();
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return 0;
 }
 EXPORT_SYMBOL(bit_wait);
 
-<<<<<<< HEAD
 __sched int bit_wait_io(struct wait_bit_key *word, int mode)
 {
 	io_schedule();
 	if (signal_pending_state(mode, current))
 		return -EINTR;
-=======
-__sched int bit_wait_io(struct wait_bit_key *word)
-{
-	if (signal_pending_state(current->state, current))
-		return 1;
-	io_schedule();
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return 0;
 }
 EXPORT_SYMBOL(bit_wait_io);
 
-<<<<<<< HEAD
 __sched int bit_wait_timeout(struct wait_bit_key *word, int mode)
 {
 	unsigned long now = ACCESS_ONCE(jiffies);
@@ -627,21 +602,10 @@ __sched int bit_wait_timeout(struct wait_bit_key *word, int mode)
 	schedule_timeout(word->timeout - now);
 	if (signal_pending_state(mode, current))
 		return -EINTR;
-=======
-__sched int bit_wait_timeout(struct wait_bit_key *word)
-{
-	unsigned long now = READ_ONCE(jiffies);
-	if (signal_pending_state(current->state, current))
-		return 1;
-	if (time_after_eq(now, word->timeout))
-		return -EAGAIN;
-	schedule_timeout(word->timeout - now);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return 0;
 }
 EXPORT_SYMBOL_GPL(bit_wait_timeout);
 
-<<<<<<< HEAD
 __sched int bit_wait_io_timeout(struct wait_bit_key *word, int mode)
 {
 	unsigned long now = ACCESS_ONCE(jiffies);
@@ -650,16 +614,6 @@ __sched int bit_wait_io_timeout(struct wait_bit_key *word, int mode)
 	io_schedule_timeout(word->timeout - now);
 	if (signal_pending_state(mode, current))
 		return -EINTR;
-=======
-__sched int bit_wait_io_timeout(struct wait_bit_key *word)
-{
-	unsigned long now = READ_ONCE(jiffies);
-	if (signal_pending_state(current->state, current))
-		return 1;
-	if (time_after_eq(now, word->timeout))
-		return -EAGAIN;
-	io_schedule_timeout(word->timeout - now);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return 0;
 }
 EXPORT_SYMBOL_GPL(bit_wait_io_timeout);

@@ -4,10 +4,6 @@
  *  VMA_VM_FLAGS
  *  VM_EXEC
  */
-<<<<<<< HEAD
-=======
-#include <linux/const.h>
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #include <asm/asm-offsets.h>
 #include <asm/thread_info.h>
 
@@ -34,11 +30,7 @@
  * act_mm - get current->active_mm
  */
 	.macro	act_mm, rd
-<<<<<<< HEAD
 	bic	\rd, sp, #8128
-=======
-	bic	\rd, sp, #(THREAD_SIZE - 1) & ~63
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	bic	\rd, \rd, #63
 	ldr	\rd, [\rd, #TI_TASK]
 	ldr	\rd, [\rd, #TSK_ACTIVE_MM]
@@ -267,16 +259,6 @@
 	.endm
 
 .macro define_processor_functions name:req, dabort:req, pabort:req, nommu=0, suspend=0
-<<<<<<< HEAD
-=======
-/*
- * If we are building for big.Little with branch predictor hardening,
- * we need the processor function tables to remain available after boot.
- */
-#if defined(CONFIG_BIG_LITTLE) && defined(CONFIG_HARDEN_BRANCH_PREDICTOR)
-	.section ".rodata"
-#endif
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	.type	\name\()_processor_functions, #object
 	.align 2
 ENTRY(\name\()_processor_functions)
@@ -311,12 +293,6 @@ ENTRY(\name\()_processor_functions)
 	.endif
 
 	.size	\name\()_processor_functions, . - \name\()_processor_functions
-<<<<<<< HEAD
-=======
-#if defined(CONFIG_BIG_LITTLE) && defined(CONFIG_HARDEN_BRANCH_PREDICTOR)
-	.previous
-#endif
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 .endm
 
 .macro define_cache_functions name:req
@@ -355,10 +331,3 @@ ENTRY(\name\()_tlb_fns)
 	.globl	\x
 	.equ	\x, \y
 .endm
-<<<<<<< HEAD
-=======
-
-.macro	initfn, func, base
-	.long	\func - \base
-.endm
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012

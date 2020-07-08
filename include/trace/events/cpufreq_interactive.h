@@ -34,7 +34,6 @@ DEFINE_EVENT(set, cpufreq_interactive_setspeed,
 	TP_ARGS(cpu_id, targfreq, actualfreq)
 );
 
-<<<<<<< HEAD
 #ifdef CONFIG_ARCH_EXYNOS
 DEFINE_EVENT(set, cpufreq_interactive_cpu_min_qos,
 	TP_PROTO(u32 cpu_id, unsigned long targfreq,
@@ -62,8 +61,6 @@ DEFINE_EVENT(set, cpufreq_interactive_kfc_max_qos,
 #endif /* CONFIG_ARM_EXYNOS_MP_CPUFREQ */
 #endif /* CONFIG_ARCH_EXYNOS */
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 DECLARE_EVENT_CLASS(loadeval,
 	    TP_PROTO(unsigned long cpu_id, unsigned long load,
 		     unsigned long curtarg, unsigned long curactual,

@@ -75,8 +75,5 @@ obj-$(CONFIG_MMC_SDHCI_ST)		+= sdhci-st.o
 ifeq ($(CONFIG_CB710_DEBUG),y)
 	CFLAGS-cb710-mmc	+= -DDEBUG
 endif
-<<<<<<< HEAD
 
 obj-$(CONFIG_MMC_SRPMB)		+= dw_mmc-srpmb.o
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012

@@ -1524,15 +1524,8 @@ static int b44_magic_pattern(u8 *macaddr, u8 *ppattern, u8 *pmask, int offset)
 	int ethaddr_bytes = ETH_ALEN;
 
 	memset(ppattern + offset, 0xff, magicsync);
-<<<<<<< HEAD
 	for (j = 0; j < magicsync; j++)
 		set_bit(len++, (unsigned long *) pmask);
-=======
-	for (j = 0; j < magicsync; j++) {
-		pmask[len >> 3] |= BIT(len & 7);
-		len++;
-	}
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	for (j = 0; j < B44_MAX_PATTERNS; j++) {
 		if ((B44_PATTERN_SIZE - len) >= ETH_ALEN)
@@ -1544,12 +1537,7 @@ static int b44_magic_pattern(u8 *macaddr, u8 *ppattern, u8 *pmask, int offset)
 		for (k = 0; k< ethaddr_bytes; k++) {
 			ppattern[offset + magicsync +
 				(j * ETH_ALEN) + k] = macaddr[k];
-<<<<<<< HEAD
 			set_bit(len++, (unsigned long *) pmask);
-=======
-			pmask[len >> 3] |= BIT(len & 7);
-			len++;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		}
 	}
 	return len - 1;

@@ -258,12 +258,7 @@ if ($arch eq "x86_64") {
 
 } elsif ($arch eq "powerpc") {
     $local_regex = "^[0-9a-fA-F]+\\s+t\\s+(\\.?\\S+)";
-<<<<<<< HEAD
     $function_regex = "^([0-9a-fA-F]+)\\s+<(\\.?.*?)>:";
-=======
-    # See comment in the sparc64 section for why we use '\w'.
-    $function_regex = "^([0-9a-fA-F]+)\\s+<(\\.?\\w*?)>:";
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
     $mcount_regex = "^\\s*([0-9a-fA-F]+):.*\\s\\.?_mcount\$";
 
     if ($bits == 64) {

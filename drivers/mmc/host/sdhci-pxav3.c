@@ -254,35 +254,8 @@ static void pxav3_set_uhs_signaling(struct sdhci_host *host, unsigned int uhs)
 		__func__, uhs, ctrl_2);
 }
 
-<<<<<<< HEAD
 static const struct sdhci_ops pxav3_sdhci_ops = {
 	.set_clock = sdhci_set_clock,
-=======
-static void pxav3_set_power(struct sdhci_host *host, unsigned char mode,
-			    unsigned short vdd)
-{
-	struct mmc_host *mmc = host->mmc;
-	u8 pwr = host->pwr;
-
-	sdhci_set_power(host, mode, vdd);
-
-	if (host->pwr == pwr)
-		return;
-
-	if (host->pwr == 0)
-		vdd = 0;
-
-	if (!IS_ERR(mmc->supply.vmmc)) {
-		spin_unlock_irq(&host->lock);
-		mmc_regulator_set_ocr(mmc, mmc->supply.vmmc, vdd);
-		spin_lock_irq(&host->lock);
-	}
-}
-
-static const struct sdhci_ops pxav3_sdhci_ops = {
-	.set_clock = sdhci_set_clock,
-	.set_power = pxav3_set_power,
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	.platform_send_init_74_clocks = pxav3_gen_init_74_clocks,
 	.get_max_clock = sdhci_pltfm_clk_get_max_clock,
 	.set_bus_width = sdhci_set_bus_width,
@@ -357,7 +330,6 @@ static int sdhci_pxav3_probe(struct platform_device *pdev)
 	/* enable 1/8V DDR capable */
 	host->mmc->caps |= MMC_CAP_1_8V_DDR;
 
-<<<<<<< HEAD
 	if (of_device_is_compatible(np, "marvell,armada-380-sdhci")) {
 		ret = armada_38x_quirks(pdev, host);
 		if (ret < 0)
@@ -368,8 +340,6 @@ static int sdhci_pxav3_probe(struct platform_device *pdev)
 	}
 
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	pltfm_host = sdhci_priv(host);
 	pltfm_host->priv = pxa;
 
@@ -382,18 +352,6 @@ static int sdhci_pxav3_probe(struct platform_device *pdev)
 	pltfm_host->clk = clk;
 	clk_prepare_enable(clk);
 
-<<<<<<< HEAD
-=======
-	if (of_device_is_compatible(np, "marvell,armada-380-sdhci")) {
-		ret = armada_38x_quirks(pdev, host);
-		if (ret < 0)
-			goto err_clk_get;
-		ret = mv_conf_mbus_windows(pdev, mv_mbus_dram_info());
-		if (ret < 0)
-			goto err_mbus_win;
-	}
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	match = of_match_device(of_match_ptr(sdhci_pxav3_of_match), &pdev->dev);
 	if (match) {
 		ret = mmc_of_parse(host->mmc);
@@ -463,15 +421,9 @@ err_add_host:
 	pm_runtime_put_noidle(&pdev->dev);
 err_of_parse:
 err_cd_req:
-<<<<<<< HEAD
 	clk_disable_unprepare(clk);
 err_clk_get:
 err_mbus_win:
-=======
-err_mbus_win:
-	clk_disable_unprepare(clk);
-err_clk_get:
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	sdhci_pltfm_free(pdev);
 	return ret;
 }

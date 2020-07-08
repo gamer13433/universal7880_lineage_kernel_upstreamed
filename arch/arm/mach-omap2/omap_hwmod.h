@@ -517,11 +517,6 @@ struct omap_hwmod_omap4_prcm {
  * HWMOD_RECONFIG_IO_CHAIN: omap_hwmod code needs to reconfigure wake-up 
  *     events by calling _reconfigure_io_chain() when a device is enabled
  *     or idled.
-<<<<<<< HEAD
-=======
- * HWMOD_NO_IDLE: Do not idle the hwmod at all. Useful to handle certain
- *     IPs like CPSW on DRA7, where clocks to this module cannot be disabled.
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
  */
 #define HWMOD_SWSUP_SIDLE			(1 << 0)
 #define HWMOD_SWSUP_MSTANDBY			(1 << 1)
@@ -537,10 +532,6 @@ struct omap_hwmod_omap4_prcm {
 #define HWMOD_FORCE_MSTANDBY			(1 << 11)
 #define HWMOD_SWSUP_SIDLE_ACT			(1 << 12)
 #define HWMOD_RECONFIG_IO_CHAIN			(1 << 13)
-<<<<<<< HEAD
-=======
-#define HWMOD_NO_IDLE				(1 << 15)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /*
  * omap_hwmod._int_flags definitions

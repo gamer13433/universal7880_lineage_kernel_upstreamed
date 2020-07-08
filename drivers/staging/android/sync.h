@@ -160,14 +160,10 @@ struct sync_fence {
 #endif
 	int num_fences;
 
-<<<<<<< HEAD
 	union {
 		wait_queue_head_t	wq;
 		struct llist_node	rmnode;
 	};
-=======
-	wait_queue_head_t	wq;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	atomic_t		status;
 
 	struct sync_fence_cb	cbs[];

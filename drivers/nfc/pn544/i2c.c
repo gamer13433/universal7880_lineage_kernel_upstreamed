@@ -226,10 +226,6 @@ static void pn544_hci_i2c_platform_init(struct pn544_i2c_phy *phy)
 
 out:
 	gpio_set_value(phy->gpio_en, !phy->en_polarity);
-<<<<<<< HEAD
-=======
-	usleep_range(10000, 15000);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 static void pn544_hci_i2c_enable_mode(struct pn544_i2c_phy *phy, int run_mode)

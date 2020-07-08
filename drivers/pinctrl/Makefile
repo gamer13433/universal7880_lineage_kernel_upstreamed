@@ -1,10 +1,7 @@
 # generic pinmux support
 
 ccflags-$(CONFIG_DEBUG_PINCTRL)	+= -DDEBUG
-<<<<<<< HEAD
 ccflags-y := $(KBUILD_FP_SENSOR_CFLAGS)
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 obj-$(CONFIG_PINCTRL)		+= core.o pinctrl-utils.o
 obj-$(CONFIG_PINMUX)		+= pinmux.o

@@ -20,10 +20,6 @@
 #include <linux/notifier.h>
 #include <linux/irqflags.h>
 #include <linux/debugfs.h>
-<<<<<<< HEAD
-=======
-#include <linux/tracefs.h>
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #include <linux/pagemap.h>
 #include <linux/hardirq.h>
 #include <linux/linkage.h>
@@ -35,10 +31,6 @@
 #include <linux/splice.h>
 #include <linux/kdebug.h>
 #include <linux/string.h>
-<<<<<<< HEAD
-=======
-#include <linux/mount.h>
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #include <linux/rwsem.h>
 #include <linux/slab.h>
 #include <linux/ctype.h>
@@ -333,7 +325,6 @@ int tracing_is_enabled(void)
  * boot time and run time configurable.
  */
 #define TRACE_BUF_SIZE_DEFAULT	1441792UL /* 16384 * 88 (sizeof(entry)) */
-<<<<<<< HEAD
 #define TRACE_BUF_SIZE_MINIMUM	4096UL
 
 unsigned long		trace_buf_size = TRACE_BUF_SIZE_MINIMUM;
@@ -343,11 +334,6 @@ unsigned long		trace_buf_size = TRACE_BUF_SIZE_MINIMUM;
 static unsigned long        size_cpu0 = (SIZE_CPUX_DEFAULT * CPU0_to_CPUX_RATIO);
 static unsigned long        size_cpuX = SIZE_CPUX_DEFAULT;
 #endif
-=======
-
-static unsigned long		trace_buf_size = TRACE_BUF_SIZE_DEFAULT;
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /* trace_types holds a link list of available tracers. */
 static struct tracer		*trace_types __read_mostly;
 
@@ -2093,7 +2079,6 @@ void trace_printk_init_buffers(void)
 	if (alloc_percpu_trace_buffer())
 		return;
 
-<<<<<<< HEAD
 	/*
 	 * When tracing is off, trace_printk() calls have no effect
 	 * When tracing is enabled, instead, trace_printk() data can be made
@@ -2101,8 +2086,6 @@ void trace_printk_init_buffers(void)
 	 * SEC turns tracing off at DEBUG LEVEL LOW (USER mode)
 	 */
 #if 0
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/* trace_printk() is for debug use only. Don't use it in production. */
 
 	pr_warning("\n**********************************************************\n");
@@ -2121,11 +2104,7 @@ void trace_printk_init_buffers(void)
 
 	/* Expand the buffers to set size */
 	tracing_update_buffers();
-<<<<<<< HEAD
 #endif
-=======
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	buffers_allocated = 1;
 
 	/*
@@ -3400,20 +3379,9 @@ static int show_traces_open(struct inode *inode, struct file *file)
 	if (tracing_disabled)
 		return -ENODEV;
 
-<<<<<<< HEAD
 	ret = seq_open(file, &show_traces_seq_ops);
 	if (ret)
 		return ret;
-=======
-	if (trace_array_get(tr) < 0)
-		return -ENODEV;
-
-	ret = seq_open(file, &show_traces_seq_ops);
-	if (ret) {
-		trace_array_put(tr);
-		return ret;
-	}
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	m = file->private_data;
 	m->private = tr;
@@ -3421,17 +3389,6 @@ static int show_traces_open(struct inode *inode, struct file *file)
 	return 0;
 }
 
-<<<<<<< HEAD
-=======
-static int show_traces_release(struct inode *inode, struct file *file)
-{
-	struct trace_array *tr = inode->i_private;
-
-	trace_array_put(tr);
-	return seq_release(inode, file);
-}
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static ssize_t
 tracing_write_stub(struct file *filp, const char __user *ubuf,
 		   size_t count, loff_t *ppos)
@@ -3462,13 +3419,8 @@ static const struct file_operations tracing_fops = {
 static const struct file_operations show_traces_fops = {
 	.open		= show_traces_open,
 	.read		= seq_read,
-<<<<<<< HEAD
 	.release	= seq_release,
 	.llseek		= seq_lseek,
-=======
-	.llseek		= seq_lseek,
-	.release	= show_traces_release,
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 /*
@@ -4289,7 +4241,6 @@ out:
 int tracing_update_buffers(void)
 {
 	int ret = 0;
-<<<<<<< HEAD
 #ifdef CONFIG_SEC_DEBUG
 	int i = 0;
 	unsigned long size;
@@ -4320,13 +4271,6 @@ int tracing_update_buffers(void)
 		ret = __tracing_resize_ring_buffer(&global_trace, trace_buf_size,
 						RING_BUFFER_ALL_CPUS);
 #endif
-=======
-
-	mutex_lock(&trace_types_lock);
-	if (!ring_buffer_expanded)
-		ret = __tracing_resize_ring_buffer(&global_trace, trace_buf_size,
-						RING_BUFFER_ALL_CPUS);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	mutex_unlock(&trace_types_lock);
 
 	return ret;
@@ -4721,7 +4665,6 @@ tracing_read_pipe(struct file *filp, char __user *ubuf,
 	struct trace_array *tr = iter->tr;
 	ssize_t sret;
 
-<<<<<<< HEAD
 	/* return any leftover data */
 	sret = trace_seq_to_user(&iter->seq, ubuf, cnt);
 	if (sret != -EBUSY)
@@ -4729,8 +4672,6 @@ tracing_read_pipe(struct file *filp, char __user *ubuf,
 
 	trace_seq_init(&iter->seq);
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/* copy the tracer to avoid using a global lock all around */
 	mutex_lock(&trace_types_lock);
 	if (unlikely(iter->trace->name != tr->current_trace->name))
@@ -4743,17 +4684,6 @@ tracing_read_pipe(struct file *filp, char __user *ubuf,
 	 * is protected.
 	 */
 	mutex_lock(&iter->mutex);
-<<<<<<< HEAD
-=======
-
-	/* return any leftover data */
-	sret = trace_seq_to_user(&iter->seq, ubuf, cnt);
-	if (sret != -EBUSY)
-		goto out;
-
-	trace_seq_init(&iter->seq);
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (iter->trace->read) {
 		sret = iter->trace->read(iter, filp, ubuf, cnt, ppos);
 		if (sret)
@@ -4779,10 +4709,6 @@ waitagain:
 	       sizeof(struct trace_iterator) -
 	       offsetof(struct trace_iterator, seq));
 	cpumask_clear(iter->started);
-<<<<<<< HEAD
-=======
-	trace_seq_init(&iter->seq);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	iter->pos = -1;
 
 	trace_event_read_lock();
@@ -5393,23 +5319,11 @@ tracing_snapshot_write(struct file *filp, const char __user *ubuf, size_t cnt,
 			break;
 		}
 #endif
-<<<<<<< HEAD
 		if (!tr->allocated_snapshot) {
 			ret = alloc_snapshot(tr);
 			if (ret < 0)
 				break;
 		}
-=======
-		if (!tr->allocated_snapshot)
-			ret = resize_buffer_duplicate_size(&tr->max_buffer,
-				&tr->trace_buffer, iter->cpu_file);
-		else
-			ret = alloc_snapshot(tr);
-
-		if (ret < 0)
-			break;
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		local_irq_disable();
 		/* Now, we're going to swap */
 		if (iter->cpu_file == RING_BUFFER_ALL_CPUS)
@@ -5738,24 +5652,12 @@ static void buffer_pipe_buf_release(struct pipe_inode_info *pipe,
 	buf->private = 0;
 }
 
-<<<<<<< HEAD
 static void buffer_pipe_buf_get(struct pipe_inode_info *pipe,
-=======
-static bool buffer_pipe_buf_get(struct pipe_inode_info *pipe,
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 				struct pipe_buffer *buf)
 {
 	struct buffer_ref *ref = (struct buffer_ref *)buf->private;
 
-<<<<<<< HEAD
 	ref->ref++;
-=======
-	if (ref->ref > INT_MAX/2)
-		return false;
-
-	ref->ref++;
-	return true;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 /* Pipe buffer operations for a buffer. */
@@ -5810,7 +5712,6 @@ tracing_buffers_splice_read(struct file *file, loff_t *ppos,
 #ifdef CONFIG_TRACER_MAX_TRACE
 	if (iter->snapshot && iter->tr->current_trace->use_max_tr) {
 		ret = -EBUSY;
-<<<<<<< HEAD
 		goto out;
 	}
 #endif
@@ -5823,37 +5724,16 @@ tracing_buffers_splice_read(struct file *file, loff_t *ppos,
 	if (*ppos & (PAGE_SIZE - 1)) {
 		ret = -EINVAL;
 		goto out;
-=======
-		goto unlock;
-	}
-#endif
-
-	if (*ppos & (PAGE_SIZE - 1)) {
-		ret = -EINVAL;
-		goto unlock;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 	if (len & (PAGE_SIZE - 1)) {
 		if (len < PAGE_SIZE) {
 			ret = -EINVAL;
-<<<<<<< HEAD
 			goto out;
-=======
-			goto unlock;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		}
 		len &= PAGE_MASK;
 	}
 
-<<<<<<< HEAD
-=======
-	if (splice_grow_spd(pipe, &spd)) {
-		ret = -ENOMEM;
-		goto unlock;
-	}
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
  again:
 	trace_access_lock(iter->cpu_file);
 	entries = ring_buffer_entries_cpu(iter->trace_buffer->buffer, iter->cpu_file);
@@ -5919,14 +5799,8 @@ tracing_buffers_splice_read(struct file *file, loff_t *ppos,
 	}
 
 	ret = splice_to_pipe(pipe, &spd);
-<<<<<<< HEAD
 	splice_shrink_spd(&spd);
 out:
-=======
-out:
-	splice_shrink_spd(&spd);
-unlock:
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	mutex_unlock(&trace_types_lock);
 
 	return ret;
@@ -6158,7 +6032,6 @@ static __init int register_snapshot_cmd(void)
 static inline __init int register_snapshot_cmd(void) { return 0; }
 #endif /* defined(CONFIG_TRACER_SNAPSHOT) && defined(CONFIG_DYNAMIC_FTRACE) */
 
-<<<<<<< HEAD
 struct dentry *tracing_init_dentry_tr(struct trace_array *tr)
 {
 	if (tr->dir)
@@ -6181,21 +6054,6 @@ struct dentry *tracing_init_dentry(void)
 	return tracing_init_dentry_tr(&global_trace);
 }
 
-=======
-static struct dentry *tracing_get_dentry(struct trace_array *tr)
-{
-	if (WARN_ON(!tr->dir))
-		return ERR_PTR(-ENODEV);
-
-	/* Top directory uses NULL as the parent */
-	if (tr->flags & TRACE_ARRAY_FL_GLOBAL)
-		return NULL;
-
-	/* All sub buffers have a descriptor */
-	return tr->dir;
-}
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static struct dentry *tracing_dentry_percpu(struct trace_array *tr, int cpu)
 {
 	struct dentry *d_tracer;
@@ -6203,7 +6061,6 @@ static struct dentry *tracing_dentry_percpu(struct trace_array *tr, int cpu)
 	if (tr->percpu_dir)
 		return tr->percpu_dir;
 
-<<<<<<< HEAD
 	d_tracer = tracing_init_dentry_tr(tr);
 	if (!d_tracer)
 		return NULL;
@@ -6212,16 +6069,6 @@ static struct dentry *tracing_dentry_percpu(struct trace_array *tr, int cpu)
 
 	WARN_ONCE(!tr->percpu_dir,
 		  "Could not create debugfs directory 'per_cpu/%d'\n", cpu);
-=======
-	d_tracer = tracing_get_dentry(tr);
-	if (IS_ERR(d_tracer))
-		return NULL;
-
-	tr->percpu_dir = tracefs_create_dir("per_cpu", d_tracer);
-
-	WARN_ONCE(!tr->percpu_dir,
-		  "Could not create tracefs directory 'per_cpu/%d'\n", cpu);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	return tr->percpu_dir;
 }
@@ -6238,11 +6085,7 @@ trace_create_cpu_file(const char *name, umode_t mode, struct dentry *parent,
 }
 
 static void
-<<<<<<< HEAD
 tracing_init_debugfs_percpu(struct trace_array *tr, long cpu)
-=======
-tracing_init_tracefs_percpu(struct trace_array *tr, long cpu)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	struct dentry *d_percpu = tracing_dentry_percpu(tr, cpu);
 	struct dentry *d_cpu;
@@ -6252,15 +6095,9 @@ tracing_init_tracefs_percpu(struct trace_array *tr, long cpu)
 		return;
 
 	snprintf(cpu_dir, 30, "cpu%ld", cpu);
-<<<<<<< HEAD
 	d_cpu = debugfs_create_dir(cpu_dir, d_percpu);
 	if (!d_cpu) {
 		pr_warning("Could not create debugfs '%s' entry\n", cpu_dir);
-=======
-	d_cpu = tracefs_create_dir(cpu_dir, d_percpu);
-	if (!d_cpu) {
-		pr_warning("Could not create tracefs '%s' entry\n", cpu_dir);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		return;
 	}
 
@@ -6412,15 +6249,9 @@ struct dentry *trace_create_file(const char *name,
 {
 	struct dentry *ret;
 
-<<<<<<< HEAD
 	ret = debugfs_create_file(name, mode, parent, data, fops);
 	if (!ret)
 		pr_warning("Could not create debugfs '%s' entry\n", name);
-=======
-	ret = tracefs_create_file(name, mode, parent, data, fops);
-	if (!ret)
-		pr_warning("Could not create tracefs '%s' entry\n", name);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	return ret;
 }
@@ -6433,7 +6264,6 @@ static struct dentry *trace_options_init_dentry(struct trace_array *tr)
 	if (tr->options)
 		return tr->options;
 
-<<<<<<< HEAD
 	d_tracer = tracing_init_dentry_tr(tr);
 	if (!d_tracer)
 		return NULL;
@@ -6441,15 +6271,6 @@ static struct dentry *trace_options_init_dentry(struct trace_array *tr)
 	tr->options = debugfs_create_dir("options", d_tracer);
 	if (!tr->options) {
 		pr_warning("Could not create debugfs directory 'options'\n");
-=======
-	d_tracer = tracing_get_dentry(tr);
-	if (IS_ERR(d_tracer))
-		return NULL;
-
-	tr->options = tracefs_create_dir("options", d_tracer);
-	if (!tr->options) {
-		pr_warning("Could not create tracefs directory 'options'\n");
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		return NULL;
 	}
 
@@ -6518,11 +6339,7 @@ destroy_trace_option_files(struct trace_option_dentry *topts)
 		return;
 
 	for (cnt = 0; topts[cnt].opt; cnt++)
-<<<<<<< HEAD
 		debugfs_remove(topts[cnt].entry);
-=======
-		tracefs_remove(topts[cnt].entry);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	kfree(topts);
 }
@@ -6613,11 +6430,7 @@ static const struct file_operations rb_simple_fops = {
 struct dentry *trace_instance_dir;
 
 static void
-<<<<<<< HEAD
 init_tracer_debugfs(struct trace_array *tr, struct dentry *d_tracer);
-=======
-init_tracer_tracefs(struct trace_array *tr, struct dentry *d_tracer);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 static int
 allocate_trace_buffer(struct trace_array *tr, struct trace_buffer *buf, int size)
@@ -6697,11 +6510,7 @@ static void free_trace_buffers(struct trace_array *tr)
 #endif
 }
 
-<<<<<<< HEAD
 static int new_instance_create(const char *name)
-=======
-static int instance_mkdir(const char *name)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	struct trace_array *tr;
 	int ret;
@@ -6740,29 +6549,17 @@ static int instance_mkdir(const char *name)
 	if (allocate_trace_buffers(tr, trace_buf_size) < 0)
 		goto out_free_tr;
 
-<<<<<<< HEAD
 	tr->dir = debugfs_create_dir(name, trace_instance_dir);
-=======
-	tr->dir = tracefs_create_dir(name, trace_instance_dir);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (!tr->dir)
 		goto out_free_tr;
 
 	ret = event_trace_add_tracer(tr->dir, tr);
 	if (ret) {
-<<<<<<< HEAD
 		debugfs_remove_recursive(tr->dir);
 		goto out_free_tr;
 	}
 
 	init_tracer_debugfs(tr, tr->dir);
-=======
-		tracefs_remove_recursive(tr->dir);
-		goto out_free_tr;
-	}
-
-	init_tracer_tracefs(tr, tr->dir);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	list_add(&tr->list, &ftrace_trace_arrays);
 
@@ -6783,11 +6580,7 @@ static int instance_mkdir(const char *name)
 
 }
 
-<<<<<<< HEAD
 static int instance_delete(const char *name)
-=======
-static int instance_rmdir(const char *name)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	struct trace_array *tr;
 	int found = 0;
@@ -6829,7 +6622,6 @@ static int instance_rmdir(const char *name)
 	return ret;
 }
 
-<<<<<<< HEAD
 static int instance_mkdir (struct inode *inode, struct dentry *dentry, umode_t mode)
 {
 	struct dentry *parent;
@@ -6906,19 +6698,6 @@ static __init void create_trace_instances(struct dentry *d_tracer)
 
 static void
 init_tracer_debugfs(struct trace_array *tr, struct dentry *d_tracer)
-=======
-static __init void create_trace_instances(struct dentry *d_tracer)
-{
-	trace_instance_dir = tracefs_create_instance_dir("instances", d_tracer,
-							 instance_mkdir,
-							 instance_rmdir);
-	if (WARN_ON(!trace_instance_dir))
-		return;
-}
-
-static void
-init_tracer_tracefs(struct trace_array *tr, struct dentry *d_tracer)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	int cpu;
 
@@ -6975,92 +6754,21 @@ init_tracer_tracefs(struct trace_array *tr, struct dentry *d_tracer)
 #endif
 
 	for_each_tracing_cpu(cpu)
-<<<<<<< HEAD
 		tracing_init_debugfs_percpu(tr, cpu);
 
 }
 
 static __init int tracer_init_debugfs(void)
-=======
-		tracing_init_tracefs_percpu(tr, cpu);
-
-}
-
-static struct vfsmount *trace_automount(void *ingore)
-{
-	struct vfsmount *mnt;
-	struct file_system_type *type;
-
-	/*
-	 * To maintain backward compatibility for tools that mount
-	 * debugfs to get to the tracing facility, tracefs is automatically
-	 * mounted to the debugfs/tracing directory.
-	 */
-	type = get_fs_type("tracefs");
-	if (!type)
-		return NULL;
-	mnt = vfs_kern_mount(type, 0, "tracefs", NULL);
-	put_filesystem(type);
-	if (IS_ERR(mnt))
-		return NULL;
-	mntget(mnt);
-
-	return mnt;
-}
-
-/**
- * tracing_init_dentry - initialize top level trace array
- *
- * This is called when creating files or directories in the tracing
- * directory. It is called via fs_initcall() by any of the boot up code
- * and expects to return the dentry of the top level tracing directory.
- */
-struct dentry *tracing_init_dentry(void)
-{
-	struct trace_array *tr = &global_trace;
-
-	/* The top level trace array uses  NULL as parent */
-	if (tr->dir)
-		return NULL;
-
-	if (WARN_ON(!debugfs_initialized()))
-		return ERR_PTR(-ENODEV);
-
-	/*
-	 * As there may still be users that expect the tracing
-	 * files to exist in debugfs/tracing, we must automount
-	 * the tracefs file system there, so older tools still
-	 * work with the newer kerenl.
-	 */
-	tr->dir = debugfs_create_automount("tracing", NULL,
-					   trace_automount, NULL);
-	if (!tr->dir) {
-		pr_warn_once("Could not create debugfs directory 'tracing'\n");
-		return ERR_PTR(-ENOMEM);
-	}
-
-	return NULL;
-}
-
-static __init int tracer_init_tracefs(void)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	struct dentry *d_tracer;
 
 	trace_access_lock_init();
 
 	d_tracer = tracing_init_dentry();
-<<<<<<< HEAD
 	if (!d_tracer)
 		return 0;
 
 	init_tracer_debugfs(&global_trace, d_tracer);
-=======
-	if (IS_ERR(d_tracer))
-		return 0;
-
-	init_tracer_tracefs(&global_trace, d_tracer);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	trace_create_file("tracing_thresh", 0644, d_tracer,
 			&global_trace, &tracing_thresh_fops);
@@ -7242,17 +6950,12 @@ void ftrace_dump(enum ftrace_dump_mode oops_dump_mode)
 
 		cnt++;
 
-<<<<<<< HEAD
 		/* reset all but tr, trace, and overruns */
 		memset(&iter.seq, 0,
 		       sizeof(struct trace_iterator) -
 		       offsetof(struct trace_iterator, seq));
 		iter.iter_flags |= TRACE_FILE_LAT_FMT;
 		iter.pos = -1;
-=======
-		trace_iterator_reset(&iter);
-		iter.iter_flags |= TRACE_FILE_LAT_FMT;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 		if (trace_find_next_entry_inc(&iter) != NULL) {
 			int ret;
@@ -7287,10 +6990,7 @@ __init static int tracer_alloc_buffers(void)
 	int ring_buf_size;
 	int ret = -ENOMEM;
 
-<<<<<<< HEAD
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (!alloc_cpumask_var(&tracing_buffer_mask, GFP_KERNEL))
 		goto out;
 
@@ -7388,16 +7088,6 @@ out:
 	return ret;
 }
 
-<<<<<<< HEAD
-=======
-void __init trace_init(void)
-{
-	tracer_alloc_buffers();
-	init_ftrace_syscalls();
-	trace_event_init();	
-}
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 __init static int clear_boot_tracer(void)
 {
 	/*
@@ -7417,10 +7107,6 @@ __init static int clear_boot_tracer(void)
 	return 0;
 }
 
-<<<<<<< HEAD
 early_initcall(tracer_alloc_buffers);
 fs_initcall(tracer_init_debugfs);
-=======
-fs_initcall(tracer_init_tracefs);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 late_initcall(clear_boot_tracer);

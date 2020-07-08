@@ -208,12 +208,9 @@ static int step_wise_throttle(struct thermal_zone_device *tz, int trip)
 	list_for_each_entry(instance, &tz->thermal_instances, tz_node)
 		thermal_cdev_update(instance->cdev);
 
-<<<<<<< HEAD
 	if (tz->ops->throttle_cpu_hotplug)
 		tz->ops->throttle_cpu_hotplug(tz);
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	mutex_unlock(&tz->lock);
 
 	return 0;

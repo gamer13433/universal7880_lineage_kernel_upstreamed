@@ -974,10 +974,6 @@ vt6656_probe(struct usb_interface *intf, const struct usb_device_id *id)
 	priv = hw->priv;
 	priv->hw = hw;
 	priv->usb = udev;
-<<<<<<< HEAD
-=======
-	priv->intf = intf;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	vnt_set_options(priv);
 

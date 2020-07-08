@@ -212,15 +212,8 @@ err_unlock:
 	spin_unlock_bh(&chain->lock);
 
 err:
-<<<<<<< HEAD
 	if (!ret)
 		kfree(frag_entry_new);
-=======
-	if (!ret) {
-		kfree(frag_entry_new);
-		kfree_skb(skb);
-	}
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	return ret;
 }
@@ -318,15 +311,9 @@ bool batadv_frag_skb_buffer(struct sk_buff **skb,
 		goto out_err;
 
 out:
-<<<<<<< HEAD
 	*skb = skb_out;
 	ret = true;
 out_err:
-=======
-	ret = true;
-out_err:
-	*skb = skb_out;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return ret;
 }
 
@@ -473,13 +460,6 @@ bool batadv_frag_send_packet(struct sk_buff *skb,
 
 	/* Eat and send fragments from the tail of skb */
 	while (skb->len > max_fragment_size) {
-<<<<<<< HEAD
-=======
-		/* The initial check in this function should cover this case */
-		if (frag_header.no == BATADV_FRAG_MAX_FRAGMENTS - 1)
-			goto out_err;
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		skb_fragment = batadv_frag_create(skb, &frag_header, mtu);
 		if (!skb_fragment)
 			goto out_err;
@@ -490,13 +470,10 @@ bool batadv_frag_send_packet(struct sk_buff *skb,
 		batadv_send_skb_packet(skb_fragment, neigh_node->if_incoming,
 				       neigh_node->addr);
 		frag_header.no++;
-<<<<<<< HEAD
 
 		/* The initial check in this function should cover this case */
 		if (frag_header.no == BATADV_FRAG_MAX_FRAGMENTS - 1)
 			goto out_err;
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 	/* Make room for the fragment header. */

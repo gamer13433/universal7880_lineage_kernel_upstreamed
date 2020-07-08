@@ -215,15 +215,9 @@
 
 /* DA9063 Configuration registers */
 /* OTP */
-<<<<<<< HEAD
 #define	DA9063_REG_OPT_COUNT		0x101
 #define	DA9063_REG_OPT_ADDR		0x102
 #define	DA9063_REG_OPT_DATA		0x103
-=======
-#define	DA9063_REG_OTP_CONT		0x101
-#define	DA9063_REG_OTP_ADDR		0x102
-#define	DA9063_REG_OTP_DATA		0x103
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /* Customer Trim and Configuration */
 #define	DA9063_REG_T_OFFSET		0x104

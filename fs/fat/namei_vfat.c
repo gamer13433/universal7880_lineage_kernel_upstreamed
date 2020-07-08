@@ -23,7 +23,6 @@
 #include <linux/namei.h>
 #include "fat.h"
 
-<<<<<<< HEAD
 #define VFAT_DSTATE_LOCKED	(void *)(0xCAFE2016)
 #define VFAT_DSTATE_UNLOCKED	(void *)(0x0)
 static inline void __lock_d_revalidate(struct dentry *dentry)
@@ -49,8 +48,6 @@ static inline int __check_dstate_locked(struct dentry *dentry)
 	return 0;
 }
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /*
  * If new entry was created in the parent, it could create the 8.3
  * alias (the shortname of logname).  So, the parent may have the
@@ -63,15 +60,10 @@ static int vfat_revalidate_shortname(struct dentry *dentry)
 {
 	int ret = 1;
 	spin_lock(&dentry->d_lock);
-<<<<<<< HEAD
 	if ((!dentry->d_inode) && (!__check_dstate_locked(dentry)) &&
 		(dentry->d_time != dentry->d_parent->d_inode->i_version)) {
 		ret = 0;
 	}
-=======
-	if (dentry->d_time != dentry->d_parent->d_inode->i_version)
-		ret = 0;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	spin_unlock(&dentry->d_lock);
 	return ret;
 }
@@ -104,11 +96,7 @@ static int vfat_revalidate_ci(struct dentry *dentry, unsigned int flags)
 	 */
 	if (dentry->d_inode)
 		return 1;
-<<<<<<< HEAD
 #if 0
-=======
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/*
 	 * This may be nfsd (or something), anyway, we can't see the
 	 * intent of this. So, since this can be for creation, drop it.
@@ -123,11 +111,7 @@ static int vfat_revalidate_ci(struct dentry *dentry, unsigned int flags)
 	 */
 	if (flags & (LOOKUP_CREATE | LOOKUP_RENAME_TARGET))
 		return 0;
-<<<<<<< HEAD
 #endif
-=======
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return vfat_revalidate_shortname(dentry);
 }
 
@@ -826,21 +810,15 @@ static int vfat_create(struct inode *dir, struct dentry *dentry, umode_t mode,
 	err = vfat_add_entry(dir, &dentry->d_name, 0, 0, &ts, &sinfo);
 	if (err)
 		goto out;
-<<<<<<< HEAD
 
 	__lock_d_revalidate(dentry);
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	dir->i_version++;
 
 	inode = fat_build_inode(sb, sinfo.de, sinfo.i_pos);
 	brelse(sinfo.bh);
 	if (IS_ERR(inode)) {
 		err = PTR_ERR(inode);
-<<<<<<< HEAD
 		__unlock_d_revalidate(dentry);
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		goto out;
 	}
 	inode->i_version++;
@@ -848,10 +826,7 @@ static int vfat_create(struct inode *dir, struct dentry *dentry, umode_t mode,
 	/* timestamp is already written, so mark_inode_dirty() is unneeded. */
 
 	d_instantiate(dentry, inode);
-<<<<<<< HEAD
 	__unlock_d_revalidate(dentry);
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 out:
 	mutex_unlock(&MSDOS_SB(sb)->s_lock);
 	return err;
@@ -933,10 +908,7 @@ static int vfat_mkdir(struct inode *dir, struct dentry *dentry, umode_t mode)
 	err = vfat_add_entry(dir, &dentry->d_name, 1, cluster, &ts, &sinfo);
 	if (err)
 		goto out_free;
-<<<<<<< HEAD
 	__lock_d_revalidate(dentry);
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	dir->i_version++;
 	inc_nlink(dir);
 
@@ -945,10 +917,7 @@ static int vfat_mkdir(struct inode *dir, struct dentry *dentry, umode_t mode)
 	if (IS_ERR(inode)) {
 		err = PTR_ERR(inode);
 		/* the directory was completed, just return a error */
-<<<<<<< HEAD
 		__unlock_d_revalidate(dentry);
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		goto out;
 	}
 	inode->i_version++;
@@ -958,10 +927,7 @@ static int vfat_mkdir(struct inode *dir, struct dentry *dentry, umode_t mode)
 
 	d_instantiate(dentry, inode);
 
-<<<<<<< HEAD
 	__unlock_d_revalidate(dentry);
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	mutex_unlock(&MSDOS_SB(sb)->s_lock);
 	return 0;
 
@@ -1017,12 +983,9 @@ static int vfat_rename(struct inode *old_dir, struct dentry *old_dentry,
 			goto out;
 		new_i_pos = sinfo.i_pos;
 	}
-<<<<<<< HEAD
 
 	__lock_d_revalidate(old_dentry);
 	__lock_d_revalidate(new_dentry);
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	new_dir->i_version++;
 
 	fat_detach(old_inode);
@@ -1064,11 +1027,8 @@ static int vfat_rename(struct inode *old_dir, struct dentry *old_dentry,
 			drop_nlink(new_inode);
 		new_inode->i_ctime = ts;
 	}
-<<<<<<< HEAD
 	__unlock_d_revalidate(old_dentry);
 	__unlock_d_revalidate(new_dentry);
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 out:
 	brelse(sinfo.bh);
 	brelse(dotdot_bh);
@@ -1087,12 +1047,9 @@ error_dotdot:
 		corrupt |= sync_dirty_buffer(dotdot_bh);
 	}
 error_inode:
-<<<<<<< HEAD
 	__unlock_d_revalidate(old_dentry);
 	__unlock_d_revalidate(new_dentry);
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	fat_detach(old_inode);
 	fat_attach(old_inode, old_sinfo.i_pos);
 	if (new_inode) {
@@ -1126,15 +1083,12 @@ static const struct inode_operations vfat_dir_inode_operations = {
 	.rename		= vfat_rename,
 	.setattr	= fat_setattr,
 	.getattr	= fat_getattr,
-<<<<<<< HEAD
 #ifdef CONFIG_FAT_VIRTUAL_XATTR
 	.setxattr	= fat_setxattr,
 	.getxattr	= fat_getxattr,
 	.listxattr	= fat_listxattr,
 	.removexattr	= fat_removexattr,
 #endif
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 static void setup(struct super_block *sb)

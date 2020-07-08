@@ -1074,10 +1074,7 @@ void __init mem_init(void)
 	mem_init_print_info(NULL);
 }
 
-<<<<<<< HEAD
 #ifdef CONFIG_DEBUG_RODATA
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 const int rodata_test_data = 0xC3;
 EXPORT_SYMBOL_GPL(rodata_test_data);
 
@@ -1167,11 +1164,8 @@ void mark_rodata_ro(void)
 			(unsigned long) __va(__pa_symbol(_sdata)));
 }
 
-<<<<<<< HEAD
 #endif
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 int kern_addr_valid(unsigned long addr)
 {
 	unsigned long above = ((long)addr) >> __VIRTUAL_MASK_SHIFT;

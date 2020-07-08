@@ -540,12 +540,6 @@ static int radeon_info_ioctl(struct drm_device *dev, void *data, struct drm_file
 		else
 			*value = 1;
 		break;
-<<<<<<< HEAD
-=======
-	case RADEON_INFO_VA_UNMAP_WORKING:
-		*value = true;
-		break;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	default:
 		DRM_DEBUG_KMS("Invalid request %d\n", info->request);
 		return -EINVAL;

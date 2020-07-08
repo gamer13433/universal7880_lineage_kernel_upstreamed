@@ -38,11 +38,7 @@ nfs4_file_open(struct inode *inode, struct file *filp)
 	dprintk("NFS: open file(%pd2)\n", dentry);
 
 	if ((openflags & O_ACCMODE) == 3)
-<<<<<<< HEAD
 		openflags--;
-=======
-		return nfs_open(inode, filp);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	/* We can't create new files here */
 	openflags &= ~(O_CREAT|O_EXCL);
@@ -66,7 +62,6 @@ nfs4_file_open(struct inode *inode, struct file *filp)
 	if (IS_ERR(inode)) {
 		err = PTR_ERR(inode);
 		switch (err) {
-<<<<<<< HEAD
 		case -EPERM:
 		case -EACCES:
 		case -EDQUOT:
@@ -74,15 +69,6 @@ nfs4_file_open(struct inode *inode, struct file *filp)
 		case -EROFS:
 			goto out_put_ctx;
 		default:
-=======
-		default:
-			goto out_put_ctx;
-		case -ENOENT:
-		case -ESTALE:
-		case -EISDIR:
-		case -ENOTDIR:
-		case -ELOOP:
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			goto out_drop;
 		}
 	}

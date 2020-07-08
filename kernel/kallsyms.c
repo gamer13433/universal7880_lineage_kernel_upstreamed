@@ -27,13 +27,10 @@
 
 #include <asm/sections.h>
 
-<<<<<<< HEAD
 #ifdef CONFIG_SEC_DEBUG_EXTRA_INFO
 #include <linux/sec_debug.h>
 #endif
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #ifdef CONFIG_KALLSYMS_ALL
 #define all_var 1
 #else
@@ -59,7 +56,6 @@ extern const u16 kallsyms_token_index[] __weak;
 
 extern const unsigned long kallsyms_markers[] __weak;
 
-<<<<<<< HEAD
 #ifdef CONFIG_SEC_DEBUG_EXTRA_INFO
 void sec_debug_set_kallsyms_info(struct sec_debug_shared_info *sec_debug_info)
 {
@@ -81,8 +77,6 @@ void sec_debug_set_kallsyms_info(struct sec_debug_shared_info *sec_debug_info)
 }
 #endif
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static inline int is_kernel_inittext(unsigned long addr)
 {
 	if (addr >= (unsigned long)_sinittext
@@ -93,11 +87,7 @@ static inline int is_kernel_inittext(unsigned long addr)
 
 static inline int is_kernel_text(unsigned long addr)
 {
-<<<<<<< HEAD
 	if ((addr >= (unsigned long)_text && addr <= (unsigned long)_etext) ||
-=======
-	if ((addr >= (unsigned long)_stext && addr <= (unsigned long)_etext) ||
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	    arch_is_kernel_text(addr))
 		return 1;
 	return in_gate_area_no_mm(addr);
@@ -105,11 +95,7 @@ static inline int is_kernel_text(unsigned long addr)
 
 static inline int is_kernel(unsigned long addr)
 {
-<<<<<<< HEAD
 	if (addr >= (unsigned long)_text && addr <= (unsigned long)_end)
-=======
-	if (addr >= (unsigned long)_stext && addr <= (unsigned long)_end)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		return 1;
 	return in_gate_area_no_mm(addr);
 }
@@ -315,10 +301,7 @@ int kallsyms_lookup_size_offset(unsigned long addr, unsigned long *symbolsize,
 				unsigned long *offset)
 {
 	char namebuf[KSYM_NAME_LEN];
-<<<<<<< HEAD
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (is_ksym_addr(addr))
 		return !!get_symbol_pos(addr, symbolsize, offset);
 
@@ -608,10 +591,7 @@ static int kallsyms_open(struct inode *inode, struct file *file)
 	 * using get_symbol_offset for every symbol.
 	 */
 	struct kallsym_iter *iter;
-<<<<<<< HEAD
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	iter = __seq_open_private(file, &kallsyms_op, sizeof(*iter));
 	if (!iter)
 		return -ENOMEM;
@@ -624,10 +604,7 @@ static int kallsyms_open(struct inode *inode, struct file *file)
 const char *kdb_walk_kallsyms(loff_t *pos)
 {
 	static struct kallsym_iter kdb_walk_kallsyms_iter;
-<<<<<<< HEAD
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (*pos == 0) {
 		memset(&kdb_walk_kallsyms_iter, 0,
 		       sizeof(kdb_walk_kallsyms_iter));

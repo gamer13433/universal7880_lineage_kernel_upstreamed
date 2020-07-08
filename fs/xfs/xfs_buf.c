@@ -1568,11 +1568,7 @@ xfs_buftarg_isolate(
 	 * zero. If the value is already zero, we need to reclaim the
 	 * buffer, otherwise it gets another trip through the LRU.
 	 */
-<<<<<<< HEAD
 	if (!atomic_add_unless(&bp->b_lru_ref, -1, 0)) {
-=======
-	if (atomic_add_unless(&bp->b_lru_ref, -1, 0)) {
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		spin_unlock(&bp->b_lock);
 		return LRU_ROTATE;
 	}

@@ -179,7 +179,6 @@ static inline struct page *
 alloc_zeroed_user_highpage_movable(struct vm_area_struct *vma,
 					unsigned long vaddr)
 {
-<<<<<<< HEAD
 #ifndef CONFIG_CMA
 	return __alloc_zeroed_user_highpage(__GFP_MOVABLE, vma, vaddr);
 #else
@@ -198,11 +197,6 @@ alloc_zeroed_user_highpage_movable_cma(struct vm_area_struct *vma,
 }
 #endif
 
-=======
-	return __alloc_zeroed_user_highpage(__GFP_MOVABLE, vma, vaddr);
-}
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static inline void clear_highpage(struct page *page)
 {
 	void *kaddr = kmap_atomic(page);

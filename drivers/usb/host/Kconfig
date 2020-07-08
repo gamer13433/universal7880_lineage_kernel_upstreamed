@@ -800,7 +800,6 @@ config USB_HCD_TEST_MODE
 	  This option is of interest only to developers who need to validate
 	  their USB hardware designs.  It is not needed for normal use.  If
 	  unsure, say N.
-<<<<<<< HEAD
 
 config USB_HOST_L1_SUPPORT
 	boolean "USB2.0 Host Driver support L1 mode"
@@ -808,5 +807,3 @@ config USB_HOST_L1_SUPPORT
 	help
 	  some USB3.0 memory stick doesn't support L1 mode,
 	  so we add USB_HOST_L1_SUPPORT feature for this.
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012

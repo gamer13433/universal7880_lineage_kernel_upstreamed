@@ -25,13 +25,7 @@
 #include <linux/mm.h>
 #include <linux/moduleloader.h>
 #include <linux/vmalloc.h>
-<<<<<<< HEAD
 #include <asm/insn.h>
-=======
-#include <asm/alternative.h>
-#include <asm/insn.h>
-#include <asm/sections.h>
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 #define	AARCH64_INSN_IMM_MOVNZ		AARCH64_INSN_IMM_MAX
 #define	AARCH64_INSN_IMM_MOVK		AARCH64_INSN_IMM_16
@@ -336,20 +330,12 @@ int apply_relocate_add(Elf64_Shdr *sechdrs,
 			ovf = reloc_insn_imm(RELOC_OP_PREL, loc, val, 0, 21,
 					     AARCH64_INSN_IMM_ADR);
 			break;
-<<<<<<< HEAD
-=======
-#ifndef CONFIG_ARM64_ERRATUM_843419
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		case R_AARCH64_ADR_PREL_PG_HI21_NC:
 			overflow_check = false;
 		case R_AARCH64_ADR_PREL_PG_HI21:
 			ovf = reloc_insn_imm(RELOC_OP_PAGE, loc, val, 12, 21,
 					     AARCH64_INSN_IMM_ADR);
 			break;
-<<<<<<< HEAD
-=======
-#endif
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		case R_AARCH64_ADD_ABS_LO12_NC:
 		case R_AARCH64_LDST8_ABS_LO12_NC:
 			overflow_check = false;
@@ -408,23 +394,3 @@ overflow:
 	       me->name, (int)ELF64_R_TYPE(rel[i].r_info), val);
 	return -ENOEXEC;
 }
-<<<<<<< HEAD
-=======
-
-int module_finalize(const Elf_Ehdr *hdr,
-		    const Elf_Shdr *sechdrs,
-		    struct module *me)
-{
-	const Elf_Shdr *s, *se;
-	const char *secstrs = (void *)hdr + sechdrs[hdr->e_shstrndx].sh_offset;
-
-	for (s = sechdrs, se = sechdrs + hdr->e_shnum; s < se; s++) {
-		if (strcmp(".altinstructions", secstrs + s->sh_name) == 0) {
-			apply_alternatives((void *)s->sh_addr, s->sh_size);
-			return 0;
-		}
-	}
-
-	return 0;
-}
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012

@@ -2259,33 +2259,17 @@ static int _enable(struct omap_hwmod *oh)
  */
 static int _idle(struct omap_hwmod *oh)
 {
-<<<<<<< HEAD
 	pr_debug("omap_hwmod: %s: idling\n", oh->name);
 
-=======
-	if (oh->flags & HWMOD_NO_IDLE) {
-		oh->_int_flags |= _HWMOD_SKIP_ENABLE;
-		return 0;
-	}
-
-	pr_debug("omap_hwmod: %s: idling\n", oh->name);
-
-	if (_are_all_hardreset_lines_asserted(oh))
-		return 0;
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (oh->_state != _HWMOD_STATE_ENABLED) {
 		WARN(1, "omap_hwmod: %s: idle state can only be entered from enabled state\n",
 			oh->name);
 		return -EINVAL;
 	}
 
-<<<<<<< HEAD
 	if (_are_all_hardreset_lines_asserted(oh))
 		return 0;
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (oh->class->sysc)
 		_idle_sysc(oh);
 	_del_initiator_dep(oh, mpu_oh);
@@ -2332,12 +2316,6 @@ static int _shutdown(struct omap_hwmod *oh)
 	int ret, i;
 	u8 prev_state;
 
-<<<<<<< HEAD
-=======
-	if (_are_all_hardreset_lines_asserted(oh))
-		return 0;
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (oh->_state != _HWMOD_STATE_IDLE &&
 	    oh->_state != _HWMOD_STATE_ENABLED) {
 		WARN(1, "omap_hwmod: %s: disabled state can only be entered from idle, or enabled state\n",
@@ -2345,12 +2323,9 @@ static int _shutdown(struct omap_hwmod *oh)
 		return -EINVAL;
 	}
 
-<<<<<<< HEAD
 	if (_are_all_hardreset_lines_asserted(oh))
 		return 0;
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	pr_debug("omap_hwmod: %s: disabling\n", oh->name);
 
 	if (oh->class->pre_shutdown) {
@@ -2588,11 +2563,6 @@ static int __init _init(struct omap_hwmod *oh, void *data)
 			oh->flags |= HWMOD_INIT_NO_RESET;
 		if (of_find_property(np, "ti,no-idle-on-init", NULL))
 			oh->flags |= HWMOD_INIT_NO_IDLE;
-<<<<<<< HEAD
-=======
-		if (of_find_property(np, "ti,no-idle", NULL))
-			oh->flags |= HWMOD_NO_IDLE;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 	oh->_state = _HWMOD_STATE_INITIALIZED;
@@ -2645,11 +2615,7 @@ static void _setup_iclk_autoidle(struct omap_hwmod *oh)
  */
 static int _setup_reset(struct omap_hwmod *oh)
 {
-<<<<<<< HEAD
 	int r;
-=======
-	int r = 0;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if (oh->_state != _HWMOD_STATE_INITIALIZED)
 		return -EINVAL;
@@ -2723,11 +2689,7 @@ static void _setup_postsetup(struct omap_hwmod *oh)
 	 * XXX HWMOD_INIT_NO_IDLE does not belong in hwmod data -
 	 * it should be set by the core code as a runtime flag during startup
 	 */
-<<<<<<< HEAD
 	if ((oh->flags & HWMOD_INIT_NO_IDLE) &&
-=======
-	if ((oh->flags & (HWMOD_INIT_NO_IDLE | HWMOD_NO_IDLE)) &&
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	    (postsetup_state == _HWMOD_STATE_IDLE)) {
 		oh->_int_flags |= _HWMOD_SKIP_ENABLE;
 		postsetup_state = _HWMOD_STATE_ENABLED;

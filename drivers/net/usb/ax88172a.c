@@ -243,11 +243,7 @@ static int ax88172a_bind(struct usbnet *dev, struct usb_interface *intf)
 
 	/* Get the MAC address */
 	ret = asix_read_cmd(dev, AX_CMD_READ_NODE_ID, 0, 0, ETH_ALEN, buf);
-<<<<<<< HEAD
 	if (ret < 0) {
-=======
-	if (ret < ETH_ALEN) {
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		netdev_err(dev->net, "Failed to read MAC address: %d\n", ret);
 		goto free;
 	}

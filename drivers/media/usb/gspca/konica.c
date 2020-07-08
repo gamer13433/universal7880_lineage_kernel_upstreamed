@@ -127,14 +127,6 @@ static void reg_r(struct gspca_dev *gspca_dev, u16 value, u16 index)
 	if (ret < 0) {
 		pr_err("reg_r err %d\n", ret);
 		gspca_dev->usb_err = ret;
-<<<<<<< HEAD
-=======
-		/*
-		 * Make sure the buffer is zeroed to avoid uninitialized
-		 * values.
-		 */
-		memset(gspca_dev->usb_buf, 0, 2);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 }
 
@@ -254,11 +246,7 @@ static int sd_start(struct gspca_dev *gspca_dev)
 
 static void sd_stopN(struct gspca_dev *gspca_dev)
 {
-<<<<<<< HEAD
 	struct sd *sd = (struct sd *) gspca_dev;
-=======
-	struct sd *sd __maybe_unused = (struct sd *) gspca_dev;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	konica_stream_off(gspca_dev);
 #if IS_ENABLED(CONFIG_INPUT)

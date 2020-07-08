@@ -95,10 +95,7 @@ void ecryptfs_dump_auth_tok(struct ecryptfs_auth_tok *auth_tok)
  *
  * Dump hexadecimal representation of char array
  */
-<<<<<<< HEAD
 #ifndef CONFIG_SDP
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 void ecryptfs_dump_hex(char *data, int bytes)
 {
 	int i = 0;
@@ -122,12 +119,8 @@ void ecryptfs_dump_hex(char *data, int bytes)
 	if (add_newline)
 		printk("\n");
 }
-<<<<<<< HEAD
 #else
 void ecryptfs_dump_hex(char *data, int bytes)
 {
 }
 #endif
-=======
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012

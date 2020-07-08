@@ -1819,11 +1819,7 @@ int cmd_stat(int argc, const char **argv, const char *prefix __maybe_unused)
 				run_idx + 1);
 
 		status = run_perf_stat(argc, argv);
-<<<<<<< HEAD
 		if (forever && status != -1) {
-=======
-		if (forever && status != -1 && !interval) {
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			print_stat(argc, argv);
 			perf_stat__reset_stats(evsel_list);
 		}

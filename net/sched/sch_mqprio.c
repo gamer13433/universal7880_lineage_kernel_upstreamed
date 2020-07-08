@@ -362,12 +362,7 @@ static int mqprio_dump_class_stats(struct Qdisc *sch, unsigned long cl,
 		struct netdev_queue *dev_queue = mqprio_queue_get(sch, cl);
 
 		sch = dev_queue->qdisc_sleeping;
-<<<<<<< HEAD
 		if (gnet_stats_copy_basic(d, NULL, &sch->bstats) < 0 ||
-=======
-		if (gnet_stats_copy_basic(d, sch->cpu_bstats,
-					  &sch->bstats) < 0 ||
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		    gnet_stats_copy_queue(d, NULL,
 					  &sch->qstats, sch->q.qlen) < 0)
 			return -1;

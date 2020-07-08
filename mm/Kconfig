@@ -516,7 +516,6 @@ config CMA_DEBUG
 	  processing calls such as dma_alloc_from_contiguous().
 	  This option does not affect warning and error messages.
 
-<<<<<<< HEAD
 config CMA_PINPAGE_MIGRATION
 	bool "CMA pinned page migration (EXPERIMENTAL)"
 	depends on CMA
@@ -524,8 +523,6 @@ config CMA_PINPAGE_MIGRATION
 	help
 	  Turns on cma page migration for pinned page.
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 config CMA_AREAS
 	int "Maximum count of the CMA areas"
 	depends on CMA
@@ -553,10 +550,7 @@ config ZSWAP
 	bool "Compressed cache for swap pages (EXPERIMENTAL)"
 	depends on FRONTSWAP && CRYPTO=y
 	select CRYPTO_LZO
-<<<<<<< HEAD
 	select CRYPTO_LZ4
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	select ZPOOL
 	default n
 	help
@@ -573,7 +567,6 @@ config ZSWAP
 	  they have not be fully explored on the large set of potential
 	  configurations and workloads that exist.
 
-<<<<<<< HEAD
 config ZSWAP_COMPACTION
 	bool "Enable runtime zswap compaction"
 	depends on ZSWAP && ZPOOL && ZSMALLOC
@@ -584,8 +577,6 @@ config ZSWAP_ENABLE_WRITEBACK
 	depends on ZSWAP
 	default n
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 config ZPOOL
 	tristate "Common API for compressed memory storage"
 	default n
@@ -638,7 +629,6 @@ config ZSMALLOC_STAT
 	  information to userspace via debugfs.
 	  If unsure, say N.
 
-<<<<<<< HEAD
 config ZSMALLOC_OBJ_SEQ
 	bool "Record the sequence number of each object in itself"
 	depends on ZSMALLOC
@@ -678,8 +668,6 @@ config SWAP_ENABLE_READAHEAD
 	  This behaviour is good at disk-based system, but not on in-memory
 	  compression (e.g. zram).
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 config GENERIC_EARLY_IOREMAP
 	bool
 
@@ -697,7 +685,6 @@ config MAX_STACK_SIZE_MB
 	  changed to a smaller value in which case that is used.
 
 	  A sane initial value is 80 MB.
-<<<<<<< HEAD
 
 config MMAP_READAROUND_LIMIT
 	int "Limit mmap readaround upperbound"
@@ -715,5 +702,3 @@ config BALANCE_ANON_FILE_RECLAIM
 	  equally.
 	  Swapping anonymous pages out to memory can be efficient enough to justify
 	  treating anonymous and file backed pages equally.
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012

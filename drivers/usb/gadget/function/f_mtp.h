@@ -13,7 +13,6 @@
  *
  */
 
-<<<<<<< HEAD
 #define MTP_MAX_PACKET_LEN_FROM_APP 16
 
 #define	MTP_ACM_ENABLE		0
@@ -71,8 +70,6 @@ struct read_send_info {
 };
 
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 extern struct usb_function_instance *alloc_inst_mtp_ptp(bool mtp_config);
 extern struct usb_function *function_alloc_mtp_ptp(
 			struct usb_function_instance *fi, bool mtp_config);

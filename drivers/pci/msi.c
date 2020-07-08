@@ -200,11 +200,7 @@ u32 default_msix_mask_irq(struct msi_desc *desc, u32 flag)
 	unsigned offset = desc->msi_attrib.entry_nr * PCI_MSIX_ENTRY_SIZE +
 						PCI_MSIX_ENTRY_VECTOR_CTRL;
 	mask_bits &= ~PCI_MSIX_ENTRY_CTRL_MASKBIT;
-<<<<<<< HEAD
 	if (flag)
-=======
-	if (flag & PCI_MSIX_ENTRY_CTRL_MASKBIT)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		mask_bits |= PCI_MSIX_ENTRY_CTRL_MASKBIT;
 	writel(mask_bits, desc->mask_base + offset);
 

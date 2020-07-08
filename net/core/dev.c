@@ -2462,11 +2462,6 @@ static inline bool skb_needs_check(struct sk_buff *skb, bool tx_path)
  *
  *	It may return NULL if the skb requires no segmentation.  This is
  *	only possible when GSO is used for verifying header integrity.
-<<<<<<< HEAD
-=======
- *
- *	Segmentation preserves SKB_SGO_CB_OFFSET bytes of previous skb cb.
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
  */
 struct sk_buff *__skb_gso_segment(struct sk_buff *skb,
 				  netdev_features_t features, bool tx_path)
@@ -2482,12 +2477,6 @@ struct sk_buff *__skb_gso_segment(struct sk_buff *skb,
 			return ERR_PTR(err);
 	}
 
-<<<<<<< HEAD
-=======
-	BUILD_BUG_ON(SKB_SGO_CB_OFFSET +
-		     sizeof(*SKB_GSO_CB(skb)) > sizeof(skb->cb));
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	SKB_GSO_CB(skb)->mac_offset = skb_headroom(skb);
 	SKB_GSO_CB(skb)->encap_level = 0;
 
@@ -2673,11 +2662,7 @@ struct sk_buff *dev_hard_start_xmit(struct sk_buff *first, struct net_device *de
 		}
 
 		skb = next;
-<<<<<<< HEAD
 		if (netif_xmit_stopped(txq) && skb) {
-=======
-		if (netif_tx_queue_stopped(txq) && skb) {
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			rc = NETDEV_TX_BUSY;
 			break;
 		}
@@ -3589,25 +3574,6 @@ out:
 #endif
 
 /**
-<<<<<<< HEAD
-=======
- *	netdev_is_rx_handler_busy - check if receive handler is registered
- *	@dev: device to check
- *
- *	Check if a receive handler is already registered for a given device.
- *	Return true if there one.
- *
- *	The caller must hold the rtnl_mutex.
- */
-bool netdev_is_rx_handler_busy(struct net_device *dev)
-{
-	ASSERT_RTNL();
-	return dev && rtnl_dereference(dev->rx_handler);
-}
-EXPORT_SYMBOL_GPL(netdev_is_rx_handler_busy);
-
-/**
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
  *	netdev_rx_handler_register - register receive handler
  *	@dev: device to register a handler for
  *	@rx_handler: receive handler to register
@@ -4081,10 +4047,6 @@ static enum gro_result dev_gro_receive(struct napi_struct *napi, struct sk_buff 
 		NAPI_GRO_CB(skb)->flush = 0;
 		NAPI_GRO_CB(skb)->free = 0;
 		NAPI_GRO_CB(skb)->encap_mark = 0;
-<<<<<<< HEAD
-=======
-		NAPI_GRO_CB(skb)->is_fou = 0;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 		/* Setup for GRO checksum validation */
 		switch (skb->ip_summed) {
@@ -4302,10 +4264,7 @@ static struct sk_buff *napi_frags_skb(struct napi_struct *napi)
 	skb_reset_mac_header(skb);
 	skb_gro_reset_offset(skb);
 
-<<<<<<< HEAD
 	eth = skb_gro_header_fast(skb, 0);
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (unlikely(skb_gro_header_hard(skb, hlen))) {
 		eth = skb_gro_header_slow(skb, hlen, 0);
 		if (unlikely(!eth)) {
@@ -4313,10 +4272,6 @@ static struct sk_buff *napi_frags_skb(struct napi_struct *napi)
 			return NULL;
 		}
 	} else {
-<<<<<<< HEAD
-=======
-		eth = (const struct ethhdr *)skb->data;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		gro_pull_from_frag0(skb, hlen);
 		NAPI_GRO_CB(skb)->frag0 += hlen;
 		NAPI_GRO_CB(skb)->frag0_len -= hlen;
@@ -5660,15 +5615,11 @@ int __dev_change_flags(struct net_device *dev, unsigned int flags)
 
 	dev->flags = (flags & (IFF_DEBUG | IFF_NOTRAILERS | IFF_NOARP |
 			       IFF_DYNAMIC | IFF_MULTICAST | IFF_PORTSEL |
-<<<<<<< HEAD
 			       IFF_AUTOMEDIA
 #ifdef CONFIG_MPTCP
 					 | IFF_NOMULTIPATH | IFF_MPBACKUP
 #endif
 												)) |
-=======
-			       IFF_AUTOMEDIA)) |
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		     (dev->flags & (IFF_UP | IFF_VOLATILE | IFF_PROMISC |
 				    IFF_ALLMULTI));
 
@@ -5771,12 +5722,7 @@ static int __dev_set_mtu(struct net_device *dev, int new_mtu)
 	if (ops->ndo_change_mtu)
 		return ops->ndo_change_mtu(dev, new_mtu);
 
-<<<<<<< HEAD
 	dev->mtu = new_mtu;
-=======
-	/* Pairs with all the lockless reads of dev->mtu in the stack */
-	WRITE_ONCE(dev->mtu, new_mtu);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return 0;
 }
 
@@ -6372,11 +6318,6 @@ int register_netdevice(struct net_device *dev)
 	ret = notifier_to_errno(ret);
 	if (ret) {
 		rollback_registered(dev);
-<<<<<<< HEAD
-=======
-		rcu_barrier();
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		dev->reg_state = NETREG_UNREGISTERED;
 	}
 	/*
@@ -6526,11 +6467,7 @@ static void netdev_wait_allrefs(struct net_device *dev)
 
 		refcnt = netdev_refcnt_read(dev);
 
-<<<<<<< HEAD
 		if (time_after(jiffies, warning_time + 10 * HZ)) {
-=======
-		if (refcnt && time_after(jiffies, warning_time + 10 * HZ)) {
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			pr_emerg("unregister_netdevice: waiting for %s to become free. Usage count = %d\n",
 				 dev->name, refcnt);
 			warning_time = jiffies;
@@ -7306,11 +7243,6 @@ static void __net_exit default_device_exit(struct net *net)
 
 		/* Push remaining network devices to init_net */
 		snprintf(fb_name, IFNAMSIZ, "dev%d", dev->ifindex);
-<<<<<<< HEAD
-=======
-		if (__dev_get_by_name(&init_net, fb_name))
-			snprintf(fb_name, IFNAMSIZ, "dev%%d");
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		err = dev_change_net_namespace(dev, &init_net, fb_name);
 		if (err) {
 			pr_emerg("%s: failed to move %s to init_net: %d\n",

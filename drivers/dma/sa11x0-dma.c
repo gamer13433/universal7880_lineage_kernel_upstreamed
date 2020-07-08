@@ -612,11 +612,7 @@ static struct dma_async_tx_descriptor *sa11x0_dma_prep_slave_sg(
 
 static struct dma_async_tx_descriptor *sa11x0_dma_prep_dma_cyclic(
 	struct dma_chan *chan, dma_addr_t addr, size_t size, size_t period,
-<<<<<<< HEAD
 	enum dma_transfer_direction dir, unsigned long flags, void *context)
-=======
-	enum dma_transfer_direction dir, unsigned long flags)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 {
 	struct sa11x0_dma_chan *c = to_sa11x0_dma_chan(chan);
 	struct sa11x0_dma_desc *txd;

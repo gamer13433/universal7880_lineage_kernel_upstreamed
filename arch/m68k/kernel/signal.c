@@ -655,11 +655,7 @@ restore_sigcontext(struct pt_regs *regs, struct sigcontext __user *usc, void __u
 	int err = 0;
 
 	/* Always make any pending restarted system calls return -EINTR */
-<<<<<<< HEAD
 	current_thread_info()->restart_block.fn = do_no_restart_syscall;
-=======
-	current->restart_block.fn = do_no_restart_syscall;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	/* get previous context */
 	if (copy_from_user(&context, usc, sizeof(context)))
@@ -697,11 +693,7 @@ rt_restore_ucontext(struct pt_regs *regs, struct switch_stack *sw,
 	int err;
 
 	/* Always make any pending restarted system calls return -EINTR */
-<<<<<<< HEAD
 	current_thread_info()->restart_block.fn = do_no_restart_syscall;
-=======
-	current->restart_block.fn = do_no_restart_syscall;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	err = __get_user(temp, &uc->uc_mcontext.version);
 	if (temp != MCONTEXT_VERSION)

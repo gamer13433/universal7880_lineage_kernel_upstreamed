@@ -115,11 +115,7 @@ __nfs_iocounter_wait(struct nfs_io_counter *c)
 		set_bit(NFS_IO_INPROGRESS, &c->flags);
 		if (atomic_read(&c->io_count) == 0)
 			break;
-<<<<<<< HEAD
 		ret = nfs_wait_bit_killable(&q.key, TASK_KILLABLE);
-=======
-		ret = nfs_wait_bit_killable(&q.key);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	} while (atomic_read(&c->io_count) != 0 && !ret);
 	finish_wait(wq, &q.wait);
 	return ret;
@@ -575,11 +571,7 @@ static void nfs_pgio_rpcsetup(struct nfs_pgio_header *hdr,
 	}
 
 	hdr->res.fattr   = &hdr->fattr;
-<<<<<<< HEAD
 	hdr->res.count   = count;
-=======
-	hdr->res.count   = 0;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	hdr->res.eof     = 0;
 	hdr->res.verf    = &hdr->verf;
 	nfs_fattr_init(&hdr->fattr);

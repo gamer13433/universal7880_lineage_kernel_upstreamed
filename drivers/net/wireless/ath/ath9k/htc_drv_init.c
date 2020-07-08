@@ -766,14 +766,8 @@ err_init:
 int ath9k_htc_probe_device(struct htc_target *htc_handle, struct device *dev,
 			   u16 devid, char *product, u32 drv_info)
 {
-<<<<<<< HEAD
 	struct ieee80211_hw *hw;
 	struct ath9k_htc_priv *priv;
-=======
-	struct hif_device_usb *hif_dev;
-	struct ath9k_htc_priv *priv;
-	struct ieee80211_hw *hw;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	int ret;
 
 	hw = ieee80211_alloc_hw(sizeof(struct ath9k_htc_priv), &ath9k_htc_ops);
@@ -808,14 +802,7 @@ int ath9k_htc_probe_device(struct htc_target *htc_handle, struct device *dev,
 	return 0;
 
 err_init:
-<<<<<<< HEAD
 	ath9k_deinit_wmi(priv);
-=======
-	ath9k_stop_wmi(priv);
-	hif_dev = (struct hif_device_usb *)htc_handle->hif_dev;
-	ath9k_hif_usb_dealloc_urbs(hif_dev);
-	ath9k_destoy_wmi(priv);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 err_free:
 	ieee80211_free_hw(hw);
 	return ret;
@@ -830,11 +817,7 @@ void ath9k_htc_disconnect_device(struct htc_target *htc_handle, bool hotunplug)
 			htc_handle->drv_priv->ah->ah_flags |= AH_UNPLUGGED;
 
 		ath9k_deinit_device(htc_handle->drv_priv);
-<<<<<<< HEAD
 		ath9k_deinit_wmi(htc_handle->drv_priv);
-=======
-		ath9k_stop_wmi(htc_handle->drv_priv);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		ieee80211_free_hw(htc_handle->drv_priv->hw);
 	}
 }

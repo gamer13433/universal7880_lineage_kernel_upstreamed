@@ -50,11 +50,7 @@ extern int elf_check_arch(const struct elf32_hdr *);
  * the loader.  We need to make sure that it is out of the way of the program
  * that it will "exec", and that there is sufficient room for the brk.
  */
-<<<<<<< HEAD
 #define ELF_ET_DYN_BASE		(2 * TASK_SIZE / 3)
-=======
-#define ELF_ET_DYN_BASE		(2UL * TASK_SIZE / 3)
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /*
  * When the program starts, a1 contains a pointer to a function to be

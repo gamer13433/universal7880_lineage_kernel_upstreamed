@@ -231,30 +231,9 @@ int ax25_rebuild_header(struct sk_buff *skb)
 
 #endif
 
-<<<<<<< HEAD
 const struct header_ops ax25_header_ops = {
 	.create = ax25_hard_header,
 	.rebuild = ax25_rebuild_header,
-=======
-static bool ax25_validate_header(const char *header, unsigned int len)
-{
-	ax25_digi digi;
-
-	if (!len)
-		return false;
-
-	if (header[0])
-		return true;
-
-	return ax25_addr_parse(header + 1, len - 1, NULL, NULL, &digi, NULL,
-			       NULL);
-}
-
-const struct header_ops ax25_header_ops = {
-	.create = ax25_hard_header,
-	.rebuild = ax25_rebuild_header,
-	.validate = ax25_validate_header,
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 EXPORT_SYMBOL(ax25_hard_header);

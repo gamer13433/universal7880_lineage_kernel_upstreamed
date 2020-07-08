@@ -308,15 +308,9 @@ static inline int hb_waiters_pending(struct futex_hash_bucket *hb)
  */
 static struct futex_hash_bucket *hash_futex(union futex_key *key)
 {
-<<<<<<< HEAD
 	u32 hash = jhash2((u32*)&key->both.word,
 			  (sizeof(key->both.word)+sizeof(key->both.ptr))/4,
 			  key->both.offset);
-=======
-	u32 hash = jhash2((u32 *)key, offsetof(typeof(*key), both.offset) / 4,
-			  key->both.offset);
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return &futex_queues[hash & (futex_hashsize - 1)];
 }
 
@@ -343,11 +337,7 @@ static void get_futex_key_refs(union futex_key *key)
 
 	switch (key->both.offset & (FUT_OFF_INODE|FUT_OFF_MMSHARED)) {
 	case FUT_OFF_INODE:
-<<<<<<< HEAD
 		ihold(key->shared.inode); /* implies MB (B) */
-=======
-		smp_mb();		/* explicit smp_mb(); (B) */
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		break;
 	case FUT_OFF_MMSHARED:
 		futex_get_mm(key); /* implies MB (B) */
@@ -378,10 +368,7 @@ static void drop_futex_key_refs(union futex_key *key)
 
 	switch (key->both.offset & (FUT_OFF_INODE|FUT_OFF_MMSHARED)) {
 	case FUT_OFF_INODE:
-<<<<<<< HEAD
 		iput(key->shared.inode);
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		break;
 	case FUT_OFF_MMSHARED:
 		mmdrop(key->private.mm);
@@ -389,49 +376,6 @@ static void drop_futex_key_refs(union futex_key *key)
 	}
 }
 
-<<<<<<< HEAD
-=======
-/*
- * Generate a machine wide unique identifier for this inode.
- *
- * This relies on u64 not wrapping in the life-time of the machine; which with
- * 1ns resolution means almost 585 years.
- *
- * This further relies on the fact that a well formed program will not unmap
- * the file while it has a (shared) futex waiting on it. This mapping will have
- * a file reference which pins the mount and inode.
- *
- * If for some reason an inode gets evicted and read back in again, it will get
- * a new sequence number and will _NOT_ match, even though it is the exact same
- * file.
- *
- * It is important that match_futex() will never have a false-positive, esp.
- * for PI futexes that can mess up the state. The above argues that false-negatives
- * are only possible for malformed programs.
- */
-static u64 get_inode_sequence_number(struct inode *inode)
-{
-	static atomic64_t i_seq;
-	u64 old;
-
-	/* Does the inode already have a sequence number? */
-	old = atomic64_read(&inode->i_sequence);
-	if (likely(old))
-		return old;
-
-	for (;;) {
-		u64 new = atomic64_add_return(1, &i_seq);
-		if (WARN_ON_ONCE(!new))
-			continue;
-
-		old = atomic64_cmpxchg_relaxed(&inode->i_sequence, 0, new);
-		if (old)
-			return old;
-		return new;
-	}
-}
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /**
  * get_futex_key() - Get parameters which are the keys for a futex
  * @uaddr:	virtual address of the futex
@@ -444,21 +388,9 @@ static u64 get_inode_sequence_number(struct inode *inode)
  *
  * The key words are stored in *key on success.
  *
-<<<<<<< HEAD
  * For shared mappings, it's (page->index, file_inode(vma->vm_file),
  * offset_within_page).  For private mappings, it's (uaddr, current->mm).
  * We can usually work out the index without swapping in the page.
-=======
- * For shared mappings (when @fshared), the key is:
- *   ( inode->i_sequence, page->index, offset_within_page )
- * [ also see get_inode_sequence_number() ]
- *
- * For private mappings (or when !@fshared), the key is:
- *   ( current->mm, address, 0 )
- *
- * This allows (cross process, where applicable) identification of the futex
- * without keeping the page pinned for the duration of the FUTEX_WAIT.
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
  *
  * lock_page() might sleep, the caller should not hold a spinlock.
  */
@@ -468,10 +400,6 @@ get_futex_key(u32 __user *uaddr, int fshared, union futex_key *key, int rw)
 	unsigned long address = (unsigned long)uaddr;
 	struct mm_struct *mm = current->mm;
 	struct page *page, *page_head;
-<<<<<<< HEAD
-=======
-	struct address_space *mapping;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	int err, ro = 0;
 
 	/*
@@ -550,23 +478,7 @@ again:
 	}
 #endif
 
-<<<<<<< HEAD
 	lock_page(page_head);
-=======
-	/*
-	 * The treatment of mapping from this point on is critical. The page
-	 * lock protects many things but in this context the page lock
-	 * stabilizes mapping, prevents inode freeing in the shared
-	 * file-backed region case and guards against movement to swap cache.
-	 *
-	 * Strictly speaking the page lock is not needed in all cases being
-	 * considered here and page lock forces unnecessarily serialization
-	 * From this point on, mapping will be re-verified if necessary and
-	 * page lock will be acquired only if it is unavoidable
-	 */
-
-	mapping = READ_ONCE(page_head->mapping);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	/*
 	 * If page_head->mapping is NULL, then it cannot be a PageAnon
@@ -583,43 +495,17 @@ again:
 	 * shmem_writepage move it from filecache to swapcache beneath us:
 	 * an unlikely race, but we do need to retry for page_head->mapping.
 	 */
-<<<<<<< HEAD
 		if (!page_head->mapping) {
 		int shmem_swizzled = PageSwapCache(page_head);
 		unlock_page(page_head);
 		put_page(page_head);
 		if (shmem_swizzled)
 			goto again;
-=======
-	if (unlikely(!mapping)) {
-		int shmem_swizzled;
-
-		/*
-		 * Page lock is required to identify which special case above
-		 * applies. If this is really a shmem page then the page lock
-		 * will prevent unexpected transitions.
-		 */
-		lock_page(page_head);
-		shmem_swizzled = PageSwapCache(page_head) || page_head->mapping;
-		unlock_page(page_head);
-		put_page(page_head);
-
-		if (shmem_swizzled)
-			goto again;
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		return -EFAULT;
 	}
 
 	/*
 	 * Private mappings are handled in a simple way.
-<<<<<<< HEAD
-=======
-	 *
-	 * If the futex key is stored on an anonymous page, then the associated
-	 * object is the mm which is implicitly pinned by the calling process.
-	 *
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	 * NOTE: When userspace waits on a MAP_SHARED mapping, even if
 	 * it's a read-only handle, it's expected that futexes attach to
 	 * the object not the particular process.
@@ -637,7 +523,6 @@ again:
 		key->both.offset |= FUT_OFF_MMSHARED; /* ref taken on mm */
 		key->private.mm = mm;
 		key->private.address = address;
-<<<<<<< HEAD
 	} else {
 		key->both.offset |= FUT_OFF_INODE; /* inode-based key */
 		key->shared.inode = page_head->mapping->host;
@@ -648,49 +533,6 @@ again:
 
 out:
 	unlock_page(page_head);
-=======
-
-	} else {
-		struct inode *inode;
-
-		/*
-		 * The associated futex object in this case is the inode and
-		 * the page->mapping must be traversed. Ordinarily this should
-		 * be stabilised under page lock but it's not strictly
-		 * necessary in this case as we just want to pin the inode, not
-		 * update the radix tree or anything like that.
-		 *
-		 * The RCU read lock is taken as the inode is finally freed
-		 * under RCU. If the mapping still matches expectations then the
-		 * mapping->host can be safely accessed as being a valid inode.
-		 */
-		rcu_read_lock();
-
-		if (READ_ONCE(page_head->mapping) != mapping) {
-			rcu_read_unlock();
-			put_page(page_head);
-
-			goto again;
-		}
-
-		inode = READ_ONCE(mapping->host);
-		if (!inode) {
-			rcu_read_unlock();
-			put_page(page_head);
-
-			goto again;
-		}
-
-		key->both.offset |= FUT_OFF_INODE; /* inode-based key */
-		key->shared.i_seq = get_inode_sequence_number(inode);
-		key->shared.pgoff = basepage_index(page);
-		rcu_read_unlock();
-	}
-
-	get_futex_key_refs(key); /* implies smp_mb(); (B) */
-
-out:
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	put_page(page_head);
 	return err;
 }
@@ -1671,12 +1513,6 @@ static int futex_requeue(u32 __user *uaddr1, unsigned int flags,
 	struct futex_hash_bucket *hb1, *hb2;
 	struct futex_q *this, *next;
 
-<<<<<<< HEAD
-=======
-	if (nr_wake < 0 || nr_requeue < 0)
-		return -EINVAL;
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	if (requeue_pi) {
 		/*
 		 * Requeue PI only works on two distinct uaddrs. This
@@ -2390,11 +2226,7 @@ retry:
 	if (!abs_time)
 		goto out;
 
-<<<<<<< HEAD
 	restart = &current_thread_info()->restart_block;
-=======
-	restart = &current->restart_block;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	restart->fn = futex_wait_restart;
 	restart->futex.uaddr = uaddr;
 	restart->futex.val = val;
@@ -2977,13 +2809,6 @@ int handle_futex_death(u32 __user *uaddr, struct task_struct *curr, int pi)
 {
 	u32 uval, uninitialized_var(nval), mval;
 
-<<<<<<< HEAD
-=======
-	/* Futex address must be 32bit aligned */
-	if ((((unsigned long)uaddr) % sizeof(*uaddr)) != 0)
-		return -1;
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 retry:
 	if (get_user(uval, uaddr))
 		return -1;

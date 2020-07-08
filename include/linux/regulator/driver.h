@@ -149,14 +149,9 @@ struct regulator_ops {
 	int (*set_mode) (struct regulator_dev *, unsigned int mode);
 	unsigned int (*get_mode) (struct regulator_dev *);
 
-<<<<<<< HEAD
 	/* Time taken to set voltage on the regulator */
 	int (*enable_time) (struct regulator_dev *);
 	int (*disable_time) (struct regulator_dev *);
-=======
-	/* Time taken to enable or set voltage on the regulator */
-	int (*enable_time) (struct regulator_dev *);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	int (*set_ramp_delay) (struct regulator_dev *, int ramp_delay);
 	int (*set_voltage_time_sel) (struct regulator_dev *,
 				     unsigned int old_selector,
@@ -291,10 +286,7 @@ struct regulator_desc {
 	unsigned int enable_time;
 
 	unsigned int off_on_delay;
-<<<<<<< HEAD
 	unsigned int disable_time;
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 /**

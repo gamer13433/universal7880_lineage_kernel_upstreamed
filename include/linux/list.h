@@ -28,60 +28,27 @@ static inline void INIT_LIST_HEAD(struct list_head *list)
 	list->prev = list;
 }
 
-<<<<<<< HEAD
-=======
-#ifdef CONFIG_DEBUG_LIST
-extern bool __list_add_valid(struct list_head *new,
-			      struct list_head *prev,
-			      struct list_head *next);
-extern bool __list_del_entry_valid(struct list_head *entry);
-#else
-static inline bool __list_add_valid(struct list_head *new,
-				struct list_head *prev,
-				struct list_head *next)
-{
-	return true;
-}
-static inline bool __list_del_entry_valid(struct list_head *entry)
-{
-	return true;
-}
-#endif
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /*
  * Insert a new entry between two known consecutive entries.
  *
  * This is only for internal list manipulation where we know
  * the prev/next entries already!
  */
-<<<<<<< HEAD
 #ifndef CONFIG_DEBUG_LIST
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static inline void __list_add(struct list_head *new,
 			      struct list_head *prev,
 			      struct list_head *next)
 {
-<<<<<<< HEAD
-=======
-	if (!__list_add_valid(new, prev, next))
-		return;
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	next->prev = new;
 	new->next = next;
 	new->prev = prev;
 	prev->next = new;
 }
-<<<<<<< HEAD
 #else
 extern void __list_add(struct list_head *new,
 			      struct list_head *prev,
 			      struct list_head *next);
 #endif
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /**
  * list_add - add a new entry
@@ -129,23 +96,14 @@ static inline void __list_del(struct list_head * prev, struct list_head * next)
  * Note: list_empty() on entry does not return true after this, the entry is
  * in an undefined state.
  */
-<<<<<<< HEAD
 #ifndef CONFIG_DEBUG_LIST
 static inline void __list_del_entry(struct list_head *entry)
 {
-=======
-static inline void __list_del_entry(struct list_head *entry)
-{
-	if (!__list_del_entry_valid(entry))
-		return;
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	__list_del(entry->prev, entry->next);
 }
 
 static inline void list_del(struct list_head *entry)
 {
-<<<<<<< HEAD
 	__list_del(entry->prev, entry->next);
 	entry->next = LIST_POISON1;
 	entry->prev = LIST_POISON2;
@@ -154,12 +112,6 @@ static inline void list_del(struct list_head *entry)
 extern void __list_del_entry(struct list_head *entry);
 extern void list_del(struct list_head *entry);
 #endif
-=======
-	__list_del_entry(entry);
-	entry->next = LIST_POISON1;
-	entry->prev = LIST_POISON2;
-}
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /**
  * list_replace - replace old entry by new one

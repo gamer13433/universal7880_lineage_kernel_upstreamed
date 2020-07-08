@@ -22,11 +22,6 @@ struct ata_port_info;
 struct ahci_host_priv;
 struct platform_device;
 
-<<<<<<< HEAD
-=======
-int ahci_platform_enable_phys(struct ahci_host_priv *hpriv);
-void ahci_platform_disable_phys(struct ahci_host_priv *hpriv);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 int ahci_platform_enable_clks(struct ahci_host_priv *hpriv);
 void ahci_platform_disable_clks(struct ahci_host_priv *hpriv);
 int ahci_platform_enable_resources(struct ahci_host_priv *hpriv);

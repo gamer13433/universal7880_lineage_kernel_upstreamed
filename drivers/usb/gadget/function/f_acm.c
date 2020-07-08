@@ -22,13 +22,9 @@
 
 #include "u_serial.h"
 #include "gadget_chips.h"
-<<<<<<< HEAD
 #ifdef CONFIG_USB_DUN_SUPPORT
 #include "serial_acm.c"
 #endif
-=======
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 /*
  * This CDC ACM function support just wraps control functions and
@@ -319,25 +315,15 @@ static void acm_complete_set_line_coding(struct usb_ep *ep,
 	struct usb_composite_dev *cdev = acm->port.func.config->cdev;
 
 	if (req->status != 0) {
-<<<<<<< HEAD
 		DBG(cdev, "acm ttyGS%d completion, err %d\n",
 				acm->port_num, req->status);
-=======
-		dev_dbg(&cdev->gadget->dev, "acm ttyGS%d completion, err %d\n",
-			acm->port_num, req->status);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		return;
 	}
 
 	/* normal completion */
 	if (req->actual != sizeof(acm->port_line_coding)) {
-<<<<<<< HEAD
 		DBG(cdev, "acm ttyGS%d short resp, len %d\n",
 				acm->port_num, req->actual);
-=======
-		dev_dbg(&cdev->gadget->dev, "acm ttyGS%d short resp, len %d\n",
-			acm->port_num, req->actual);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		usb_ep_set_halt(ep);
 	} else {
 		struct usb_cdc_line_coding	*value = req->buf;
@@ -409,36 +395,21 @@ static int acm_setup(struct usb_function *f, const struct usb_ctrlrequest *ctrl)
 		 * that bit, we should return to that no-flow state.
 		 */
 		acm->port_handshake_bits = w_value;
-<<<<<<< HEAD
 #ifdef CONFIG_USB_DUN_SUPPORT
 		notify_control_line_state((unsigned long)w_value);
 #endif
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		break;
 
 	default:
 invalid:
-<<<<<<< HEAD
 		VDBG(cdev, "invalid control req%02x.%02x v%04x i%04x l%d\n",
 			ctrl->bRequestType, ctrl->bRequest,
 			w_value, w_index, w_length);
-=======
-		dev_vdbg(&cdev->gadget->dev,
-			 "invalid control req%02x.%02x v%04x i%04x l%d\n",
-			 ctrl->bRequestType, ctrl->bRequest,
-			 w_value, w_index, w_length);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 	/* respond with data transfer or status phase? */
 	if (value >= 0) {
-<<<<<<< HEAD
 		DBG(cdev, "acm ttyGS%d req%02x.%02x v%04x i%04x l%d\n",
-=======
-		dev_dbg(&cdev->gadget->dev,
-			"acm ttyGS%d req%02x.%02x v%04x i%04x l%d\n",
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			acm->port_num, ctrl->bRequestType, ctrl->bRequest,
 			w_value, w_index, w_length);
 		req->zero = 0;
@@ -462,12 +433,7 @@ static int acm_set_alt(struct usb_function *f, unsigned intf, unsigned alt)
 
 	if (intf == acm->ctrl_id) {
 		if (acm->notify->driver_data) {
-<<<<<<< HEAD
 			VDBG(cdev, "reset acm control interface %d\n", intf);
-=======
-			dev_vdbg(&cdev->gadget->dev,
-				 "reset acm control interface %d\n", intf);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			usb_ep_disable(acm->notify);
 		}
 
@@ -480,21 +446,11 @@ static int acm_set_alt(struct usb_function *f, unsigned intf, unsigned alt)
 
 	} else if (intf == acm->data_id) {
 		if (acm->port.in->driver_data) {
-<<<<<<< HEAD
 			DBG(cdev, "reset acm ttyGS%d\n", acm->port_num);
 			gserial_disconnect(&acm->port);
 		}
 		if (!acm->port.in->desc || !acm->port.out->desc) {
 			DBG(cdev, "activate acm ttyGS%d\n", acm->port_num);
-=======
-			dev_dbg(&cdev->gadget->dev,
-				"reset acm ttyGS%d\n", acm->port_num);
-			gserial_disconnect(&acm->port);
-		}
-		if (!acm->port.in->desc || !acm->port.out->desc) {
-			dev_dbg(&cdev->gadget->dev,
-				"activate acm ttyGS%d\n", acm->port_num);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			if (config_ep_by_speed(cdev->gadget, f,
 					       acm->port.in) ||
 			    config_ep_by_speed(cdev->gadget, f,
@@ -517,11 +473,7 @@ static void acm_disable(struct usb_function *f)
 	struct f_acm	*acm = func_to_acm(f);
 	struct usb_composite_dev *cdev = f->config->cdev;
 
-<<<<<<< HEAD
 	DBG(cdev, "acm ttyGS%d deactivated\n", acm->port_num);
-=======
-	dev_dbg(&cdev->gadget->dev, "acm ttyGS%d deactivated\n", acm->port_num);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	gserial_disconnect(&acm->port);
 	usb_ep_disable(acm->notify);
 	acm->notify->driver_data = NULL;
@@ -588,7 +540,6 @@ static int acm_notify_serial_state(struct f_acm *acm)
 {
 	struct usb_composite_dev *cdev = acm->port.func.config->cdev;
 	int			status;
-<<<<<<< HEAD
 	unsigned long	flags;
 
 	spin_lock_irqsave(&acm->lock, flags);
@@ -598,26 +549,11 @@ static int acm_notify_serial_state(struct f_acm *acm)
 				acm->port_num, acm->serial_state);
 		status = acm_cdc_notify(acm, USB_CDC_NOTIFY_SERIAL_STATE,
 				0, &acm->serial_state, sizeof(acm->serial_state));
-=======
-	__le16			serial_state;
-
-	spin_lock(&acm->lock);
-	if (acm->notify_req) {
-		dev_dbg(&cdev->gadget->dev, "acm ttyGS%d serial state %04x\n",
-			acm->port_num, acm->serial_state);
-		serial_state = cpu_to_le16(acm->serial_state);
-		status = acm_cdc_notify(acm, USB_CDC_NOTIFY_SERIAL_STATE,
-				0, &serial_state, sizeof(acm->serial_state));
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	} else {
 		acm->pending = true;
 		status = 0;
 	}
-<<<<<<< HEAD
 	spin_unlock_irqrestore(&acm->lock, flags);
-=======
-	spin_unlock(&acm->lock);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return status;
 }
 
@@ -625,33 +561,21 @@ static void acm_cdc_notify_complete(struct usb_ep *ep, struct usb_request *req)
 {
 	struct f_acm		*acm = req->context;
 	u8			doit = false;
-<<<<<<< HEAD
 	unsigned long	flags;
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	/* on this call path we do NOT hold the port spinlock,
 	 * which is why ACM needs its own spinlock
 	 */
-<<<<<<< HEAD
 	spin_lock_irqsave(&acm->lock, flags);
 	if (req->status != -ESHUTDOWN)
 		doit = acm->pending;
 	acm->notify_req = req;
 	spin_unlock_irqrestore(&acm->lock, flags);
-=======
-	spin_lock(&acm->lock);
-	if (req->status != -ESHUTDOWN)
-		doit = acm->pending;
-	acm->notify_req = req;
-	spin_unlock(&acm->lock);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if (doit)
 		acm_notify_serial_state(acm);
 }
 
-<<<<<<< HEAD
 #ifdef CONFIG_USB_DUN_SUPPORT
 int acm_notify(void *dev, u16 state)
 {
@@ -667,8 +591,6 @@ int acm_notify(void *dev, u16 state)
 	return 0;
 }
 #endif
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /* connect == the TTY link is open */
 
 static void acm_connect(struct gserial *port)
@@ -709,10 +631,6 @@ acm_bind(struct usb_configuration *c, struct usb_function *f)
 {
 	struct usb_composite_dev *cdev = c->cdev;
 	struct f_acm		*acm = func_to_acm(f);
-<<<<<<< HEAD
-=======
-	struct usb_string	*us;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	int			status;
 	struct usb_ep		*ep;
 
@@ -721,7 +639,6 @@ acm_bind(struct usb_configuration *c, struct usb_function *f)
 	 */
 
 	/* maybe allocate device-global string IDs, and patch descriptors */
-<<<<<<< HEAD
 	if (acm_string_defs[ACM_CTRL_IDX].id == 0) {
 		status = usb_string_id(c->cdev);
 		if (status < 0)
@@ -744,15 +661,6 @@ acm_bind(struct usb_configuration *c, struct usb_function *f)
 
 		acm_iad_descriptor.iFunction = status;
 	}
-=======
-	us = usb_gstrings_attach(cdev, acm_strings,
-			ARRAY_SIZE(acm_string_defs));
-	if (IS_ERR(us))
-		return PTR_ERR(us);
-	acm_control_interface_desc.iInterface = us[ACM_CTRL_IDX].id;
-	acm_data_interface_desc.iInterface = us[ACM_DATA_IDX].id;
-	acm_iad_descriptor.iFunction = us[ACM_IAD_IDX].id;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	/* allocate instance-specific interface IDs, and patch descriptors */
 	status = usb_interface_id(c, f);
@@ -821,7 +729,6 @@ acm_bind(struct usb_configuration *c, struct usb_function *f)
 	if (status)
 		goto fail;
 
-<<<<<<< HEAD
 	DBG(cdev, "acm ttyGS%d: %s speed IN/%s OUT/%s NOTIFY/%s\n",
 			acm->port_num,
 			gadget_is_superspeed(c->cdev->gadget) ? "super" :
@@ -831,15 +738,6 @@ acm_bind(struct usb_configuration *c, struct usb_function *f)
 #ifdef CONFIG_USB_DUN_SUPPORT
 	modem_register(acm);
 #endif
-=======
-	dev_dbg(&cdev->gadget->dev,
-		"acm ttyGS%d: %s speed IN/%s OUT/%s NOTIFY/%s\n",
-		acm->port_num,
-		gadget_is_superspeed(c->cdev->gadget) ? "super" :
-		gadget_is_dualspeed(c->cdev->gadget) ? "dual" : "full",
-		acm->port.in->name, acm->port.out->name,
-		acm->notify->name);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return 0;
 
 fail:
@@ -863,7 +761,6 @@ static void acm_unbind(struct usb_configuration *c, struct usb_function *f)
 {
 	struct f_acm		*acm = func_to_acm(f);
 
-<<<<<<< HEAD
 	/* acm_string_defs[].id is limited to 256
 	if id is cleared on disconneting, The increased number is allocated on connecting.
 	ACM driver can't connect to host when id is over 256 */
@@ -876,12 +773,6 @@ static void acm_unbind(struct usb_configuration *c, struct usb_function *f)
 #ifdef CONFIG_USB_DUN_SUPPORT
 	modem_unregister();
 #endif
-=======
-	acm_string_defs[0].id = 0;
-	usb_free_all_descriptors(f);
-	if (acm->notify_req)
-		gs_free_req(acm->notify, acm->notify_req);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 static void acm_free_func(struct usb_function *f)
@@ -915,7 +806,6 @@ static struct usb_function *acm_alloc_func(struct usb_function_instance *fi)
 	acm->port.func.disable = acm_disable;
 
 	opts = container_of(fi, struct f_serial_opts, func_inst);
-<<<<<<< HEAD
 #ifdef CONFIG_USB_ANDROID_SAMSUNG_COMPOSITE
 	acm->port.func.name = kasprintf(GFP_KERNEL, "acm%u", opts->port_num);
 	if (!acm->port.func.name) {
@@ -925,8 +815,6 @@ static struct usb_function *acm_alloc_func(struct usb_function_instance *fi)
 #else
 	acm->port.func.name = "acm";
 #endif
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	acm->port_num = opts->port_num;
 	acm->port.func.unbind = acm_unbind;
 	acm->port.func.free_func = acm_free_func;
@@ -1015,7 +903,6 @@ static struct usb_function_instance *acm_alloc_instance(void)
 	return &opts->func_inst;
 }
 DECLARE_USB_FUNCTION_INIT(acm, acm_alloc_instance, acm_alloc_func);
-<<<<<<< HEAD
 
 #ifdef CONFIG_USB_ANDROID_SAMSUNG_COMPOSITE
 static int __init acm_init(void)
@@ -1039,6 +926,4 @@ module_init(acm_init);
 module_exit(acm_exit);
 #endif
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 MODULE_LICENSE("GPL");

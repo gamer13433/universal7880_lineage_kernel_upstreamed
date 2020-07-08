@@ -786,11 +786,7 @@ static int longhaul_cpu_init(struct cpufreq_policy *policy)
 		break;
 
 	case 7:
-<<<<<<< HEAD
 		switch (c->x86_mask) {
-=======
-		switch (c->x86_stepping) {
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		case 0:
 			longhaul_version = TYPE_LONGHAUL_V1;
 			cpu_model = CPU_SAMUEL2;
@@ -802,11 +798,7 @@ static int longhaul_cpu_init(struct cpufreq_policy *policy)
 			break;
 		case 1 ... 15:
 			longhaul_version = TYPE_LONGHAUL_V2;
-<<<<<<< HEAD
 			if (c->x86_mask < 8) {
-=======
-			if (c->x86_stepping < 8) {
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 				cpu_model = CPU_SAMUEL2;
 				cpuname = "C3 'Samuel 2' [C5B]";
 			} else {
@@ -833,11 +825,7 @@ static int longhaul_cpu_init(struct cpufreq_policy *policy)
 		numscales = 32;
 		memcpy(mults, nehemiah_mults, sizeof(nehemiah_mults));
 		memcpy(eblcr, nehemiah_eblcr, sizeof(nehemiah_eblcr));
-<<<<<<< HEAD
 		switch (c->x86_mask) {
-=======
-		switch (c->x86_stepping) {
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		case 0 ... 1:
 			cpu_model = CPU_NEHEMIAH;
 			cpuname = "C3 'Nehemiah A' [C5XLOE]";

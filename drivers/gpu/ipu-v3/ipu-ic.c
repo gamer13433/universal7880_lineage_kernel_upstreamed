@@ -255,11 +255,7 @@ static int init_csc(struct ipu_ic *ic,
 	writel(param, base++);
 
 	param = ((a[0] & 0x1fe0) >> 5) | (params->scale << 8) |
-<<<<<<< HEAD
 		(params->sat << 9);
-=======
-		(params->sat << 10);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	writel(param, base++);
 
 	param = ((a[1] & 0x1f) << 27) | ((c[0][1] & 0x1ff) << 18) |

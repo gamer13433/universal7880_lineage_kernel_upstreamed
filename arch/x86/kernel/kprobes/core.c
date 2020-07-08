@@ -344,13 +344,6 @@ int __copy_instruction(u8 *dest, u8 *src)
 		return 0;
 	memcpy(dest, insn.kaddr, length);
 
-<<<<<<< HEAD
-=======
-	/* We should not singlestep on the exception masking instructions */
-	if (insn_masking_exception(&insn))
-		return 0;
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #ifdef CONFIG_X86_64
 	if (insn_rip_relative(&insn)) {
 		s64 newdisp;

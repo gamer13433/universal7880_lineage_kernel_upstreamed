@@ -1787,11 +1787,7 @@ static void __jbd2_journal_temp_unlink_buffer(struct journal_head *jh)
 	__blist_del_buffer(list, jh);
 	jh->b_jlist = BJ_None;
 	if (test_clear_buffer_jbddirty(bh))
-<<<<<<< HEAD
 		mark_buffer_dirty_sync(bh); /* Expose it to the VM */
-=======
-		mark_buffer_dirty(bh);	/* Expose it to the VM */
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 /*
@@ -2118,26 +2114,14 @@ static int journal_unmap_buffer(journal_t *journal, struct buffer_head *bh,
 			return -EBUSY;
 		}
 		/*
-<<<<<<< HEAD
 		 * OK, buffer won't be reachable after truncate. We just set
 		 * j_next_transaction to the running transaction (if there is
 		 * one) and mark buffer as freed so that commit code knows it
 		 * should clear dirty bits when it is done with the buffer.
-=======
-		 * OK, buffer won't be reachable after truncate. We just clear
-		 * b_modified to not confuse transaction credit accounting, and
-		 * set j_next_transaction to the running transaction (if there
-		 * is one) and mark buffer as freed so that commit code knows
-		 * it should clear dirty bits when it is done with the buffer.
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		 */
 		set_buffer_freed(bh);
 		if (journal->j_running_transaction && buffer_jbddirty(bh))
 			jh->b_next_transaction = journal->j_running_transaction;
-<<<<<<< HEAD
-=======
-		jh->b_modified = 0;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		jbd2_journal_put_journal_head(jh);
 		spin_unlock(&journal->j_list_lock);
 		jbd_unlock_bh_state(bh);

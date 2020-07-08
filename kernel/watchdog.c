@@ -24,13 +24,10 @@
 #include <linux/kvm_para.h>
 #include <linux/perf_event.h>
 
-<<<<<<< HEAD
 #ifdef CONFIG_SEC_DEBUG_EXTRA_INFO
 #include <linux/sec_debug.h>
 #endif
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 int watchdog_user_enabled = 1;
 int __read_mostly watchdog_thresh = 10;
 #ifdef CONFIG_SMP
@@ -303,19 +300,12 @@ static void watchdog_check_hardlockup_other_cpu(void)
 		if (per_cpu(hard_watchdog_warn, next_cpu) == true)
 			return;
 
-<<<<<<< HEAD
 		if (hardlockup_panic) {
 			exynos_ss_set_hardlockup(hardlockup_panic);
 			panic("Watchdog detected hard LOCKUP on cpu %u", next_cpu);
 		} else {
 			WARN(1, "Watchdog detected hard LOCKUP on cpu %u", next_cpu);
 		}
-=======
-		if (hardlockup_panic)
-			panic("Watchdog detected hard LOCKUP on cpu %u", next_cpu);
-		else
-			WARN(1, "Watchdog detected hard LOCKUP on cpu %u", next_cpu);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 		per_cpu(hard_watchdog_warn, next_cpu) = true;
 	} else {
@@ -373,7 +363,6 @@ static void watchdog_overflow_callback(struct perf_event *event,
 		if (__this_cpu_read(hard_watchdog_warn) == true)
 			return;
 
-<<<<<<< HEAD
 		if (hardlockup_panic) {
 			exynos_ss_set_hardlockup(hardlockup_panic);
 			panic("Watchdog detected hard LOCKUP on cpu %d",
@@ -382,14 +371,6 @@ static void watchdog_overflow_callback(struct perf_event *event,
 			WARN(1, "Watchdog detected hard LOCKUP on cpu %d",
 			     this_cpu);
 		}
-=======
-		if (hardlockup_panic)
-			panic("Watchdog detected hard LOCKUP on cpu %d",
-			      this_cpu);
-		else
-			WARN(1, "Watchdog detected hard LOCKUP on cpu %d",
-			     this_cpu);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 		__this_cpu_write(hard_watchdog_warn, true);
 		return;
@@ -416,12 +397,9 @@ static enum hrtimer_restart watchdog_timer_fn(struct hrtimer *hrtimer)
 	int duration;
 	int softlockup_all_cpu_backtrace = sysctl_softlockup_all_cpu_backtrace;
 
-<<<<<<< HEAD
 	/* try to enable log_kevent of exynos-snapshot if log_kevent was off because of rcu stall */
 	exynos_ss_try_enable("log_kevent", NSEC_PER_SEC * 180);
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	/* kick the hardlockup detector */
 	watchdog_interrupt_count();
 
@@ -495,11 +473,7 @@ static enum hrtimer_restart watchdog_timer_fn(struct hrtimer *hrtimer)
 			}
 		}
 
-<<<<<<< HEAD
 		pr_auto(ASL1, "BUG: soft lockup - CPU#%d stuck for %us! [%s:%d]\n",
-=======
-		pr_emerg("BUG: soft lockup - CPU#%d stuck for %us! [%s:%d]\n",
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			smp_processor_id(), duration,
 			current->comm, task_pid_nr(current));
 		__this_cpu_write(softlockup_task_ptr_saved, current);
@@ -522,7 +496,6 @@ static enum hrtimer_restart watchdog_timer_fn(struct hrtimer *hrtimer)
 		}
 
 		add_taint(TAINT_SOFTLOCKUP, LOCKDEP_STILL_OK);
-<<<<<<< HEAD
 		if (softlockup_panic) {
 #ifdef CONFIG_SEC_DEBUG_EXTRA_INFO
 			if (regs) {
@@ -532,10 +505,6 @@ static enum hrtimer_restart watchdog_timer_fn(struct hrtimer *hrtimer)
 #endif
 			panic("softlockup: hung tasks");
 		}
-=======
-		if (softlockup_panic)
-			panic("softlockup: hung tasks");
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		__this_cpu_write(soft_watchdog_warn, true);
 	} else
 		__this_cpu_write(soft_watchdog_warn, false);

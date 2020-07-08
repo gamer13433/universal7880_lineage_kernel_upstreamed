@@ -41,10 +41,7 @@ struct mm_struct;
 extern void show_pte(struct mm_struct *mm, unsigned long addr);
 extern void __show_regs(struct pt_regs *);
 
-<<<<<<< HEAD
 void soft_restart(unsigned long);
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 extern void (*arm_pm_restart)(enum reboot_mode reboot_mode, const char *cmd);
 
 #define UDBG_UNDEFINED	(1 << 0)

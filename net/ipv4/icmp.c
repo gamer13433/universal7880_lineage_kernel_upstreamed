@@ -255,18 +255,10 @@ bool icmp_global_allow(void)
 	bool rc = false;
 
 	/* Check if token bucket is empty and cannot be refilled
-<<<<<<< HEAD
 	 * without taking the spinlock.
 	 */
 	if (!icmp_global.credit) {
 		delta = min_t(u32, now - icmp_global.stamp, HZ);
-=======
-	 * without taking the spinlock. The READ_ONCE() are paired
-	 * with the following WRITE_ONCE() in this same function.
-	 */
-	if (!READ_ONCE(icmp_global.credit)) {
-		delta = min_t(u32, now - READ_ONCE(icmp_global.stamp), HZ);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		if (delta < HZ / 50)
 			return false;
 	}
@@ -276,22 +268,14 @@ bool icmp_global_allow(void)
 	if (delta >= HZ / 50) {
 		incr = sysctl_icmp_msgs_per_sec * delta / HZ ;
 		if (incr)
-<<<<<<< HEAD
 			icmp_global.stamp = now;
-=======
-			WRITE_ONCE(icmp_global.stamp, now);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 	credit = min_t(u32, icmp_global.credit + incr, sysctl_icmp_msgs_burst);
 	if (credit) {
 		credit--;
 		rc = true;
 	}
-<<<<<<< HEAD
 	icmp_global.credit = credit;
-=======
-	WRITE_ONCE(icmp_global.credit, credit);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	spin_unlock(&icmp_global.lock);
 	return rc;
 }

@@ -23,24 +23,16 @@
 #ifndef _EXYNOS_THERMAL_COMMON_H
 #define _EXYNOS_THERMAL_COMMON_H
 
-<<<<<<< HEAD
 #include <linux/types.h>
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /* In-kernel thermal framework related macros & definations */
 #define SENSOR_NAME_LEN	16
 #define MAX_TRIP_COUNT	8
 #define MAX_COOLING_DEVICE 4
 #define MAX_TRIMINFO_CTRL_REG	2
 
-<<<<<<< HEAD
 #define ACTIVE_INTERVAL 300
 #define IDLE_INTERVAL 	500
-=======
-#define ACTIVE_INTERVAL 500
-#define IDLE_INTERVAL 10000
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #define MCELSIUS	1000
 
 /* CPU Zone information */
@@ -52,13 +44,10 @@
 #define GET_ZONE(trip) (trip + 2)
 #define GET_TRIP(zone) (zone - 2)
 
-<<<<<<< HEAD
 /* Bit type */
 #define TYPE_8BIT_MASK	(0xFF)
 #define TYPE_9BIT_MASK	(0x1FF)
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 enum trigger_type {
 	THROTTLE_ACTIVE = 1,
 	THROTTLE_PASSIVE,
@@ -66,7 +55,6 @@ enum trigger_type {
 	HW_TRIP,
 };
 
-<<<<<<< HEAD
 enum dev_type {
 	CLUSTER0,
 	CLUSTER1,
@@ -74,8 +62,6 @@ enum dev_type {
 	ISP,
 };
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /**
  * struct freq_clip_table
  * @freq_clip_max: maximum frequency allowed for this cooling state.
@@ -113,15 +99,12 @@ struct thermal_sensor_conf {
 	void *driver_data;
 	void *pzone_data;
 	struct device *dev;
-<<<<<<< HEAD
 	enum dev_type d_type;
 	int id;
 	bool hotplug_enable;
 	int count;
 	int hotplug_in_threshold;
 	int hotplug_out_threshold;
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 };
 
 /*Functions used exynos based thermal sensor driver*/

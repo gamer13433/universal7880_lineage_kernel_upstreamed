@@ -2364,11 +2364,7 @@ megasas_release_fusion(struct megasas_instance *instance)
 
 	iounmap(instance->reg_set);
 
-<<<<<<< HEAD
 	pci_release_selected_regions(instance->pdev, instance->bar);
-=======
-	pci_release_selected_regions(instance->pdev, 1<<instance->bar);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 }
 
 /**

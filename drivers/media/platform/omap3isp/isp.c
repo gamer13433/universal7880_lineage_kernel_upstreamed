@@ -903,13 +903,6 @@ static int isp_pipeline_enable(struct isp_pipeline *pipe,
 					s_stream, mode);
 			pipe->do_propagation = true;
 		}
-<<<<<<< HEAD
-=======
-
-		/* Stop at the first external sub-device. */
-		if (subdev->dev != isp->dev)
-			break;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 	return 0;
@@ -1024,13 +1017,6 @@ static int isp_pipeline_disable(struct isp_pipeline *pipe)
 				isp->crashed |= 1U << subdev->entity.id;
 			failure = -ETIMEDOUT;
 		}
-<<<<<<< HEAD
-=======
-
-		/* Stop at the first external sub-device. */
-		if (subdev->dev != isp->dev)
-			break;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 	return failure;

@@ -1490,36 +1490,15 @@ static struct device_attribute fb_device_attrs[] = {
 static int dlfb_select_std_channel(struct dlfb_data *dev)
 {
 	int ret;
-<<<<<<< HEAD
 	u8 set_def_chn[] = {	   0x57, 0xCD, 0xDC, 0xA7,
-=======
-	void *buf;
-	static const u8 set_def_chn[] = {
-				0x57, 0xCD, 0xDC, 0xA7,
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 				0x1C, 0x88, 0x5E, 0x15,
 				0x60, 0xFE, 0xC6, 0x97,
 				0x16, 0x3D, 0x47, 0xF2  };
 
-<<<<<<< HEAD
 	ret = usb_control_msg(dev->udev, usb_sndctrlpipe(dev->udev, 0),
 			NR_USB_REQUEST_CHANNEL,
 			(USB_DIR_OUT | USB_TYPE_VENDOR), 0, 0,
 			set_def_chn, sizeof(set_def_chn), USB_CTRL_SET_TIMEOUT);
-=======
-	buf = kmemdup(set_def_chn, sizeof(set_def_chn), GFP_KERNEL);
-
-	if (!buf)
-		return -ENOMEM;
-
-	ret = usb_control_msg(dev->udev, usb_sndctrlpipe(dev->udev, 0),
-			NR_USB_REQUEST_CHANNEL,
-			(USB_DIR_OUT | USB_TYPE_VENDOR), 0, 0,
-			buf, sizeof(set_def_chn), USB_CTRL_SET_TIMEOUT);
-
-	kfree(buf);
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return ret;
 }
 

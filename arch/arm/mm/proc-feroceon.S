@@ -584,11 +584,7 @@ feroceon_crval:
 
 	.align
 
-<<<<<<< HEAD
 	.section ".proc.info.init", #alloc, #execinstr
-=======
-	.section ".proc.info.init", #alloc
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 .macro feroceon_proc_info name:req, cpu_val:req, cpu_mask:req, cpu_name:req, cache:req
 	.type	__\name\()_proc_info,#object
@@ -605,11 +601,7 @@ __\name\()_proc_info:
 		PMD_BIT4 | \
 		PMD_SECT_AP_WRITE | \
 		PMD_SECT_AP_READ
-<<<<<<< HEAD
 	b	__feroceon_setup
-=======
-	initfn	__feroceon_setup, __\name\()_proc_info
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	.long	cpu_arch_name
 	.long	cpu_elf_name
 	.long	HWCAP_SWP|HWCAP_HALF|HWCAP_THUMB|HWCAP_FAST_MULT|HWCAP_EDSP

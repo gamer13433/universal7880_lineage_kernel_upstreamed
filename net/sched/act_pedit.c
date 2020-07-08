@@ -50,24 +50,14 @@ static int tcf_pedit_init(struct net *net, struct nlattr *nla,
 	if (tb[TCA_PEDIT_PARMS] == NULL)
 		return -EINVAL;
 	parm = nla_data(tb[TCA_PEDIT_PARMS]);
-<<<<<<< HEAD
-=======
-	if (!parm->nkeys)
-		return -EINVAL;
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	ksize = parm->nkeys * sizeof(struct tc_pedit_key);
 	if (nla_len(tb[TCA_PEDIT_PARMS]) < sizeof(*parm) + ksize)
 		return -EINVAL;
 
 	if (!tcf_hash_check(parm->index, a, bind)) {
-<<<<<<< HEAD
 		if (!parm->nkeys)
 			return -EINVAL;
 		ret = tcf_hash_create(parm->index, est, a, sizeof(*p), bind);
-=======
-			ret = tcf_hash_create(parm->index, est, a, sizeof(*p), bind);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		if (ret)
 			return ret;
 		p = to_pedit(a);

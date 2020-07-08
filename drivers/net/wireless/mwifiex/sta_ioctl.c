@@ -223,18 +223,6 @@ static int mwifiex_process_country_ie(struct mwifiex_private *priv,
 			  "11D: skip setting domain info in FW\n");
 		return 0;
 	}
-<<<<<<< HEAD
-=======
-
-	if (country_ie_len >
-	    (IEEE80211_COUNTRY_STRING_LEN + MWIFIEX_MAX_TRIPLET_802_11D)) {
-		rcu_read_unlock();
-		wiphy_dbg(priv->wdev->wiphy,
-			  "11D: country_ie_len overflow!, deauth AP\n");
-		return -EINVAL;
-	}
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	memcpy(priv->adapter->country_code, &country_ie[2], 2);
 
 	domain_info->country_code[0] = country_ie[2];
@@ -278,12 +266,7 @@ int mwifiex_bss_start(struct mwifiex_private *priv, struct cfg80211_bss *bss,
 	priv->scan_block = false;
 
 	if (bss) {
-<<<<<<< HEAD
 		mwifiex_process_country_ie(priv, bss);
-=======
-		if (mwifiex_process_country_ie(priv, bss))
-			return -EINVAL;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 		/* Allocate and fill new bss descriptor */
 		bss_desc = kzalloc(sizeof(struct mwifiex_bssdescriptor),
@@ -324,10 +307,6 @@ int mwifiex_bss_start(struct mwifiex_private *priv, struct cfg80211_bss *bss,
 			dev_err(adapter->dev,
 				"Attempt to reconnect on csa closed chan(%d)\n",
 				bss_desc->channel);
-<<<<<<< HEAD
-=======
-			ret = -1;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			goto done;
 		}
 
@@ -672,12 +651,6 @@ int mwifiex_set_tx_power(struct mwifiex_private *priv,
 	txp_cfg = (struct host_cmd_ds_txpwr_cfg *) buf;
 	txp_cfg->action = cpu_to_le16(HostCmd_ACT_GEN_SET);
 	if (!power_cfg->is_power_auto) {
-<<<<<<< HEAD
-=======
-		u16 dbm_min = power_cfg->is_power_fixed ?
-			      dbm : priv->min_tx_power_level;
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		txp_cfg->mode = cpu_to_le32(1);
 		pg_tlv = (struct mwifiex_types_power_group *)
 			 (buf + sizeof(struct host_cmd_ds_txpwr_cfg));
@@ -692,11 +665,7 @@ int mwifiex_set_tx_power(struct mwifiex_private *priv,
 		pg->last_rate_code = 0x03;
 		pg->modulation_class = MOD_CLASS_HR_DSSS;
 		pg->power_step = 0;
-<<<<<<< HEAD
 		pg->power_min = (s8) dbm;
-=======
-		pg->power_min = (s8) dbm_min;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		pg->power_max = (s8) dbm;
 		pg++;
 		/* Power group for modulation class OFDM */
@@ -704,11 +673,7 @@ int mwifiex_set_tx_power(struct mwifiex_private *priv,
 		pg->last_rate_code = 0x07;
 		pg->modulation_class = MOD_CLASS_OFDM;
 		pg->power_step = 0;
-<<<<<<< HEAD
 		pg->power_min = (s8) dbm;
-=======
-		pg->power_min = (s8) dbm_min;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		pg->power_max = (s8) dbm;
 		pg++;
 		/* Power group for modulation class HTBW20 */
@@ -716,11 +681,7 @@ int mwifiex_set_tx_power(struct mwifiex_private *priv,
 		pg->last_rate_code = 0x20;
 		pg->modulation_class = MOD_CLASS_HT;
 		pg->power_step = 0;
-<<<<<<< HEAD
 		pg->power_min = (s8) dbm;
-=======
-		pg->power_min = (s8) dbm_min;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		pg->power_max = (s8) dbm;
 		pg->ht_bandwidth = HT_BW_20;
 		pg++;
@@ -729,11 +690,7 @@ int mwifiex_set_tx_power(struct mwifiex_private *priv,
 		pg->last_rate_code = 0x20;
 		pg->modulation_class = MOD_CLASS_HT;
 		pg->power_step = 0;
-<<<<<<< HEAD
 		pg->power_min = (s8) dbm;
-=======
-		pg->power_min = (s8) dbm_min;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		pg->power_max = (s8) dbm;
 		pg->ht_bandwidth = HT_BW_40;
 	}
@@ -1353,11 +1310,7 @@ mwifiex_set_gen_ie_helper(struct mwifiex_private *priv, u8 *ie_data_ptr,
 	pvendor_ie = (struct ieee_types_vendor_header *) ie_data_ptr;
 	/* Test to see if it is a WPA IE, if not, then it is a gen IE */
 	if (((pvendor_ie->element_id == WLAN_EID_VENDOR_SPECIFIC) &&
-<<<<<<< HEAD
 	     (!memcmp(pvendor_ie->oui, wpa_oui, sizeof(wpa_oui)))) ||
-=======
-	     (!memcmp(&pvendor_ie->oui, wpa_oui, sizeof(wpa_oui)))) ||
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	    (pvendor_ie->element_id == WLAN_EID_RSN)) {
 
 		/* IE is a WPA/WPA2 IE so call set_wpa function */
@@ -1382,11 +1335,7 @@ mwifiex_set_gen_ie_helper(struct mwifiex_private *priv, u8 *ie_data_ptr,
 		 */
 		pvendor_ie = (struct ieee_types_vendor_header *) ie_data_ptr;
 		if ((pvendor_ie->element_id == WLAN_EID_VENDOR_SPECIFIC) &&
-<<<<<<< HEAD
 		    (!memcmp(pvendor_ie->oui, wps_oui, sizeof(wps_oui)))) {
-=======
-		    (!memcmp(&pvendor_ie->oui, wps_oui, sizeof(wps_oui)))) {
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 			priv->wps.session_enable = true;
 			dev_dbg(priv->adapter->dev,
 				"info: WPS Session Enabled.\n");

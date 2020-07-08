@@ -182,12 +182,7 @@ config IP_NF_MATCH_ECN
 
 config IP_NF_MATCH_RPFILTER
 	tristate '"rpfilter" reverse path filter match support'
-<<<<<<< HEAD
 	depends on NETFILTER_ADVANCED && (IP_NF_MANGLE || IP_NF_RAW)
-=======
-	depends on NETFILTER_ADVANCED
-	depends on IP_NF_MANGLE || IP_NF_RAW
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	---help---
 	  This option allows you to match packets whose replies would
 	  go out via the interface the packet came in.

@@ -21,32 +21,8 @@
 
 #include <linux/netfilter/x_tables.h>
 #include <linux/netfilter/xt_quota2.h>
-<<<<<<< HEAD
 #ifdef CONFIG_NETFILTER_XT_MATCH_QUOTA2_LOG
 #include <linux/netfilter_ipv4/ipt_ULOG.h>
-=======
-
-#ifdef CONFIG_NETFILTER_XT_MATCH_QUOTA2_LOG
-/* For compatibility, these definitions are copied from the
- * deprecated header file <linux/netfilter_ipv4/ipt_ULOG.h> */
-#define ULOG_MAC_LEN	80
-#define ULOG_PREFIX_LEN	32
-
-/* Format of the ULOG packets passed through netlink */
-typedef struct ulog_packet_msg {
-	unsigned long mark;
-	long timestamp_sec;
-	long timestamp_usec;
-	unsigned int hook;
-	char indev_name[IFNAMSIZ];
-	char outdev_name[IFNAMSIZ];
-	size_t data_len;
-	char prefix[ULOG_PREFIX_LEN];
-	unsigned char mac_len;
-	unsigned char mac[ULOG_MAC_LEN];
-	unsigned char payload[0];
-} ulog_packet_msg_t;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 #endif
 
 /**
@@ -327,7 +303,6 @@ quota_mt2(const struct sk_buff *skb, struct xt_action_param *par)
 		if (e->quota >= skb->len) {
 			if (!(q->flags & XT_QUOTA_NO_CHANGE))
 				e->quota -= (q->flags & XT_QUOTA_PACKET) ? 1 : skb->len;
-<<<<<<< HEAD
 
 			if (!e->quota) {
 			  	quota2_log(par->hooknum,
@@ -337,9 +312,6 @@ quota_mt2(const struct sk_buff *skb, struct xt_action_param *par)
 					   q->name);
 			} else
 				ret = !ret;
-=======
-			ret = !ret;
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 		} else {
 			/* We are transitioning, log that fact. */
 			if (e->quota) {

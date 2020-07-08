@@ -875,7 +875,6 @@ static int ieee80211_stop_ap(struct wiphy *wiphy, struct net_device *dev)
 	return 0;
 }
 
-<<<<<<< HEAD
 /* Layer 2 Update frame (802.2 Type 1 LLC XID Update response) */
 struct iapp_layer2_update {
 	u8 da[ETH_ALEN];	/* broadcast */
@@ -920,8 +919,6 @@ static void ieee80211_send_layer2_update(struct sta_info *sta)
 	netif_rx_ni(skb);
 }
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 static int sta_apply_auth_flags(struct ieee80211_local *local,
 				struct sta_info *sta,
 				u32 mask, u32 set)
@@ -1165,10 +1162,7 @@ static int ieee80211_add_station(struct wiphy *wiphy, struct net_device *dev,
 	struct sta_info *sta;
 	struct ieee80211_sub_if_data *sdata;
 	int err;
-<<<<<<< HEAD
 	int layer2_update;
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 
 	if (params->vlan) {
 		sdata = IEEE80211_DEV_TO_SUB_IF(params->vlan);
@@ -1185,14 +1179,6 @@ static int ieee80211_add_station(struct wiphy *wiphy, struct net_device *dev,
 	if (is_multicast_ether_addr(mac))
 		return -EINVAL;
 
-<<<<<<< HEAD
-=======
-	if (params->sta_flags_set & BIT(NL80211_STA_FLAG_TDLS_PEER) &&
-	    sdata->vif.type == NL80211_IFTYPE_STATION &&
-	    !sdata->u.mgd.associated)
-		return -EINVAL;
-
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	sta = sta_info_alloc(sdata, mac, GFP_KERNEL);
 	if (!sta)
 		return -ENOMEM;
@@ -1208,13 +1194,10 @@ static int ieee80211_add_station(struct wiphy *wiphy, struct net_device *dev,
 		sta->sta.tdls = true;
 	}
 
-<<<<<<< HEAD
 	if (sta->sta.tdls && sdata->vif.type == NL80211_IFTYPE_STATION &&
 	    !sdata->u.mgd.associated)
 		return -EINVAL;
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	err = sta_apply_parameters(local, sta, params);
 	if (err) {
 		sta_info_free(local, sta);
@@ -1228,24 +1211,18 @@ static int ieee80211_add_station(struct wiphy *wiphy, struct net_device *dev,
 	if (!test_sta_flag(sta, WLAN_STA_TDLS_PEER))
 		rate_control_rate_init(sta);
 
-<<<<<<< HEAD
 	layer2_update = sdata->vif.type == NL80211_IFTYPE_AP_VLAN ||
 		sdata->vif.type == NL80211_IFTYPE_AP;
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	err = sta_info_insert_rcu(sta);
 	if (err) {
 		rcu_read_unlock();
 		return err;
 	}
 
-<<<<<<< HEAD
 	if (layer2_update)
 		ieee80211_send_layer2_update(sta);
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	rcu_read_unlock();
 
 	return 0;
@@ -1349,13 +1326,7 @@ static int ieee80211_change_station(struct wiphy *wiphy,
 				atomic_inc(&sta->sdata->bss->num_mcast_sta);
 		}
 
-<<<<<<< HEAD
 		ieee80211_send_layer2_update(sta);
-=======
-		if (sta->sta_state == IEEE80211_STA_AUTHORIZED)
-			cfg80211_send_layer2_update(sta->sdata->dev,
-						    sta->sta.addr);
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	}
 
 	err = sta_apply_parameters(local, sta, params);

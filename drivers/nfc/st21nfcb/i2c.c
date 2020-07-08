@@ -90,14 +90,11 @@ static void st21nfcb_nci_i2c_disable(void *phy_id)
 	gpio_set_value(phy->gpio_reset, 1);
 }
 
-<<<<<<< HEAD
 static void st21nfcb_nci_remove_header(struct sk_buff *skb)
 {
 	skb_pull(skb, ST21NFCB_FRAME_HEADROOM);
 }
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 /*
  * Writing a frame must not return the number of written bytes.
  * It must return either zero for success, or <0 for error.
@@ -127,11 +124,8 @@ static int st21nfcb_nci_i2c_write(void *phy_id, struct sk_buff *skb)
 			r = 0;
 	}
 
-<<<<<<< HEAD
 	st21nfcb_nci_remove_header(skb);
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return r;
 }
 
@@ -401,12 +395,9 @@ static int st21nfcb_nci_i2c_remove(struct i2c_client *client)
 
 	ndlc_remove(phy->ndlc);
 
-<<<<<<< HEAD
 	if (phy->powered)
 		st21nfcb_nci_i2c_disable(phy);
 
-=======
->>>>>>> 80ceebea74b0d231ae55ba1623fd83e1fbd8b012
 	return 0;
 }
 
