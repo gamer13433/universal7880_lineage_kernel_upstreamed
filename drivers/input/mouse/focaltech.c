@@ -13,6 +13,9 @@
  * Hans de Goede <hdegoede@redhat.com>
  */
 
+#define FOC_MAX_X 2431
+#define FOC_MAX_Y 1663
+
 /*
  * The Focaltech PS/2 touchpad protocol is unknown. This drivers deals with
  * detection only, to avoid further detection attempts confusing the touchpad

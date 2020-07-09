@@ -87,7 +87,7 @@ static void
 nft_target_set_tgchk_param(struct xt_tgchk_param *par,
 			   const struct nft_ctx *ctx,
 			   struct xt_target *target, void *info,
-			   union nft_entry *entry, u8 proto, bool inv)
+			   union nft_entry *entry, u16 proto, bool inv)
 {
 	par->net	= ctx->net;
 	par->table	= ctx->table->name;
@@ -134,7 +134,7 @@ static const struct nla_policy nft_rule_compat_policy[NFTA_RULE_COMPAT_MAX + 1] 
 	[NFTA_RULE_COMPAT_FLAGS]	= { .type = NLA_U32 },
 };
 
-static int nft_parse_compat(const struct nlattr *attr, u8 *proto, bool *inv)
+static int nft_parse_compat(const struct nlattr *attr, u16 *proto, bool *inv)
 {
 	struct nlattr *tb[NFTA_RULE_COMPAT_MAX+1];
 	u32 flags;
@@ -166,7 +166,7 @@ nft_target_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
 	struct xt_target *target = expr->ops->data;
 	struct xt_tgchk_param par;
 	size_t size = XT_ALIGN(nla_len(tb[NFTA_TARGET_INFO]));
-	u8 proto = 0;
+	u16 proto = 0;
 	bool inv = false;
 	union nft_entry e = {};
 	int ret;
@@ -297,7 +297,7 @@ static const struct nla_policy nft_match_policy[NFTA_MATCH_MAX + 1] = {
 static void
 nft_match_set_mtchk_param(struct xt_mtchk_param *par, const struct nft_ctx *ctx,
 			  struct xt_match *match, void *info,
-			  union nft_entry *entry, u8 proto, bool inv)
+			  union nft_entry *entry, u16 proto, bool inv)
 {
 	par->net	= ctx->net;
 	par->table	= ctx->table->name;
@@ -347,7 +347,7 @@ nft_match_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
 	struct xt_match *match = expr->ops->data;
 	struct xt_mtchk_param par;
 	size_t size = XT_ALIGN(nla_len(tb[NFTA_MATCH_INFO]));
-	u8 proto = 0;
+	u16 proto = 0;
 	bool inv = false;
 	union nft_entry e = {};
 	int ret;

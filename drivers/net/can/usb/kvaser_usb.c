@@ -12,7 +12,6 @@
  * Copyright (C) 2012 Olivier Sobrie <olivier@sobrie.be>
  */
 
-#include <linux/kernel.h>
 #include <linux/completion.h>
 #include <linux/module.h>
 #include <linux/netdevice.h>
@@ -1012,6 +1011,7 @@ static void kvaser_usb_read_bulk_callback(struct urb *urb)
 		}
 
 		kvaser_usb_handle_message(dev, msg);
+
 		pos += msg->len;
 	}
 

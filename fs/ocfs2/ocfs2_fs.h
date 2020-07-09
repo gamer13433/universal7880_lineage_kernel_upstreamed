@@ -178,6 +178,11 @@
 #define OCFS2_FEATURE_INCOMPAT_CLUSTERINFO	0x4000
 
 /*
+ * Append Direct IO support
+ */
+#define OCFS2_FEATURE_INCOMPAT_APPEND_DIO	0x8000
+
+/*
  * backup superblock flag is used to indicate that this volume
  * has backup superblocks.
  */

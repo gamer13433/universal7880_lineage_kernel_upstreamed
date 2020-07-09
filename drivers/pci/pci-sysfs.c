@@ -515,8 +515,7 @@ static ssize_t driver_override_store(struct device *dev,
 	struct pci_dev *pdev = to_pci_dev(dev);
 	char *driver_override, *old, *cp;
 
-	/* We need to keep extra room for a newline */
-	if (count >= (PAGE_SIZE - 1))
+	if (count > PATH_MAX)
 		return -EINVAL;
 
 	driver_override = kstrndup(buf, count, GFP_KERNEL);

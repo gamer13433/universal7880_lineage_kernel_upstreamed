@@ -154,23 +154,25 @@ static inline unsigned int gic_irq(struct irq_data *d)
 static void gic_mask_irq(struct irq_data *d)
 {
 	u32 mask = 1 << (gic_irq(d) % 32);
+	unsigned long flags;
 
-	raw_spin_lock(&irq_controller_lock);
+	raw_spin_lock_irqsave(&irq_controller_lock, flags);
 	writel_relaxed(mask, gic_dist_base(d) + GIC_DIST_ENABLE_CLEAR + (gic_irq(d) / 32) * 4);
 	if (gic_arch_extn.irq_mask)
 		gic_arch_extn.irq_mask(d);
-	raw_spin_unlock(&irq_controller_lock);
+	raw_spin_unlock_irqrestore(&irq_controller_lock, flags);
 }
 
 static void gic_unmask_irq(struct irq_data *d)
 {
 	u32 mask = 1 << (gic_irq(d) % 32);
+	unsigned long flags;
 
-	raw_spin_lock(&irq_controller_lock);
+	raw_spin_lock_irqsave(&irq_controller_lock, flags);
 	if (gic_arch_extn.irq_unmask)
 		gic_arch_extn.irq_unmask(d);
 	writel_relaxed(mask, gic_dist_base(d) + GIC_DIST_ENABLE_SET + (gic_irq(d) / 32) * 4);
-	raw_spin_unlock(&irq_controller_lock);
+	raw_spin_unlock_irqrestore(&irq_controller_lock, flags);
 }
 
 static void gic_eoi_irq(struct irq_data *d)
@@ -224,6 +226,7 @@ static int gic_set_affinity(struct irq_data *d, const struct cpumask *mask_val,
 	void __iomem *reg = gic_dist_base(d) + GIC_DIST_TARGET + (gic_irq(d) & ~3);
 	unsigned int cpu, shift = (gic_irq(d) % 4) * 8;
 	u32 val, mask, bit;
+	unsigned long flags;
 
 	raw_spin_lock(&irq_controller_lock);
 	if (unlikely(d->state_use_accessors & IRQD_GIC_MULTI_TARGET)) {

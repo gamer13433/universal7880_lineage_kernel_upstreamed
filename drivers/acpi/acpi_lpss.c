@@ -65,7 +65,6 @@ struct lpss_private_data;
 
 struct lpss_device_desc {
 	unsigned int flags;
-	const char *clk_con_id;
 	unsigned int prv_offset;
 	size_t prv_size_override;
 	void (*setup)(struct lpss_private_data *pdata);
@@ -141,7 +140,6 @@ static struct lpss_device_desc lpt_i2c_dev_desc = {
 
 static struct lpss_device_desc lpt_uart_dev_desc = {
 	.flags = LPSS_CLK | LPSS_CLK_GATE | LPSS_CLK_DIVIDER | LPSS_LTR,
-	.clk_con_id = "baudclk",
 	.prv_offset = 0x800,
 	.setup = lpss_uart_setup,
 };
@@ -158,7 +156,6 @@ static struct lpss_device_desc byt_pwm_dev_desc = {
 
 static struct lpss_device_desc byt_uart_dev_desc = {
 	.flags = LPSS_CLK | LPSS_CLK_GATE | LPSS_CLK_DIVIDER | LPSS_SAVE_CTX,
-	.clk_con_id = "baudclk",
 	.prv_offset = 0x800,
 	.setup = lpss_uart_setup,
 };
@@ -316,7 +313,7 @@ out:
 		return PTR_ERR(clk);
 
 	pdata->clk = clk;
-	clk_register_clkdev(clk, dev_desc->clk_con_id, devname);
+	clk_register_clkdev(clk, NULL, devname);
 	return 0;
 }
 

@@ -3547,6 +3547,13 @@ static int add_regulator_attributes(struct regulator_dev *rdev)
 	if (!rdev->constraints)
 		return status;
 
+	/* all the other attributes exist to support constraints;
+	 * don't show them if there are no constraints, or if the
+	 * relevant supporting methods are missing.
+	 */
+	if (!rdev->constraints)
+		return 0;
+
 	/* constraints need specific supporting methods */
 	if (ops->set_voltage || ops->set_voltage_sel) {
 		status = device_create_file(dev, &dev_attr_min_microvolts);
