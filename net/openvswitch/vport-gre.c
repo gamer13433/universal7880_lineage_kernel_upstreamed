@@ -131,7 +131,7 @@ static int gre_err(struct sk_buff *skb, u32 info,
 static int gre_tnl_send(struct vport *vport, struct sk_buff *skb)
 {
 	struct net *net = ovs_dp_get_net(vport->dp);
-	struct ovs_key_ipv4_tunnel *tun_key;
+	const struct ovs_key_ipv4_tunnel *tun_key;
 	struct flowi4 fl;
 	struct rtable *rt;
 	int min_headroom;
@@ -161,7 +161,7 @@ static int gre_tnl_send(struct vport *vport, struct sk_buff *skb)
 
 	min_headroom = LL_RESERVED_SPACE(rt->dst.dev) + rt->dst.header_len
 			+ tunnel_hlen + sizeof(struct iphdr)
-			+ (vlan_tx_tag_present(skb) ? VLAN_HLEN : 0);
+			+ (skb_vlan_tag_present(skb) ? VLAN_HLEN : 0);
 	if (skb_headroom(skb) < min_headroom || skb_header_cloned(skb)) {
 		int head_delta = SKB_DATA_ALIGN(min_headroom -
 						skb_headroom(skb) +

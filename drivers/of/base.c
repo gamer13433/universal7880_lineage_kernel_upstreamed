@@ -766,6 +766,8 @@ struct device_node *of_find_node_by_path(const char *path)
 		path++; /* Increment past '/' delimiter */
 		np = __of_find_node_by_path(np, path);
 		path = strchrnul(path, '/');
+		if (separator && separator < path)
+			break;
 	}
 	raw_spin_unlock_irqrestore(&devtree_lock, flags);
 	return np;
@@ -1631,6 +1633,7 @@ int __of_add_property(struct device_node *np, struct property *prop)
 
 	return 0;
 }
+EXPORT_SYMBOL_GPL(of_property_read_u64_array);
 
 /**
  * of_add_property - Add a property to a node

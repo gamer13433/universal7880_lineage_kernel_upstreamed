@@ -270,6 +270,15 @@ static void update_ipv6_checksum(struct sk_buff *skb, u8 l4_proto,
 	}
 }
 
+static void mask_ipv6_addr(const __be32 old[4], const __be32 addr[4],
+			   const __be32 mask[4], __be32 masked[4])
+{
+	masked[0] = MASKED(old[0], addr[0], mask[0]);
+	masked[1] = MASKED(old[1], addr[1], mask[1]);
+	masked[2] = MASKED(old[2], addr[2], mask[2]);
+	masked[3] = MASKED(old[3], addr[3], mask[3]);
+}
+
 static void set_ipv6_addr(struct sk_buff *skb, u8 l4_proto,
 			  __be32 addr[4], const __be32 new_addr[4],
 			  bool recalculate_csum)
@@ -724,6 +733,11 @@ static int do_execute_actions(struct datapath *dp, struct sk_buff *skb,
 
 		case OVS_ACTION_ATTR_SET:
 			err = execute_set_action(skb, nla_data(a));
+			break;
+
+		case OVS_ACTION_ATTR_SET_MASKED:
+		case OVS_ACTION_ATTR_SET_TO_MASKED:
+			err = execute_masked_set_action(skb, key, nla_data(a));
 			break;
 
 		case OVS_ACTION_ATTR_SAMPLE:

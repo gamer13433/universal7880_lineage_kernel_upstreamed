@@ -41,7 +41,6 @@
 
 #include "sparstop.h"
 #include "visorchipset.h"
-#include "chanstub.h"
 #include "version.h"
 #include "guestlinuxdebug.h"
 
@@ -59,8 +58,8 @@
 /* global function pointers that act as callback functions into virtpcimod */
 int (*VirtControlChanFunc)(struct guest_msgs *);
 
-static int ProcReadBufferValid;
-static char *ProcReadBuffer;	/* Note this MUST be global,
+static int debug_buf_valid;
+static char *debug_buf;	/* Note this MUST be global,
 					 * because the contents must */
 static unsigned int chipset_inited;
 
@@ -71,24 +70,24 @@ static unsigned int chipset_inited;
 		UIS_THREAD_WAIT;	\
 	} while (1)
 
-static struct bus_info *BusListHead;
-static rwlock_t BusListLock;
-static int BusListCount;	/* number of buses in the list */
-static int MaxBusCount;		/* maximum number of buses expected */
-static u64 PhysicalDataChan;
-static int PlatformNumber;
+static struct bus_info *bus_list;
+static rwlock_t bus_list_lock;
+static int bus_list_count;	/* number of buses in the list */
+static int max_bus_count;		/* maximum number of buses expected */
+static u64 phys_data_chan;
+static int platform_no;
 
-static struct uisthread_info Incoming_ThreadInfo;
-static BOOL Incoming_Thread_Started = FALSE;
-static LIST_HEAD(List_Polling_Device_Channels);
+static struct uisthread_info incoming_ti;
+static BOOL incoming_started = FALSE;
+static LIST_HEAD(poll_dev_chan);
 static unsigned long long tot_moved_to_tail_cnt;
 static unsigned long long tot_wait_cnt;
 static unsigned long long tot_wakeup_cnt;
 static unsigned long long tot_schedule_cnt;
 static int en_smart_wakeup = 1;
-static DEFINE_SEMAPHORE(Lock_Polling_Device_Channels);	/* unlocked */
-static DECLARE_WAIT_QUEUE_HEAD(Wakeup_Polling_Device_Channels);
-static int Go_Polling_Device_Channels;
+static DEFINE_SEMAPHORE(poll_dev_lock);	/* unlocked */
+static DECLARE_WAIT_QUEUE_HEAD(poll_dev_wake_q);
+static int poll_dev_start;
 
 #define CALLHOME_PROC_ENTRY_FN "callhome"
 #define CALLHOME_THROTTLED_PROC_ENTRY_FN "callhome_throttled"
@@ -115,7 +114,7 @@ static unsigned long long cycles_before_wait, wait_cycles;
 /*****************************************************/
 
 static ssize_t info_debugfs_read(struct file *file, char __user *buf,
-			      size_t len, loff_t *offset);
+				 size_t len, loff_t *offset);
 static const struct file_operations debugfs_info_fops = {
 	.read = info_debugfs_read,
 };
@@ -256,15 +255,15 @@ create_bus(CONTROLVM_MESSAGE *msg, char *buf)
 	}
 
 	/* add bus at the head of our list */
-	write_lock(&BusListLock);
-	if (!BusListHead)
-		BusListHead = bus;
-	else {
-		bus->next = BusListHead;
-		BusListHead = bus;
+	write_lock(&bus_list_lock);
+	if (!bus_list) {
+		bus_list = bus;
+	} else {
+		bus->next = bus_list;
+		bus_list = bus;
 	}
-	BusListCount++;
-	write_unlock(&BusListLock);
+	bus_list_count++;
+	write_unlock(&bus_list_lock);
 
 	POSTCODE_LINUX_3(BUS_CREATE_EXIT_PC, bus->busNo,
 			 POSTCODE_SEVERITY_INFO);
@@ -293,8 +292,8 @@ destroy_bus(CONTROLVM_MESSAGE *msg, char *buf)
 
 	if (!bus) {
 		LOGERR("CONTROLVM_BUS_DESTROY Failed: failed to find bus %d.\n",
-		       busNo);
-		read_unlock(&BusListLock);
+		       bus_no);
+		read_unlock(&bus_list_lock);
 		return CONTROLVM_RESP_ERROR_ALREADY_DONE;
 	}
 
@@ -302,12 +301,12 @@ destroy_bus(CONTROLVM_MESSAGE *msg, char *buf)
 	for (i = 0; i < bus->deviceCount; i++) {
 		if (bus->device[i] != NULL) {
 			LOGERR("CONTROLVM_BUS_DESTROY Failed: device %i attached to bus %d.",
-			     i, busNo);
-			read_unlock(&BusListLock);
+			       i, bus_no);
+			read_unlock(&bus_list_lock);
 			return CONTROLVM_RESP_ERROR_BUS_DEVICE_ATTACHED;
 		}
 	}
-	read_unlock(&BusListLock);
+	read_unlock(&bus_list_lock);
 
 	if (msg->hdr.Flags.server)
 		goto remove;
@@ -327,13 +326,13 @@ destroy_bus(CONTROLVM_MESSAGE *msg, char *buf)
 
 	/* finally, remove the bus from the list */
 remove:
-	write_lock(&BusListLock);
+	write_lock(&bus_list_lock);
 	if (prev)	/* not at head */
 		prev->next = bus->next;
 	else
-		BusListHead = bus->next;
-	BusListCount--;
-	write_unlock(&BusListLock);
+		bus_list = bus->next;
+	bus_list_count--;
+	write_unlock(&bus_list_lock);
 
 	if (bus->pBusChannel) {
 		uislib_iounmap(bus->pBusChannel);
@@ -753,7 +752,7 @@ destroy_device(CONTROLVM_MESSAGE *msg, char *buf)
  */
 		if (dev->polling) {
 			LOGINF("calling uislib_disable_channel_interrupts");
-			uislib_disable_channel_interrupts(busNo, devNo);
+			uislib_disable_channel_interrupts(bus_no, dev_no);
 		}
 		/* unmap the channel memory for the device. */
 		if (!msg->hdr.Flags.testMessage) {
@@ -761,7 +760,7 @@ destroy_device(CONTROLVM_MESSAGE *msg, char *buf)
 			uislib_iounmap(dev->chanptr);
 		}
 		kfree(dev);
-		bus->device[devNo] = NULL;
+		bus->device[dev_no] = NULL;
 	}
 	return retval;
 }
@@ -871,7 +870,6 @@ uislib_client_inject_add_bus(u32 busNo, uuid_le instGuid,
 }
 EXPORT_SYMBOL_GPL(uislib_client_inject_add_bus);
 
-
 int
 uislib_client_inject_del_bus(u32 busNo)
 {
@@ -916,7 +914,6 @@ uislib_client_inject_resume_vhba(u32 busNo, u32 devNo)
 		return rc;
 	}
 	return 0;
-
 }
 EXPORT_SYMBOL_GPL(uislib_client_inject_resume_vhba);
 
@@ -953,7 +950,7 @@ uislib_client_inject_add_vhba(u32 busNo, u32 devNo,
 	msg.cmd.createDevice.channelAddr = phys_chan_addr;
 	if (chan_bytes < MIN_IO_CHANNEL_SIZE) {
 		LOGERR("wrong channel size.chan_bytes = 0x%x IO_CHANNEL_SIZE= 0x%x\n",
-		     chan_bytes, (unsigned int) MIN_IO_CHANNEL_SIZE);
+		       chan_bytes, (unsigned int)MIN_IO_CHANNEL_SIZE);
 		POSTCODE_LINUX_4(VHBA_CREATE_FAILURE_PC, chan_bytes,
 				 MIN_IO_CHANNEL_SIZE, POSTCODE_SEVERITY_ERR);
 		return 0;
@@ -1012,7 +1009,7 @@ uislib_client_inject_add_vnic(u32 busNo, u32 devNo,
 	msg.cmd.createDevice.channelAddr = phys_chan_addr;
 	if (chan_bytes < MIN_IO_CHANNEL_SIZE) {
 		LOGERR("wrong channel size.chan_bytes = 0x%x IO_CHANNEL_SIZE= 0x%x\n",
-		     chan_bytes, (unsigned int) MIN_IO_CHANNEL_SIZE);
+		       chan_bytes, (unsigned int)MIN_IO_CHANNEL_SIZE);
 		POSTCODE_LINUX_4(VNIC_CREATE_FAILURE_PC, chan_bytes,
 				 MIN_IO_CHANNEL_SIZE, POSTCODE_SEVERITY_ERR);
 		return 0;
@@ -1069,7 +1066,6 @@ uislib_client_inject_resume_vnic(u32 busNo, u32 devNo)
 		return -1;
 	}
 	return 0;
-
 }
 EXPORT_SYMBOL_GPL(uislib_client_inject_resume_vnic);
 
@@ -1229,7 +1225,7 @@ info_debugfs_read_helper(char **buff, int *buff_len)
 			}
 		}
 	}
-	read_unlock(&BusListLock);
+	read_unlock(&bus_list_lock);
 
 	if (PLINE("UisUtils_Registered_Services: %d\n",
 		  atomic_read(&UisUtils_Registered_Services)) < 0)
@@ -1335,8 +1331,7 @@ Away:
  *    less-busy ones.
  *
  */
-static int
-Process_Incoming(void *v)
+static int process_incoming(void *v)
 {
 	unsigned long long cur_cycles, old_cycles, idle_cycles, delta_cycles;
 	struct list_head *new_tail = NULL;
@@ -1345,7 +1340,7 @@ Process_Incoming(void *v)
 	UIS_DAEMONIZE("dev_incoming");
 	for (i = 0; i < 16; i++) {
 		old_cycles = get_cycles();
-		wait_event_timeout(Wakeup_Polling_Device_Channels,
+		wait_event_timeout(poll_dev_wake_q,
 				   0, POLLJIFFIES_NORMAL);
 		cur_cycles = get_cycles();
 		if (wait_cycles == 0) {
@@ -1358,15 +1353,15 @@ Process_Incoming(void *v)
 	LOGINF("wait_cycles=%llu", wait_cycles);
 	cycles_before_wait = wait_cycles;
 	idle_cycles = 0;
-	Go_Polling_Device_Channels = 0;
+	poll_dev_start = 0;
 	while (1) {
 		struct list_head *lelt, *tmp;
 		struct device_info *dev = NULL;
 
 		/* poll each channel for input */
-		down(&Lock_Polling_Device_Channels);
+		down(&poll_dev_lock);
 		new_tail = NULL;
-		list_for_each_safe(lelt, tmp, &List_Polling_Device_Channels) {
+		list_for_each_safe(lelt, tmp, &poll_dev_chan) {
 			int rc = 0;
 
 			dev = list_entry(lelt, struct device_info,
@@ -1388,22 +1383,22 @@ Process_Incoming(void *v)
 					if (!
 					    (list_is_last
 					     (lelt,
-					      &List_Polling_Device_Channels))) {
+					      &poll_dev_chan))) {
 						new_tail = lelt;
 						dev->moved_to_tail_cnt++;
-					} else
+					} else {
 						dev->last_on_list_cnt++;
+					}
 				}
-
 			}
-			if (Incoming_ThreadInfo.should_stop)
+			if (incoming_ti.should_stop)
 				break;
 		}
 		if (new_tail != NULL) {
 			tot_moved_to_tail_cnt++;
-			list_move_tail(new_tail, &List_Polling_Device_Channels);
+			list_move_tail(new_tail, &poll_dev_chan);
 		}
-		up(&Lock_Polling_Device_Channels);
+		up(&poll_dev_lock);
 		cur_cycles = get_cycles();
 		delta_cycles = cur_cycles - old_cycles;
 		old_cycles = cur_cycles;
@@ -1413,24 +1408,24 @@ Process_Incoming(void *v)
 		* - there is no input waiting on any of the channels
 		* - we have received a signal to stop this thread
 		*/
-		if (Incoming_ThreadInfo.should_stop)
+		if (incoming_ti.should_stop)
 			break;
 		if (en_smart_wakeup == 0xFF) {
 			LOGINF("en_smart_wakeup set to 0xff, to force exiting process_incoming");
 			break;
 		}
 		/* wait for POLLJIFFIES_NORMAL jiffies, or until
-		* someone wakes up Wakeup_Polling_Device_Channels,
+		* someone wakes up poll_dev_wake_q,
 		* whichever comes first only do a wait when we have
 		* been idle for cycles_before_wait cycles.
 		*/
 		if (idle_cycles > cycles_before_wait) {
-			Go_Polling_Device_Channels = 0;
+			poll_dev_start = 0;
 			tot_wait_cnt++;
-			wait_event_timeout(Wakeup_Polling_Device_Channels,
-					   Go_Polling_Device_Channels,
+			wait_event_timeout(poll_dev_wake_q,
+					   poll_dev_start,
 					   POLLJIFFIES_NORMAL);
-			Go_Polling_Device_Channels = 1;
+			poll_dev_start = 1;
 		} else {
 			tot_schedule_cnt++;
 			schedule();
@@ -1438,25 +1433,25 @@ Process_Incoming(void *v)
 		}
 	}
 	DBGINF("exiting.\n");
-	complete_and_exit(&Incoming_ThreadInfo.has_stopped, 0);
+	complete_and_exit(&incoming_ti.has_stopped, 0);
 }
 
 static BOOL
-Initialize_incoming_thread(void)
+initialize_incoming_thread(void)
 {
-	if (Incoming_Thread_Started)
+	if (incoming_started)
 		return TRUE;
-	if (!uisthread_start(&Incoming_ThreadInfo,
-			     &Process_Incoming, NULL, "dev_incoming")) {
-		LOGERR("uisthread_start Initialize_incoming_thread ****FAILED");
+	if (!uisthread_start(&incoming_ti,
+			     &process_incoming, NULL, "dev_incoming")) {
+		LOGERR("uisthread_start initialize_incoming_thread ****FAILED");
 		return FALSE;
 	}
-	Incoming_Thread_Started = TRUE;
+	incoming_started = TRUE;
 	return TRUE;
 }
 
 /*  Add a new device/channel to the list being processed by
- *  Process_Incoming().
+ *  process_incoming().
  *  <interrupt> - indicates the function to call periodically.
  *  <interrupt_context> - indicates the data to pass to the <interrupt>
  *                        function.
@@ -1470,23 +1465,23 @@ uislib_enable_channel_interrupts(u32 bus_no, u32 dev_no,
 
 	dev = find_dev(bus_no, dev_no);
 	if (!dev) {
-		LOGERR("%s busNo=%d, devNo=%d", __func__, (int) (bus_no),
-		       (int) (dev_no));
+		LOGERR("%s busNo=%d, devNo=%d", __func__, (int)(bus_no),
+		       (int)(dev_no));
 		return;
 	}
-	down(&Lock_Polling_Device_Channels);
-	Initialize_incoming_thread();
+	down(&poll_dev_lock);
+	initialize_incoming_thread();
 	dev->interrupt = interrupt;
 	dev->interrupt_context = interrupt_context;
 	dev->polling = TRUE;
-	list_add_tail(&(dev->list_polling_device_channels),
-		      &List_Polling_Device_Channels);
-	up(&Lock_Polling_Device_Channels);
+	list_add_tail(&dev->list_polling_device_channels,
+		      &poll_dev_chan);
+	up(&poll_dev_lock);
 }
 EXPORT_SYMBOL_GPL(uislib_enable_channel_interrupts);
 
 /*  Remove a device/channel from the list being processed by
- *  Process_Incoming().
+ *  process_incoming().
  */
 void
 uislib_disable_channel_interrupts(u32 bus_no, u32 dev_no)
@@ -1495,31 +1490,31 @@ uislib_disable_channel_interrupts(u32 bus_no, u32 dev_no)
 
 	dev = find_dev(bus_no, dev_no);
 	if (!dev) {
-		LOGERR("%s busNo=%d, devNo=%d", __func__, (int) (bus_no),
-		       (int) (dev_no));
+		LOGERR("%s busNo=%d, devNo=%d", __func__, (int)(bus_no),
+		       (int)(dev_no));
 		return;
 	}
-	down(&Lock_Polling_Device_Channels);
+	down(&poll_dev_lock);
 	list_del(&dev->list_polling_device_channels);
 	dev->polling = FALSE;
 	dev->interrupt = NULL;
-	up(&Lock_Polling_Device_Channels);
+	up(&poll_dev_lock);
 }
 EXPORT_SYMBOL_GPL(uislib_disable_channel_interrupts);
 
 static void
 do_wakeup_polling_device_channels(struct work_struct *dummy)
 {
-	if (!Go_Polling_Device_Channels) {
-		Go_Polling_Device_Channels = 1;
-		wake_up(&Wakeup_Polling_Device_Channels);
+	if (!poll_dev_start) {
+		poll_dev_start = 1;
+		wake_up(&poll_dev_wake_q);
 	}
 }
 
-static DECLARE_WORK(Work_wakeup_polling_device_channels,
+static DECLARE_WORK(work_wakeup_polling_device_channels,
 		    do_wakeup_polling_device_channels);
 
-/*  Call this function when you want to send a hint to Process_Incoming() that
+/*  Call this function when you want to send a hint to process_incoming() that
  *  your device might have more requests.
  */
 void
@@ -1527,14 +1522,14 @@ uislib_force_channel_interrupt(u32 bus_no, u32 dev_no)
 {
 	if (en_smart_wakeup == 0)
 		return;
-	if (Go_Polling_Device_Channels)
+	if (poll_dev_start)
 		return;
 	/* The point of using schedule_work() instead of just doing
 	 * the work inline is to force a slight delay before waking up
-	 * the Process_Incoming() thread.
+	 * the process_incoming() thread.
 	 */
 	tot_wakeup_cnt++;
-	schedule_work(&Work_wakeup_polling_device_channels);
+	schedule_work(&work_wakeup_polling_device_channels);
 }
 EXPORT_SYMBOL_GPL(uislib_force_channel_interrupt);
 
@@ -1588,7 +1583,7 @@ uislib_mod_init(void)
 
 		platformnumber_debugfs_read = debugfs_create_u32(
 			PLATFORMNUMBER_DEBUGFS_ENTRY_FN, 0444, dir_debugfs,
-			&PlatformNumber);
+			&platform_no);
 
 		cycles_before_wait_debugfs_read = debugfs_create_u64(
 			CYCLES_BEFORE_WAIT_DEBUGFS_ENTRY_FN, 0666, dir_debugfs,
@@ -1606,9 +1601,9 @@ uislib_mod_init(void)
 static void __exit
 uislib_mod_exit(void)
 {
-	if (ProcReadBuffer) {
-		vfree(ProcReadBuffer);
-		ProcReadBuffer = NULL;
+	if (debug_buf) {
+		vfree(debug_buf);
+		debug_buf = NULL;
 	}
 
 	debugfs_remove(info_debugfs_entry);

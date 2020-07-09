@@ -59,6 +59,26 @@ struct evdev_client {
 	struct input_event buffer[];
 };
 
+static int evdev_set_clk_type(struct evdev_client *client, unsigned int clkid)
+{
+	switch (clkid) {
+
+	case CLOCK_REALTIME:
+		client->clk_type = EV_CLK_REAL;
+		break;
+	case CLOCK_MONOTONIC:
+		client->clk_type = EV_CLK_MONO;
+		break;
+	case CLOCK_BOOTTIME:
+		client->clk_type = EV_CLK_BOOT;
+		break;
+	default:
+		return -EINVAL;
+	}
+
+	return 0;
+}
+
 /* flush queued events of type @type, caller must hold client->buffer_lock */
 static void __evdev_flush_queue(struct evdev_client *client, unsigned int type)
 {
@@ -119,6 +139,8 @@ static void evdev_queue_syn_dropped(struct evdev_client *client)
 	ev.type = EV_SYN;
 	ev.code = SYN_DROPPED;
 	ev.value = 0;
+
+	spin_lock_irqsave(&client->buffer_lock, flags);
 
 	spin_lock_irqsave(&client->buffer_lock, flags);
 

@@ -76,6 +76,9 @@
 #define IRQ_LEVEL_LOW		0x03
 #define IRQ_EDGE_BOTH		0x04
 
+#define SUN4I_FUNC_INPUT	0
+#define SUN4I_FUNC_IRQ		6
+
 struct sunxi_desc_function {
 	const char	*name;
 	u8		muxval;
@@ -93,6 +96,7 @@ struct sunxi_pinctrl_desc {
 	int				npins;
 	unsigned			pin_base;
 	unsigned			irq_banks;
+	bool				irq_read_needs_mux;
 };
 
 struct sunxi_pinctrl_function {

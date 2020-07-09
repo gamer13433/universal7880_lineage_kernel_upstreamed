@@ -172,6 +172,11 @@ static int btmrvl_send_sync_cmd(struct btmrvl_private *priv, u16 opcode,
 	struct sk_buff *skb;
 	struct hci_command_hdr *hdr;
 
+	if (priv->surprise_removed) {
+		BT_ERR("Card is removed");
+		return -EFAULT;
+	}
+
 	skb = bt_skb_alloc(HCI_COMMAND_HDR_SIZE + len, GFP_ATOMIC);
 	if (skb == NULL) {
 		BT_ERR("No free skb");
@@ -196,9 +201,13 @@ static int btmrvl_send_sync_cmd(struct btmrvl_private *priv, u16 opcode,
 	wake_up_interruptible(&priv->main_thread.wait_q);
 
 	if (!wait_event_interruptible_timeout(priv->adapter->cmd_wait_q,
-				priv->adapter->cmd_complete,
-				msecs_to_jiffies(WAIT_UNTIL_CMD_RESP)))
+					      priv->adapter->cmd_complete ||
+					      priv->surprise_removed,
+					      WAIT_UNTIL_CMD_RESP))
 		return -ETIMEDOUT;
+
+	if (priv->surprise_removed)
+		return -EFAULT;
 
 	return 0;
 }
@@ -281,9 +290,10 @@ int btmrvl_enable_hs(struct btmrvl_private *priv)
 	}
 
 	ret = wait_event_interruptible_timeout(adapter->event_hs_wait_q,
-					       adapter->hs_state,
-			msecs_to_jiffies(WAIT_UNTIL_HS_STATE_CHANGED));
-	if (ret < 0) {
+					       adapter->hs_state ||
+					       priv->surprise_removed,
+					       WAIT_UNTIL_HS_STATE_CHANGED);
+	if (ret < 0 || priv->surprise_removed) {
 		BT_ERR("event_hs_wait_q terminated (%d): %d,%d,%d",
 		       ret, adapter->hs_state, adapter->ps_state,
 		       adapter->wakeup_tries);
@@ -523,8 +533,11 @@ static int btmrvl_cal_data_dt(struct btmrvl_private *priv)
 static int btmrvl_setup(struct hci_dev *hdev)
 {
 	struct btmrvl_private *priv = hci_get_drvdata(hdev);
+	int ret;
 
-	btmrvl_send_module_cfg_cmd(priv, MODULE_BRINGUP_REQ);
+	ret = btmrvl_send_module_cfg_cmd(priv, MODULE_BRINGUP_REQ);
+	if (ret)
+		return ret;
 
 	btmrvl_cal_data_dt(priv);
 
@@ -581,7 +594,7 @@ static int btmrvl_service_main_thread(void *data)
 		add_wait_queue(&thread->wait_q, &wait);
 
 		set_current_state(TASK_INTERRUPTIBLE);
-		if (kthread_should_stop()) {
+		if (kthread_should_stop() || priv->surprise_removed) {
 			BT_DBG("main_thread: break from main thread");
 			break;
 		}
@@ -599,6 +612,11 @@ static int btmrvl_service_main_thread(void *data)
 		remove_wait_queue(&thread->wait_q, &wait);
 
 		BT_DBG("main_thread woke up");
+
+		if (kthread_should_stop() || priv->surprise_removed) {
+			BT_DBG("main_thread: break from main thread");
+			break;
+		}
 
 		spin_lock_irqsave(&priv->driver_lock, flags);
 		if (adapter->int_count) {

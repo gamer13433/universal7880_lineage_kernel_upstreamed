@@ -1930,7 +1930,7 @@ int __init smp_mpic_probe(void)
 
 	DBG("smp_mpic_probe()...\n");
 
-	nr_cpus = cpumask_weight(cpu_possible_mask);
+	nr_cpus = num_possible_cpus();
 
 	DBG("nr_cpus: %d\n", nr_cpus);
 

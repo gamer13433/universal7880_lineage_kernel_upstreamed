@@ -566,7 +566,7 @@ static struct resource pmu_resources[] = {
 };
 
 static struct platform_device pmu_device = {
-	.name		= "arm-pmu",
+	.name		= "armv7-pmu",
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(pmu_resources),
 	.resource	= pmu_resources,
@@ -793,8 +793,9 @@ void __init sh73a0_add_early_devices(void)
 void __init sh73a0_add_standard_devices_dt(void)
 {
 	/* clocks are setup late during boot in the case of DT */
+#ifndef CONFIG_COMMON_CLK
 	sh73a0_clock_init();
-
+#endif
 	of_platform_populate(NULL, of_default_bus_match_table, NULL, NULL);
 }
 

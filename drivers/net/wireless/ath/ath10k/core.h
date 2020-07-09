@@ -34,6 +34,7 @@
 #include "../regd.h"
 #include "../dfs_pattern_detector.h"
 #include "spectral.h"
+#include "thermal.h"
 
 #define MS(_v, _f) (((_v) & _f##_MASK) >> _f##_LSB)
 #define SM(_v, _f) (((_v) << _f##_LSB) & _f##_MASK)
@@ -80,12 +81,26 @@ struct ath10k_skb_cb {
 	} bcn;
 } __packed;
 
+struct ath10k_skb_rxcb {
+	dma_addr_t paddr;
+	struct hlist_node hlist;
+};
+
 static inline struct ath10k_skb_cb *ATH10K_SKB_CB(struct sk_buff *skb)
 {
 	BUILD_BUG_ON(sizeof(struct ath10k_skb_cb) >
 		     IEEE80211_TX_INFO_DRIVER_DATA_SIZE);
 	return (struct ath10k_skb_cb *)&IEEE80211_SKB_CB(skb)->driver_data;
 }
+
+static inline struct ath10k_skb_rxcb *ATH10K_SKB_RXCB(struct sk_buff *skb)
+{
+	BUILD_BUG_ON(sizeof(struct ath10k_skb_rxcb) > sizeof(skb->cb));
+	return (struct ath10k_skb_rxcb *)skb->cb;
+}
+
+#define ATH10K_RXCB_SKB(rxcb) \
+		container_of((void *)rxcb, struct sk_buff, cb)
 
 static inline u32 host_interest_item_address(u32 item_offset)
 {
@@ -106,6 +121,7 @@ struct ath10k_mem_chunk {
 };
 
 struct ath10k_wmi {
+	enum ath10k_fw_wmi_op_version op_version;
 	enum ath10k_htc_ep_id eid;
 	struct completion service_ready;
 	struct completion unified_ready;
@@ -113,6 +129,7 @@ struct ath10k_wmi {
 	struct wmi_cmd_map *cmd;
 	struct wmi_vdev_param_map *vdev_param;
 	struct wmi_pdev_param_map *pdev_param;
+	const struct wmi_ops *ops;
 
 	u32 num_mem_chunks;
 	struct ath10k_mem_chunk mem_chunks[ATH10K_MAX_MEM_REQS];
@@ -219,9 +236,20 @@ struct ath10k_sta {
 	u32 smps;
 
 	struct work_struct update_wk;
+
+#ifdef CONFIG_MAC80211_DEBUGFS
+	/* protected by conf_mutex */
+	bool aggr_mode;
+#endif
 };
 
 #define ATH10K_VDEV_SETUP_TIMEOUT_HZ (5*HZ)
+
+enum ath10k_beacon_state {
+	ATH10K_BEACON_SCHEDULED = 0,
+	ATH10K_BEACON_SENDING,
+	ATH10K_BEACON_SENT,
+};
 
 struct ath10k_vif {
 	struct list_head list;
@@ -244,10 +272,8 @@ struct ath10k_vif {
 	u32 aid;
 	u8 bssid[ETH_ALEN];
 
-	struct work_struct wep_key_work;
 	struct ieee80211_key_conf *wep_keys[WMI_MAX_KEY_INDEX + 1];
-	u8 def_wep_key_idx;
-	u8 def_wep_key_newidx;
+	s8 def_wep_key_idx;
 
 	u16 tx_seq_no;
 
@@ -347,7 +373,7 @@ enum ath10k_fw_features {
 	/* wmi_mgmt_rx_hdr contains extra RSSI information */
 	ATH10K_FW_FEATURE_EXT_WMI_MGMT_RX = 0,
 
-	/* firmware from 10X branch */
+	/* Firmware from 10X branch. Deprecated, don't use in new code. */
 	ATH10K_FW_FEATURE_WMI_10X = 1,
 
 	/* firmware support tx frame management over WMI, otherwise it's HTT */
@@ -356,8 +382,9 @@ enum ath10k_fw_features {
 	/* Firmware does not support P2P */
 	ATH10K_FW_FEATURE_NO_P2P = 3,
 
-	/* Firmware 10.2 feature bit. The ATH10K_FW_FEATURE_WMI_10X feature bit
-	 * is required to be set as well.
+	/* Firmware 10.2 feature bit. The ATH10K_FW_FEATURE_WMI_10X feature
+	 * bit is required to be set as well. Deprecated, don't use in new
+	 * code.
 	 */
 	ATH10K_FW_FEATURE_WMI_10_2 = 4,
 
@@ -400,6 +427,7 @@ struct ath10k {
 	struct device *dev;
 	u8 mac_addr[ETH_ALEN];
 
+	enum ath10k_hw_rev hw_rev;
 	u32 chip_id;
 	u32 target_version;
 	u8 fw_version_major;
@@ -415,9 +443,6 @@ struct ath10k {
 
 	DECLARE_BITMAP(fw_features, ATH10K_FW_FEATURE_COUNT);
 
-	struct targetdef *targetdef;
-	struct hostdef *hostdef;
-
 	bool p2p;
 
 	struct {
@@ -426,6 +451,7 @@ struct ath10k {
 
 	struct completion target_suspend;
 
+	const struct ath10k_hw_regs *regs;
 	struct ath10k_bmi bmi;
 	struct ath10k_wmi wmi;
 	struct ath10k_htc htc;
@@ -435,12 +461,15 @@ struct ath10k {
 		u32 id;
 		const char *name;
 		u32 patch_load_addr;
+		int uart_pin;
 
 		struct ath10k_hw_params_fw {
 			const char *dir;
 			const char *fw;
 			const char *otp;
 			const char *board;
+			size_t board_size;
+			size_t board_ext_size;
 		} fw;
 	} hw_params;
 
@@ -500,7 +529,6 @@ struct ath10k {
 	u8 cfg_tx_chainmask;
 	u8 cfg_rx_chainmask;
 
-	struct wmi_pdev_set_wmm_params_arg wmm_params;
 	struct completion install_key_done;
 
 	struct completion vdev_setup_done;
@@ -558,6 +586,7 @@ struct ath10k {
 		/* protected by conf_mutex */
 		const struct firmware *utf;
 		DECLARE_BITMAP(orig_fw_features, ATH10K_FW_FEATURE_COUNT);
+		enum ath10k_fw_wmi_op_version orig_wmi_op_version;
 
 		/* protected by data_lock */
 		bool utf_monitor;

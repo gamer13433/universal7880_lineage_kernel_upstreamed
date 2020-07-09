@@ -41,7 +41,7 @@ static LIST_HEAD(svc_xprt_class_list);
  *	svc_pool->sp_lock protects most of the fields of that pool.
  *	svc_serv->sv_lock protects sv_tempsocks, sv_permsocks, sv_tmpcnt.
  *	when both need to be taken (rare), svc_serv->sv_lock is first.
- *	BKL protects svc_serv->sv_nrthread.
+ *	The "service mutex" protects svc_serv->sv_nrthread.
  *	svc_sock->sk_lock protects the svc_sock->sk_deferred list
  *             and the ->sk_info_authunix cache.
  *
@@ -66,7 +66,6 @@ static LIST_HEAD(svc_xprt_class_list);
  *		  that no other thread will be using the transport or will
  *		  try to set XPT_DEAD.
  */
-
 int svc_reg_xprt_class(struct svc_xprt_class *xcl)
 {
 	struct svc_xprt_class *cl;

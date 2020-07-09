@@ -95,4 +95,8 @@ config PCI_XGENE
 	  There are 5 internal PCIe ports available. Each port is GEN3 capable
 	  and have varied lanes from x1 to x8.
 
+config PCI_VERSATILE
+	bool "ARM Versatile PB PCI controller"
+	depends on ARCH_VERSATILE
+
 endmenu

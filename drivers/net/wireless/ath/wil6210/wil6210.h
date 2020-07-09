@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014 Qualcomm Atheros, Inc.
+ * Copyright (c) 2012-2015 Qualcomm Atheros, Inc.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -128,7 +128,7 @@ struct RGF_ICR {
 	#define BIT_DMA_EP_MISC_ICR_TX_NO_ACT	BIT(1)
 	#define BIT_DMA_EP_MISC_ICR_FW_INT(n)	BIT(28+n) /* n = [0..3] */
 
-/* Interrupt moderation control */
+/* Legacy interrupt moderation control (before Sparrow v2)*/
 #define RGF_DMA_ITR_CNT_TRSH		(0x881c5c)
 #define RGF_DMA_ITR_CNT_DATA		(0x881c60)
 #define RGF_DMA_ITR_CNT_CRL		(0x881c64)
@@ -137,6 +137,46 @@ struct RGF_ICR {
 	#define BIT_DMA_ITR_CNT_CRL_FOREVER	BIT(2)
 	#define BIT_DMA_ITR_CNT_CRL_CLR		BIT(3)
 	#define BIT_DMA_ITR_CNT_CRL_REACH_TRSH	BIT(4)
+
+/* New (sparrow v2+) interrupt moderation control */
+#define RGF_DMA_ITR_TX_DESQ_NO_MOD		(0x881d40)
+#define RGF_DMA_ITR_TX_CNT_TRSH			(0x881d34)
+#define RGF_DMA_ITR_TX_CNT_DATA			(0x881d38)
+#define RGF_DMA_ITR_TX_CNT_CTL			(0x881d3c)
+	#define BIT_DMA_ITR_TX_CNT_CTL_EN		BIT(0)
+	#define BIT_DMA_ITR_TX_CNT_CTL_EXT_TIC_SEL	BIT(1)
+	#define BIT_DMA_ITR_TX_CNT_CTL_FOREVER		BIT(2)
+	#define BIT_DMA_ITR_TX_CNT_CTL_CLR		BIT(3)
+	#define BIT_DMA_ITR_TX_CNT_CTL_REACHED_TRESH	BIT(4)
+	#define BIT_DMA_ITR_TX_CNT_CTL_CROSS_EN		BIT(5)
+	#define BIT_DMA_ITR_TX_CNT_CTL_FREE_RUNNIG	BIT(6)
+#define RGF_DMA_ITR_TX_IDL_CNT_TRSH			(0x881d60)
+#define RGF_DMA_ITR_TX_IDL_CNT_DATA			(0x881d64)
+#define RGF_DMA_ITR_TX_IDL_CNT_CTL			(0x881d68)
+	#define BIT_DMA_ITR_TX_IDL_CNT_CTL_EN			BIT(0)
+	#define BIT_DMA_ITR_TX_IDL_CNT_CTL_EXT_TIC_SEL		BIT(1)
+	#define BIT_DMA_ITR_TX_IDL_CNT_CTL_FOREVER		BIT(2)
+	#define BIT_DMA_ITR_TX_IDL_CNT_CTL_CLR			BIT(3)
+	#define BIT_DMA_ITR_TX_IDL_CNT_CTL_REACHED_TRESH	BIT(4)
+#define RGF_DMA_ITR_RX_DESQ_NO_MOD		(0x881d50)
+#define RGF_DMA_ITR_RX_CNT_TRSH			(0x881d44)
+#define RGF_DMA_ITR_RX_CNT_DATA			(0x881d48)
+#define RGF_DMA_ITR_RX_CNT_CTL			(0x881d4c)
+	#define BIT_DMA_ITR_RX_CNT_CTL_EN		BIT(0)
+	#define BIT_DMA_ITR_RX_CNT_CTL_EXT_TIC_SEL	BIT(1)
+	#define BIT_DMA_ITR_RX_CNT_CTL_FOREVER		BIT(2)
+	#define BIT_DMA_ITR_RX_CNT_CTL_CLR		BIT(3)
+	#define BIT_DMA_ITR_RX_CNT_CTL_REACHED_TRESH	BIT(4)
+	#define BIT_DMA_ITR_RX_CNT_CTL_CROSS_EN		BIT(5)
+	#define BIT_DMA_ITR_RX_CNT_CTL_FREE_RUNNIG	BIT(6)
+#define RGF_DMA_ITR_RX_IDL_CNT_TRSH			(0x881d54)
+#define RGF_DMA_ITR_RX_IDL_CNT_DATA			(0x881d58)
+#define RGF_DMA_ITR_RX_IDL_CNT_CTL			(0x881d5c)
+	#define BIT_DMA_ITR_RX_IDL_CNT_CTL_EN			BIT(0)
+	#define BIT_DMA_ITR_RX_IDL_CNT_CTL_EXT_TIC_SEL		BIT(1)
+	#define BIT_DMA_ITR_RX_IDL_CNT_CTL_FOREVER		BIT(2)
+	#define BIT_DMA_ITR_RX_IDL_CNT_CTL_CLR			BIT(3)
+	#define BIT_DMA_ITR_RX_IDL_CNT_CTL_REACHED_TRESH	BIT(4)
 
 #define RGF_DMA_PSEUDO_CAUSE		(0x881c68)
 #define RGF_DMA_PSEUDO_CAUSE_MASK_SW	(0x881c6c)
@@ -152,6 +192,20 @@ struct RGF_ICR {
 #define RGF_MAC_MTRL_COUNTER_0		(0x886aa8)
 
 #define RGF_CAF_ICR			(0x88946c) /* struct RGF_ICR */
+
+#define RGF_USER_JTAG_DEV_ID	(0x880b34) /* device ID */
+	#define JTAG_DEV_ID_MARLON_B0	(0x0612072f)
+	#define JTAG_DEV_ID_SPARROW_A0	(0x0632072f)
+	#define JTAG_DEV_ID_SPARROW_A1	(0x1632072f)
+	#define JTAG_DEV_ID_SPARROW_B0	(0x2632072f)
+
+enum {
+	HW_VER_UNKNOWN,
+	HW_VER_MARLON_B0,  /* JTAG_DEV_ID_MARLON_B0  */
+	HW_VER_SPARROW_A0, /* JTAG_DEV_ID_SPARROW_A0 */
+	HW_VER_SPARROW_A1, /* JTAG_DEV_ID_SPARROW_A1 */
+	HW_VER_SPARROW_B0, /* JTAG_DEV_ID_SPARROW_B0 */
+};
 
 /* popular locations */
 #define HOST_MBOX   HOSTADDR(RGF_USER_USER_SCRATCH_PAD)
@@ -292,6 +346,11 @@ struct vring {
 struct vring_tx_data {
 	int enabled;
 	cycles_t idle, last_idle, begin;
+	u8 agg_wsize; /* agreed aggregation window, 0 - no agg */
+	u16 agg_timeout;
+	u8 agg_amsdu;
+	bool addba_in_progress; /* if set, agg_xxx is for request in progress */
+	spinlock_t lock;
 };
 
 enum { /* for wil6210_priv.status */
@@ -302,6 +361,7 @@ enum { /* for wil6210_priv.status */
 	wil_status_reset_done,
 	wil_status_irqen, /* FIXME: interrupts enabled - for debug */
 	wil_status_napi_en, /* NAPI enabled protected by wil->mutex */
+	wil_status_last /* keep last */
 };
 
 struct pci_dev;
@@ -386,15 +446,46 @@ enum {
 	fw_recovery_running = 2,
 };
 
+enum {
+	hw_capability_reset_v2 = 0,
+	hw_capability_advanced_itr_moderation = 1,
+	hw_capability_last
+};
+
+struct wil_back_rx {
+	struct list_head list;
+	/* request params, converted to CPU byte order - what we asked for */
+	u8 cidxtid;
+	u8 dialog_token;
+	u16 ba_param_set;
+	u16 ba_timeout;
+	u16 ba_seq_ctrl;
+};
+
+struct wil_back_tx {
+	struct list_head list;
+	/* request params, converted to CPU byte order - what we asked for */
+	u8 ringid;
+	u8 agg_wsize;
+	u16 agg_timeout;
+};
+
+struct wil_probe_client_req {
+	struct list_head list;
+	u64 cookie;
+	u8 cid;
+};
+
 struct wil6210_priv {
 	struct pci_dev *pdev;
 	int n_msi;
 	struct wireless_dev *wdev;
 	void __iomem *csr;
-	ulong status;
+	DECLARE_BITMAP(status, wil_status_last);
 	u32 fw_version;
 	u32 hw_version;
-	struct wil_board *board;
+	const char *hw_name;
+	DECLARE_BITMAP(hw_capabilities, hw_capability_last);
 	u8 n_mids; /* number of additional MIDs as reported by FW */
 	u32 recovery_count; /* num of FW recovery attempts in a short time */
 	u32 recovery_state; /* FW recovery state machine */
@@ -404,7 +495,11 @@ struct wil6210_priv {
 	u32 monitor_flags;
 	u32 secure_pcp; /* create secure PCP? */
 	int sinfo_gen;
-	u32 itr_trsh;
+	/* interrupt moderation */
+	u32 tx_max_burst_duration;
+	u32 tx_interframe_timeout;
+	u32 rx_max_burst_duration;
+	u32 rx_interframe_timeout;
 	/* cached ISR registers */
 	u32 isr_misc;
 	/* mailbox related */
@@ -418,7 +513,7 @@ struct wil6210_priv {
 	u16 reply_size;
 	struct workqueue_struct *wmi_wq; /* for deferred calls */
 	struct work_struct wmi_event_worker;
-	struct workqueue_struct *wmi_wq_conn; /* for connect worker */
+	struct workqueue_struct *wq_service;
 	struct work_struct connect_worker;
 	struct work_struct disconnect_worker;
 	struct work_struct fw_error_worker;	/* for FW error recovery */
@@ -434,6 +529,17 @@ struct wil6210_priv {
 	spinlock_t wmi_ev_lock;
 	struct napi_struct napi_rx;
 	struct napi_struct napi_tx;
+	/* BACK */
+	struct list_head back_rx_pending;
+	struct mutex back_rx_mutex; /* protect @back_rx_pending */
+	struct work_struct back_rx_worker;
+	struct list_head back_tx_pending;
+	struct mutex back_tx_mutex; /* protect @back_tx_pending */
+	struct work_struct back_tx_worker;
+	/* keep alive */
+	struct list_head probe_client_pending;
+	struct mutex probe_client_mutex; /* protect @probe_client_pending */
+	struct work_struct probe_client_worker;
 	/* DMA related */
 	struct vring vring_rx;
 	struct vring vring_tx[WIL6210_MAX_TX_RINGS];
@@ -514,11 +620,8 @@ void wil_if_remove(struct wil6210_priv *wil);
 int wil_priv_init(struct wil6210_priv *wil);
 void wil_priv_deinit(struct wil6210_priv *wil);
 int wil_reset(struct wil6210_priv *wil);
-void wil_set_itr_trsh(struct wil6210_priv *wil);
 void wil_fw_error_recovery(struct wil6210_priv *wil);
 void wil_set_recovery_state(struct wil6210_priv *wil, int state);
-void wil_link_on(struct wil6210_priv *wil);
-void wil_link_off(struct wil6210_priv *wil);
 int wil_up(struct wil6210_priv *wil);
 int __wil_up(struct wil6210_priv *wil);
 int wil_down(struct wil6210_priv *wil);
@@ -552,12 +655,26 @@ int wmi_p2p_cfg(struct wil6210_priv *wil, int channel);
 int wmi_rxon(struct wil6210_priv *wil, bool on);
 int wmi_get_temperature(struct wil6210_priv *wil, u32 *t_m, u32 *t_r);
 int wmi_disconnect_sta(struct wil6210_priv *wil, const u8 *mac, u16 reason);
+int wmi_addba(struct wil6210_priv *wil, u8 ringid, u8 size, u16 timeout);
+int wmi_delba_tx(struct wil6210_priv *wil, u8 ringid, u16 reason);
+int wmi_delba_rx(struct wil6210_priv *wil, u8 cidxtid, u16 reason);
+int wmi_addba_rx_resp(struct wil6210_priv *wil, u8 cid, u8 tid, u8 token,
+		      u16 status, bool amsdu, u16 agg_wsize, u16 timeout);
+int wil_addba_rx_request(struct wil6210_priv *wil, u8 cidxtid,
+			 u8 dialog_token, __le16 ba_param_set,
+			 __le16 ba_timeout, __le16 ba_seq_ctrl);
+void wil_back_rx_worker(struct work_struct *work);
+void wil_back_rx_flush(struct wil6210_priv *wil);
+int wil_addba_tx_request(struct wil6210_priv *wil, u8 ringid, u16 wsize);
+void wil_back_tx_worker(struct work_struct *work);
+void wil_back_tx_flush(struct wil6210_priv *wil);
 
 void wil6210_clear_irq(struct wil6210_priv *wil);
 int wil6210_init_irq(struct wil6210_priv *wil, int irq);
 void wil6210_fini_irq(struct wil6210_priv *wil, int irq);
 void wil_mask_irq(struct wil6210_priv *wil);
 void wil_unmask_irq(struct wil6210_priv *wil);
+void wil_configure_interrupt_moderation(struct wil6210_priv *wil);
 void wil_disable_irq(struct wil6210_priv *wil);
 void wil_enable_irq(struct wil6210_priv *wil);
 int wil_cfg80211_mgmt_tx(struct wiphy *wiphy, struct wireless_dev *wdev,

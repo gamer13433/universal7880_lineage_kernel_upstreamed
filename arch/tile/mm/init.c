@@ -495,11 +495,9 @@ static void __init kernel_physical_mapping_init(pgd_t *pgd_base)
 		struct cpumask bad;
 		cpumask_andnot(&bad, &ktext_mask, cpu_possible_mask);
 		cpumask_and(&ktext_mask, &ktext_mask, cpu_possible_mask);
-		if (!cpumask_empty(&bad)) {
-			char buf[NR_CPUS * 5];
-			cpulist_scnprintf(buf, sizeof(buf), &bad);
-			pr_info("ktext: not using unavailable cpus %s\n", buf);
-		}
+		if (!cpumask_empty(&bad))
+			pr_info("ktext: not using unavailable cpus %*pbl\n",
+				cpumask_pr_args(&bad));
 		if (cpumask_empty(&ktext_mask)) {
 			pr_warning("ktext: no valid cpus; caching on %d.\n",
 				   smp_processor_id());

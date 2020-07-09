@@ -666,8 +666,8 @@ static void capture_bo(struct drm_i915_error_buffer *err,
 
 	err->size = obj->base.size;
 	err->name = obj->base.name;
-	err->rseqno = obj->last_read_seqno;
-	err->wseqno = obj->last_write_seqno;
+	err->rseqno = i915_gem_request_get_seqno(obj->last_read_req);
+	err->wseqno = i915_gem_request_get_seqno(obj->last_write_req);
 	err->gtt_offset = vma->node.start;
 	err->read_domains = obj->base.read_domains;
 	err->write_domain = obj->base.write_domain;
@@ -675,13 +675,12 @@ static void capture_bo(struct drm_i915_error_buffer *err,
 	err->pinned = 0;
 	if (i915_gem_obj_is_pinned(obj))
 		err->pinned = 1;
-	if (obj->user_pin_count > 0)
-		err->pinned = -1;
 	err->tiling = obj->tiling_mode;
 	err->dirty = obj->dirty;
 	err->purgeable = obj->madv != I915_MADV_WILLNEED;
 	err->userptr = obj->userptr.mm != NULL;
-	err->ring = obj->ring ? obj->ring->id : -1;
+	err->ring = obj->last_read_req ?
+			i915_gem_request_get_ring(obj->last_read_req)->id : -1;
 	err->cache_level = obj->cache_level;
 }
 
@@ -715,10 +714,8 @@ static u32 capture_pinned_bo(struct drm_i915_error_buffer *err,
 			break;
 
 		list_for_each_entry(vma, &obj->vma_list, vma_link)
-			if (vma->vm == vm && vma->pin_count > 0) {
+			if (vma->vm == vm && vma->pin_count > 0)
 				capture_bo(err++, vma);
-				break;
-			}
 	}
 
 	return err - first;
@@ -931,16 +928,6 @@ static void i915_record_ring_state(struct drm_device *dev,
 				ering->vm_info.pdp[i] |=
 					I915_READ(GEN8_RING_PDP_LDW(ring, i));
 			}
-			break;
-		case 7:
-			ering->vm_info.pp_dir_base =
-				I915_READ(RING_PP_DIR_BASE(ring));
-			break;
-		case 6:
-			ering->vm_info.pp_dir_base =
-				I915_READ(RING_PP_DIR_BASE_READ(ring));
-			break;
-		}
 	}
 }
 
@@ -1067,7 +1054,7 @@ static void i915_gem_record_rings(struct drm_device *dev,
 			erq = &error->ring[i].requests[count++];
 			erq->seqno = request->seqno;
 			erq->jiffies = request->emitted_jiffies;
-			erq->tail = request->tail;
+			erq->tail = request->postfix;
 		}
 	}
 }
@@ -1092,10 +1079,8 @@ static void i915_gem_capture_vm(struct drm_i915_private *dev_priv,
 
 	list_for_each_entry(obj, &dev_priv->mm.bound_list, global_list) {
 		list_for_each_entry(vma, &obj->vma_list, vma_link)
-			if (vma->vm == vm && vma->pin_count > 0) {
+			if (vma->vm == vm && vma->pin_count > 0)
 				i++;
-				break;
-			}
 	}
 	error->pinned_bo_count[ndx] = i - error->active_bo_count[ndx];
 

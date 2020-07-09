@@ -9,9 +9,13 @@
  * for more details.
  */
 #include <linux/console.h>
+#include <linux/io.h>
 #include <linux/suspend.h>
+
 #include "common.h"
 #include "pm-rmobile.h"
+
+#define SYSC_BASE	IOMEM(0xe6180000)
 
 #if defined(CONFIG_PM) && !defined(CONFIG_ARCH_MULTIPLATFORM)
 static int r8a7740_pd_a4s_suspend(void)

@@ -2201,7 +2201,6 @@ ctl_error:
 
 static int snd_echo_suspend(struct device *dev)
 {
-	struct pci_dev *pci = to_pci_dev(dev);
 	struct echoaudio *chip = dev_get_drvdata(dev);
 
 	DE_INIT(("suspend start\n"));

@@ -90,6 +90,12 @@
 #define IWL7265_NVM_VERSION		0x0a1d
 #define IWL7265_TX_POWER_VERSION	0xffff /* meaningless */
 
+/* DCCM offsets and lengths */
+#define IWL7000_DCCM_OFFSET		0x800000
+#define IWL7260_DCCM_LEN		0x14000
+#define IWL3160_DCCM_LEN		0x10000
+#define IWL7265_DCCM_LEN		0x17A00
+
 #define IWL7260_FW_PRE "iwlwifi-7260-"
 #define IWL7260_MODULE_FIRMWARE(api) IWL7260_FW_PRE __stringify(api) ".ucode"
 
@@ -144,6 +150,7 @@ const struct iwl_cfg iwl7260_2ac_cfg = {
 	.nvm_calib_ver = IWL7260_TX_POWER_VERSION,
 	.host_interrupt_operation_mode = true,
 	.lp_xtal_workaround = true,
+	.dccm_len = IWL7260_DCCM_LEN,
 };
 
 const struct iwl_cfg iwl7260_2ac_cfg_high_temp = {
@@ -156,6 +163,7 @@ const struct iwl_cfg iwl7260_2ac_cfg_high_temp = {
 	.high_temp = true,
 	.host_interrupt_operation_mode = true,
 	.lp_xtal_workaround = true,
+	.dccm_len = IWL7260_DCCM_LEN,
 };
 
 const struct iwl_cfg iwl7260_2n_cfg = {
@@ -167,6 +175,7 @@ const struct iwl_cfg iwl7260_2n_cfg = {
 	.nvm_calib_ver = IWL7260_TX_POWER_VERSION,
 	.host_interrupt_operation_mode = true,
 	.lp_xtal_workaround = true,
+	.dccm_len = IWL7260_DCCM_LEN,
 };
 
 const struct iwl_cfg iwl7260_n_cfg = {
@@ -178,6 +187,7 @@ const struct iwl_cfg iwl7260_n_cfg = {
 	.nvm_calib_ver = IWL7260_TX_POWER_VERSION,
 	.host_interrupt_operation_mode = true,
 	.lp_xtal_workaround = true,
+	.dccm_len = IWL7260_DCCM_LEN,
 };
 
 const struct iwl_cfg iwl3160_2ac_cfg = {
@@ -188,6 +198,7 @@ const struct iwl_cfg iwl3160_2ac_cfg = {
 	.nvm_ver = IWL3160_NVM_VERSION,
 	.nvm_calib_ver = IWL3160_TX_POWER_VERSION,
 	.host_interrupt_operation_mode = true,
+	.dccm_len = IWL3160_DCCM_LEN,
 };
 
 const struct iwl_cfg iwl3160_2n_cfg = {
@@ -198,6 +209,7 @@ const struct iwl_cfg iwl3160_2n_cfg = {
 	.nvm_ver = IWL3160_NVM_VERSION,
 	.nvm_calib_ver = IWL3160_TX_POWER_VERSION,
 	.host_interrupt_operation_mode = true,
+	.dccm_len = IWL3160_DCCM_LEN,
 };
 
 const struct iwl_cfg iwl3160_n_cfg = {
@@ -208,6 +220,7 @@ const struct iwl_cfg iwl3160_n_cfg = {
 	.nvm_ver = IWL3160_NVM_VERSION,
 	.nvm_calib_ver = IWL3160_TX_POWER_VERSION,
 	.host_interrupt_operation_mode = true,
+	.dccm_len = IWL3160_DCCM_LEN,
 };
 
 static const struct iwl_pwr_tx_backoff iwl7265_pwr_tx_backoffs[] = {
@@ -235,6 +248,7 @@ const struct iwl_cfg iwl3165_2ac_cfg = {
 	.nvm_ver = IWL3165_NVM_VERSION,
 	.nvm_calib_ver = IWL3165_TX_POWER_VERSION,
 	.pwr_tx_backoffs = iwl7265_pwr_tx_backoffs,
+	.dccm_len = IWL7265_DCCM_LEN,
 };
 
 const struct iwl_cfg iwl7265_2ac_cfg = {
@@ -245,6 +259,7 @@ const struct iwl_cfg iwl7265_2ac_cfg = {
 	.nvm_ver = IWL7265_NVM_VERSION,
 	.nvm_calib_ver = IWL7265_TX_POWER_VERSION,
 	.pwr_tx_backoffs = iwl7265_pwr_tx_backoffs,
+	.dccm_len = IWL7265_DCCM_LEN,
 };
 
 const struct iwl_cfg iwl7265_2n_cfg = {
@@ -255,6 +270,7 @@ const struct iwl_cfg iwl7265_2n_cfg = {
 	.nvm_ver = IWL7265_NVM_VERSION,
 	.nvm_calib_ver = IWL7265_TX_POWER_VERSION,
 	.pwr_tx_backoffs = iwl7265_pwr_tx_backoffs,
+	.dccm_len = IWL7265_DCCM_LEN,
 };
 
 const struct iwl_cfg iwl7265_n_cfg = {
@@ -265,6 +281,7 @@ const struct iwl_cfg iwl7265_n_cfg = {
 	.nvm_ver = IWL7265_NVM_VERSION,
 	.nvm_calib_ver = IWL7265_TX_POWER_VERSION,
 	.pwr_tx_backoffs = iwl7265_pwr_tx_backoffs,
+	.dccm_len = IWL7265_DCCM_LEN,
 };
 
 MODULE_FIRMWARE(IWL7260_MODULE_FIRMWARE(IWL7260_UCODE_API_OK));

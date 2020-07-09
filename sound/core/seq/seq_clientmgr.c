@@ -1133,7 +1133,7 @@ static int snd_seq_ioctl_system_info(struct snd_seq_client *client, void __user 
 	/* fill the info fields */
 	info.queues = SNDRV_SEQ_MAX_QUEUES;
 	info.clients = SNDRV_SEQ_MAX_CLIENTS;
-	info.ports = 256;	/* fixed limit */
+	info.ports = SNDRV_SEQ_MAX_PORTS;
 	info.channels = 256;	/* fixed limit */
 	info.cur_clients = client_usage.cur;
 	info.cur_queues = snd_seq_queue_get_cur_queues();
@@ -1282,7 +1282,6 @@ static int snd_seq_ioctl_create_port(struct snd_seq_client *client,
 				port->owner = callback->owner;
 			port->private_data = callback->private_data;
 			port->private_free = callback->private_free;
-			port->callback_all = callback->callback_all;
 			port->event_input = callback->event_input;
 			port->c_src.open = callback->subscribe;
 			port->c_src.close = callback->unsubscribe;
@@ -2575,6 +2574,8 @@ static const struct file_operations snd_seq_f_ops =
 	.compat_ioctl =	snd_seq_ioctl_compat,
 };
 
+static struct device seq_dev;
+
 /* 
  * register sequencer device 
  */
@@ -2582,12 +2583,17 @@ int __init snd_sequencer_device_init(void)
 {
 	int err;
 
+	snd_device_initialize(&seq_dev, NULL);
+	dev_set_name(&seq_dev, "seq");
+
 	if (mutex_lock_interruptible(&register_mutex))
 		return -ERESTARTSYS;
 
-	if ((err = snd_register_device(SNDRV_DEVICE_TYPE_SEQUENCER, NULL, 0,
-				       &snd_seq_f_ops, NULL, "seq")) < 0) {
+	err = snd_register_device(SNDRV_DEVICE_TYPE_SEQUENCER, NULL, 0,
+				  &snd_seq_f_ops, NULL, &seq_dev);
+	if (err < 0) {
 		mutex_unlock(&register_mutex);
+		put_device(&seq_dev);
 		return err;
 	}
 	
@@ -2603,5 +2609,6 @@ int __init snd_sequencer_device_init(void)
  */
 void __exit snd_sequencer_device_done(void)
 {
-	snd_unregister_device(SNDRV_DEVICE_TYPE_SEQUENCER, NULL, 0);
+	snd_unregister_device(&seq_dev);
+	put_device(&seq_dev);
 }

@@ -22,7 +22,6 @@
 #include <linux/kernel.h>
 #include <linux/irq.h>
 #include <linux/pci.h>
-#include <linux/spinlock.h>
 
 #include <asm/mach/pci.h>
 #include <asm/mach-types.h>

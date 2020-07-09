@@ -124,7 +124,7 @@
 #include <linux/if_vlan.h>
 #include <linux/bitops.h>
 #include <linux/ptp_clock_kernel.h>
-#include <linux/clocksource.h>
+#include <linux/timecounter.h>
 #include <linux/net_tstamp.h>
 #include <net/dcbnl.h>
 
@@ -295,8 +295,7 @@ struct xgbe_ring {
 	 *  cur   - Tx: index of descriptor to be used for current transfer
 	 *          Rx: index of descriptor to check for packet availability
 	 *  dirty - Tx: index of descriptor to check for transfer complete
-	 *          Rx: count of descriptors in which a packet has been received
-	 *              (used with skb_realloc_index to refresh the ring)
+	 *          Rx: index of descriptor to check for buffer reallocation
 	 */
 	unsigned int cur;
 	unsigned int dirty;
@@ -310,11 +309,6 @@ struct xgbe_ring {
 			unsigned short cur_mss;
 			unsigned short cur_vlan_ctag;
 		} tx;
-
-		struct {
-			unsigned int realloc_index;
-			unsigned int realloc_threshold;
-		} rx;
 	};
 } ____cacheline_aligned;
 
@@ -569,7 +563,11 @@ struct xgbe_hw_features {
 struct xgbe_prv_data {
 	struct net_device *netdev;
 	struct platform_device *pdev;
+	struct acpi_device *adev;
 	struct device *dev;
+
+	/* ACPI or DT flag */
+	unsigned int use_acpi;
 
 	/* XGMAC/XPCS related mmio registers */
 	void __iomem *xgmac_regs;	/* XGMAC CSRs */
@@ -587,6 +585,7 @@ struct xgbe_prv_data {
 	struct xgbe_desc_if desc_if;
 
 	/* AXI DMA settings */
+	unsigned int coherent;
 	unsigned int axdomain;
 	unsigned int arcache;
 	unsigned int awcache;
@@ -649,6 +648,7 @@ struct xgbe_prv_data {
 	unsigned int phy_rx_pause;
 
 	/* Netdev related settings */
+	unsigned char mac_addr[ETH_ALEN];
 	netdev_features_t netdev_features;
 	struct napi_struct napi;
 	struct xgbe_mmc_stats mmc_stats;
@@ -658,7 +658,9 @@ struct xgbe_prv_data {
 
 	/* Device clocks */
 	struct clk *sysclk;
+	unsigned long sysclk_rate;
 	struct clk *ptpclk;
+	unsigned long ptpclk_rate;
 
 	/* Timestamp support */
 	spinlock_t tstamp_lock;

@@ -1230,6 +1230,11 @@ static int sdhci_pci_resume(struct device *dev)
 	return 0;
 }
 
+static int sdhci_pci_runtime_idle(struct device *dev)
+{
+	return 0;
+}
+
 #else /* CONFIG_PM */
 
 #define sdhci_pci_suspend NULL

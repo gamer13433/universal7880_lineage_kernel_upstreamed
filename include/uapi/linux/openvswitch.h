@@ -241,11 +241,21 @@ enum ovs_vport_attr {
 
 #define OVS_VPORT_ATTR_MAX (__OVS_VPORT_ATTR_MAX - 1)
 
+enum {
+	OVS_VXLAN_EXT_UNSPEC,
+	OVS_VXLAN_EXT_GBP,	/* Flag or __u32 */
+	__OVS_VXLAN_EXT_MAX,
+};
+
+#define OVS_VXLAN_EXT_MAX (__OVS_VXLAN_EXT_MAX - 1)
+
+
 /* OVS_VPORT_ATTR_OPTIONS attributes for tunnels.
  */
 enum {
 	OVS_TUNNEL_ATTR_UNSPEC,
 	OVS_TUNNEL_ATTR_DST_PORT, /* 16-bit UDP port, used by L4 tunnels. */
+	OVS_TUNNEL_ATTR_EXTENSION,
 	__OVS_TUNNEL_ATTR_MAX
 };
 
@@ -428,6 +438,14 @@ struct ovs_key_nd {
  * a wildcarded match. Omitting attribute is treated as wildcarding all
  * corresponding fields. Optional for all requests. If not present,
  * all flow key bits are exact match bits.
+ * @OVS_FLOW_ATTR_UFID: A value between 1-16 octets specifying a unique
+ * identifier for the flow. Causes the flow to be indexed by this value rather
+ * than the value of the %OVS_FLOW_ATTR_KEY attribute. Optional for all
+ * requests. Present in notifications if the flow was created with this
+ * attribute.
+ * @OVS_FLOW_ATTR_UFID_FLAGS: A 32-bit value of OR'd %OVS_UFID_F_*
+ * flags that provide alternative semantics for flow installation and
+ * retrieval. Optional for all requests.
  *
  * These attributes follow the &struct ovs_header within the Generic Netlink
  * payload for %OVS_FLOW_* commands.
@@ -529,6 +547,12 @@ struct ovs_action_hash {
  * @OVS_ACTION_ATTR_SET: Replaces the contents of an existing header.  The
  * single nested %OVS_KEY_ATTR_* attribute specifies a header to modify and its
  * value.
+ * @OVS_ACTION_ATTR_SET_MASKED: Replaces the contents of an existing header.  A
+ * nested %OVS_KEY_ATTR_* attribute specifies a header to modify, its value,
+ * and a mask.  For every bit set in the mask, the corresponding bit value
+ * is copied from the value to the packet header field, rest of the bits are
+ * left unchanged.  The non-masked value bits must be passed in as zeroes.
+ * Masking is not supported for the %OVS_KEY_ATTR_TUNNEL attribute.
  * @OVS_ACTION_ATTR_PUSH_VLAN: Push a new outermost 802.1Q header onto the
  * packet.
  * @OVS_ACTION_ATTR_POP_VLAN: Pop the outermost 802.1Q header off the packet.
@@ -538,6 +562,9 @@ struct ovs_action_hash {
  * Only a single header can be set with a single %OVS_ACTION_ATTR_SET.  Not all
  * fields within a header are modifiable, e.g. the IPv4 protocol and fragment
  * type may not be changed.
+ *
+ * @OVS_ACTION_ATTR_SET_TO_MASKED: Kernel internal masked set action translated
+ * from the @OVS_ACTION_ATTR_SET.
  */
 
 enum ovs_action_attr {

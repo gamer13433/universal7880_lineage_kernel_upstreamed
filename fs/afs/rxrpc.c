@@ -770,7 +770,7 @@ static int afs_deliver_cm_op_id(struct afs_call *call, struct sk_buff *skb,
 void afs_send_empty_reply(struct afs_call *call)
 {
 	struct msghdr msg;
-	struct iovec iov[1];
+	struct kvec iov[1];
 
 	_enter("");
 
@@ -806,7 +806,7 @@ void afs_send_empty_reply(struct afs_call *call)
 void afs_send_simple_reply(struct afs_call *call, const void *buf, size_t len)
 {
 	struct msghdr msg;
-	struct iovec iov[1];
+	struct kvec iov[1];
 	int n;
 
 	_enter("");

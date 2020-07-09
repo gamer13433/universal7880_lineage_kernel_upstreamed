@@ -166,7 +166,7 @@ struct sk_buff *tipc_named_publish(struct publication *publ)
 /**
  * tipc_named_withdraw - tell other nodes about a withdrawn publication by this node
  */
-struct sk_buff *tipc_named_withdraw(struct publication *publ)
+struct sk_buff *tipc_named_withdraw(struct net *net, struct publication *publ)
 {
 	struct sk_buff *buf;
 	struct distr_item *item;
@@ -177,7 +177,7 @@ struct sk_buff *tipc_named_withdraw(struct publication *publ)
 	if (publ->scope == TIPC_NODE_SCOPE)
 		return NULL;
 
-	buf = named_prepare_buf(WITHDRAWAL, ITEM_SIZE, 0);
+	buf = named_prepare_buf(net, WITHDRAWAL, ITEM_SIZE, 0);
 	if (!buf) {
 		pr_warn("Withdrawal distribution failure\n");
 		return NULL;
@@ -337,7 +337,7 @@ static void tipc_named_add_backlog(struct distr_item *i, u32 type, u32 node)
  * tipc_named_process_backlog - try to process any pending name table updates
  * from the network.
  */
-void tipc_named_process_backlog(void)
+void tipc_named_process_backlog(struct net *net)
 {
 	struct distr_queue_item *e, *tmp;
 	char addr[16];
@@ -345,7 +345,7 @@ void tipc_named_process_backlog(void)
 
 	list_for_each_entry_safe(e, tmp, &tipc_dist_queue, next) {
 		if (time_after(e->expires, now)) {
-			if (!tipc_update_nametbl(&e->i, e->node, e->dtype))
+			if (!tipc_update_nametbl(net, &e->i, e->node, e->dtype))
 				continue;
 		} else {
 			tipc_addr_string_fill(addr, e->node);

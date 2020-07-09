@@ -432,7 +432,7 @@ at86rf230_reg_precious(struct device *dev, unsigned int reg)
 	}
 }
 
-static struct regmap_config at86rf230_regmap_spi_config = {
+static const struct regmap_config at86rf230_regmap_spi_config = {
 	.reg_bits = 8,
 	.val_bits = 8,
 	.write_flag_mask = CMD_REG | CMD_WRITE,
@@ -454,7 +454,7 @@ at86rf230_async_error_recover(void *context)
 	at86rf230_async_state_change(lp, ctx, STATE_RX_AACK_ON, NULL);
 }
 
-static void
+static inline void
 at86rf230_async_error(struct at86rf230_local *lp,
 		      struct at86rf230_state_change *ctx, int rc)
 {
@@ -516,7 +516,6 @@ at86rf230_async_state_assert(void *context)
 				return;
 			}
 		}
-
 
 		dev_warn(&lp->spi->dev, "unexcept state change from 0x%02x to 0x%02x. Actual state: 0x%02x\n",
 			 ctx->from_state, ctx->to_state, trx_state);
@@ -1102,7 +1101,7 @@ at86rf230_set_hw_addr_filt(struct ieee802154_dev *dev,
 		u16 addr = le16_to_cpu(filt->short_addr);
 
 		dev_vdbg(&lp->spi->dev,
-			"at86rf230_set_hw_addr_filt called for saddr\n");
+			 "at86rf230_set_hw_addr_filt called for saddr\n");
 		__at86rf230_write(lp, RG_SHORT_ADDR_0, addr);
 		__at86rf230_write(lp, RG_SHORT_ADDR_1, addr >> 8);
 	}
@@ -1111,7 +1110,7 @@ at86rf230_set_hw_addr_filt(struct ieee802154_dev *dev,
 		u16 pan = le16_to_cpu(filt->pan_id);
 
 		dev_vdbg(&lp->spi->dev,
-			"at86rf230_set_hw_addr_filt called for pan id\n");
+			 "at86rf230_set_hw_addr_filt called for pan id\n");
 		__at86rf230_write(lp, RG_PAN_ID_0, pan);
 		__at86rf230_write(lp, RG_PAN_ID_1, pan >> 8);
 	}
@@ -1399,7 +1398,7 @@ at86rf230_detect_device(struct at86rf230_local *lp)
 	if (rc)
 		return rc;
 
-	rc = __at86rf230_read(lp, RG_PART_NUM, &version);
+	rc = __at86rf230_read(lp, RG_VERSION_NUM, &version);
 	if (rc)
 		return rc;
 
@@ -1440,7 +1439,7 @@ at86rf230_detect_device(struct at86rf230_local *lp)
 		lp->dev->phy->channels_supported[0] = 0x7FFF800;
 		break;
 	default:
-		chip = "unkown";
+		chip = "unknown";
 		rc = -ENOTSUPP;
 		break;
 	}

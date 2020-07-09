@@ -462,6 +462,13 @@ ceph_parse_options(char *options, const char *dev_name,
 			opt->flags |= CEPH_OPT_NOCRC;
 			break;
 
+		case Opt_tcp_nodelay:
+			opt->flags |= CEPH_OPT_TCP_NODELAY;
+			break;
+		case Opt_notcp_nodelay:
+			opt->flags &= ~CEPH_OPT_TCP_NODELAY;
+			break;
+
 		default:
 			BUG_ON(token);
 		}
@@ -513,10 +520,12 @@ struct ceph_client *ceph_create_client(struct ceph_options *opt, void *private,
 	/* msgr */
 	if (ceph_test_opt(client, MYIP))
 		myaddr = &client->options->my_addr;
+
 	ceph_messenger_init(&client->msgr, myaddr,
 		client->supported_features,
 		client->required_features,
-		ceph_test_opt(client, NOCRC));
+		ceph_test_opt(client, NOCRC),
+		ceph_test_opt(client, TCP_NODELAY));
 
 	/* subsystems */
 	err = ceph_monc_init(&client->monc, client);

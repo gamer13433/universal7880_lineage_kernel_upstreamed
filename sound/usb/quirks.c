@@ -72,6 +72,16 @@ static int ignore_interface_quirk(struct snd_usb_audio *chip,
 	return 0;
 }
 
+bool snd_usb_get_sample_rate_quirk(struct snd_usb_audio *chip)
+{
+	/* devices which do not support reading the sample rate. */
+	switch (chip->usb_id) {
+	case USB_ID(0x045E, 0x076D): /* MS Lifecam HD-5000 */
+	case USB_ID(0x04D8, 0xFEEA): /* Benchmark DAC1 Pre */
+		return true;
+	}
+	return false;
+}
 
 /*
  * Allow alignment on audio sub-slot (channel samples) rather than

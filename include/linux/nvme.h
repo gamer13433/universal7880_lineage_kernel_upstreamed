@@ -17,7 +17,6 @@
 
 #include <uapi/linux/nvme.h>
 #include <linux/pci.h>
-#include <linux/miscdevice.h>
 #include <linux/kref.h>
 
 struct nvme_bar {
@@ -60,8 +59,6 @@ enum {
 	NVME_CSTS_SHST_MASK	= 3 << 2,
 };
 
-#define NVME_VS(major, minor)	(major << 16 | minor)
-
 extern unsigned char nvme_io_timeout;
 #define NVME_IO_TIMEOUT	(nvme_io_timeout * HZ)
 
@@ -100,7 +97,6 @@ struct nvme_dev {
 	u16 oncs;
 	u16 abort_limit;
 	u8 vwc;
-	u8 initialized;
 };
 
 /*
@@ -116,6 +112,7 @@ struct nvme_ns {
 	unsigned ns_id;
 	int lba_shift;
 	int ms;
+	int pi_type;
 	u64 mode_select_num_blocks;
 	u32 mode_select_block_len;
 };

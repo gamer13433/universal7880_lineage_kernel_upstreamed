@@ -36,6 +36,7 @@
 #include <linux/mmc/host.h>
 #include <linux/mmc/core.h>
 #include <linux/mmc/mmc.h>
+#include <linux/mmc/slot-gpio.h>
 #include <linux/io.h>
 #include <linux/irq.h>
 #include <linux/gpio.h>
@@ -1963,13 +1964,6 @@ static struct omap_mmc_platform_data *of_get_hsmmc_pdata(struct device *dev)
 {
 	struct omap_mmc_platform_data *pdata;
 	struct device_node *np = dev->of_node;
-	u32 bus_width, max_freq;
-	int cd_gpio, wp_gpio;
-
-	cd_gpio = of_get_named_gpio(np, "cd-gpios", 0);
-	wp_gpio = of_get_named_gpio(np, "wp-gpios", 0);
-	if (cd_gpio == -EPROBE_DEFER || wp_gpio == -EPROBE_DEFER)
-		return ERR_PTR(-EPROBE_DEFER);
 
 	pdata = devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
 	if (!pdata)
@@ -2074,6 +2068,10 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
 		goto err_alloc;
 	}
 
+	ret = mmc_of_parse(mmc);
+	if (ret)
+		goto err1;
+
 	host		= mmc_priv(mmc);
 	host->mmc	= mmc;
 	host->pdata	= pdata;
@@ -2099,7 +2097,7 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
 
 	if (pdata->max_freq > 0)
 		mmc->f_max = pdata->max_freq;
-	else
+	else if (mmc->f_max == 0)
 		mmc->f_max = OMAP_MMC_MAX_CLOCK;
 
 	spin_lock_init(&host->irq_lock);
@@ -2277,7 +2275,6 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
 
 err_slot_name:
 	mmc_remove_host(mmc);
-err_irq_cd:
 	if (host->use_reg)
 		omap_hsmmc_reg_put(host);
 err_reg:
@@ -2404,8 +2401,6 @@ static int omap_hsmmc_resume(struct device *dev)
 }
 
 #else
-#define omap_hsmmc_prepare	NULL
-#define omap_hsmmc_complete	NULL
 #define omap_hsmmc_suspend	NULL
 #define omap_hsmmc_resume	NULL
 #endif
@@ -2490,8 +2485,6 @@ static int omap_hsmmc_runtime_resume(struct device *dev)
 static struct dev_pm_ops omap_hsmmc_dev_pm_ops = {
 	.suspend	= omap_hsmmc_suspend,
 	.resume		= omap_hsmmc_resume,
-	.prepare	= omap_hsmmc_prepare,
-	.complete	= omap_hsmmc_complete,
 	.runtime_suspend = omap_hsmmc_runtime_suspend,
 	.runtime_resume = omap_hsmmc_runtime_resume,
 };

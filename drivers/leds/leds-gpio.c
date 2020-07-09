@@ -219,7 +219,7 @@ static struct gpio_leds_priv *gpio_leds_create_of(struct platform_device *pdev)
 err:
 	for (count = priv->num_leds - 2; count >= 0; count--)
 		delete_gpio_led(&priv->leds[count]);
-	return ERR_PTR(-ENODEV);
+	return ERR_PTR(ret);
 }
 
 static const struct of_device_id of_gpio_leds_match[] = {

@@ -71,13 +71,32 @@ config TI_CPSW
 	  will be called cpsw.
 
 config TI_CPTS
-	boolean "TI Common Platform Time Sync (CPTS) Support"
+	bool "TI Common Platform Time Sync (CPTS) Support"
 	depends on TI_CPSW
 	select PTP_1588_CLOCK
 	---help---
 	  This driver supports the Common Platform Time Sync unit of
 	  the CPSW Ethernet Switch. The unit can time stamp PTP UDP/IPv4
 	  and Layer 2 packets, and the driver offers a PTP Hardware Clock.
+
+config TI_KEYSTONE_NETCP
+	tristate "TI Keystone NETCP Core Support"
+	select TI_CPSW_ALE
+	depends on OF
+	depends on KEYSTONE_NAVIGATOR_DMA && KEYSTONE_NAVIGATOR_QMSS
+	---help---
+	  This driver supports TI's Keystone NETCP Core.
+
+	  To compile this driver as a module, choose M here: the module
+	  will be called keystone_netcp.
+
+config TI_KEYSTONE_NETCP_ETHSS
+	depends on TI_KEYSTONE_NETCP
+	tristate "TI Keystone NETCP Ethernet subsystem Support"
+	---help---
+
+	  To compile this driver as a module, choose M here: the module
+	  will be called keystone_netcp_ethss.
 
 config TLAN
 	tristate "TI ThunderLAN support"

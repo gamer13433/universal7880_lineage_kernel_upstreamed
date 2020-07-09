@@ -36,7 +36,6 @@
  */
 DEFINE_PER_CPU(struct cpuinfo_arm64, cpu_data);
 static struct cpuinfo_arm64 boot_cpu_data;
-static bool mixed_endian_el0 = true;
 
 bool cpu_supports_mixed_endian_el0(void)
 {
@@ -236,6 +235,18 @@ void __init cpuinfo_store_boot_cpu(void)
 	__cpuinfo_store_cpu(info);
 
 	boot_cpu_data = *info;
+}
+
+u64 __attribute_const__ icache_get_ccsidr(void)
+{
+	u64 ccsidr;
+
+	WARN_ON(preemptible());
+
+	/* Select L1 I-cache and read its size ID register */
+	asm("msr csselr_el1, %1; isb; mrs %0, ccsidr_el1"
+	    : "=r"(ccsidr) : "r"(1L));
+	return ccsidr;
 }
 
 u64 __attribute_const__ icache_get_ccsidr(void)

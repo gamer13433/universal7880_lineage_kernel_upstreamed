@@ -491,6 +491,7 @@ int drm_crtc_helper_set_config(struct drm_mode_set *set)
 				sizeof(struct drm_encoder), GFP_KERNEL);
 	if (!save_encoders)
 		return -ENOMEM;
+	crtc_state->crtc = crtc;
 
 	save_connectors = kzalloc(dev->mode_config.num_connector *
 				sizeof(struct drm_connector), GFP_KERNEL);

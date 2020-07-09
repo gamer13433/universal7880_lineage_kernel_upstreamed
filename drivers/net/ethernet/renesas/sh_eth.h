@@ -537,7 +537,7 @@ static inline void sh_eth_soft_swap(char *src, int len)
 #endif
 }
 
-static inline void sh_eth_write(struct net_device *ndev, unsigned long data,
+static inline void sh_eth_write(struct net_device *ndev, u32 data,
 				int enum_index)
 {
 	struct sh_eth_private *mdp = netdev_priv(ndev);
@@ -545,8 +545,7 @@ static inline void sh_eth_write(struct net_device *ndev, unsigned long data,
 	iowrite32(data, mdp->addr + mdp->reg_offset[enum_index]);
 }
 
-static inline unsigned long sh_eth_read(struct net_device *ndev,
-					int enum_index)
+static inline u32 sh_eth_read(struct net_device *ndev, int enum_index)
 {
 	struct sh_eth_private *mdp = netdev_priv(ndev);
 
@@ -559,14 +558,13 @@ static inline void *sh_eth_tsu_get_offset(struct sh_eth_private *mdp,
 	return mdp->tsu_addr + mdp->reg_offset[enum_index];
 }
 
-static inline void sh_eth_tsu_write(struct sh_eth_private *mdp,
-				unsigned long data, int enum_index)
+static inline void sh_eth_tsu_write(struct sh_eth_private *mdp, u32 data,
+				    int enum_index)
 {
 	iowrite32(data, mdp->tsu_addr + mdp->reg_offset[enum_index]);
 }
 
-static inline unsigned long sh_eth_tsu_read(struct sh_eth_private *mdp,
-					int enum_index)
+static inline u32 sh_eth_tsu_read(struct sh_eth_private *mdp, int enum_index)
 {
 	return ioread32(mdp->tsu_addr + mdp->reg_offset[enum_index]);
 }

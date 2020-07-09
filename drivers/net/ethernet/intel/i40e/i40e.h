@@ -267,7 +267,7 @@ struct i40e_pf {
 	u16 rx_itr_default;
 	u16 tx_itr_default;
 	u16 msg_enable;
-	char misc_int_name[IFNAMSIZ + 9];
+	char int_name[I40E_INT_NAME_STR_LEN];
 	u16 adminq_work_limit; /* num of admin receive queue desc to process */
 	int service_timer_period;
 	struct timer_list service_timer;
@@ -522,7 +522,7 @@ struct i40e_q_vector {
 
 	cpumask_t affinity_mask;
 	struct rcu_head rcu;	/* to avoid race with update stats on free */
-	char name[IFNAMSIZ + 9];
+	char name[I40E_INT_NAME_STR_LEN];
 } ____cacheline_internodealigned_in_smp;
 
 /* lan device */

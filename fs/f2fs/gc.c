@@ -24,8 +24,6 @@
 #include "gc.h"
 #include <trace/events/f2fs.h>
 
-static struct kmem_cache *winode_slab;
-
 static int gc_thread_func(void *data)
 {
 	struct f2fs_sb_info *sbi = data;
@@ -46,7 +44,7 @@ static int gc_thread_func(void *data)
 			break;
 
 		if (sbi->sb->s_writers.frozen >= SB_FREEZE_WRITE) {
-			wait_ms = increase_sleep_time(gc_th, wait_ms);
+			increase_sleep_time(gc_th, &wait_ms);
 			continue;
 		}
 
@@ -67,15 +65,15 @@ static int gc_thread_func(void *data)
 			continue;
 
 		if (!is_idle(sbi)) {
-			wait_ms = increase_sleep_time(gc_th, wait_ms);
+			increase_sleep_time(gc_th, &wait_ms);
 			mutex_unlock(&sbi->gc_mutex);
 			continue;
 		}
 
 		if (has_enough_invalid_blocks(sbi))
-			wait_ms = decrease_sleep_time(gc_th, wait_ms);
+			decrease_sleep_time(gc_th, &wait_ms);
 		else
-			wait_ms = increase_sleep_time(gc_th, wait_ms);
+			increase_sleep_time(gc_th, &wait_ms);
 
 		stat_inc_bggc_count(sbi);
 
@@ -370,7 +368,7 @@ static void put_gc_inode(struct list_head *ilist)
 	list_for_each_entry_safe(ie, next_ie, ilist, list) {
 		iput(ie->inode);
 		list_del(&ie->list);
-		kmem_cache_free(winode_slab, ie);
+		kmem_cache_free(inode_entry_slab, ie);
 	}
 }
 
@@ -742,18 +740,4 @@ stop:
 void build_gc_manager(struct f2fs_sb_info *sbi)
 {
 	DIRTY_I(sbi)->v_ops = &default_v_ops;
-}
-
-int __init create_gc_caches(void)
-{
-	winode_slab = f2fs_kmem_cache_create("f2fs_gc_inodes",
-			sizeof(struct inode_entry));
-	if (!winode_slab)
-		return -ENOMEM;
-	return 0;
-}
-
-void destroy_gc_caches(void)
-{
-	kmem_cache_destroy(winode_slab);
 }

@@ -49,6 +49,7 @@
 #include <linux/if_bridge.h>
 #include <linux/prefetch.h>
 #include <scsi/fc/fc_fcoe.h>
+#include <net/vxlan.h>
 
 #include "ixgbe.h"
 #include "ixgbe_common.h"
@@ -1377,11 +1378,22 @@ static inline void ixgbe_rx_checksum(struct ixgbe_ring *ring,
 				     union ixgbe_adv_rx_desc *rx_desc,
 				     struct sk_buff *skb)
 {
+	__le16 pkt_info = rx_desc->wb.lower.lo_dword.hs_rss.pkt_info;
+	__le16 hdr_info = rx_desc->wb.lower.lo_dword.hs_rss.hdr_info;
+	bool encap_pkt = false;
+
 	skb_checksum_none_assert(skb);
 
 	/* Rx csum disabled */
 	if (!(ring->netdev->features & NETIF_F_RXCSUM))
 		return;
+
+	if ((pkt_info & cpu_to_le16(IXGBE_RXDADV_PKTTYPE_VXLAN)) &&
+	    (hdr_info & cpu_to_le16(IXGBE_RXDADV_PKTTYPE_TUNNEL >> 16))) {
+		encap_pkt = true;
+		skb->encapsulation = 1;
+		skb->ip_summed = CHECKSUM_NONE;
+	}
 
 	/* if IP and error */
 	if (ixgbe_test_staterr(rx_desc, IXGBE_RXD_STAT_IPCS) &&
@@ -1394,8 +1406,6 @@ static inline void ixgbe_rx_checksum(struct ixgbe_ring *ring,
 		return;
 
 	if (ixgbe_test_staterr(rx_desc, IXGBE_RXDADV_ERR_TCPE)) {
-		__le16 pkt_info = rx_desc->wb.lower.lo_dword.hs_rss.pkt_info;
-
 		/*
 		 * 82599 errata, UDP frames with a 0 checksum can be marked as
 		 * checksum errors.
@@ -1410,6 +1420,17 @@ static inline void ixgbe_rx_checksum(struct ixgbe_ring *ring,
 
 	/* It must be a TCP or UDP packet with a valid checksum */
 	skb->ip_summed = CHECKSUM_UNNECESSARY;
+	if (encap_pkt) {
+		if (!ixgbe_test_staterr(rx_desc, IXGBE_RXD_STAT_OUTERIPCS))
+			return;
+
+		if (ixgbe_test_staterr(rx_desc, IXGBE_RXDADV_ERR_OUTERIPER)) {
+			ring->rx_stats.csum_err++;
+			return;
+		}
+		/* If we checked the outer header let the stack know */
+		skb->csum_level = 1;
+	}
 }
 
 static inline void ixgbe_release_rx_desc(struct ixgbe_ring *rx_ring, u32 val)
@@ -3474,10 +3495,24 @@ static void ixgbe_configure_virtualization(struct ixgbe_adapter *adapter)
 	/* Enable MAC Anti-Spoofing */
 	hw->mac.ops.set_mac_anti_spoofing(hw, (adapter->num_vfs != 0),
 					  adapter->num_vfs);
+
+	/* Ensure LLDP is set for Ethertype Antispoofing if we will be
+	 * calling set_ethertype_anti_spoofing for each VF in loop below
+	 */
+	if (hw->mac.ops.set_ethertype_anti_spoofing)
+		IXGBE_WRITE_REG(hw, IXGBE_ETQF(IXGBE_ETQF_FILTER_LLDP),
+				(IXGBE_ETQF_FILTER_EN    | /* enable filter */
+				 IXGBE_ETQF_TX_ANTISPOOF | /* tx antispoof */
+				 IXGBE_ETH_P_LLDP));	   /* LLDP eth type */
+
 	/* For VFs that have spoof checking turned off */
 	for (i = 0; i < adapter->num_vfs; i++) {
 		if (!adapter->vfinfo[i].spoofchk_enabled)
 			ixgbe_ndo_set_vf_spoofchk(adapter->netdev, i, false);
+
+		/* enable ethertype anti spoofing if hw supports it */
+		if (hw->mac.ops.set_ethertype_anti_spoofing)
+			hw->mac.ops.set_ethertype_anti_spoofing(hw, true, i);
 	}
 }
 
@@ -5518,6 +5553,10 @@ static int ixgbe_open(struct net_device *netdev)
 
 	ixgbe_up_complete(adapter);
 
+#if IS_ENABLED(CONFIG_IXGBE_VXLAN)
+	vxlan_get_rx_port(netdev);
+
+#endif
 	return 0;
 
 err_set_queues:
@@ -7086,8 +7125,8 @@ netdev_tx_t ixgbe_xmit_frame_ring(struct sk_buff *skb,
 	first->gso_segs = 1;
 
 	/* if we have a HW VLAN tag being added default to the HW one */
-	if (vlan_tx_tag_present(skb)) {
-		tx_flags |= vlan_tx_tag_get(skb) << IXGBE_TX_FLAGS_VLAN_SHIFT;
+	if (skb_vlan_tag_present(skb)) {
+		tx_flags |= skb_vlan_tag_get(skb) << IXGBE_TX_FLAGS_VLAN_SHIFT;
 		tx_flags |= IXGBE_TX_FLAGS_HW_VLAN;
 	/* else if it is a SW VLAN check the next protocol and store the tag */
 	} else if (protocol == htons(ETH_P_8021Q)) {
@@ -7644,6 +7683,64 @@ static int ixgbe_set_features(struct net_device *netdev,
 	return 0;
 }
 
+/**
+ * ixgbe_add_vxlan_port - Get notifications about VXLAN ports that come up
+ * @dev: The port's netdev
+ * @sa_family: Socket Family that VXLAN is notifiying us about
+ * @port: New UDP port number that VXLAN started listening to
+ **/
+static void ixgbe_add_vxlan_port(struct net_device *dev, sa_family_t sa_family,
+				 __be16 port)
+{
+	struct ixgbe_adapter *adapter = netdev_priv(dev);
+	struct ixgbe_hw *hw = &adapter->hw;
+	u16 new_port = ntohs(port);
+
+	if (sa_family == AF_INET6)
+		return;
+
+	if (adapter->vxlan_port == new_port) {
+		netdev_info(dev, "Port %d already offloaded\n", new_port);
+		return;
+	}
+
+	if (adapter->vxlan_port) {
+		netdev_info(dev,
+			    "Hit Max num of UDP ports, not adding port %d\n",
+			    new_port);
+		return;
+	}
+
+	adapter->vxlan_port = new_port;
+	IXGBE_WRITE_REG(hw, IXGBE_VXLANCTRL, new_port);
+}
+
+/**
+ * ixgbe_del_vxlan_port - Get notifications about VXLAN ports that go away
+ * @dev: The port's netdev
+ * @sa_family: Socket Family that VXLAN is notifying us about
+ * @port: UDP port number that VXLAN stopped listening to
+ **/
+static void ixgbe_del_vxlan_port(struct net_device *dev, sa_family_t sa_family,
+				 __be16 port)
+{
+	struct ixgbe_adapter *adapter = netdev_priv(dev);
+	struct ixgbe_hw *hw = &adapter->hw;
+	u16 new_port = ntohs(port);
+
+	if (sa_family == AF_INET6)
+		return;
+
+	if (adapter->vxlan_port != new_port) {
+		netdev_info(dev, "Port %d was not found, not deleting\n",
+			    new_port);
+		return;
+	}
+
+	adapter->vxlan_port = 0;
+	IXGBE_WRITE_REG(hw, IXGBE_VXLANCTRL, 0);
+}
+
 static int ixgbe_ndo_fdb_add(struct ndmsg *ndm, struct nlattr *tb[],
 			     struct net_device *dev,
 			     const unsigned char *addr,
@@ -7659,7 +7756,7 @@ static int ixgbe_ndo_fdb_add(struct ndmsg *ndm, struct nlattr *tb[],
 }
 
 static int ixgbe_ndo_bridge_setlink(struct net_device *dev,
-				    struct nlmsghdr *nlh)
+				    struct nlmsghdr *nlh, u16 flags)
 {
 	struct ixgbe_adapter *adapter = netdev_priv(dev);
 	struct nlattr *attr, *br_spec;
@@ -7855,6 +7952,8 @@ static const struct net_device_ops ixgbe_netdev_ops = {
 	.ndo_bridge_getlink	= ixgbe_ndo_bridge_getlink,
 	.ndo_dfwd_add_station	= ixgbe_fwd_add,
 	.ndo_dfwd_del_station	= ixgbe_fwd_del,
+	.ndo_add_vxlan_port	= ixgbe_add_vxlan_port,
+	.ndo_del_vxlan_port	= ixgbe_del_vxlan_port,
 };
 
 /**
@@ -8185,6 +8284,15 @@ skip_sriov:
 
 	netdev->priv_flags |= IFF_UNICAST_FLT;
 	netdev->priv_flags |= IFF_SUPP_NOFCS;
+
+	switch (adapter->hw.mac.type) {
+	case ixgbe_mac_X550:
+	case ixgbe_mac_X550EM_x:
+		netdev->hw_enc_features |= NETIF_F_RXCSUM;
+		break;
+	default:
+		break;
+	}
 
 #ifdef CONFIG_IXGBE_DCB
 	netdev->dcbnl_ops = &dcbnl_ops;

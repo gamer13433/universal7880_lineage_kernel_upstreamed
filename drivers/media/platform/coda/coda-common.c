@@ -37,6 +37,7 @@
 #include <media/v4l2-mem2mem.h>
 #include <media/videobuf2-core.h>
 #include <media/videobuf2-dma-contig.h>
+#include <media/videobuf2-vmalloc.h>
 
 #include "coda.h"
 
@@ -316,6 +317,18 @@ static int coda_g_fmt(struct file *file, void *priv,
 	return 0;
 }
 
+static unsigned int coda_estimate_sizeimage(struct coda_ctx *ctx, u32 sizeimage,
+					    u32 width, u32 height)
+{
+	/*
+	 * This is a rough estimate for sensible compressed buffer
+	 * sizes (between 1 and 16 bits per pixel). This could be
+	 * improved by better format specific worst case estimates.
+	 */
+	return round_up(clamp(sizeimage, width * height / 8,
+					 width * height * 2), PAGE_SIZE);
+}
+
 static int coda_try_fmt(struct coda_ctx *ctx, const struct coda_codec *codec,
 			struct v4l2_format *f)
 {
@@ -510,6 +523,7 @@ static int coda_s_fmt_vid_out(struct file *file, void *priv,
 
 	ctx->colorspace = f->fmt.pix.colorspace;
 
+	memset(&f_cap, 0, sizeof(f_cap));
 	f_cap.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 	coda_g_fmt(file, priv, &f_cap);
 	f_cap.fmt.pix.width = f->fmt.pix.width;
@@ -748,7 +762,8 @@ static void coda_pic_run_work(struct work_struct *work)
 		ctx->ops->finish_run(ctx);
 	}
 
-	if (ctx->aborting || (!ctx->streamon_cap && !ctx->streamon_out))
+	if ((ctx->aborting || (!ctx->streamon_cap && !ctx->streamon_out)) &&
+	    ctx->ops->seq_end_work)
 		queue_work(dev->workqueue, &ctx->seq_end_work);
 
 	mutex_unlock(&dev->coda_mutex);
@@ -927,6 +942,7 @@ static int coda_queue_setup(struct vb2_queue *vq,
 	*nplanes = 1;
 	sizes[0] = size;
 
+	/* Set to vb2-dma-contig allocator context, ignored by vb2-vmalloc */
 	alloc_ctxs[0] = ctx->dev->alloc_ctx;
 
 	v4l2_dbg(1, coda_debug, &ctx->dev->v4l2_dev,
@@ -956,6 +972,7 @@ static int coda_buf_prepare(struct vb2_buffer *vb)
 static void coda_buf_queue(struct vb2_buffer *vb)
 {
 	struct coda_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
+	struct vb2_queue *vq = vb->vb2_queue;
 	struct coda_q_data *q_data;
 
 	q_data = get_q_data(ctx, vb->vb2_queue->type);
@@ -1114,7 +1131,7 @@ static void coda_stop_streaming(struct vb2_queue *q)
 
 		coda_bit_stream_end_flag(ctx);
 
-		ctx->isequence = 0;
+		ctx->qsequence = 0;
 
 		while ((buf = v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx)))
 			v4l2_m2m_buf_done(buf, VB2_BUF_STATE_ERROR);
@@ -1133,6 +1150,10 @@ static void coda_stop_streaming(struct vb2_queue *q)
 	if (!ctx->streamon_out && !ctx->streamon_cap) {
 		struct coda_timestamp *ts;
 
+		if (ctx->ops->seq_end_work) {
+			queue_work(dev->workqueue, &ctx->seq_end_work);
+			flush_work(&ctx->seq_end_work);
+		}
 		mutex_lock(&ctx->bitstream_mutex);
 		while (!list_empty(&ctx->timestamp_list)) {
 			ts = list_first_entry(&ctx->timestamp_list,
@@ -1143,6 +1164,7 @@ static void coda_stop_streaming(struct vb2_queue *q)
 		mutex_unlock(&ctx->bitstream_mutex);
 		kfifo_init(&ctx->bitstream_fifo,
 			ctx->bitstream.vaddr, ctx->bitstream.size);
+		ctx->initialized = 0;
 		ctx->runcounter = 0;
 	}
 }
@@ -1339,8 +1361,8 @@ int coda_decoder_queue_init(void *priv, struct vb2_queue *src_vq,
 	int ret;
 
 	src_vq->type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
-	src_vq->io_modes = VB2_DMABUF | VB2_MMAP;
-	src_vq->mem_ops = &vb2_dma_contig_memops;
+	src_vq->io_modes = VB2_DMABUF | VB2_MMAP | VB2_USERPTR;
+	src_vq->mem_ops = &vb2_vmalloc_memops;
 
 	ret = coda_queue_init(priv, src_vq);
 	if (ret)
@@ -1543,6 +1565,7 @@ static int coda_release(struct file *file)
 	clear_bit(ctx->idx, &dev->instance_mask);
 	if (ctx->ops->release)
 		ctx->ops->release(ctx);
+	debugfs_remove_recursive(ctx->debugfs_entry);
 	kfree(ctx);
 
 	return 0;
@@ -1817,7 +1840,6 @@ static const struct coda_devtype coda_devdata[] = {
 
 static struct platform_device_id coda_platform_ids[] = {
 	{ .name = "coda-imx27", .driver_data = CODA_IMX27 },
-	{ .name = "coda-imx53", .driver_data = CODA_IMX53 },
 	{ /* sentinel */ }
 };
 MODULE_DEVICE_TABLE(platform, coda_platform_ids);
@@ -1963,6 +1985,7 @@ static int coda_probe(struct platform_device *pdev)
 	if (!dev->iram.vaddr) {
 		dev_warn(&pdev->dev, "unable to alloc iram\n");
 	} else {
+		memset(dev->iram.vaddr, 0, dev->iram.size);
 		dev->iram.blob.data = dev->iram.vaddr;
 		dev->iram.blob.size = dev->iram.size;
 		dev->iram.dentry = debugfs_create_blob("iram", 0644,

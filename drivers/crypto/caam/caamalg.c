@@ -1246,7 +1246,7 @@ static void init_ablkcipher_job(u32 *sh_desc, dma_addr_t ptr,
 		in_options = 0;
 	} else {
 		src_dma = edesc->sec4_sg_dma;
-		sec4_sg_index += (iv_contig ? 0 : 1) + edesc->src_nents;
+		sec4_sg_index += edesc->src_nents + 1;
 		in_options = LDST_SGF;
 	}
 	append_seq_in_ptr(desc, src_dma, req->nbytes + ivsize, in_options);

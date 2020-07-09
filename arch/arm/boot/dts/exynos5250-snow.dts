@@ -99,6 +99,8 @@
 
 	gpio-keys {
 		compatible = "gpio-keys";
+		pinctrl-names = "default";
+		pinctrl-0 = <&power_key_irq &lid_irq>;
 
 		power {
 			label = "Power";

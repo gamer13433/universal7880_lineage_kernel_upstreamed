@@ -37,7 +37,7 @@
 #ifndef _TIPC_MSG_H
 #define _TIPC_MSG_H
 
-#include "bearer.h"
+#include <linux/tipc.h>
 
 /*
  * Constants and routines used to read and write TIPC payload message headers
@@ -45,6 +45,7 @@
  * Note: Some items are also used with TIPC internal message headers
  */
 #define TIPC_VERSION              2
+struct plist;
 
 /*
  * Payload message users are defined in TIPC's public API:
@@ -77,11 +78,37 @@
 
 #define TIPC_MEDIA_ADDR_OFFSET	5
 
+/**
+ * TIPC message buffer code
+ *
+ * TIPC message buffer headroom reserves space for the worst-case
+ * link-level device header (in case the message is sent off-node).
+ *
+ * Note: Headroom should be a multiple of 4 to ensure the TIPC header fields
+ *       are word aligned for quicker access
+ */
+#define BUF_HEADROOM LL_MAX_HEADER
+
+struct tipc_skb_cb {
+	void *handle;
+	struct sk_buff *tail;
+	bool deferred;
+	bool wakeup_pending;
+	bool bundling;
+	u16 chain_sz;
+	u16 chain_imp;
+};
+
+#define TIPC_SKB_CB(__skb) ((struct tipc_skb_cb *)&((__skb)->cb[0]))
 
 struct tipc_msg {
 	__be32 hdr[15];
 };
 
+static inline struct tipc_msg *buf_msg(struct sk_buff *skb)
+{
+	return (struct tipc_msg *)skb->data;
+}
 
 static inline u32 msg_word(struct tipc_msg *m, u32 pos)
 {

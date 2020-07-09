@@ -546,7 +546,7 @@ static int btmrvl_sdio_download_fw_w_helper(struct btmrvl_sdio_card *card)
 		offset += txlen;
 	} while (true);
 
-	BT_DBG("FW download over, size %d bytes", offset);
+	BT_INFO("FW download over, size %d bytes", offset);
 
 	ret = 0;
 
@@ -770,6 +770,9 @@ static void btmrvl_sdio_interrupt(struct sdio_func *func)
 	}
 
 	priv = card->priv;
+
+	if (priv->surprise_removed)
+		return;
 
 	if (card->reg->int_read_to_clear)
 		ret = btmrvl_sdio_read_to_clear(card, &ireg);
@@ -1166,6 +1169,7 @@ static void btmrvl_sdio_remove(struct sdio_func *func)
 				btmrvl_sdio_disable_host_int(card);
 			}
 			BT_DBG("unregester dev");
+			card->priv->surprise_removed = true;
 			btmrvl_sdio_unregister_dev(card);
 			btmrvl_remove_card(card->priv);
 		}

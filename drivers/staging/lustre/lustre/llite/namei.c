@@ -502,6 +502,7 @@ static struct dentry *ll_lookup_it(struct inode *parent, struct dentry *dentry,
 	struct lookup_intent lookup_it = { .it_op = IT_LOOKUP };
 	struct dentry *save = dentry, *retval;
 	struct ptlrpc_request *req = NULL;
+	struct inode *inode;
 	struct md_op_data *op_data;
 	__u32 opc;
 	int rc;

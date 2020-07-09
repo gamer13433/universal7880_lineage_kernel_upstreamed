@@ -26,6 +26,7 @@
 #include <linux/time.h>
 #include <linux/pm_qos.h>
 #include <linux/aio.h>
+#include <linux/io.h>
 #include <linux/dma-mapping.h>
 #include <sound/core.h>
 #include <sound/control.h>
@@ -668,8 +669,11 @@ int snd_pcm_status(struct snd_pcm_substream *substream,
 				runtime->status->audio_tstamp;
 			goto _tstamp_end;
 		}
+	} else {
+		/* get tstamp only in fallback mode and only if enabled */
+		if (runtime->tstamp_mode == SNDRV_PCM_TSTAMP_ENABLE)
+			snd_pcm_gettime(runtime, &status->tstamp);
 	}
-	snd_pcm_gettime(runtime, &status->tstamp);
  _tstamp_end:
 	status->appl_ptr = runtime->control->appl_ptr;
 	status->hw_ptr = runtime->status->hw_ptr;
@@ -755,7 +759,8 @@ static void snd_pcm_trigger_tstamp(struct snd_pcm_substream *substream)
 	if (runtime->trigger_master == NULL)
 		return;
 	if (runtime->trigger_master == substream) {
-		snd_pcm_gettime(runtime, &runtime->trigger_tstamp);
+		if (!runtime->trigger_tstamp_latched)
+			snd_pcm_gettime(runtime, &runtime->trigger_tstamp);
 	} else {
 		snd_pcm_trigger_tstamp(runtime->trigger_master);
 		runtime->trigger_tstamp = runtime->trigger_master->runtime->trigger_tstamp;
@@ -974,6 +979,7 @@ static int snd_pcm_pre_start(struct snd_pcm_substream *substream, int state)
 	if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK &&
 	    !snd_pcm_playback_data(substream))
 		return -EPIPE;
+	runtime->trigger_tstamp_latched = false;
 	runtime->trigger_master = substream;
 	return 0;
 }
@@ -1545,6 +1551,13 @@ static int snd_pcm_do_drain_init(struct snd_pcm_substream *substream, int state)
 			snd_pcm_post_stop(substream, new_state);
 		}
 	}
+
+	if (runtime->status->state == SNDRV_PCM_STATE_DRAINING &&
+	    runtime->trigger_master == substream &&
+	    (runtime->hw.info & SNDRV_PCM_INFO_DRAIN_TRIGGER))
+		return substream->ops->trigger(substream,
+					       SNDRV_PCM_TRIGGER_DRAIN);
+
 	return 0;
 }
 

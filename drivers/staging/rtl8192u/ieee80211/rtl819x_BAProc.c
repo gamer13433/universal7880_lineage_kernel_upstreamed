@@ -4,6 +4,8 @@
  * ADDBAREQ ADDBARSP and DELBA packet is still on consideration. Temporarily use MANAGE QUEUE instead of Normal Queue.
  * WB 2008-05-27
  * *****************************************************************************************************************************/
+#include <asm/byteorder.h>
+#include <asm/unaligned.h>
 #include "ieee80211.h"
 #include "rtl819x_BA.h"
 
@@ -149,17 +151,17 @@ static struct sk_buff *ieee80211_ADDBA(struct ieee80211_device *ieee, u8 *Dst, P
 	{
 		// Status Code
 		printk("=====>to send ADDBARSP\n");
-		tmp = cpu_to_le16(StatusCode);
-		memcpy(tag, (u8 *)&tmp, 2);
+
+		put_unaligned_le16(StatusCode, tag);
 		tag += 2;
 	}
 	// BA Parameter Set
-	tmp = cpu_to_le16(pBA->BaParamSet.shortData);
-	memcpy(tag, (u8 *)&tmp, 2);
+
+	put_unaligned_le16(pBA->BaParamSet.shortData, tag);
 	tag += 2;
 	// BA Timeout Value
-	tmp = cpu_to_le16(pBA->BaTimeoutValue);
-	memcpy(tag, (u8 *)&tmp, 2);
+
+	put_unaligned_le16(pBA->BaTimeoutValue, tag);
 	tag += 2;
 
 	if (ACT_ADDBAREQ == type)
@@ -230,12 +232,12 @@ static struct sk_buff *ieee80211_DELBA(
 	*tag ++= ACT_DELBA;
 
 	// DELBA Parameter Set
-	tmp = cpu_to_le16(DelbaParamSet.shortData);
-	memcpy(tag, (u8 *)&tmp, 2);
+
+	put_unaligned_le16(DelbaParamSet.shortData, tag);
 	tag += 2;
 	// Reason Code
-	tmp = cpu_to_le16(ReasonCode);
-	memcpy(tag, (u8 *)&tmp, 2);
+
+	put_unaligned_le16(ReasonCode, tag);
 	tag += 2;
 
 	IEEE80211_DEBUG_DATA(IEEE80211_DL_DATA|IEEE80211_DL_BA, skb->data, skb->len);

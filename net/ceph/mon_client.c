@@ -410,7 +410,7 @@ out_unlocked:
 }
 
 /*
- * generic requests (e.g., statfs, poolop)
+ * generic requests (currently statfs, mon_get_version)
  */
 static struct ceph_mon_generic_request *__lookup_generic_req(
 	struct ceph_mon_client *monc, u64 tid)
@@ -569,7 +569,7 @@ static void handle_statfs_reply(struct ceph_mon_client *monc,
 	return;
 
 bad:
-	pr_err("corrupt generic reply, tid %llu\n", tid);
+	pr_err("corrupt statfs reply, tid %llu\n", tid);
 	ceph_msg_dump(msg);
 }
 
@@ -588,7 +588,6 @@ int ceph_monc_do_statfs(struct ceph_mon_client *monc, struct ceph_statfs *buf)
 
 	kref_init(&req->kref);
 	req->buf = buf;
-	req->buf_len = sizeof(*buf);
 	init_completion(&req->completion);
 
 	err = -ENOMEM;
@@ -611,7 +610,7 @@ int ceph_monc_do_statfs(struct ceph_mon_client *monc, struct ceph_statfs *buf)
 	err = do_generic_request(monc, req);
 
 out:
-	kref_put(&req->kref, release_generic_request);
+	put_generic_request(req);
 	return err;
 }
 EXPORT_SYMBOL(ceph_monc_do_statfs);
@@ -647,7 +646,7 @@ static void handle_get_version_reply(struct ceph_mon_client *monc,
 
 	return;
 bad:
-	pr_err("corrupt mon_get_version reply\n");
+	pr_err("corrupt mon_get_version reply, tid %llu\n", tid);
 	ceph_msg_dump(msg);
 }
 
@@ -670,7 +669,6 @@ int ceph_monc_do_get_version(struct ceph_mon_client *monc, const char *what,
 
 	kref_init(&req->kref);
 	req->buf = newest;
-	req->buf_len = sizeof(*newest);
 	init_completion(&req->completion);
 
 	req->request = ceph_msg_new(CEPH_MSG_MON_GET_VERSION,
@@ -1112,10 +1110,6 @@ static void dispatch(struct ceph_connection *con, struct ceph_msg *msg)
 		handle_get_version_reply(monc, msg);
 		break;
 
-	case CEPH_MSG_POOLOP_REPLY:
-		handle_poolop_reply(monc, msg);
-		break;
-
 	case CEPH_MSG_MON_MAP:
 		ceph_monc_handle_map(monc, msg);
 		break;
@@ -1154,7 +1148,6 @@ static struct ceph_msg *mon_alloc_msg(struct ceph_connection *con,
 	case CEPH_MSG_MON_SUBSCRIBE_ACK:
 		m = ceph_msg_get(monc->m_subscribe_ack);
 		break;
-	case CEPH_MSG_POOLOP_REPLY:
 	case CEPH_MSG_STATFS_REPLY:
 		return get_generic_reply(con, hdr, skip);
 	case CEPH_MSG_AUTH_REPLY:

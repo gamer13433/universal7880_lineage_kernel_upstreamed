@@ -72,7 +72,7 @@ struct scrub_page {
 	u64			logical;
 	u64			physical;
 	u64			physical_for_dev_replace;
-	atomic_t		ref_count;
+	atomic_t		refs;
 	struct {
 		unsigned int	mirror_num:8;
 		unsigned int	have_csum:1;
@@ -103,7 +103,7 @@ struct scrub_block {
 	struct scrub_page	*pagev[SCRUB_MAX_PAGES_PER_BLOCK];
 	int			page_count;
 	atomic_t		outstanding_pages;
-	atomic_t		ref_count; /* free mem on transition to zero */
+	atomic_t		refs; /* free mem on transition to zero */
 	struct scrub_ctx	*sctx;
 	struct {
 		unsigned int	header_error:1;
@@ -146,6 +146,15 @@ struct scrub_ctx {
 	 */
 	struct btrfs_scrub_progress stat;
 	spinlock_t		stat_lock;
+
+	/*
+	 * Use a ref counter to avoid use-after-free issues. Scrub workers
+	 * decrement bios_in_flight and workers_pending and then do a wakeup
+	 * on the list_wait wait queue. We must ensure the main scrub task
+	 * doesn't free the scrub context before or while the workers are
+	 * doing the wakeup() call.
+	 */
+	atomic_t                refs;
 };
 
 struct scrub_fixup_nodatasum {
@@ -188,10 +197,7 @@ static void scrub_pending_bio_dec(struct scrub_ctx *sctx);
 static void scrub_pending_trans_workers_inc(struct scrub_ctx *sctx);
 static void scrub_pending_trans_workers_dec(struct scrub_ctx *sctx);
 static int scrub_handle_errored_block(struct scrub_block *sblock_to_check);
-static int scrub_setup_recheck_block(struct scrub_ctx *sctx,
-				     struct btrfs_fs_info *fs_info,
-				     struct scrub_block *original_sblock,
-				     u64 length, u64 logical,
+static int scrub_setup_recheck_block(struct scrub_block *original_sblock,
 				     struct scrub_block *sblocks_for_recheck);
 static void scrub_recheck_block(struct btrfs_fs_info *fs_info,
 				struct scrub_block *sblock, int is_metadata,
@@ -203,8 +209,7 @@ static void scrub_recheck_block_checksum(struct btrfs_fs_info *fs_info,
 					 const u8 *csum, u64 generation,
 					 u16 csum_size);
 static int scrub_repair_block_from_good_copy(struct scrub_block *sblock_bad,
-					     struct scrub_block *sblock_good,
-					     int force_write);
+					     struct scrub_block *sblock_good);
 static int scrub_repair_page_from_good_copy(struct scrub_block *sblock_bad,
 					    struct scrub_block *sblock_good,
 					    int page_num, int force_write);
@@ -252,10 +257,12 @@ static int copy_nocow_pages(struct scrub_ctx *sctx, u64 logical, u64 len,
 static void copy_nocow_pages_worker(struct btrfs_work *work);
 static void __scrub_blocked_if_needed(struct btrfs_fs_info *fs_info);
 static void scrub_blocked_if_needed(struct btrfs_fs_info *fs_info);
+static void scrub_put_ctx(struct scrub_ctx *sctx);
 
 
 static void scrub_pending_bio_inc(struct scrub_ctx *sctx)
 {
+	atomic_inc(&sctx->refs);
 	atomic_inc(&sctx->bios_in_flight);
 }
 
@@ -263,6 +270,7 @@ static void scrub_pending_bio_dec(struct scrub_ctx *sctx)
 {
 	atomic_dec(&sctx->bios_in_flight);
 	wake_up(&sctx->list_wait);
+	scrub_put_ctx(sctx);
 }
 
 static void __scrub_blocked_if_needed(struct btrfs_fs_info *fs_info)
@@ -296,6 +304,7 @@ static void scrub_pending_trans_workers_inc(struct scrub_ctx *sctx)
 {
 	struct btrfs_fs_info *fs_info = sctx->dev_root->fs_info;
 
+	atomic_inc(&sctx->refs);
 	/*
 	 * increment scrubs_running to prevent cancel requests from
 	 * completing as long as a worker is running. we must also
@@ -338,6 +347,7 @@ static void scrub_pending_trans_workers_dec(struct scrub_ctx *sctx)
 	atomic_dec(&sctx->workers_pending);
 	wake_up(&fs_info->scrub_pause_wait);
 	wake_up(&sctx->list_wait);
+	scrub_put_ctx(sctx);
 }
 
 static void scrub_free_csums(struct scrub_ctx *sctx)
@@ -383,6 +393,12 @@ static noinline_for_stack void scrub_free_ctx(struct scrub_ctx *sctx)
 	kfree(sctx);
 }
 
+static void scrub_put_ctx(struct scrub_ctx *sctx)
+{
+	if (atomic_dec_and_test(&sctx->refs))
+		scrub_free_ctx(sctx);
+}
+
 static noinline_for_stack
 struct scrub_ctx *scrub_setup_ctx(struct btrfs_device *dev, int is_dev_replace)
 {
@@ -407,6 +423,7 @@ struct scrub_ctx *scrub_setup_ctx(struct btrfs_device *dev, int is_dev_replace)
 	sctx = kzalloc(sizeof(*sctx), GFP_NOFS);
 	if (!sctx)
 		goto nomem;
+	atomic_set(&sctx->refs, 1);
 	sctx->is_dev_replace = is_dev_replace;
 	sctx->pages_per_rd_bio = pages_per_rd_bio;
 	sctx->curr = -1;
@@ -470,6 +487,7 @@ static int scrub_print_warning_inode(u64 inum, u64 offset, u64 root,
 	struct inode_fs_paths *ipath = NULL;
 	struct btrfs_root *local_root;
 	struct btrfs_key root_key;
+	struct btrfs_key key;
 
 	root_key.objectid = root;
 	root_key.type = BTRFS_ROOT_ITEM_KEY;
@@ -480,7 +498,14 @@ static int scrub_print_warning_inode(u64 inum, u64 offset, u64 root,
 		goto err;
 	}
 
-	ret = inode_item_info(inum, 0, local_root, swarn->path);
+	/*
+	 * this makes the path point to (inum INODE_ITEM ioff)
+	 */
+	key.objectid = inum;
+	key.type = BTRFS_INODE_ITEM_KEY;
+	key.offset = 0;
+
+	ret = btrfs_search_slot(NULL, local_root, &key, swarn->path, 0, 0);
 	if (ret) {
 		btrfs_release_path(swarn->path);
 		goto err;
@@ -891,8 +916,7 @@ static int scrub_handle_errored_block(struct scrub_block *sblock_to_check)
 	}
 
 	/* setup the context, map the logical blocks and alloc the pages */
-	ret = scrub_setup_recheck_block(sctx, fs_info, sblock_to_check, length,
-					logical, sblocks_for_recheck);
+	ret = scrub_setup_recheck_block(sblock_to_check, sblocks_for_recheck);
 	if (ret) {
 		spin_lock(&sctx->stat_lock);
 		sctx->stat.read_errors++;
@@ -965,8 +989,9 @@ static int scrub_handle_errored_block(struct scrub_block *sblock_to_check)
 	if (!is_metadata && !have_csum) {
 		struct scrub_fixup_nodatasum *fixup_nodatasum;
 
-nodatasum_case:
 		WARN_ON(sctx->is_dev_replace);
+
+nodatasum_case:
 
 		/*
 		 * !is_metadata and !have_csum, this means that the data
@@ -1026,76 +1051,20 @@ nodatasum_case:
 		    sblock_other->no_io_error_seen) {
 			if (sctx->is_dev_replace) {
 				scrub_write_block_to_dev_replace(sblock_other);
-			} else {
-				int force_write = is_metadata || have_csum;
-
-				ret = scrub_repair_block_from_good_copy(
-						sblock_bad, sblock_other,
-						force_write);
-			}
-			if (0 == ret)
 				goto corrected_error;
+			} else {
+				ret = scrub_repair_block_from_good_copy(
+						sblock_bad, sblock_other);
+				if (!ret)
+					goto corrected_error;
+			}
 		}
 	}
 
-	/*
-	 * for dev_replace, pick good pages and write to the target device.
-	 */
-	if (sctx->is_dev_replace) {
-		success = 1;
-		for (page_num = 0; page_num < sblock_bad->page_count;
-		     page_num++) {
-			int sub_success;
-
-			sub_success = 0;
-			for (mirror_index = 0;
-			     mirror_index < BTRFS_MAX_MIRRORS &&
-			     sblocks_for_recheck[mirror_index].page_count > 0;
-			     mirror_index++) {
-				struct scrub_block *sblock_other =
-					sblocks_for_recheck + mirror_index;
-				struct scrub_page *page_other =
-					sblock_other->pagev[page_num];
-
-				if (!page_other->io_error) {
-					ret = scrub_write_page_to_dev_replace(
-							sblock_other, page_num);
-					if (ret == 0) {
-						/* succeeded for this page */
-						sub_success = 1;
-						break;
-					} else {
-						btrfs_dev_replace_stats_inc(
-							&sctx->dev_root->
-							fs_info->dev_replace.
-							num_write_errors);
-					}
-				}
-			}
-
-			if (!sub_success) {
-				/*
-				 * did not find a mirror to fetch the page
-				 * from. scrub_write_page_to_dev_replace()
-				 * handles this case (page->io_error), by
-				 * filling the block with zeros before
-				 * submitting the write request
-				 */
-				success = 0;
-				ret = scrub_write_page_to_dev_replace(
-						sblock_bad, page_num);
-				if (ret)
-					btrfs_dev_replace_stats_inc(
-						&sctx->dev_root->fs_info->
-						dev_replace.num_write_errors);
-			}
-		}
-
-		goto out;
-	}
+	if (sblock_bad->no_io_error_seen && !sctx->is_dev_replace)
+		goto did_not_correct_error;
 
 	/*
-	 * for regular scrub, repair those pages that are errored.
 	 * In case of I/O errors in the area that is supposed to be
 	 * repaired, continue by picking good copies of those pages.
 	 * Select the good pages from mirrors to rewrite bad pages from
@@ -1119,44 +1088,64 @@ nodatasum_case:
 	 * mirror, even if other 512 byte sectors in the same PAGE_SIZE
 	 * area are unreadable.
 	 */
-
-	/* can only fix I/O errors from here on */
-	if (sblock_bad->no_io_error_seen)
-		goto did_not_correct_error;
-
 	success = 1;
-	for (page_num = 0; page_num < sblock_bad->page_count; page_num++) {
+	for (page_num = 0; page_num < sblock_bad->page_count;
+	     page_num++) {
 		struct scrub_page *page_bad = sblock_bad->pagev[page_num];
+		struct scrub_block *sblock_other = NULL;
 
-		if (!page_bad->io_error)
+		/* skip no-io-error page in scrub */
+		if (!page_bad->io_error && !sctx->is_dev_replace)
 			continue;
 
-		for (mirror_index = 0;
-		     mirror_index < BTRFS_MAX_MIRRORS &&
-		     sblocks_for_recheck[mirror_index].page_count > 0;
-		     mirror_index++) {
-			struct scrub_block *sblock_other = sblocks_for_recheck +
-							   mirror_index;
-			struct scrub_page *page_other = sblock_other->pagev[
-							page_num];
-
-			if (!page_other->io_error) {
-				ret = scrub_repair_page_from_good_copy(
-					sblock_bad, sblock_other, page_num, 0);
-				if (0 == ret) {
-					page_bad->io_error = 0;
-					break; /* succeeded for this page */
+		/* try to find no-io-error page in mirrors */
+		if (page_bad->io_error) {
+			for (mirror_index = 0;
+			     mirror_index < BTRFS_MAX_MIRRORS &&
+			     sblocks_for_recheck[mirror_index].page_count > 0;
+			     mirror_index++) {
+				if (!sblocks_for_recheck[mirror_index].
+				    pagev[page_num]->io_error) {
+					sblock_other = sblocks_for_recheck +
+						       mirror_index;
+					break;
 				}
 			}
+			if (!sblock_other)
+				success = 0;
 		}
 
-		if (page_bad->io_error) {
-			/* did not find a mirror to copy the page from */
-			success = 0;
+		if (sctx->is_dev_replace) {
+			/*
+			 * did not find a mirror to fetch the page
+			 * from. scrub_write_page_to_dev_replace()
+			 * handles this case (page->io_error), by
+			 * filling the block with zeros before
+			 * submitting the write request
+			 */
+			if (!sblock_other)
+				sblock_other = sblock_bad;
+
+			if (scrub_write_page_to_dev_replace(sblock_other,
+							    page_num) != 0) {
+				btrfs_dev_replace_stats_inc(
+					&sctx->dev_root->
+					fs_info->dev_replace.
+					num_write_errors);
+				success = 0;
+			}
+		} else if (sblock_other) {
+			ret = scrub_repair_page_from_good_copy(sblock_bad,
+							       sblock_other,
+							       page_num, 0);
+			if (0 == ret)
+				page_bad->io_error = 0;
+			else
+				success = 0;
 		}
 	}
 
-	if (success) {
+	if (success && !sctx->is_dev_replace) {
 		if (is_metadata || have_csum) {
 			/*
 			 * need to verify the checksum now that all
@@ -1414,8 +1403,7 @@ static void scrub_recheck_block_checksum(struct btrfs_fs_info *fs_info,
 }
 
 static int scrub_repair_block_from_good_copy(struct scrub_block *sblock_bad,
-					     struct scrub_block *sblock_good,
-					     int force_write)
+					     struct scrub_block *sblock_good)
 {
 	int page_num;
 	int ret = 0;
@@ -1425,8 +1413,7 @@ static int scrub_repair_block_from_good_copy(struct scrub_block *sblock_bad,
 
 		ret_sub = scrub_repair_page_from_good_copy(sblock_bad,
 							   sblock_good,
-							   page_num,
-							   force_write);
+							   page_num, 1);
 		if (ret_sub)
 			ret = ret_sub;
 	}
@@ -1859,12 +1846,12 @@ static int scrub_checksum_super(struct scrub_block *sblock)
 
 static void scrub_block_get(struct scrub_block *sblock)
 {
-	atomic_inc(&sblock->ref_count);
+	atomic_inc(&sblock->refs);
 }
 
 static void scrub_block_put(struct scrub_block *sblock)
 {
-	if (atomic_dec_and_test(&sblock->ref_count)) {
+	if (atomic_dec_and_test(&sblock->refs)) {
 		int i;
 
 		for (i = 0; i < sblock->page_count; i++)
@@ -1875,12 +1862,12 @@ static void scrub_block_put(struct scrub_block *sblock)
 
 static void scrub_page_get(struct scrub_page *spage)
 {
-	atomic_inc(&spage->ref_count);
+	atomic_inc(&spage->refs);
 }
 
 static void scrub_page_put(struct scrub_page *spage)
 {
-	if (atomic_dec_and_test(&spage->ref_count)) {
+	if (atomic_dec_and_test(&spage->refs)) {
 		if (spage->page)
 			__free_page(spage->page);
 		kfree(spage);
@@ -2006,7 +1993,7 @@ static int scrub_pages(struct scrub_ctx *sctx, u64 logical, u64 len,
 
 	/* one ref inside this function, plus one for each page added to
 	 * a bio later on */
-	atomic_set(&sblock->ref_count, 1);
+	atomic_set(&sblock->refs, 1);
 	sblock->sctx = sctx;
 	sblock->no_io_error_seen = 1;
 
@@ -2354,8 +2341,7 @@ static noinline_for_stack int scrub_stripe(struct scrub_ctx *sctx,
 	 */
 	logical = base + offset;
 	physical_end = physical + nstripes * map->stripe_len;
-	if (map->type & (BTRFS_BLOCK_GROUP_RAID5 |
-			 BTRFS_BLOCK_GROUP_RAID6)) {
+	if (map->type & BTRFS_BLOCK_GROUP_RAID56_MASK) {
 		get_raid56_logic_offset(physical_end, num,
 					map, &logic_end);
 		logic_end += base;
@@ -2401,8 +2387,7 @@ static noinline_for_stack int scrub_stripe(struct scrub_ctx *sctx,
 	ret = 0;
 	while (physical < physical_end) {
 		/* for raid56, we skip parity stripe */
-		if (map->type & (BTRFS_BLOCK_GROUP_RAID5 |
-				BTRFS_BLOCK_GROUP_RAID6)) {
+		if (map->type & BTRFS_BLOCK_GROUP_RAID56_MASK) {
 			ret = get_raid56_logic_offset(physical, num,
 					map, &logical);
 			logical += base;
@@ -2552,8 +2537,7 @@ again:
 			scrub_free_csums(sctx);
 			if (extent_logical + extent_len <
 			    key.objectid + bytes) {
-				if (map->type & (BTRFS_BLOCK_GROUP_RAID5 |
-					BTRFS_BLOCK_GROUP_RAID6)) {
+				if (map->type & BTRFS_BLOCK_GROUP_RAID56_MASK) {
 					/*
 					 * loop until we find next data stripe
 					 * or we have finished all stripes.
@@ -3034,7 +3018,7 @@ int btrfs_scrub_dev(struct btrfs_fs_info *fs_info, u64 devid, u64 start,
 	scrub_workers_put(fs_info);
 	mutex_unlock(&fs_info->scrub_lock);
 
-	scrub_free_ctx(sctx);
+	scrub_put_ctx(sctx);
 
 	return ret;
 }
@@ -3140,14 +3124,14 @@ static void scrub_remap_extent(struct btrfs_fs_info *fs_info,
 			      &mapped_length, &bbio, 0);
 	if (ret || !bbio || mapped_length < extent_len ||
 	    !bbio->stripes[0].dev->bdev) {
-		kfree(bbio);
+		btrfs_put_bbio(bbio);
 		return;
 	}
 
 	*extent_physical = bbio->stripes[0].physical;
 	*extent_mirror_num = bbio->mirror_num;
 	*extent_dev = bbio->stripes[0].dev;
-	kfree(bbio);
+	btrfs_put_bbio(bbio);
 }
 
 static int scrub_setup_wr_ctx(struct scrub_ctx *sctx,

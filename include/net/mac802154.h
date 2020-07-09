@@ -22,6 +22,8 @@
 #include <net/af_ieee802154.h>
 #include <linux/skbuff.h>
 
+#include <net/cfg802154.h>
+
 /* General MAC frame format:
  *  2 bytes: Frame Control
  *  1 byte:  Sequence Number

@@ -187,6 +187,9 @@ MODULE_PARM_DESC(macaddr, "FEC Ethernet MAC address");
 #define FEC_MMFR_RA(v)		((v & 0x1f) << 18)
 #define FEC_MMFR_TA		(2 << 16)
 #define FEC_MMFR_DATA(v)	(v & 0xffff)
+/* FEC ECR bits definition */
+#define FEC_ECR_MAGICEN		(1 << 2)
+#define FEC_ECR_SLEEP		(1 << 3)
 
 #define FEC_MII_TIMEOUT		30000 /* us */
 
@@ -195,6 +198,9 @@ MODULE_PARM_DESC(macaddr, "FEC Ethernet MAC address");
 
 #define FEC_PAUSE_FLAG_AUTONEG	0x1
 #define FEC_PAUSE_FLAG_ENABLE	0x2
+#define FEC_WOL_HAS_MAGIC_PACKET	(0x1 << 0)
+#define FEC_WOL_FLAG_ENABLE		(0x1 << 1)
+#define FEC_WOL_FLAG_SLEEP_ON		(0x1 << 2)
 
 #define COPYBREAK_DEFAULT	256
 
@@ -1958,6 +1964,7 @@ static int fec_enet_mii_init(struct platform_device *pdev)
 				platform_get_device_id(fep->pdev);
 	struct device_node *node;
 	int err = -ENXIO, i;
+	u32 mii_speed, holdtime;
 
 	/*
 	 * The dual fec interfaces are not equivalent with enet-mac.
@@ -2457,6 +2464,44 @@ static int fec_enet_set_tunable(struct net_device *netdev,
 	return ret;
 }
 
+static void
+fec_enet_get_wol(struct net_device *ndev, struct ethtool_wolinfo *wol)
+{
+	struct fec_enet_private *fep = netdev_priv(ndev);
+
+	if (fep->wol_flag & FEC_WOL_HAS_MAGIC_PACKET) {
+		wol->supported = WAKE_MAGIC;
+		wol->wolopts = fep->wol_flag & FEC_WOL_FLAG_ENABLE ? WAKE_MAGIC : 0;
+	} else {
+		wol->supported = wol->wolopts = 0;
+	}
+}
+
+static int
+fec_enet_set_wol(struct net_device *ndev, struct ethtool_wolinfo *wol)
+{
+	struct fec_enet_private *fep = netdev_priv(ndev);
+
+	if (!(fep->wol_flag & FEC_WOL_HAS_MAGIC_PACKET))
+		return -EINVAL;
+
+	if (wol->wolopts & ~WAKE_MAGIC)
+		return -EINVAL;
+
+	device_set_wakeup_enable(&ndev->dev, wol->wolopts & WAKE_MAGIC);
+	if (device_may_wakeup(&ndev->dev)) {
+		fep->wol_flag |= FEC_WOL_FLAG_ENABLE;
+		if (fep->irq[0] > 0)
+			enable_irq_wake(fep->irq[0]);
+	} else {
+		fep->wol_flag &= (~FEC_WOL_FLAG_ENABLE);
+		if (fep->irq[0] > 0)
+			disable_irq_wake(fep->irq[0]);
+	}
+
+	return 0;
+}
+
 static const struct ethtool_ops fec_enet_ethtool_ops = {
 	.get_settings		= fec_enet_get_settings,
 	.set_settings		= fec_enet_set_settings,
@@ -2475,6 +2520,8 @@ static const struct ethtool_ops fec_enet_ethtool_ops = {
 	.get_ts_info		= fec_enet_get_ts_info,
 	.get_tunable		= fec_enet_get_tunable,
 	.set_tunable		= fec_enet_set_tunable,
+	.get_wol		= fec_enet_get_wol,
+	.set_wol		= fec_enet_set_wol,
 };
 
 static int fec_enet_ioctl(struct net_device *ndev, struct ifreq *rq, int cmd)
@@ -2554,12 +2601,9 @@ static void fec_enet_free_queue(struct net_device *ndev)
 		}
 
 	for (i = 0; i < fep->num_rx_queues; i++)
-		if (fep->rx_queue[i])
-			kfree(fep->rx_queue[i]);
-
+		kfree(fep->rx_queue[i]);
 	for (i = 0; i < fep->num_tx_queues; i++)
-		if (fep->tx_queue[i])
-			kfree(fep->tx_queue[i]);
+		kfree(fep->tx_queue[i]);
 }
 
 static int fec_enet_alloc_queue(struct net_device *ndev)
@@ -2734,6 +2778,9 @@ fec_enet_open(struct net_device *ndev)
 	napi_enable(&fep->napi);
 	phy_start(fep->phy_dev);
 	netif_tx_start_all_queues(ndev);
+
+	device_set_wakeup_enable(&ndev->dev, fep->wol_flag &
+				 FEC_WOL_FLAG_ENABLE);
 
 	return 0;
 
@@ -3187,6 +3234,9 @@ fec_probe(struct platform_device *pdev)
 
 	platform_set_drvdata(pdev, ndev);
 
+	if (of_get_property(np, "fsl,magic-packet", NULL))
+		fep->wol_flag |= FEC_WOL_HAS_MAGIC_PACKET;
+
 	phy_node = of_parse_phandle(np, "phy-handle", 0);
 	if (!phy_node && of_phy_is_fixed_link(np)) {
 		ret = of_phy_register_fixed_link(np);
@@ -3282,6 +3332,8 @@ fec_probe(struct platform_device *pdev)
 				       0, pdev->name, ndev);
 		if (ret)
 			goto failed_irq;
+
+		fep->irq[i] = irq;
 	}
 
 	init_completion(&fep->mdio_done);
@@ -3297,6 +3349,9 @@ fec_probe(struct platform_device *pdev)
 	ret = register_netdev(ndev);
 	if (ret)
 		goto failed_register;
+
+	device_init_wakeup(&ndev->dev, fep->wol_flag &
+			   FEC_WOL_HAS_MAGIC_PACKET);
 
 	if (fep->bufdesc_ex && fep->ptp_clock)
 		netdev_info(ndev, "registered PHC device %d\n", fep->dev_id);
@@ -3337,7 +3392,6 @@ fec_drv_remove(struct platform_device *pdev)
 		regulator_disable(fep->reg_phy);
 	if (fep->ptp_clock)
 		ptp_clock_unregister(fep->ptp_clock);
-	fec_enet_clk_enable(ndev, false);
 	of_node_put(fep->phy_node);
 	free_netdev(ndev);
 
@@ -3351,6 +3405,8 @@ static int __maybe_unused fec_suspend(struct device *dev)
 
 	rtnl_lock();
 	if (netif_running(ndev)) {
+		if (fep->wol_flag & FEC_WOL_FLAG_ENABLE)
+			fep->wol_flag |= FEC_WOL_FLAG_SLEEP_ON;
 		phy_stop(fep->phy_dev);
 		napi_disable(&fep->napi);
 		netif_tx_lock_bh(ndev);
@@ -3358,11 +3414,12 @@ static int __maybe_unused fec_suspend(struct device *dev)
 		netif_tx_unlock_bh(ndev);
 		fec_stop(ndev);
 		fec_enet_clk_enable(ndev, false);
-		pinctrl_pm_select_sleep_state(&fep->pdev->dev);
+		if (!(fep->wol_flag & FEC_WOL_FLAG_ENABLE))
+			pinctrl_pm_select_sleep_state(&fep->pdev->dev);
 	}
 	rtnl_unlock();
 
-	if (fep->reg_phy)
+	if (fep->reg_phy && !(fep->wol_flag & FEC_WOL_FLAG_ENABLE))
 		regulator_disable(fep->reg_phy);
 
 	return 0;
@@ -3372,9 +3429,11 @@ static int __maybe_unused fec_resume(struct device *dev)
 {
 	struct net_device *ndev = dev_get_drvdata(dev);
 	struct fec_enet_private *fep = netdev_priv(ndev);
+	struct fec_platform_data *pdata = fep->pdev->dev.platform_data;
 	int ret;
+	int val;
 
-	if (fep->reg_phy) {
+	if (fep->reg_phy && !(fep->wol_flag & FEC_WOL_FLAG_ENABLE)) {
 		ret = regulator_enable(fep->reg_phy);
 		if (ret)
 			return ret;
@@ -3382,11 +3441,20 @@ static int __maybe_unused fec_resume(struct device *dev)
 
 	rtnl_lock();
 	if (netif_running(ndev)) {
-		pinctrl_pm_select_default_state(&fep->pdev->dev);
 		ret = fec_enet_clk_enable(ndev, true);
 		if (ret) {
 			rtnl_unlock();
 			goto failed_clk;
+		}
+		if (fep->wol_flag & FEC_WOL_FLAG_ENABLE) {
+			if (pdata && pdata->sleep_mode_enable)
+				pdata->sleep_mode_enable(false);
+			val = readl(fep->hwp + FEC_ECNTRL);
+			val &= ~(FEC_ECR_MAGICEN | FEC_ECR_SLEEP);
+			writel(val, fep->hwp + FEC_ECNTRL);
+			fep->wol_flag &= ~FEC_WOL_FLAG_SLEEP_ON;
+		} else {
+			pinctrl_pm_select_default_state(&fep->pdev->dev);
 		}
 		fec_restart(ndev);
 		netif_tx_lock_bh(ndev);

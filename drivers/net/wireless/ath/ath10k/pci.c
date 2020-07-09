@@ -58,10 +58,25 @@ MODULE_PARM_DESC(reset_mode, "0: auto, 1: warm only (default: 0)");
 #define ATH10K_PCI_NUM_WARM_RESET_ATTEMPTS 3
 
 #define QCA988X_2_0_DEVICE_ID	(0x003c)
+#define QCA6174_2_1_DEVICE_ID	(0x003e)
 
 static const struct pci_device_id ath10k_pci_id_table[] = {
 	{ PCI_VDEVICE(ATHEROS, QCA988X_2_0_DEVICE_ID) }, /* PCI-E QCA988X V2 */
+	{ PCI_VDEVICE(ATHEROS, QCA6174_2_1_DEVICE_ID) }, /* PCI-E QCA6174 V2.1 */
 	{0}
+};
+
+static const struct ath10k_pci_supp_chip ath10k_pci_supp_chips[] = {
+	/* QCA988X pre 2.0 chips are not supported because they need some nasty
+	 * hacks. ath10k doesn't have them and these devices crash horribly
+	 * because of that.
+	 */
+	{ QCA988X_2_0_DEVICE_ID, QCA988X_HW_2_0_CHIP_ID_REV },
+	{ QCA6174_2_1_DEVICE_ID, QCA6174_HW_2_1_CHIP_ID_REV },
+	{ QCA6174_2_1_DEVICE_ID, QCA6174_HW_2_2_CHIP_ID_REV },
+	{ QCA6174_2_1_DEVICE_ID, QCA6174_HW_3_0_CHIP_ID_REV },
+	{ QCA6174_2_1_DEVICE_ID, QCA6174_HW_3_1_CHIP_ID_REV },
+	{ QCA6174_2_1_DEVICE_ID, QCA6174_HW_3_2_CHIP_ID_REV },
 };
 
 static void ath10k_pci_buffer_cleanup(struct ath10k *ar);
@@ -395,7 +410,7 @@ static int __ath10k_pci_rx_post_buf(struct ath10k_pci_pipe *pipe)
 		return -EIO;
 	}
 
-	ATH10K_SKB_CB(skb)->paddr = paddr;
+	ATH10K_SKB_RXCB(skb)->paddr = paddr;
 
 	ret = __ath10k_ce_rx_post_buf(ce_pipe, skb, paddr);
 	if (ret) {
@@ -850,7 +865,7 @@ static void ath10k_pci_ce_recv_data(struct ath10k_ce_pipe *ce_state)
 					     &flags) == 0) {
 		skb = transfer_context;
 		max_nbytes = skb->len + skb_tailroom(skb);
-		dma_unmap_single(ar->dev, ATH10K_SKB_CB(skb)->paddr,
+		dma_unmap_single(ar->dev, ATH10K_SKB_RXCB(skb)->paddr,
 				 max_nbytes, DMA_FROM_DEVICE);
 
 		if (unlikely(max_nbytes < nbytes)) {
@@ -1430,6 +1445,35 @@ static int ath10k_pci_wake_target_cpu(struct ath10k *ar)
 	return 0;
 }
 
+static int ath10k_pci_get_num_banks(struct ath10k *ar)
+{
+	struct ath10k_pci *ar_pci = ath10k_pci_priv(ar);
+
+	switch (ar_pci->pdev->device) {
+	case QCA988X_2_0_DEVICE_ID:
+		return 1;
+	case QCA6174_2_1_DEVICE_ID:
+		switch (MS(ar->chip_id, SOC_CHIP_ID_REV)) {
+		case QCA6174_HW_1_0_CHIP_ID_REV:
+		case QCA6174_HW_1_1_CHIP_ID_REV:
+			return 3;
+		case QCA6174_HW_1_3_CHIP_ID_REV:
+			return 2;
+		case QCA6174_HW_2_1_CHIP_ID_REV:
+		case QCA6174_HW_2_2_CHIP_ID_REV:
+			return 6;
+		case QCA6174_HW_3_0_CHIP_ID_REV:
+		case QCA6174_HW_3_1_CHIP_ID_REV:
+		case QCA6174_HW_3_2_CHIP_ID_REV:
+			return 9;
+		}
+		break;
+	}
+
+	ath10k_warn(ar, "unknown number of banks, assuming 1\n");
+	return 1;
+}
+
 static int ath10k_pci_init_config(struct ath10k *ar)
 {
 	u32 interconnect_targ_addr;
@@ -1540,7 +1584,8 @@ static int ath10k_pci_init_config(struct ath10k *ar)
 	/* first bank is switched to IRAM */
 	ealloc_value |= ((HI_EARLY_ALLOC_MAGIC << HI_EARLY_ALLOC_MAGIC_SHIFT) &
 			 HI_EARLY_ALLOC_MAGIC_MASK);
-	ealloc_value |= ((1 << HI_EARLY_ALLOC_IRAM_BANKS_SHIFT) &
+	ealloc_value |= ((ath10k_pci_get_num_banks(ar) <<
+			  HI_EARLY_ALLOC_IRAM_BANKS_SHIFT) &
 			 HI_EARLY_ALLOC_IRAM_BANKS_MASK);
 
 	ret = ath10k_pci_diag_write32(ar, ealloc_targ_addr, ealloc_value);
@@ -1954,6 +1999,7 @@ static void ath10k_msi_err_tasklet(unsigned long data)
 		return;
 	}
 
+	ath10k_pci_irq_disable(ar);
 	ath10k_pci_fw_crashed_clear(ar);
 	ath10k_pci_fw_crashed_dump(ar);
 }
@@ -2023,6 +2069,7 @@ static void ath10k_pci_tasklet(unsigned long data)
 	struct ath10k_pci *ar_pci = ath10k_pci_priv(ar);
 
 	if (ath10k_pci_has_fw_crashed(ar)) {
+		ath10k_pci_irq_disable(ar);
 		ath10k_pci_fw_crashed_clear(ar);
 		ath10k_pci_fw_crashed_dump(ar);
 		return;
@@ -2265,8 +2312,6 @@ static int ath10k_pci_wait_for_target_init(struct ath10k *ar)
 
 	if (val & FW_IND_EVENT_PENDING) {
 		ath10k_warn(ar, "device has crashed during init\n");
-		ath10k_pci_fw_crashed_clear(ar);
-		ath10k_pci_fw_crashed_dump(ar);
 		return -ECOMM;
 	}
 

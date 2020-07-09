@@ -1401,6 +1401,7 @@ static int cx231xx_usb_probe(struct usb_interface *interface,
 	struct usb_interface_assoc_descriptor *assoc_desc;
 
 	ifnum = interface->altsetting[0].desc.bInterfaceNumber;
+	udev = usb_get_dev(interface_to_usbdev(interface));
 
 	/*
 	 * Interface number 0 - IR interface (handled by mceusb driver)

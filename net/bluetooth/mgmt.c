@@ -32,6 +32,7 @@
 #include <net/bluetooth/l2cap.h>
 #include <net/bluetooth/mgmt.h>
 
+#include "hci_request.h"
 #include "smp.h"
 
 #define MGMT_VERSION	1
@@ -128,6 +129,9 @@ static const u16 mgmt_events[] = {
 };
 
 #define CACHE_TIMEOUT	msecs_to_jiffies(2 * 1000)
+
+#define ZERO_KEY "\x00\x00\x00\x00\x00\x00\x00\x00" \
+		 "\x00\x00\x00\x00\x00\x00\x00\x00"
 
 struct pending_cmd {
 	struct list_head list;
@@ -566,8 +570,7 @@ static u32 get_supported_settings(struct hci_dev *hdev)
 			settings |= MGMT_SETTING_HS;
 		}
 
-		if (lmp_sc_capable(hdev) ||
-		    test_bit(HCI_FORCE_SC, &hdev->dbg_flags))
+		if (lmp_sc_capable(hdev))
 			settings |= MGMT_SETTING_SECURE_CONN;
 	}
 
@@ -1248,7 +1251,7 @@ static int send_settings_rsp(struct sock *sk, u16 opcode, struct hci_dev *hdev)
 			    sizeof(settings));
 }
 
-static void clean_up_hci_complete(struct hci_dev *hdev, u8 status)
+static void clean_up_hci_complete(struct hci_dev *hdev, u8 status, u16 opcode)
 {
 	BT_DBG("%s status 0x%02x", hdev->name, status);
 
@@ -1489,7 +1492,8 @@ static u8 mgmt_le_support(struct hci_dev *hdev)
 		return MGMT_STATUS_SUCCESS;
 }
 
-static void set_discoverable_complete(struct hci_dev *hdev, u8 status)
+static void set_discoverable_complete(struct hci_dev *hdev, u8 status,
+				      u16 opcode)
 {
 	struct pending_cmd *cmd;
 	struct mgmt_mode *cp;
@@ -1537,7 +1541,7 @@ static void set_discoverable_complete(struct hci_dev *hdev, u8 status)
 	 * entries.
 	 */
 	hci_req_init(&req, hdev);
-	hci_update_page_scan(hdev, &req);
+	__hci_update_page_scan(&req);
 	update_class(&req);
 	hci_req_run(&req, NULL);
 
@@ -1748,7 +1752,8 @@ static void write_fast_connectable(struct hci_request *req, bool enable)
 		hci_req_add(req, HCI_OP_WRITE_PAGE_SCAN_TYPE, 1, &type);
 }
 
-static void set_connectable_complete(struct hci_dev *hdev, u8 status)
+static void set_connectable_complete(struct hci_dev *hdev, u8 status,
+				     u16 opcode)
 {
 	struct pending_cmd *cmd;
 	struct mgmt_mode *cp;
@@ -1784,7 +1789,7 @@ static void set_connectable_complete(struct hci_dev *hdev, u8 status)
 
 	if (conn_changed || discov_changed) {
 		new_settings(hdev, cmd->sk);
-		hci_update_page_scan(hdev, NULL);
+		hci_update_page_scan(hdev);
 		if (discov_changed)
 			mgmt_update_adv_data(hdev);
 		hci_update_background_scan(hdev);
@@ -1818,7 +1823,7 @@ static int set_connectable_update_settings(struct hci_dev *hdev,
 		return err;
 
 	if (changed) {
-		hci_update_page_scan(hdev, NULL);
+		hci_update_page_scan(hdev);
 		hci_update_background_scan(hdev);
 		return new_settings(hdev, sk);
 	}
@@ -2166,7 +2171,7 @@ unlock:
 	return err;
 }
 
-static void le_enable_complete(struct hci_dev *hdev, u8 status)
+static void le_enable_complete(struct hci_dev *hdev, u8 status, u16 opcode)
 {
 	struct cmd_lookup match = { NULL, hdev };
 
@@ -2356,7 +2361,7 @@ unlock:
 	hci_dev_unlock(hdev);
 }
 
-static void add_uuid_complete(struct hci_dev *hdev, u8 status)
+static void add_uuid_complete(struct hci_dev *hdev, u8 status, u16 opcode)
 {
 	BT_DBG("status 0x%02x", status);
 
@@ -2435,7 +2440,7 @@ static bool enable_service_cache(struct hci_dev *hdev)
 	return false;
 }
 
-static void remove_uuid_complete(struct hci_dev *hdev, u8 status)
+static void remove_uuid_complete(struct hci_dev *hdev, u8 status, u16 opcode)
 {
 	BT_DBG("status 0x%02x", status);
 
@@ -2520,7 +2525,7 @@ unlock:
 	return err;
 }
 
-static void set_class_complete(struct hci_dev *hdev, u8 status)
+static void set_class_complete(struct hci_dev *hdev, u8 status, u16 opcode)
 {
 	BT_DBG("status 0x%02x", status);
 
@@ -3042,16 +3047,17 @@ static struct pending_cmd *find_pairing(struct hci_conn *conn)
 	return NULL;
 }
 
-static void pairing_complete(struct pending_cmd *cmd, u8 status)
+static int pairing_complete(struct pending_cmd *cmd, u8 status)
 {
 	struct mgmt_rp_pair_device rp;
 	struct hci_conn *conn = cmd->user_data;
+	int err;
 
 	bacpy(&rp.addr.bdaddr, &conn->dst);
 	rp.addr.type = link_to_bdaddr(conn->type, conn->dst_type);
 
-	cmd_complete(cmd->sk, cmd->index, MGMT_OP_PAIR_DEVICE, status,
-		     &rp, sizeof(rp));
+	err = cmd_complete(cmd->sk, cmd->index, MGMT_OP_PAIR_DEVICE, status,
+			   &rp, sizeof(rp));
 
 	/* So we don't get further callbacks for this connection */
 	conn->connect_cfm_cb = NULL;
@@ -3406,7 +3412,7 @@ static void update_name(struct hci_request *req)
 	hci_req_add(req, HCI_OP_WRITE_LOCAL_NAME, sizeof(cp), &cp);
 }
 
-static void set_name_complete(struct hci_dev *hdev, u8 status)
+static void set_name_complete(struct hci_dev *hdev, u8 status, u16 opcode)
 {
 	struct mgmt_cp_set_local_name *cp;
 	struct pending_cmd *cmd;
@@ -3554,9 +3560,15 @@ unlock:
 static int add_remote_oob_data(struct sock *sk, struct hci_dev *hdev,
 			       void *data, u16 len)
 {
+	struct mgmt_addr_info *addr = data;
 	int err;
 
 	BT_DBG("%s ", hdev->name);
+
+	if (!bdaddr_type_is_valid(addr->type))
+		return cmd_complete(sk, hdev->id, MGMT_OP_ADD_REMOTE_OOB_DATA,
+				    MGMT_STATUS_INVALID_PARAMS, addr,
+				    sizeof(*addr));
 
 	hci_dev_lock(hdev);
 
@@ -3644,7 +3656,8 @@ static int mgmt_start_discovery_failed(struct hci_dev *hdev, u8 status)
 	return err;
 }
 
-static void start_discovery_complete(struct hci_dev *hdev, u8 status)
+static void start_discovery_complete(struct hci_dev *hdev, u8 status,
+				     u16 opcode)
 {
 	unsigned long timeout = 0;
 
@@ -3661,6 +3674,9 @@ static void start_discovery_complete(struct hci_dev *hdev, u8 status)
 	hci_discovery_set_state(hdev, DISCOVERY_FINDING);
 	hci_dev_unlock(hdev);
 
+	/* If the scan involves LE scan, pick proper timeout to schedule
+	 * hdev->le_scan_disable that will stop it.
+	 */
 	switch (hdev->discovery.type) {
 	case DISCOV_TYPE_LE:
 		timeout = msecs_to_jiffies(DISCOV_LE_TIMEOUT);
@@ -3858,7 +3874,7 @@ static int mgmt_stop_discovery_failed(struct hci_dev *hdev, u8 status)
 	return err;
 }
 
-static void stop_discovery_complete(struct hci_dev *hdev, u8 status)
+static void stop_discovery_complete(struct hci_dev *hdev, u8 status, u16 opcode)
 {
 	BT_DBG("status %d", status);
 
@@ -4079,7 +4095,8 @@ static int set_device_id(struct sock *sk, struct hci_dev *hdev, void *data,
 	return err;
 }
 
-static void set_advertising_complete(struct hci_dev *hdev, u8 status)
+static void set_advertising_complete(struct hci_dev *hdev, u8 status,
+				     u16 opcode)
 {
 	struct cmd_lookup match = { NULL, hdev };
 
@@ -4281,7 +4298,8 @@ static int set_scan_params(struct sock *sk, struct hci_dev *hdev,
 	return err;
 }
 
-static void fast_connectable_complete(struct hci_dev *hdev, u8 status)
+static void fast_connectable_complete(struct hci_dev *hdev, u8 status,
+				      u16 opcode)
 {
 	struct pending_cmd *cmd;
 
@@ -4379,7 +4397,7 @@ unlock:
 	return err;
 }
 
-static void set_bredr_complete(struct hci_dev *hdev, u8 status)
+static void set_bredr_complete(struct hci_dev *hdev, u8 status, u16 opcode)
 {
 	struct pending_cmd *cmd;
 
@@ -4463,6 +4481,28 @@ static int set_bredr(struct sock *sk, struct hci_dev *hdev, void *data, u16 len)
 		err = cmd_status(sk, hdev->id, MGMT_OP_SET_BREDR,
 				 MGMT_STATUS_REJECTED);
 		goto unlock;
+	} else {
+		/* When configuring a dual-mode controller to operate
+		 * with LE only and using a static address, then switching
+		 * BR/EDR back on is not allowed.
+		 *
+		 * Dual-mode controllers shall operate with the public
+		 * address as its identity address for BR/EDR and LE. So
+		 * reject the attempt to create an invalid configuration.
+		 *
+		 * The same restrictions applies when secure connections
+		 * has been enabled. For BR/EDR this is a controller feature
+		 * while for LE it is a host stack feature. This means that
+		 * switching BR/EDR back on when secure connections has been
+		 * enabled is not a supported transaction.
+		 */
+		if (!test_bit(HCI_BREDR_ENABLED, &hdev->dev_flags) &&
+		    (bacmp(&hdev->static_addr, BDADDR_ANY) ||
+		     test_bit(HCI_SC_ENABLED, &hdev->dev_flags))) {
+			err = cmd_status(sk, hdev->id, MGMT_OP_SET_BREDR,
+					 MGMT_STATUS_REJECTED);
+			goto unlock;
+		}
 	}
 
 	if (mgmt_pending_find(MGMT_OP_SET_BREDR, hdev)) {
@@ -4485,7 +4525,7 @@ static int set_bredr(struct sock *sk, struct hci_dev *hdev, void *data, u16 len)
 	hci_req_init(&req, hdev);
 
 	write_fast_connectable(&req, false);
-	hci_update_page_scan(hdev, &req);
+	__hci_update_page_scan(&req);
 
 	/* Since only the advertising data flags will change, there
 	 * is no need to update the scan response data.
@@ -4573,16 +4613,13 @@ static int set_secure_conn(struct sock *sk, struct hci_dev *hdev,
 		goto failed;
 	}
 
-	err = hci_send_cmd(hdev, HCI_OP_WRITE_SC_SUPPORT, 1, &val);
+	hci_req_init(&req, hdev);
+	hci_req_add(&req, HCI_OP_WRITE_SC_SUPPORT, 1, &val);
+	err = hci_req_run(&req, sc_enable_complete);
 	if (err < 0) {
 		mgmt_pending_remove(cmd);
 		goto failed;
 	}
-
-	if (cp->val == 0x02)
-		set_bit(HCI_SC_ONLY, &hdev->dev_flags);
-	else
-		clear_bit(HCI_SC_ONLY, &hdev->dev_flags);
 
 failed:
 	hci_dev_unlock(hdev);
@@ -5214,6 +5251,65 @@ unlock:
 	return err;
 }
 
+static bool is_connected(struct hci_dev *hdev, bdaddr_t *addr, u8 type)
+{
+	struct hci_conn *conn;
+
+	conn = hci_conn_hash_lookup_ba(hdev, LE_LINK, addr);
+	if (!conn)
+		return false;
+
+	if (conn->dst_type != type)
+		return false;
+
+	if (conn->state != BT_CONNECTED)
+		return false;
+
+	return true;
+}
+
+/* This function requires the caller holds hdev->lock */
+static int hci_conn_params_set(struct hci_request *req, bdaddr_t *addr,
+			       u8 addr_type, u8 auto_connect)
+{
+	struct hci_dev *hdev = req->hdev;
+	struct hci_conn_params *params;
+
+	params = hci_conn_params_add(hdev, addr, addr_type);
+	if (!params)
+		return -EIO;
+
+	if (params->auto_connect == auto_connect)
+		return 0;
+
+	list_del_init(&params->action);
+
+	switch (auto_connect) {
+	case HCI_AUTO_CONN_DISABLED:
+	case HCI_AUTO_CONN_LINK_LOSS:
+		__hci_update_background_scan(req);
+		break;
+	case HCI_AUTO_CONN_REPORT:
+		list_add(&params->action, &hdev->pend_le_reports);
+		__hci_update_background_scan(req);
+		break;
+	case HCI_AUTO_CONN_DIRECT:
+	case HCI_AUTO_CONN_ALWAYS:
+		if (!is_connected(hdev, addr, addr_type)) {
+			list_add(&params->action, &hdev->pend_le_conns);
+			__hci_update_background_scan(req);
+		}
+		break;
+	}
+
+	params->auto_connect = auto_connect;
+
+	BT_DBG("addr %pMR (type %u) auto_connect %u", addr, addr_type,
+	       auto_connect);
+
+	return 0;
+}
+
 static void device_added(struct sock *sk, struct hci_dev *hdev,
 			 bdaddr_t *bdaddr, u8 type, u8 action)
 {
@@ -5226,10 +5322,31 @@ static void device_added(struct sock *sk, struct hci_dev *hdev,
 	mgmt_event(MGMT_EV_DEVICE_ADDED, hdev, &ev, sizeof(ev), sk);
 }
 
+static void add_device_complete(struct hci_dev *hdev, u8 status, u16 opcode)
+{
+	struct pending_cmd *cmd;
+
+	BT_DBG("status 0x%02x", status);
+
+	hci_dev_lock(hdev);
+
+	cmd = mgmt_pending_find(MGMT_OP_ADD_DEVICE, hdev);
+	if (!cmd)
+		goto unlock;
+
+	cmd->cmd_complete(cmd, mgmt_status(status));
+	mgmt_pending_remove(cmd);
+
+unlock:
+	hci_dev_unlock(hdev);
+}
+
 static int add_device(struct sock *sk, struct hci_dev *hdev,
 		      void *data, u16 len)
 {
 	struct mgmt_cp_add_device *cp = data;
+	struct pending_cmd *cmd;
+	struct hci_request req;
 	u8 auto_conn, addr_type;
 	int err;
 
@@ -5246,14 +5363,24 @@ static int add_device(struct sock *sk, struct hci_dev *hdev,
 				    MGMT_STATUS_INVALID_PARAMS,
 				    &cp->addr, sizeof(cp->addr));
 
+	hci_req_init(&req, hdev);
+
 	hci_dev_lock(hdev);
+
+	cmd = mgmt_pending_add(sk, MGMT_OP_ADD_DEVICE, hdev, data, len);
+	if (!cmd) {
+		err = -ENOMEM;
+		goto unlock;
+	}
+
+	cmd->cmd_complete = addr_cmd_complete;
 
 	if (cp->addr.type == BDADDR_BREDR) {
 		/* Only incoming connections action is supported for now */
 		if (cp->action != 0x01) {
-			err = cmd_complete(sk, hdev->id, MGMT_OP_ADD_DEVICE,
-					   MGMT_STATUS_INVALID_PARAMS,
-					   &cp->addr, sizeof(cp->addr));
+			err = cmd->cmd_complete(cmd,
+						MGMT_STATUS_INVALID_PARAMS);
+			mgmt_pending_remove(cmd);
 			goto unlock;
 		}
 
@@ -5262,7 +5389,7 @@ static int add_device(struct sock *sk, struct hci_dev *hdev,
 		if (err)
 			goto unlock;
 
-		hci_update_page_scan(hdev, NULL);
+		__hci_update_page_scan(&req);
 
 		goto added;
 	}
@@ -5282,19 +5409,25 @@ static int add_device(struct sock *sk, struct hci_dev *hdev,
 	/* If the connection parameters don't exist for this device,
 	 * they will be created and configured with defaults.
 	 */
-	if (hci_conn_params_set(hdev, &cp->addr.bdaddr, addr_type,
+	if (hci_conn_params_set(&req, &cp->addr.bdaddr, addr_type,
 				auto_conn) < 0) {
-		err = cmd_complete(sk, hdev->id, MGMT_OP_ADD_DEVICE,
-				   MGMT_STATUS_FAILED,
-				   &cp->addr, sizeof(cp->addr));
+		err = cmd->cmd_complete(cmd, MGMT_STATUS_FAILED);
+		mgmt_pending_remove(cmd);
 		goto unlock;
 	}
 
 added:
 	device_added(sk, hdev, &cp->addr.bdaddr, cp->addr.type, cp->action);
 
-	err = cmd_complete(sk, hdev->id, MGMT_OP_ADD_DEVICE,
-			   MGMT_STATUS_SUCCESS, &cp->addr, sizeof(cp->addr));
+	err = hci_req_run(&req, add_device_complete);
+	if (err < 0) {
+		/* ENODATA means no HCI commands were needed (e.g. if
+		 * the adapter is powered off).
+		 */
+		if (err == -ENODATA)
+			err = cmd->cmd_complete(cmd, MGMT_STATUS_SUCCESS);
+		mgmt_pending_remove(cmd);
+	}
 
 unlock:
 	hci_dev_unlock(hdev);
@@ -5312,24 +5445,55 @@ static void device_removed(struct sock *sk, struct hci_dev *hdev,
 	mgmt_event(MGMT_EV_DEVICE_REMOVED, hdev, &ev, sizeof(ev), sk);
 }
 
+static void remove_device_complete(struct hci_dev *hdev, u8 status, u16 opcode)
+{
+	struct pending_cmd *cmd;
+
+	BT_DBG("status 0x%02x", status);
+
+	hci_dev_lock(hdev);
+
+	cmd = mgmt_pending_find(MGMT_OP_REMOVE_DEVICE, hdev);
+	if (!cmd)
+		goto unlock;
+
+	cmd->cmd_complete(cmd, mgmt_status(status));
+	mgmt_pending_remove(cmd);
+
+unlock:
+	hci_dev_unlock(hdev);
+}
+
 static int remove_device(struct sock *sk, struct hci_dev *hdev,
 			 void *data, u16 len)
 {
 	struct mgmt_cp_remove_device *cp = data;
+	struct pending_cmd *cmd;
+	struct hci_request req;
 	int err;
 
 	BT_DBG("%s", hdev->name);
 
+	hci_req_init(&req, hdev);
+
 	hci_dev_lock(hdev);
+
+	cmd = mgmt_pending_add(sk, MGMT_OP_REMOVE_DEVICE, hdev, data, len);
+	if (!cmd) {
+		err = -ENOMEM;
+		goto unlock;
+	}
+
+	cmd->cmd_complete = addr_cmd_complete;
 
 	if (bacmp(&cp->addr.bdaddr, BDADDR_ANY)) {
 		struct hci_conn_params *params;
 		u8 addr_type;
 
 		if (!bdaddr_type_is_valid(cp->addr.type)) {
-			err = cmd_complete(sk, hdev->id, MGMT_OP_REMOVE_DEVICE,
-					   MGMT_STATUS_INVALID_PARAMS,
-					   &cp->addr, sizeof(cp->addr));
+			err = cmd->cmd_complete(cmd,
+						MGMT_STATUS_INVALID_PARAMS);
+			mgmt_pending_remove(cmd);
 			goto unlock;
 		}
 
@@ -5338,14 +5502,13 @@ static int remove_device(struct sock *sk, struct hci_dev *hdev,
 						  &cp->addr.bdaddr,
 						  cp->addr.type);
 			if (err) {
-				err = cmd_complete(sk, hdev->id,
-						   MGMT_OP_REMOVE_DEVICE,
-						   MGMT_STATUS_INVALID_PARAMS,
-						   &cp->addr, sizeof(cp->addr));
+				err = cmd->cmd_complete(cmd,
+							MGMT_STATUS_INVALID_PARAMS);
+				mgmt_pending_remove(cmd);
 				goto unlock;
 			}
 
-			hci_update_page_scan(hdev, NULL);
+			__hci_update_page_scan(&req);
 
 			device_removed(sk, hdev, &cp->addr.bdaddr,
 				       cp->addr.type);
@@ -5360,23 +5523,23 @@ static int remove_device(struct sock *sk, struct hci_dev *hdev,
 		params = hci_conn_params_lookup(hdev, &cp->addr.bdaddr,
 						addr_type);
 		if (!params) {
-			err = cmd_complete(sk, hdev->id, MGMT_OP_REMOVE_DEVICE,
-					   MGMT_STATUS_INVALID_PARAMS,
-					   &cp->addr, sizeof(cp->addr));
+			err = cmd->cmd_complete(cmd,
+						MGMT_STATUS_INVALID_PARAMS);
+			mgmt_pending_remove(cmd);
 			goto unlock;
 		}
 
 		if (params->auto_connect == HCI_AUTO_CONN_DISABLED) {
-			err = cmd_complete(sk, hdev->id, MGMT_OP_REMOVE_DEVICE,
-					   MGMT_STATUS_INVALID_PARAMS,
-					   &cp->addr, sizeof(cp->addr));
+			err = cmd->cmd_complete(cmd,
+						MGMT_STATUS_INVALID_PARAMS);
+			mgmt_pending_remove(cmd);
 			goto unlock;
 		}
 
 		list_del(&params->action);
 		list_del(&params->list);
 		kfree(params);
-		hci_update_background_scan(hdev);
+		__hci_update_background_scan(&req);
 
 		device_removed(sk, hdev, &cp->addr.bdaddr, cp->addr.type);
 	} else {
@@ -5384,9 +5547,9 @@ static int remove_device(struct sock *sk, struct hci_dev *hdev,
 		struct bdaddr_list *b, *btmp;
 
 		if (cp->addr.type) {
-			err = cmd_complete(sk, hdev->id, MGMT_OP_REMOVE_DEVICE,
-					   MGMT_STATUS_INVALID_PARAMS,
-					   &cp->addr, sizeof(cp->addr));
+			err = cmd->cmd_complete(cmd,
+						MGMT_STATUS_INVALID_PARAMS);
+			mgmt_pending_remove(cmd);
 			goto unlock;
 		}
 
@@ -5396,7 +5559,7 @@ static int remove_device(struct sock *sk, struct hci_dev *hdev,
 			kfree(b);
 		}
 
-		hci_update_page_scan(hdev, NULL);
+		__hci_update_page_scan(&req);
 
 		list_for_each_entry_safe(p, tmp, &hdev->le_conn_params, list) {
 			if (p->auto_connect == HCI_AUTO_CONN_DISABLED)
@@ -5409,12 +5572,19 @@ static int remove_device(struct sock *sk, struct hci_dev *hdev,
 
 		BT_DBG("All LE connection parameters were removed");
 
-		hci_update_background_scan(hdev);
+		__hci_update_background_scan(&req);
 	}
 
 complete:
-	err = cmd_complete(sk, hdev->id, MGMT_OP_REMOVE_DEVICE,
-			   MGMT_STATUS_SUCCESS, &cp->addr, sizeof(cp->addr));
+	err = hci_req_run(&req, remove_device_complete);
+	if (err < 0) {
+		/* ENODATA means no HCI commands were needed (e.g. if
+		 * the adapter is powered off).
+		 */
+		if (err == -ENODATA)
+			err = cmd->cmd_complete(cmd, MGMT_STATUS_SUCCESS);
+		mgmt_pending_remove(cmd);
+	}
 
 unlock:
 	hci_dev_unlock(hdev);
@@ -5825,8 +5995,9 @@ void mgmt_index_removed(struct hci_dev *hdev)
 }
 
 /* This function requires the caller holds hdev->lock */
-static void restart_le_actions(struct hci_dev *hdev)
+static void restart_le_actions(struct hci_request *req)
 {
+	struct hci_dev *hdev = req->hdev;
 	struct hci_conn_params *p;
 
 	list_for_each_entry(p, &hdev->le_conn_params, list) {
@@ -5848,18 +6019,25 @@ static void restart_le_actions(struct hci_dev *hdev)
 		}
 	}
 
-	hci_update_background_scan(hdev);
+	__hci_update_background_scan(req);
 }
 
-static void powered_complete(struct hci_dev *hdev, u8 status)
+static void powered_complete(struct hci_dev *hdev, u8 status, u16 opcode)
 {
 	struct cmd_lookup match = { NULL, hdev };
 
 	BT_DBG("status 0x%02x", status);
 
-	hci_dev_lock(hdev);
+	if (!status) {
+		/* Register the available SMP channels (BR/EDR and LE) only
+		 * when successfully powering on the controller. This late
+		 * registration is required so that LE SMP can clearly
+		 * decide if the public address or static address is used.
+		 */
+		smp_register(hdev);
+	}
 
-	restart_le_actions(hdev);
+	hci_dev_lock(hdev);
 
 	mgmt_pending_foreach(MGMT_OP_SET_POWERED, hdev, settings_rsp, &match);
 
@@ -5913,6 +6091,8 @@ static int powered_update_hci(struct hci_dev *hdev)
 
 		if (test_bit(HCI_ADVERTISING, &hdev->dev_flags))
 			enable_advertising(&req);
+
+		restart_le_actions(&req);
 	}
 
 	link_sec = test_bit(HCI_LINK_SECURITY, &hdev->dev_flags);
@@ -5922,7 +6102,7 @@ static int powered_update_hci(struct hci_dev *hdev)
 
 	if (lmp_bredr_capable(hdev)) {
 		write_fast_connectable(&req, false);
-		hci_update_page_scan(hdev, &req);
+		__hci_update_page_scan(&req);
 		update_class(&req);
 		update_name(&req);
 		update_eir(&req);
@@ -6601,43 +6781,6 @@ void mgmt_ssp_enable_complete(struct hci_dev *hdev, u8 enable, u8 status)
 	hci_req_run(&req, NULL);
 }
 
-void mgmt_sc_enable_complete(struct hci_dev *hdev, u8 enable, u8 status)
-{
-	struct cmd_lookup match = { NULL, hdev };
-	bool changed = false;
-
-	if (status) {
-		u8 mgmt_err = mgmt_status(status);
-
-		if (enable) {
-			if (test_and_clear_bit(HCI_SC_ENABLED,
-					       &hdev->dev_flags))
-				new_settings(hdev, NULL);
-			clear_bit(HCI_SC_ONLY, &hdev->dev_flags);
-		}
-
-		mgmt_pending_foreach(MGMT_OP_SET_SECURE_CONN, hdev,
-				     cmd_status_rsp, &mgmt_err);
-		return;
-	}
-
-	if (enable) {
-		changed = !test_and_set_bit(HCI_SC_ENABLED, &hdev->dev_flags);
-	} else {
-		changed = test_and_clear_bit(HCI_SC_ENABLED, &hdev->dev_flags);
-		clear_bit(HCI_SC_ONLY, &hdev->dev_flags);
-	}
-
-	mgmt_pending_foreach(MGMT_OP_SET_SECURE_CONN, hdev,
-			     settings_rsp, &match);
-
-	if (changed)
-		new_settings(hdev, match.sk);
-
-	if (match.sk)
-		sock_put(match.sk);
-}
-
 static void sk_lookup(struct pending_cmd *cmd, void *data)
 {
 	struct cmd_lookup *match = data;
@@ -6739,6 +6882,21 @@ void mgmt_read_local_oob_data_complete(struct hci_dev *hdev, u8 *hash192,
 	mgmt_pending_remove(cmd);
 }
 
+static void restart_le_scan(struct hci_dev *hdev)
+{
+	/* If controller is not scanning we are done. */
+	if (!test_bit(HCI_LE_SCAN, &hdev->dev_flags))
+		return;
+
+	if (time_after(jiffies + DISCOV_LE_RESTART_DELAY,
+		       hdev->discovery.scan_start +
+		       hdev->discovery.scan_duration))
+		return;
+
+	queue_delayed_work(hdev->workqueue, &hdev->le_scan_restart,
+			   DISCOV_LE_RESTART_DELAY);
+}
+
 void mgmt_device_found(struct hci_dev *hdev, bdaddr_t *bdaddr, u8 link_type,
 		       u8 addr_type, u8 *dev_class, s8 rssi, u32 flags,
 		       u8 *eir, u16 eir_len, u8 *scan_rsp, u8 scan_rsp_len)
@@ -6780,6 +6938,14 @@ void mgmt_device_found(struct hci_dev *hdev, bdaddr_t *bdaddr, u8 link_type,
 
 	if (scan_rsp_len > 0)
 		memcpy(ev->eir + eir_len, scan_rsp, scan_rsp_len);
+
+	/* Validate the reported RSSI value against the RSSI threshold once more
+	 * incase HCI_QUIRK_STRICT_DUPLICATE_FILTER forced a restart of LE
+	 * scanning.
+	 */
+	if (hdev->discovery.rssi != HCI_RSSI_INVALID &&
+	    rssi < hdev->discovery.rssi)
+		return;
 
 	ev->eir_len = cpu_to_le16(eir_len + scan_rsp_len);
 	ev_size = sizeof(*ev) + eir_len + scan_rsp_len;
@@ -6837,7 +7003,7 @@ void mgmt_discovering(struct hci_dev *hdev, u8 discovering)
 	mgmt_event(MGMT_EV_DISCOVERING, hdev, &ev, sizeof(ev), NULL);
 }
 
-static void adv_enable_complete(struct hci_dev *hdev, u8 status)
+static void adv_enable_complete(struct hci_dev *hdev, u8 status, u16 opcode)
 {
 	BT_DBG("%s status %u", hdev->name, status);
 }

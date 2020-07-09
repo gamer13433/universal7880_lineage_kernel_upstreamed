@@ -578,7 +578,6 @@ static int get_name(struct ashmem_area *asma, void __user *name)
 
 	mutex_lock(&ashmem_mutex);
 	if (asma->name[ASHMEM_NAME_PREFIX_LEN] != '\0') {
-
 		/*
 		 * Copying only `len', instead of ASHMEM_NAME_LEN, bytes
 		 * prevents us from revealing one user's stack to another.
@@ -780,10 +779,10 @@ static long ashmem_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 
 	switch (cmd) {
 	case ASHMEM_SET_NAME:
-		ret = set_name(asma, (void __user *) arg);
+		ret = set_name(asma, (void __user *)arg);
 		break;
 	case ASHMEM_GET_NAME:
-		ret = get_name(asma, (void __user *) arg);
+		ret = get_name(asma, (void __user *)arg);
 		break;
 	case ASHMEM_SET_SIZE:
 		ret = -EINVAL;
@@ -806,7 +805,7 @@ static long ashmem_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 	case ASHMEM_PIN:
 	case ASHMEM_UNPIN:
 	case ASHMEM_GET_PIN_STATUS:
-		ret = ashmem_pin_unpin(asma, cmd, (void __user *) arg);
+		ret = ashmem_pin_unpin(asma, cmd, (void __user *)arg);
 		break;
 	case ASHMEM_PURGE_ALL_CACHES:
 		ret = -EPERM;
@@ -830,7 +829,6 @@ static long ashmem_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 static long compat_ashmem_ioctl(struct file *file, unsigned int cmd,
 				unsigned long arg)
 {
-
 	switch (cmd) {
 	case COMPAT_ASHMEM_SET_SIZE:
 		cmd = ASHMEM_SET_SIZE;

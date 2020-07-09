@@ -115,7 +115,6 @@ void flush_remote(unsigned long cache_pfn, unsigned long cache_control,
 	struct cpumask cache_cpumask_copy, tlb_cpumask_copy;
 	struct cpumask *cache_cpumask, *tlb_cpumask;
 	HV_PhysAddr cache_pa;
-	char cache_buf[NR_CPUS*5], tlb_buf[NR_CPUS*5];
 
 	mb();   /* provided just to simplify "magic hypervisor" mode */
 
@@ -265,10 +264,6 @@ static int pte_to_home(pte_t pte)
 /* Update the home of a PTE if necessary (can also be used for a pgprot_t). */
 pte_t pte_set_home(pte_t pte, int home)
 {
-	/* Check for non-linear file mapping "PTEs" and pass them through. */
-	if (pte_file(pte))
-		return pte;
-
 #if CHIP_HAS_MMIO()
 	/* Check for MMIO mappings and pass them through. */
 	if (hv_pte_get_mode(pte) == HV_PTE_MODE_MMIO)

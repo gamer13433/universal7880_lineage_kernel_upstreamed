@@ -590,7 +590,7 @@ void ieee80211_flush_queues(struct ieee80211_local *local,
 					IEEE80211_QUEUE_STOP_REASON_FLUSH,
 					false);
 
-	drv_flush(local, sdata, queues, false);
+	drv_flush(local, sdata, queues, drop);
 
 	ieee80211_wake_queues_by_reason(&local->hw, queues,
 					IEEE80211_QUEUE_STOP_REASON_FLUSH,
@@ -706,16 +706,19 @@ EXPORT_SYMBOL_GPL(wdev_to_ieee80211_vif);
 
 /*
  * Nothing should have been stuffed into the workqueue during
- * the suspend->resume cycle. If this WARN is seen then there
- * is a bug with either the driver suspend or something in
- * mac80211 stuffing into the workqueue which we haven't yet
- * cleared during mac80211's suspend cycle.
+ * the suspend->resume cycle. Since we can't check each caller
+ * of this function if we are already quiescing / suspended,
+ * check here and don't WARN since this can actually happen when
+ * the rx path (for example) is racing against __ieee80211_suspend
+ * and suspending / quiescing was set after the rx path checked
+ * them.
  */
 static bool ieee80211_can_queue_work(struct ieee80211_local *local)
 {
-	if (WARN(local->suspended && !local->resuming,
-		 "queueing ieee80211 work while going to suspend\n"))
+	if (local->quiescing || (local->suspended && !local->resuming)) {
+		pr_warn("queueing ieee80211 work while going to suspend\n");
 		return false;
+	}
 
 	return true;
 }
@@ -1647,6 +1650,10 @@ int ieee80211_reconfig(struct ieee80211_local *local)
 	struct ieee80211_sub_if_data *sched_scan_sdata;
 	bool sched_scan_stopped = false;
 
+	/* nothing to do if HW shouldn't run */
+	if (!local->open_count)
+		goto wake_up;
+
 #ifdef CONFIG_PM
 	if (local->suspended)
 		local->resuming = true;
@@ -1668,9 +1675,6 @@ int ieee80211_reconfig(struct ieee80211_local *local)
 		reconfig_due_to_wowlan = true;
 	}
 #endif
-	/* everything else happens only if HW was up & running */
-	if (!local->open_count)
-		goto wake_up;
 
 	/*
 	 * Upon resume hardware can sometimes be goofy due to
@@ -2447,7 +2451,9 @@ u64 ieee80211_calculate_rx_timestamp(struct ieee80211_local *local,
 		ri.mcs = status->rate_idx;
 		ri.flags |= RATE_INFO_FLAGS_MCS;
 		if (status->flag & RX_FLAG_40MHZ)
-			ri.flags |= RATE_INFO_FLAGS_40_MHZ_WIDTH;
+			ri.bw = RATE_INFO_BW_40;
+		else
+			ri.bw = RATE_INFO_BW_20;
 		if (status->flag & RX_FLAG_SHORT_GI)
 			ri.flags |= RATE_INFO_FLAGS_SHORT_GI;
 	} else if (status->flag & RX_FLAG_VHT) {
@@ -2455,13 +2461,13 @@ u64 ieee80211_calculate_rx_timestamp(struct ieee80211_local *local,
 		ri.mcs = status->rate_idx;
 		ri.nss = status->vht_nss;
 		if (status->flag & RX_FLAG_40MHZ)
-			ri.flags |= RATE_INFO_FLAGS_40_MHZ_WIDTH;
-		if (status->vht_flag & RX_VHT_FLAG_80MHZ)
-			ri.flags |= RATE_INFO_FLAGS_80_MHZ_WIDTH;
-		if (status->vht_flag & RX_VHT_FLAG_80P80MHZ)
-			ri.flags |= RATE_INFO_FLAGS_80P80_MHZ_WIDTH;
-		if (status->vht_flag & RX_VHT_FLAG_160MHZ)
-			ri.flags |= RATE_INFO_FLAGS_160_MHZ_WIDTH;
+			ri.bw = RATE_INFO_BW_40;
+		else if (status->vht_flag & RX_VHT_FLAG_80MHZ)
+			ri.bw = RATE_INFO_BW_80;
+		else if (status->vht_flag & RX_VHT_FLAG_160MHZ)
+			ri.bw = RATE_INFO_BW_160;
+		else
+			ri.bw = RATE_INFO_BW_20;
 		if (status->flag & RX_FLAG_SHORT_GI)
 			ri.flags |= RATE_INFO_FLAGS_SHORT_GI;
 	} else {
@@ -2469,10 +2475,15 @@ u64 ieee80211_calculate_rx_timestamp(struct ieee80211_local *local,
 		int shift = 0;
 		int bitrate;
 
-		if (status->flag & RX_FLAG_10MHZ)
+		if (status->flag & RX_FLAG_10MHZ) {
 			shift = 1;
-		if (status->flag & RX_FLAG_5MHZ)
+			ri.bw = RATE_INFO_BW_10;
+		} else if (status->flag & RX_FLAG_5MHZ) {
 			shift = 2;
+			ri.bw = RATE_INFO_BW_5;
+		} else {
+			ri.bw = RATE_INFO_BW_20;
+		}
 
 		sband = local->hw.wiphy->bands[status->band];
 		bitrate = sband->bitrates[status->rate_idx].bitrate;

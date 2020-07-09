@@ -92,6 +92,17 @@ static struct platform_device *dpi_get_dsidev(enum omap_channel channel)
 			return NULL;
 		}
 
+	case OMAPDSS_VER_DRA7xx:
+		switch (channel) {
+		case OMAP_DSS_CHANNEL_LCD:
+		case OMAP_DSS_CHANNEL_LCD2:
+			return dss_pll_find("video0");
+		case OMAP_DSS_CHANNEL_LCD3:
+			return dss_pll_find("video1");
+		default:
+			return NULL;
+		}
+
 	default:
 		return NULL;
 	}
@@ -600,6 +611,17 @@ static enum omap_channel dpi_get_channel(void)
 	case OMAPDSS_VER_AM35xx:
 	case OMAPDSS_VER_AM43xx:
 		return OMAP_DSS_CHANNEL_LCD;
+
+	case OMAPDSS_VER_DRA7xx:
+		switch (port_num) {
+		case 2:
+			return OMAP_DSS_CHANNEL_LCD3;
+		case 1:
+			return OMAP_DSS_CHANNEL_LCD2;
+		case 0:
+		default:
+			return OMAP_DSS_CHANNEL_LCD;
+		}
 
 	case OMAPDSS_VER_OMAP4430_ES1:
 	case OMAPDSS_VER_OMAP4430_ES2:

@@ -5,8 +5,7 @@
 #include <asm/cacheflush.h>
 #include <asm/smp_plat.h>
 #include <asm/opcodes.h>
-
-#include "patch.h"
+#include <asm/patch.h>
 
 struct patch {
 	void *addr;

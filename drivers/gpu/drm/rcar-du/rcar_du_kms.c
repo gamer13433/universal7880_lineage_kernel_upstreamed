@@ -356,8 +356,14 @@ static int rcar_du_encoders_init_dt(struct rcar_du_device *rcdu)
 
 		ret = of_graph_parse_endpoint(ep_node, &ep);
 		if (ret < 0) {
-			of_node_put(ep_node);
-			return ret;
+			if (ret == -EPROBE_DEFER) {
+				of_node_put(ep_node);
+				return ret;
+			}
+
+			dev_info(rcdu->dev,
+				 "encoder initialization failed, skipping\n");
+			continue;
 		}
 
 		/* Find the output route corresponding to the port number. */
@@ -449,6 +455,11 @@ int rcar_du_modeset_init(struct rcar_du_device *rcdu)
 
 	if (ret < 0)
 		return ret;
+
+	if (ret == 0) {
+		dev_err(rcdu->dev, "error: no encoder could be initialized\n");
+		return -EINVAL;
+	}
 
 	num_encoders = ret;
 

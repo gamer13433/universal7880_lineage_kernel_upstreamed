@@ -57,6 +57,16 @@
 #define TIPC_MEDIA_TYPE_IB	2
 
 /**
+ * struct tipc_node_map - set of node identifiers
+ * @count: # of nodes in set
+ * @map: bitmap of node identifiers that are in the set
+ */
+struct tipc_node_map {
+	u32 count;
+	u32 map[MAX_NODES / WSIZE];
+};
+
+/**
  * struct tipc_media_addr - destination address used by TIPC bearers
  * @value: address info (format defined by media)
  * @media_id: TIPC media type identifier
@@ -87,10 +97,10 @@ struct tipc_bearer;
  * @name: media name
  */
 struct tipc_media {
-	int (*send_msg)(struct sk_buff *buf,
+	int (*send_msg)(struct net *net, struct sk_buff *buf,
 			struct tipc_bearer *b_ptr,
 			struct tipc_media_addr *dest);
-	int (*enable_media)(struct tipc_bearer *b_ptr);
+	int (*enable_media)(struct net *net, struct tipc_bearer *b_ptr);
 	void (*disable_media)(struct tipc_bearer *b_ptr);
 	int (*addr2str)(struct tipc_media_addr *addr,
 			char *strbuf,
@@ -179,21 +189,19 @@ extern struct tipc_media ib_media_info;
 int tipc_media_set_priority(const char *name, u32 new_value);
 int tipc_media_set_window(const char *name, u32 new_value);
 void tipc_media_addr_printf(char *buf, int len, struct tipc_media_addr *a);
-struct sk_buff *tipc_media_get_names(void);
-int tipc_enable_l2_media(struct tipc_bearer *b);
+int tipc_enable_l2_media(struct net *net, struct tipc_bearer *b);
 void tipc_disable_l2_media(struct tipc_bearer *b);
-int tipc_l2_send_msg(struct sk_buff *buf, struct tipc_bearer *b,
-		     struct tipc_media_addr *dest);
+int tipc_l2_send_msg(struct net *net, struct sk_buff *buf,
+		     struct tipc_bearer *b, struct tipc_media_addr *dest);
 
-struct sk_buff *tipc_bearer_get_names(void);
-void tipc_bearer_add_dest(u32 bearer_id, u32 dest);
-void tipc_bearer_remove_dest(u32 bearer_id, u32 dest);
-struct tipc_bearer *tipc_bearer_find(const char *name);
+void tipc_bearer_add_dest(struct net *net, u32 bearer_id, u32 dest);
+void tipc_bearer_remove_dest(struct net *net, u32 bearer_id, u32 dest);
+struct tipc_bearer *tipc_bearer_find(struct net *net, const char *name);
 struct tipc_media *tipc_media_find(const char *name);
 int tipc_bearer_setup(void);
 void tipc_bearer_cleanup(void);
-void tipc_bearer_stop(void);
-void tipc_bearer_send(u32 bearer_id, struct sk_buff *buf,
+void tipc_bearer_stop(struct net *net);
+void tipc_bearer_send(struct net *net, u32 bearer_id, struct sk_buff *buf,
 		      struct tipc_media_addr *dest);
 
 #endif	/* _TIPC_BEARER_H */

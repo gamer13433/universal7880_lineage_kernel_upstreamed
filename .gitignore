@@ -16,6 +16,7 @@
 *.s
 *.ko
 *.so
+*.rej
 *.so.dbg
 *.mod.c
 *.i
@@ -43,6 +44,7 @@ Module.symvers
 /TAGS
 /linux
 /vmlinux
+/vmlinux-gdb.py
 /vmlinuz
 /System.map
 /Module.markers
@@ -51,6 +53,11 @@ Module.symvers
 # Debian directory (make deb-pkg)
 #
 /debian/
+
+#
+# tar directory (make tar*-pkg)
+#
+/tar-install/
 
 #
 # git files that we don't want to ignore even it they are dot-files

@@ -499,8 +499,7 @@ void btrfs_wait_logged_extents(struct btrfs_trans_handle *trans,
 		wait_event(ordered->wait, test_bit(BTRFS_ORDERED_IO_DONE,
 						   &ordered->flags));
 
-		if (!test_and_set_bit(BTRFS_ORDERED_LOGGED, &ordered->flags))
-			list_add_tail(&ordered->trans_list, &trans->ordered);
+		list_add_tail(&ordered->trans_list, &trans->ordered);
 		spin_lock_irq(&log->log_extents_lock[index]);
 	}
 	spin_unlock_irq(&log->log_extents_lock[index]);

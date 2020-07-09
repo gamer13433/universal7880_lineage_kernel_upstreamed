@@ -17,6 +17,7 @@
 
 #include <linux/module.h>
 #include <linux/firmware.h>
+#include <linux/of.h>
 
 #include "core.h"
 #include "mac.h"
@@ -43,11 +44,57 @@ static const struct ath10k_hw_params ath10k_hw_params_list[] = {
 		.id = QCA988X_HW_2_0_VERSION,
 		.name = "qca988x hw2.0",
 		.patch_load_addr = QCA988X_HW_2_0_PATCH_LOAD_ADDR,
+		.uart_pin = 7,
 		.fw = {
 			.dir = QCA988X_HW_2_0_FW_DIR,
 			.fw = QCA988X_HW_2_0_FW_FILE,
 			.otp = QCA988X_HW_2_0_OTP_FILE,
 			.board = QCA988X_HW_2_0_BOARD_DATA_FILE,
+			.board_size = QCA988X_BOARD_DATA_SZ,
+			.board_ext_size = QCA988X_BOARD_EXT_DATA_SZ,
+		},
+	},
+	{
+		.id = QCA6174_HW_2_1_VERSION,
+		.name = "qca6174 hw2.1",
+		.patch_load_addr = QCA6174_HW_2_1_PATCH_LOAD_ADDR,
+		.uart_pin = 6,
+		.fw = {
+			.dir = QCA6174_HW_2_1_FW_DIR,
+			.fw = QCA6174_HW_2_1_FW_FILE,
+			.otp = QCA6174_HW_2_1_OTP_FILE,
+			.board = QCA6174_HW_2_1_BOARD_DATA_FILE,
+			.board_size = QCA6174_BOARD_DATA_SZ,
+			.board_ext_size = QCA6174_BOARD_EXT_DATA_SZ,
+		},
+	},
+	{
+		.id = QCA6174_HW_3_0_VERSION,
+		.name = "qca6174 hw3.0",
+		.patch_load_addr = QCA6174_HW_3_0_PATCH_LOAD_ADDR,
+		.uart_pin = 6,
+		.fw = {
+			.dir = QCA6174_HW_3_0_FW_DIR,
+			.fw = QCA6174_HW_3_0_FW_FILE,
+			.otp = QCA6174_HW_3_0_OTP_FILE,
+			.board = QCA6174_HW_3_0_BOARD_DATA_FILE,
+			.board_size = QCA6174_BOARD_DATA_SZ,
+			.board_ext_size = QCA6174_BOARD_EXT_DATA_SZ,
+		},
+	},
+	{
+		.id = QCA6174_HW_3_2_VERSION,
+		.name = "qca6174 hw3.2",
+		.patch_load_addr = QCA6174_HW_3_0_PATCH_LOAD_ADDR,
+		.uart_pin = 6,
+		.fw = {
+			/* uses same binaries as hw3.0 */
+			.dir = QCA6174_HW_3_0_FW_DIR,
+			.fw = QCA6174_HW_3_0_FW_FILE,
+			.otp = QCA6174_HW_3_0_OTP_FILE,
+			.board = QCA6174_HW_3_0_BOARD_DATA_FILE,
+			.board_size = QCA6174_BOARD_DATA_SZ,
+			.board_ext_size = QCA6174_BOARD_EXT_DATA_SZ,
 		},
 	},
 };
@@ -140,8 +187,8 @@ static const struct firmware *ath10k_fetch_fw_file(struct ath10k *ar,
 
 static int ath10k_push_board_ext_data(struct ath10k *ar)
 {
-	u32 board_data_size = QCA988X_BOARD_DATA_SZ;
-	u32 board_ext_data_size = QCA988X_BOARD_EXT_DATA_SZ;
+	u32 board_data_size = ar->hw_params.fw.board_size;
+	u32 board_ext_data_size = ar->hw_params.fw.board_ext_size;
 	u32 board_ext_data_addr;
 	int ret;
 
@@ -186,7 +233,7 @@ static int ath10k_push_board_ext_data(struct ath10k *ar)
 
 static int ath10k_download_board_data(struct ath10k *ar)
 {
-	u32 board_data_size = QCA988X_BOARD_DATA_SZ;
+	u32 board_data_size = ar->hw_params.fw.board_size;
 	u32 address;
 	int ret;
 
@@ -217,6 +264,63 @@ static int ath10k_download_board_data(struct ath10k *ar)
 	}
 
 exit:
+	return ret;
+}
+
+static int ath10k_download_cal_dt(struct ath10k *ar)
+{
+	struct device_node *node;
+	int data_len;
+	void *data;
+	int ret;
+
+	node = ar->dev->of_node;
+	if (!node)
+		/* Device Tree is optional, don't print any warnings if
+		 * there's no node for ath10k.
+		 */
+		return -ENOENT;
+
+	if (!of_get_property(node, "qcom,ath10k-calibration-data",
+			     &data_len)) {
+		/* The calibration data node is optional */
+		return -ENOENT;
+	}
+
+	if (data_len != QCA988X_CAL_DATA_LEN) {
+		ath10k_warn(ar, "invalid calibration data length in DT: %d\n",
+			    data_len);
+		ret = -EMSGSIZE;
+		goto out;
+	}
+
+	data = kmalloc(data_len, GFP_KERNEL);
+	if (!data) {
+		ret = -ENOMEM;
+		goto out;
+	}
+
+	ret = of_property_read_u8_array(node, "qcom,ath10k-calibration-data",
+					data, data_len);
+	if (ret) {
+		ath10k_warn(ar, "failed to read calibration data from DT: %d\n",
+			    ret);
+		goto out_free;
+	}
+
+	ret = ath10k_download_board_data(ar, data, data_len);
+	if (ret) {
+		ath10k_warn(ar, "failed to download calibration data from Device Tree: %d\n",
+			    ret);
+		goto out_free;
+	}
+
+	ret = 0;
+
+out_free:
+	kfree(data);
+
+out:
 	return ret;
 }
 
@@ -388,7 +492,7 @@ static int ath10k_core_fetch_firmware_api_n(struct ath10k *ar, const char *name)
 	int ie_id, i, index, bit, ret;
 	struct ath10k_fw_ie *hdr;
 	const u8 *data;
-	__le32 *timestamp;
+	__le32 *timestamp, *version;
 
 	/* first fetch the firmware file (firmware-*.bin) */
 	ar->firmware = ath10k_fetch_fw_file(ar, ar->hw_params.fw.dir, name);
@@ -503,6 +607,17 @@ static int ath10k_core_fetch_firmware_api_n(struct ath10k *ar, const char *name)
 			ar->otp_len = ie_len;
 
 			break;
+		case ATH10K_FW_IE_WMI_OP_VERSION:
+			if (ie_len != sizeof(u32))
+				break;
+
+			version = (__le32 *)data;
+
+			ar->wmi.op_version = le32_to_cpup(version);
+
+			ath10k_dbg(ar, ATH10K_DBG_BOOT, "found fw ie wmi op version %d\n",
+				   ar->wmi.op_version);
+			break;
 		default:
 			ath10k_warn(ar, "Unknown FW IE: %u\n",
 				    le32_to_cpu(hdr->id));
@@ -520,13 +635,6 @@ static int ath10k_core_fetch_firmware_api_n(struct ath10k *ar, const char *name)
 		ath10k_warn(ar, "No ATH10K_FW_IE_FW_IMAGE found from '%s/%s', skipping\n",
 			    ar->hw_params.fw.dir, name);
 		ret = -ENOMEDIUM;
-		goto err;
-	}
-
-	if (test_bit(ATH10K_FW_FEATURE_WMI_10_2, ar->fw_features) &&
-	    !test_bit(ATH10K_FW_FEATURE_WMI_10X, ar->fw_features)) {
-		ath10k_err(ar, "feature bits corrupted: 10.2 feature requires 10.x feature to be set as well");
-		ret = -EINVAL;
 		goto err;
 	}
 
@@ -561,6 +669,13 @@ err:
 static int ath10k_core_fetch_firmware_files(struct ath10k *ar)
 {
 	int ret;
+
+	ar->fw_api = 4;
+	ath10k_dbg(ar, ATH10K_DBG_BOOT, "trying fw api %d\n", ar->fw_api);
+
+	ret = ath10k_core_fetch_firmware_api_n(ar, ATH10K_FW_API4_FILE);
+	if (ret == 0)
+		goto success;
 
 	ar->fw_api = 3;
 	ath10k_dbg(ar, ATH10K_DBG_BOOT, "trying fw api %d\n", ar->fw_api);
@@ -632,7 +747,7 @@ static int ath10k_init_uart(struct ath10k *ar)
 	if (!uart_print)
 		return 0;
 
-	ret = ath10k_bmi_write32(ar, hi_dbg_uart_txpin, 7);
+	ret = ath10k_bmi_write32(ar, hi_dbg_uart_txpin, ar->hw_params.uart_pin);
 	if (ret) {
 		ath10k_warn(ar, "could not enable UART prints (%d)\n", ret);
 		return ret;
@@ -832,6 +947,18 @@ int ath10k_core_start(struct ath10k *ar, enum ath10k_firmware_mode mode)
 		goto err_hif_stop;
 	}
 
+	/* If firmware indicates Full Rx Reorder support it must be used in a
+	 * slightly different manner. Let HTT code know.
+	 */
+	ar->htt.rx_ring.in_ord_rx = !!(test_bit(WMI_SERVICE_RX_FULL_REORDER,
+						ar->wmi.svc_map));
+
+	status = ath10k_htt_rx_ring_refill(ar);
+	if (status) {
+		ath10k_err(ar, "failed to refill htt rx ring: %d\n", status);
+		goto err_hif_stop;
+	}
+
 	/* we don't care about HTT in UTF mode */
 	if (mode == ATH10K_FIRMWARE_MODE_NORMAL) {
 		status = ath10k_htt_setup(&ar->htt);
@@ -925,8 +1052,7 @@ static int ath10k_core_probe_fw(struct ath10k *ar)
 	ret = ath10k_bmi_get_target_info(ar, &target_info);
 	if (ret) {
 		ath10k_err(ar, "could not get target info (%d)\n", ret);
-		ath10k_hif_power_down(ar);
-		return ret;
+		goto err_power_down;
 	}
 
 	ar->target_version = target_info.version;
@@ -964,34 +1090,17 @@ static int ath10k_core_probe_fw(struct ath10k *ar)
 
 	ath10k_hif_power_down(ar);
 	return 0;
-}
 
-static int ath10k_core_check_chip_id(struct ath10k *ar)
-{
-	u32 hw_revision = MS(ar->chip_id, SOC_CHIP_ID_REV);
+err_unlock:
+	mutex_unlock(&ar->conf_mutex);
 
-	ath10k_dbg(ar, ATH10K_DBG_BOOT, "boot chip_id 0x%08x hw_revision 0x%x\n",
-		   ar->chip_id, hw_revision);
+err_free_firmware_files:
+	ath10k_core_free_firmware_files(ar);
 
-	/* Check that we are not using hw1.0 (some of them have same pci id
-	 * as hw2.0) before doing anything else as ath10k crashes horribly
-	 * due to missing hw1.0 workarounds. */
-	switch (hw_revision) {
-	case QCA988X_HW_1_0_CHIP_ID_REV:
-		ath10k_err(ar, "ERROR: qca988x hw1.0 is not supported\n");
-		return -EOPNOTSUPP;
+err_power_down:
+	ath10k_hif_power_down(ar);
 
-	case QCA988X_HW_2_0_CHIP_ID_REV:
-		/* known hardware revision, continue normally */
-		return 0;
-
-	default:
-		ath10k_warn(ar, "Warning: hardware revision unknown (0x%x), expect problems\n",
-			    ar->chip_id);
-		return 0;
-	}
-
-	return 0;
+	return ret;
 }
 
 static void ath10k_core_register_work(struct work_struct *work)
@@ -1023,9 +1132,18 @@ static void ath10k_core_register_work(struct work_struct *work)
 		goto err_debug_destroy;
 	}
 
+	status = ath10k_thermal_register(ar);
+	if (status) {
+		ath10k_err(ar, "could not register thermal device: %d\n",
+			   status);
+		goto err_spectral_destroy;
+	}
+
 	set_bit(ATH10K_FLAG_CORE_REGISTERED, &ar->dev_flags);
 	return;
 
+err_spectral_destroy:
+	ath10k_spectral_destroy(ar);
 err_debug_destroy:
 	ath10k_debug_destroy(ar);
 err_unregister_mac:
@@ -1041,16 +1159,7 @@ err:
 
 int ath10k_core_register(struct ath10k *ar, u32 chip_id)
 {
-	int status;
-
 	ar->chip_id = chip_id;
-
-	status = ath10k_core_check_chip_id(ar);
-	if (status) {
-		ath10k_err(ar, "Unsupported chip id 0x%08x\n", ar->chip_id);
-		return status;
-	}
-
 	queue_work(ar->workqueue, &ar->register_work);
 
 	return 0;
@@ -1064,6 +1173,7 @@ void ath10k_core_unregister(struct ath10k *ar)
 	if (!test_bit(ATH10K_FLAG_CORE_REGISTERED, &ar->dev_flags))
 		return;
 
+	ath10k_thermal_unregister(ar);
 	/* Stop spectral before unregistering from mac80211 to remove the
 	 * relayfs debugfs file cleanly. Otherwise the parent debugfs tree
 	 * would be already be free'd recursively, leading to a double free.
@@ -1108,6 +1218,7 @@ struct ath10k *ath10k_core_create(size_t priv_size, struct device *dev,
 
 	init_completion(&ar->install_key_done);
 	init_completion(&ar->vdev_setup_done);
+	init_completion(&ar->thermal.wmi_sync);
 
 	INIT_DELAYED_WORK(&ar->scan.timeout, ath10k_scan_timeout_work);
 

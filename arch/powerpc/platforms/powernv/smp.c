@@ -33,6 +33,8 @@
 #include <asm/runlatch.h>
 #include <asm/code-patching.h>
 #include <asm/dbell.h>
+#include <asm/kvm_ppc.h>
+#include <asm/ppc-opcode.h>
 
 #include "powernv.h"
 

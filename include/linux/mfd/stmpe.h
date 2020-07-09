@@ -134,20 +134,6 @@ struct stmpe_keypad_platform_data {
 #define STMPE_GPIO_NOREQ_811_TOUCH	(0xf0)
 
 /**
- * struct stmpe_gpio_platform_data - STMPE GPIO platform data
- * @norequest_mask: bitmask specifying which GPIOs should _not_ be
- *		    requestable due to different usage (e.g. touch, keypad)
- *		    STMPE_GPIO_NOREQ_* macros can be used here.
- * @setup: board specific setup callback.
- * @remove: board specific remove callback
- */
-struct stmpe_gpio_platform_data {
-	unsigned norequest_mask;
-	void (*setup)(struct stmpe *stmpe, unsigned gpio_base);
-	void (*remove)(struct stmpe *stmpe, unsigned gpio_base);
-};
-
-/**
  * struct stmpe_ts_platform_data - stmpe811 touch screen controller platform
  * data
  * @sample_time: ADC converstion time in number of clock.

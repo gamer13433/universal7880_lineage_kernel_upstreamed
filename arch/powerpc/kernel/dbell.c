@@ -17,6 +17,7 @@
 
 #include <asm/dbell.h>
 #include <asm/irq_regs.h>
+#include <asm/kvm_ppc.h>
 
 #ifdef CONFIG_SMP
 void doorbell_setup_this_cpu(void)

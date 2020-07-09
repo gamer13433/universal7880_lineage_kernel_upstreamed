@@ -35,11 +35,13 @@
 #define KVM_NR_IRQCHIPS 1
 #define KVM_IRQCHIP_NUM_PINS 4096
 
-#define SIGP_CTRL_C	0x00800000
+#define SIGP_CTRL_C		0x80
+#define SIGP_CTRL_SCN_MASK	0x3f
 
 struct sca_entry {
-	atomic_t ctrl;
-	__u32	reserved;
+	__u8	reserved0;
+	__u8	sigp_ctrl;
+	__u16	reserved[3];
 	__u64	sda;
 	__u64	reserved2[2];
 } __attribute__((packed));
@@ -87,7 +89,8 @@ struct kvm_s390_sie_block {
 	atomic_t cpuflags;		/* 0x0000 */
 	__u32 : 1;			/* 0x0004 */
 	__u32 prefix : 18;
-	__u32 : 13;
+	__u32 : 1;
+	__u32 ibc : 12;
 	__u8	reserved08[4];		/* 0x0008 */
 #define PROG_IN_SIE (1<<0)
 	__u32	prog0c;			/* 0x000c */
@@ -132,7 +135,9 @@ struct kvm_s390_sie_block {
 	__u8	reserved60;		/* 0x0060 */
 	__u8	ecb;			/* 0x0061 */
 	__u8    ecb2;                   /* 0x0062 */
-	__u8    reserved63[1];          /* 0x0063 */
+#define ECB3_AES 0x04
+#define ECB3_DEA 0x08
+	__u8    ecb3;			/* 0x0063 */
 	__u32	scaol;			/* 0x0064 */
 	__u8	reserved68[4];		/* 0x0068 */
 	__u32	todpr;			/* 0x006c */
@@ -159,6 +164,7 @@ struct kvm_s390_sie_block {
 	__u64	tecmc;			/* 0x00e8 */
 	__u8	reservedf0[12];		/* 0x00f0 */
 #define CRYCB_FORMAT1 0x00000001
+#define CRYCB_FORMAT2 0x00000003
 	__u32	crycbd;			/* 0x00fc */
 	__u64	gcr[16];		/* 0x0100 */
 	__u64	gbea;			/* 0x0180 */
@@ -192,6 +198,7 @@ struct kvm_vcpu_stat {
 	u32 exit_stop_request;
 	u32 exit_validity;
 	u32 exit_instruction;
+	u32 halt_successful_poll;
 	u32 halt_wakeup;
 	u32 instruction_lctl;
 	u32 instruction_lctlg;
@@ -379,7 +386,6 @@ struct kvm_vcpu_arch {
 	};
 	struct gmap *gmap;
 	struct kvm_guestdbg_info_arch guestdbg;
-#define KVM_S390_PFAULT_TOKEN_INVALID	(-1UL)
 	unsigned long pfault_token;
 	unsigned long pfault_select;
 	unsigned long pfault_compare;
@@ -413,13 +419,39 @@ struct s390_io_adapter {
 #define MAX_S390_IO_ADAPTERS ((MAX_ISC + 1) * 8)
 #define MAX_S390_ADAPTER_MAPS 256
 
+/* maximum size of facilities and facility mask is 2k bytes */
+#define S390_ARCH_FAC_LIST_SIZE_BYTE (1<<11)
+#define S390_ARCH_FAC_LIST_SIZE_U64 \
+	(S390_ARCH_FAC_LIST_SIZE_BYTE / sizeof(u64))
+#define S390_ARCH_FAC_MASK_SIZE_BYTE S390_ARCH_FAC_LIST_SIZE_BYTE
+#define S390_ARCH_FAC_MASK_SIZE_U64 \
+	(S390_ARCH_FAC_MASK_SIZE_BYTE / sizeof(u64))
+
+struct kvm_s390_fac {
+	/* facility list requested by guest */
+	__u64 list[S390_ARCH_FAC_LIST_SIZE_U64];
+	/* facility mask supported by kvm & hosting machine */
+	__u64 mask[S390_ARCH_FAC_LIST_SIZE_U64];
+};
+
+struct kvm_s390_cpu_model {
+	struct kvm_s390_fac *fac;
+	struct cpuid cpu_id;
+	unsigned short ibc;
+};
+
 struct kvm_s390_crypto {
 	struct kvm_s390_crypto_cb *crycb;
 	__u32 crycbd;
+	__u8 aes_kw;
+	__u8 dea_kw;
 };
 
 struct kvm_s390_crypto_cb {
-	__u8    reserved00[128];                /* 0x0000 */
+	__u8    reserved00[72];                 /* 0x0000 */
+	__u8    dea_wrapping_key_mask[24];      /* 0x0048 */
+	__u8    aes_wrapping_key_mask[32];      /* 0x0060 */
+	__u8    reserved80[128];                /* 0x0080 */
 };
 
 struct kvm_arch{

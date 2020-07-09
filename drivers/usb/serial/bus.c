@@ -123,8 +123,6 @@ static int usb_serial_device_remove(struct device *dev)
 	minor = port->minor;
 	tty_unregister_device(usb_serial_tty_driver, minor);
 
-	device_remove_file(&port->dev, &dev_attr_port_number);
-
 	driver = port->serial->type;
 	if (driver->port_remove)
 		retval = driver->port_remove(port);

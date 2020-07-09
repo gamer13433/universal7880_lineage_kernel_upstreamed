@@ -1270,8 +1270,10 @@ static void coda_seq_end_work(struct work_struct *work)
 
 static void coda_bit_release(struct coda_ctx *ctx)
 {
+	mutex_lock(&ctx->buffer_mutex);
 	coda_free_framebuffers(ctx);
 	coda_free_context_buffers(ctx);
+	mutex_unlock(&ctx->buffer_mutex);
 }
 
 const struct coda_context_ops coda_bit_encode_ops = {
@@ -1377,9 +1379,10 @@ static int __coda_start_decoding(struct coda_ctx *ctx)
 		height = val & CODA7_PICHEIGHT_MASK;
 	}
 
-	if (width > q_data_dst->width || height > q_data_dst->height) {
+	if (width > q_data_dst->bytesperline || height > q_data_dst->height) {
 		v4l2_err(&dev->v4l2_dev, "stream is %dx%d, not %dx%d\n",
-			 width, height, q_data_dst->width, q_data_dst->height);
+			 width, height, q_data_dst->bytesperline,
+			 q_data_dst->height);
 		return -EINVAL;
 	}
 
@@ -1600,6 +1603,9 @@ static int coda_prepare_decode(struct coda_ctx *ctx)
 				CODA7_REG_BIT_AXI_SRAM_USE);
 
 	coda_kfifo_sync_to_device_full(ctx);
+
+	/* Clear decode success flag */
+	coda_write(dev, 0, CODA_RET_DEC_PIC_SUCCESS);
 
 	coda_command_async(ctx, CODA_COMMAND_PIC_RUN);
 

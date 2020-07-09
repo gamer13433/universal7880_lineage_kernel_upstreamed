@@ -86,7 +86,10 @@ struct nci_dev {
 	unsigned long		flags;
 
 	atomic_t		cmd_cnt;
-	atomic_t		credits_cnt;
+	__u8			cur_conn_id;
+
+	struct list_head	conn_info_list;
+	struct nci_conn_info	*rf_conn_info;
 
 	struct timer_list	cmd_timer;
 	struct timer_list	data_timer;
@@ -132,13 +135,10 @@ struct nci_dev {
 	__u8			manufact_id;
 	__u32			manufact_specific_info;
 
-	/* received during NCI_OP_RF_INTF_ACTIVATED_NTF */
-	__u8			max_data_pkt_payload_size;
-	__u8			initial_num_credits;
+	/* Save RF Discovery ID or NFCEE ID under conn_create */
+	__u8			cur_id;
 
 	/* stored during nci_data_exchange */
-	data_exchange_cb_t	data_exchange_cb;
-	void			*data_exchange_cb_context;
 	struct sk_buff		*rx_data_reassembly;
 
 	/* stored during intf_activated_ntf */
@@ -154,8 +154,35 @@ struct nci_dev *nci_allocate_device(struct nci_ops *ops,
 void nci_free_device(struct nci_dev *ndev);
 int nci_register_device(struct nci_dev *ndev);
 void nci_unregister_device(struct nci_dev *ndev);
+int nci_request(struct nci_dev *ndev,
+		void (*req)(struct nci_dev *ndev,
+			    unsigned long opt),
+		unsigned long opt, __u32 timeout);
 int nci_recv_frame(struct nci_dev *ndev, struct sk_buff *skb);
 int nci_set_config(struct nci_dev *ndev, __u8 id, size_t len, __u8 *val);
+
+int nci_nfcee_discover(struct nci_dev *ndev, u8 action);
+int nci_nfcee_mode_set(struct nci_dev *ndev, u8 nfcee_id, u8 nfcee_mode);
+int nci_core_conn_create(struct nci_dev *ndev, u8 destination_type,
+			 u8 number_destination_params,
+			 size_t params_len,
+			 struct core_conn_create_dest_spec_params *params);
+int nci_core_conn_close(struct nci_dev *ndev, u8 conn_id);
+
+struct nci_hci_dev *nci_hci_allocate(struct nci_dev *ndev);
+int nci_hci_send_event(struct nci_dev *ndev, u8 gate, u8 event,
+		       const u8 *param, size_t param_len);
+int nci_hci_send_cmd(struct nci_dev *ndev, u8 gate,
+		     u8 cmd, const u8 *param, size_t param_len,
+		     struct sk_buff **skb);
+int nci_hci_open_pipe(struct nci_dev *ndev, u8 pipe);
+int nci_hci_connect_gate(struct nci_dev *ndev, u8 dest_host,
+			 u8 dest_gate, u8 pipe);
+int nci_hci_set_param(struct nci_dev *ndev, u8 gate, u8 idx,
+		      const u8 *param, size_t param_len);
+int nci_hci_get_param(struct nci_dev *ndev, u8 gate, u8 idx,
+		      struct sk_buff **skb);
+int nci_hci_dev_session_init(struct nci_dev *ndev);
 
 static inline struct sk_buff *nci_skb_alloc(struct nci_dev *ndev,
 					    unsigned int len,
@@ -191,7 +218,9 @@ void nci_rx_data_packet(struct nci_dev *ndev, struct sk_buff *skb);
 int nci_send_cmd(struct nci_dev *ndev, __u16 opcode, __u8 plen, void *payload);
 int nci_send_data(struct nci_dev *ndev, __u8 conn_id, struct sk_buff *skb);
 void nci_data_exchange_complete(struct nci_dev *ndev, struct sk_buff *skb,
-				int err);
+				__u8 conn_id, int err);
+void nci_hci_data_received_cb(void *context, struct sk_buff *skb, int err);
+
 void nci_clear_target_list(struct nci_dev *ndev);
 
 /* ----- NCI requests ----- */
@@ -200,6 +229,8 @@ void nci_clear_target_list(struct nci_dev *ndev);
 #define NCI_REQ_CANCELED	2
 
 void nci_req_complete(struct nci_dev *ndev, int result);
+struct nci_conn_info *nci_get_conn_info_by_conn_id(struct nci_dev *ndev,
+						   int conn_id);
 
 /* ----- NCI status code ----- */
 int nci_to_errno(__u8 code);

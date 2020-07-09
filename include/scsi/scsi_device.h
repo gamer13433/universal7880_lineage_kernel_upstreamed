@@ -238,9 +238,6 @@ struct scsi_dh_data {
 #define transport_class_to_sdev(class_dev) \
 	to_scsi_device(class_dev->parent)
 
-#define sdev_printk(prefix, sdev, fmt, a...)	\
-	dev_printk(prefix, &(sdev)->sdev_gendev, fmt, ##a)
-
 #define sdev_dbg(sdev, fmt, a...) \
 	dev_dbg(&(sdev)->sdev_gendev, fmt, ##a)
 

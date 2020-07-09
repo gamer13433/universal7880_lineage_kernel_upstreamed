@@ -577,7 +577,6 @@ void ceph_add_cap(struct inode *inode,
 		struct ceph_snap_realm *realm = ceph_lookup_snap_realm(mdsc,
 							       realmino);
 		if (realm) {
-			ceph_get_snap_realm(mdsc, realm);
 			spin_lock(&realm->inodes_with_caps_lock);
 			ci->i_snap_realm = realm;
 			list_add(&ci->i_snap_realm_item,
@@ -1435,8 +1434,8 @@ static int __mark_caps_flushing(struct inode *inode,
 	spin_lock(&mdsc->cap_dirty_lock);
 	list_del_init(&ci->i_dirty_item);
 
-	ci->i_cap_flush_seq = ++mdsc->cap_flush_seq;
 	if (list_empty(&ci->i_flushing_item)) {
+		ci->i_cap_flush_seq = ++mdsc->cap_flush_seq;
 		list_add_tail(&ci->i_flushing_item, &session->s_cap_flushing);
 		mdsc->num_cap_flushing++;
 		dout(" inode %p now flushing seq %lld\n", inode,
@@ -2579,10 +2578,6 @@ static void handle_cap_grant(struct ceph_mds_client *mdsc,
 	spin_unlock(&ci->i_ceph_lock);
 
 	if (le32_to_cpu(grant->op) == CEPH_CAP_OP_IMPORT) {
-		down_write(&mdsc->snap_rwsem);
-		ceph_update_snap_trace(mdsc, snaptrace,
-				       snaptrace + snaptrace_len, false);
-		downgrade_write(&mdsc->snap_rwsem);
 		kick_flushing_inode_caps(mdsc, session, inode);
 		up_read(&mdsc->snap_rwsem);
 		if (newcaps & ~issued)
@@ -2989,6 +2984,7 @@ void ceph_handle_caps(struct ceph_mds_session *session,
 	struct ceph_cap *cap;
 	struct ceph_mds_caps *h;
 	struct ceph_mds_cap_peer *peer = NULL;
+	struct ceph_snap_realm *realm;
 	int mds = session->s_mds;
 	int op, issued;
 	u32 seq, mseq;

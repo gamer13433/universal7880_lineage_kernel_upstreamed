@@ -110,6 +110,7 @@ nv50_pioc_create(struct nvif_object *disp, const u32 *oclass, u8 head,
 
 struct nv50_curs {
 	struct nv50_pioc base;
+	struct nouveau_bo *image;
 };
 
 static int
@@ -1241,6 +1242,7 @@ nv50_crtc_cursor_set(struct drm_crtc *crtc, struct drm_file *file_priv,
 		     uint32_t handle, uint32_t width, uint32_t height)
 {
 	struct nouveau_crtc *nv_crtc = nouveau_crtc(crtc);
+	struct nv50_curs *curs = nv50_curs(crtc);
 	struct drm_device *dev = crtc->dev;
 	struct drm_gem_object *gem;
 	struct nouveau_bo *nvbo;
@@ -1421,6 +1423,8 @@ nv50_crtc_create(struct drm_device *dev, int index)
 
 	nv50_crtc_lut_load(crtc);
 
+	nv50_crtc_lut_load(crtc);
+
 	/* allocate cursor resources */
 	ret = nv50_curs_create(disp->disp, index, &head->curs);
 	if (ret)
@@ -1492,6 +1496,26 @@ nv50_dac_dpms(struct drm_encoder *encoder, int mode)
 	};
 
 	nvif_mthd(disp->disp, 0, &args, sizeof(args));
+}
+
+static bool
+nv50_dac_mode_fixup(struct drm_encoder *encoder,
+		    const struct drm_display_mode *mode,
+		    struct drm_display_mode *adjusted_mode)
+{
+	struct nouveau_encoder *nv_encoder = nouveau_encoder(encoder);
+	struct nouveau_connector *nv_connector;
+
+	nv_connector = nouveau_encoder_connector_get(nv_encoder);
+	if (nv_connector && nv_connector->native_mode) {
+		if (nv_connector->scaling_mode != DRM_MODE_SCALE_NONE) {
+			int id = adjusted_mode->base.id;
+			*adjusted_mode = *nv_connector->native_mode;
+			adjusted_mode->base.id = id;
+		}
+	}
+
+	return true;
 }
 
 static bool
@@ -1833,6 +1857,26 @@ nv50_sor_dpms(struct drm_encoder *encoder, int mode)
 	} else {
 		nvif_mthd(disp->disp, 0, &args, sizeof(args));
 	}
+}
+
+static bool
+nv50_sor_mode_fixup(struct drm_encoder *encoder,
+		    const struct drm_display_mode *mode,
+		    struct drm_display_mode *adjusted_mode)
+{
+	struct nouveau_encoder *nv_encoder = nouveau_encoder(encoder);
+	struct nouveau_connector *nv_connector;
+
+	nv_connector = nouveau_encoder_connector_get(nv_encoder);
+	if (nv_connector && nv_connector->native_mode) {
+		if (nv_connector->scaling_mode != DRM_MODE_SCALE_NONE) {
+			int id = adjusted_mode->base.id;
+			*adjusted_mode = *nv_connector->native_mode;
+			adjusted_mode->base.id = id;
+		}
+	}
+
+	return true;
 }
 
 static bool

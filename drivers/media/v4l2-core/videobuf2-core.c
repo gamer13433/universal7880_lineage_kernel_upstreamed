@@ -3293,13 +3293,18 @@ int vb2_thread_stop(struct vb2_queue *q)
 
 	if (threadio == NULL)
 		return 0;
+	call_void_qop(q, wait_finish, q);
 	threadio->stop = true;
-	/* Wake up all pending sleeps in the thread */
-	vb2_queue_error(q);
+	vb2_internal_streamoff(q, q->type);
+	call_void_qop(q, wait_prepare, q);
 	err = kthread_stop(threadio->thread);
-	__vb2_cleanup_fileio(q);
+	q->fileio = NULL;
+	fileio->req.count = 0;
+	vb2_reqbufs(q, &fileio->req);
+	kfree(fileio);
 	threadio->thread = NULL;
 	kfree(threadio);
+	q->fileio = NULL;
 	q->threadio = NULL;
 	return err;
 }

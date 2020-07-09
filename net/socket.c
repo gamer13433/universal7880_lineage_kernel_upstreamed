@@ -143,8 +143,10 @@ static ssize_t sock_splice_read(struct file *file, loff_t *ppos,
 static const struct file_operations socket_file_ops = {
 	.owner =	THIS_MODULE,
 	.llseek =	no_llseek,
-	.aio_read =	sock_aio_read,
-	.aio_write =	sock_aio_write,
+	.read =		new_sync_read,
+	.write =	new_sync_write,
+	.read_iter =	sock_read_iter,
+	.write_iter =	sock_write_iter,
 	.poll =		sock_poll,
 	.unlocked_ioctl = sock_ioctl,
 #ifdef CONFIG_COMPAT
@@ -665,13 +667,6 @@ EXPORT_SYMBOL(__sock_tx_timestamp);
 static inline int __sock_sendmsg_nosec(struct kiocb *iocb, struct socket *sock,
 				       struct msghdr *msg, size_t size)
 {
-	struct sock_iocb *si = kiocb_to_siocb(iocb);
-
-	si->sock = sock;
-	si->scm = NULL;
-	si->msg = msg;
-	si->size = size;
-
 	return sock->ops->sendmsg(iocb, sock, msg, size);
 }
 
@@ -811,14 +806,6 @@ EXPORT_SYMBOL_GPL(__sock_recv_ts_and_drops);
 static inline int __sock_recvmsg_nosec(struct kiocb *iocb, struct socket *sock,
 				       struct msghdr *msg, size_t size, int flags)
 {
-	struct sock_iocb *si = kiocb_to_siocb(iocb);
-
-	si->sock = sock;
-	si->scm = NULL;
-	si->msg = msg;
-	si->size = size;
-	si->flags = flags;
-
 	return sock->ops->recvmsg(iocb, sock, msg, size, flags);
 }
 
@@ -834,11 +821,9 @@ int sock_recvmsg(struct socket *sock, struct msghdr *msg,
 		 size_t size, int flags)
 {
 	struct kiocb iocb;
-	struct sock_iocb siocb;
 	int ret;
 
 	init_sync_kiocb(&iocb, NULL);
-	iocb.private = &siocb;
 	ret = __sock_recvmsg(&iocb, sock, msg, size, flags);
 	if (-EIOCBQUEUED == ret)
 		ret = wait_on_sync_kiocb(&iocb);
@@ -850,11 +835,9 @@ static int sock_recvmsg_nosec(struct socket *sock, struct msghdr *msg,
 			      size_t size, int flags)
 {
 	struct kiocb iocb;
-	struct sock_iocb siocb;
 	int ret;
 
 	init_sync_kiocb(&iocb, NULL);
-	iocb.private = &siocb;
 	ret = __sock_recvmsg_nosec(&iocb, sock, msg, size, flags);
 	if (-EIOCBQUEUED == ret)
 		ret = wait_on_sync_kiocb(&iocb);

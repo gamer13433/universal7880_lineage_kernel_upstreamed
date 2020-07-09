@@ -26,6 +26,10 @@ KASAN_SANITIZE_dumpstack_$(BITS).o := n
 # non-deterministic coverage.
 KCOV_INSTRUMENT		:= n
 
+KASAN_SANITIZE_head$(BITS).o := n
+KASAN_SANITIZE_dumpstack.o := n
+KASAN_SANITIZE_dumpstack_$(BITS).o := n
+
 CFLAGS_irq.o := -I$(src)/../include/asm/trace
 
 obj-y			:= process_$(BITS).o signal.o entry_$(BITS).o
@@ -74,6 +78,7 @@ obj-$(CONFIG_X86_MPPARSE)	+= mpparse.o
 obj-y				+= apic/
 obj-$(CONFIG_X86_REBOOTFIXUPS)	+= reboot_fixups_32.o
 obj-$(CONFIG_DYNAMIC_FTRACE)	+= ftrace.o
+obj-$(CONFIG_LIVEPATCH)		+= livepatch.o
 obj-$(CONFIG_FUNCTION_GRAPH_TRACER) += ftrace.o
 obj-$(CONFIG_FTRACE_SYSCALLS)	+= ftrace.o
 obj-$(CONFIG_X86_TSC)		+= trace_clock.o

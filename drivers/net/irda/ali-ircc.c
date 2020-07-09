@@ -1913,7 +1913,7 @@ static int  ali_ircc_dma_receive_complete(struct ali_ircc_cb *self)
 			 * reduce the min turn time a bit since we will know
 			 * how much time we have used for protocol processing
 			 */
-			do_gettimeofday(&self->stamp);
+			self->stamp = ktime_get();
 
 			skb = dev_alloc_skb(len+1);
 			if (skb == NULL)  

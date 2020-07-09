@@ -27,6 +27,9 @@
 
 #include <asm/octeon/octeon.h>
 
+enum octeon_feature_bits __octeon_feature_bits __read_mostly;
+EXPORT_SYMBOL_GPL(__octeon_feature_bits);
+
 /**
  * Given the chip processor ID from COP0, this function returns a
  * string representing the chip model number. The string is of the
@@ -100,6 +103,9 @@ const char *octeon_model_get_string_buffer(uint32_t chip_id, char *buffer)
 		suffix = "EXP";
 	else
 		suffix = "NSP";
+
+	if (!fus_dat2.s.nocrypto)
+		__octeon_feature_bits |= OCTEON_HAS_CRYPTO;
 
 	/*
 	 * Assume pass number is encoded using <5:3><2:0>. Exceptions

@@ -247,7 +247,6 @@ struct flexcan_devtype_data {
 
 struct flexcan_priv {
 	struct can_priv can;
-	struct net_device *dev;
 	struct napi_struct napi;
 
 	void __iomem *base;

@@ -72,6 +72,18 @@ enum mdp4_cursor_format {
 	CURSOR_XRGB = 2,
 };
 
+enum mdp4_frame_format {
+	FRAME_LINEAR = 0,
+	FRAME_TILE_ARGB_4X4 = 1,
+	FRAME_TILE_YCBCR_420 = 2,
+};
+
+enum mdp4_scale_unit {
+	SCALE_FIR = 0,
+	SCALE_MN_PHASE = 1,
+	SCALE_PIXEL_RPT = 2,
+};
+
 enum mdp4_dma {
 	DMA_P = 0,
 	DMA_S = 1,
@@ -637,6 +649,8 @@ static inline uint32_t REG_MDP4_PIPE_SRCP1_BASE(enum mdp4_pipe i0) { return 0x00
 
 static inline uint32_t REG_MDP4_PIPE_SRCP2_BASE(enum mdp4_pipe i0) { return 0x00020018 + 0x10000*i0; }
 
+static inline uint32_t REG_MDP4_PIPE_SRCP3_BASE(enum mdp4_pipe i0) { return 0x0002001c + 0x10000*i0; }
+
 static inline uint32_t REG_MDP4_PIPE_SRC_STRIDE_A(enum mdp4_pipe i0) { return 0x00020040 + 0x10000*i0; }
 #define MDP4_PIPE_SRC_STRIDE_A_P0__MASK				0x0000ffff
 #define MDP4_PIPE_SRC_STRIDE_A_P0__SHIFT			0
@@ -720,7 +734,25 @@ static inline uint32_t MDP4_PIPE_SRC_FORMAT_UNPACK_COUNT(uint32_t val)
 }
 #define MDP4_PIPE_SRC_FORMAT_UNPACK_TIGHT			0x00020000
 #define MDP4_PIPE_SRC_FORMAT_UNPACK_ALIGN_MSB			0x00040000
+#define MDP4_PIPE_SRC_FORMAT_FETCH_PLANES__MASK			0x00180000
+#define MDP4_PIPE_SRC_FORMAT_FETCH_PLANES__SHIFT		19
+static inline uint32_t MDP4_PIPE_SRC_FORMAT_FETCH_PLANES(uint32_t val)
+{
+	return ((val) << MDP4_PIPE_SRC_FORMAT_FETCH_PLANES__SHIFT) & MDP4_PIPE_SRC_FORMAT_FETCH_PLANES__MASK;
+}
 #define MDP4_PIPE_SRC_FORMAT_SOLID_FILL				0x00400000
+#define MDP4_PIPE_SRC_FORMAT_CHROMA_SAMP__MASK			0x0c000000
+#define MDP4_PIPE_SRC_FORMAT_CHROMA_SAMP__SHIFT			26
+static inline uint32_t MDP4_PIPE_SRC_FORMAT_CHROMA_SAMP(enum mdp_chroma_samp_type val)
+{
+	return ((val) << MDP4_PIPE_SRC_FORMAT_CHROMA_SAMP__SHIFT) & MDP4_PIPE_SRC_FORMAT_CHROMA_SAMP__MASK;
+}
+#define MDP4_PIPE_SRC_FORMAT_FRAME_FORMAT__MASK			0x60000000
+#define MDP4_PIPE_SRC_FORMAT_FRAME_FORMAT__SHIFT		29
+static inline uint32_t MDP4_PIPE_SRC_FORMAT_FRAME_FORMAT(enum mdp4_frame_format val)
+{
+	return ((val) << MDP4_PIPE_SRC_FORMAT_FRAME_FORMAT__SHIFT) & MDP4_PIPE_SRC_FORMAT_FRAME_FORMAT__MASK;
+}
 
 static inline uint32_t REG_MDP4_PIPE_SRC_UNPACK(enum mdp4_pipe i0) { return 0x00020054 + 0x10000*i0; }
 #define MDP4_PIPE_SRC_UNPACK_ELEM0__MASK			0x000000ff
@@ -751,6 +783,18 @@ static inline uint32_t MDP4_PIPE_SRC_UNPACK_ELEM3(uint32_t val)
 static inline uint32_t REG_MDP4_PIPE_OP_MODE(enum mdp4_pipe i0) { return 0x00020058 + 0x10000*i0; }
 #define MDP4_PIPE_OP_MODE_SCALEX_EN				0x00000001
 #define MDP4_PIPE_OP_MODE_SCALEY_EN				0x00000002
+#define MDP4_PIPE_OP_MODE_SCALEX_UNIT_SEL__MASK			0x0000000c
+#define MDP4_PIPE_OP_MODE_SCALEX_UNIT_SEL__SHIFT		2
+static inline uint32_t MDP4_PIPE_OP_MODE_SCALEX_UNIT_SEL(enum mdp4_scale_unit val)
+{
+	return ((val) << MDP4_PIPE_OP_MODE_SCALEX_UNIT_SEL__SHIFT) & MDP4_PIPE_OP_MODE_SCALEX_UNIT_SEL__MASK;
+}
+#define MDP4_PIPE_OP_MODE_SCALEY_UNIT_SEL__MASK			0x00000030
+#define MDP4_PIPE_OP_MODE_SCALEY_UNIT_SEL__SHIFT		4
+static inline uint32_t MDP4_PIPE_OP_MODE_SCALEY_UNIT_SEL(enum mdp4_scale_unit val)
+{
+	return ((val) << MDP4_PIPE_OP_MODE_SCALEY_UNIT_SEL__SHIFT) & MDP4_PIPE_OP_MODE_SCALEY_UNIT_SEL__MASK;
+}
 #define MDP4_PIPE_OP_MODE_SRC_YCBCR				0x00000200
 #define MDP4_PIPE_OP_MODE_DST_YCBCR				0x00000400
 #define MDP4_PIPE_OP_MODE_CSC_EN				0x00000800

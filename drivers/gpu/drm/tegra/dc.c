@@ -95,6 +95,9 @@ static bool tegra_dc_format_is_yuv(unsigned int format, bool *planar)
 		return true;
 	}
 
+	if (planar)
+		*planar = false;
+
 	return false;
 }
 
@@ -138,8 +141,8 @@ static inline u32 compute_initial_dda(unsigned int in)
 	return dfixed_frac(inf);
 }
 
-static int tegra_dc_setup_window(struct tegra_dc *dc, unsigned int index,
-				 const struct tegra_dc_window *window)
+static void tegra_dc_setup_window(struct tegra_dc *dc, unsigned int index,
+				  const struct tegra_dc_window *window)
 {
 	unsigned h_offset, v_offset, h_size, v_size, h_dda, v_dda, bpp;
 	unsigned long value;
@@ -580,7 +583,9 @@ static int tegra_dc_cursor_set2(struct drm_crtc *crtc, struct drm_file *file,
 		break;
 
 	default:
-		return -EINVAL;
+		WARN(1, "cursor size %ux%u not supported\n", state->crtc_w,
+		     state->crtc_h);
+		return;
 	}
 
 	if (handle) {
@@ -791,33 +796,15 @@ static int tegra_dc_set_timings(struct tegra_dc *dc,
 	return 0;
 }
 
-static int tegra_crtc_setup_clk(struct drm_crtc *crtc,
-				struct drm_display_mode *mode)
+int tegra_dc_setup_clock(struct tegra_dc *dc, struct clk *parent,
+			 unsigned long pclk, unsigned int div)
 {
-	unsigned long pclk = mode->clock * 1000;
-	struct tegra_dc *dc = to_tegra_dc(crtc);
-	struct tegra_output *output = NULL;
-	struct drm_encoder *encoder;
-	unsigned int div;
 	u32 value;
-	long err;
+	int err;
 
-	list_for_each_entry(encoder, &crtc->dev->mode_config.encoder_list, head)
-		if (encoder->crtc == crtc) {
-			output = encoder_to_output(encoder);
-			break;
-		}
-
-	if (!output)
-		return -ENODEV;
-
-	/*
-	 * This assumes that the parent clock is pll_d_out0 or pll_d2_out
-	 * respectively, each of which divides the base pll_d by 2.
-	 */
-	err = tegra_output_setup_clock(output, dc->clk, pclk, &div);
+	err = clk_set_parent(dc->clk, parent);
 	if (err < 0) {
-		dev_err(dc->dev, "failed to setup clock: %ld\n", err);
+		dev_err(dc->dev, "failed to set parent clock: %d\n", err);
 		return err;
 	}
 
@@ -829,22 +816,62 @@ static int tegra_crtc_setup_clk(struct drm_crtc *crtc,
 	return 0;
 }
 
-static int tegra_crtc_mode_set(struct drm_crtc *crtc,
-			       struct drm_display_mode *mode,
-			       struct drm_display_mode *adjusted,
-			       int x, int y, struct drm_framebuffer *old_fb)
+int tegra_dc_state_setup_clock(struct tegra_dc *dc,
+			       struct drm_crtc_state *crtc_state,
+			       struct clk *clk, unsigned long pclk,
+			       unsigned int div)
 {
-	struct tegra_bo *bo = tegra_fb_get_plane(crtc->primary->fb, 0);
-	struct tegra_dc *dc = to_tegra_dc(crtc);
-	struct tegra_dc_window window;
+	struct tegra_dc_state *state = to_dc_state(crtc_state);
+
+	state->clk = clk;
+	state->pclk = pclk;
+	state->div = div;
+
+	return 0;
+}
+
+static void tegra_dc_commit_state(struct tegra_dc *dc,
+				  struct tegra_dc_state *state)
+{
 	u32 value;
 	int err;
 
-	err = tegra_crtc_setup_clk(crtc, mode);
-	if (err) {
-		dev_err(dc->dev, "failed to setup clock for CRTC: %d\n", err);
-		return err;
+	err = clk_set_parent(dc->clk, state->clk);
+	if (err < 0)
+		dev_err(dc->dev, "failed to set parent clock: %d\n", err);
+
+	/*
+	 * Outputs may not want to change the parent clock rate. This is only
+	 * relevant to Tegra20 where only a single display PLL is available.
+	 * Since that PLL would typically be used for HDMI, an internal LVDS
+	 * panel would need to be driven by some other clock such as PLL_P
+	 * which is shared with other peripherals. Changing the clock rate
+	 * should therefore be avoided.
+	 */
+	if (state->pclk > 0) {
+		err = clk_set_rate(state->clk, state->pclk);
+		if (err < 0)
+			dev_err(dc->dev,
+				"failed to set clock rate to %lu Hz\n",
+				state->pclk);
 	}
+
+	DRM_DEBUG_KMS("rate: %lu, div: %u\n", clk_get_rate(dc->clk),
+		      state->div);
+	DRM_DEBUG_KMS("pclk: %lu\n", state->pclk);
+
+	value = SHIFT_CLK_DIVIDER(state->div) | PIXEL_CLK_DIVIDER_PCD1;
+	tegra_dc_writel(dc, value, DC_DISP_DISP_CLOCK_CONTROL);
+}
+
+static void tegra_crtc_mode_set_nofb(struct drm_crtc *crtc)
+{
+	struct drm_display_mode *mode = &crtc->state->adjusted_mode;
+	struct tegra_dc_state *state = to_dc_state(crtc->state);
+	struct tegra_dc *dc = to_tegra_dc(crtc);
+	u32 value;
+
+	tegra_dc_commit_state(dc, state);
 
 	/* program display mode */
 	tegra_dc_set_timings(dc, mode);
@@ -1343,6 +1370,40 @@ static int tegra_dc_exit(struct host1x_client *client)
 		return err;
 	}
 
+	/* initialize display controller */
+	if (dc->pipe)
+		syncpt = SYNCPT_VBLANK1;
+	else
+		syncpt = SYNCPT_VBLANK0;
+
+	tegra_dc_writel(dc, 0x00000100, DC_CMD_GENERAL_INCR_SYNCPT_CNTRL);
+	tegra_dc_writel(dc, 0x100 | syncpt, DC_CMD_CONT_SYNCPT_VSYNC);
+
+	value = WIN_A_UF_INT | WIN_B_UF_INT | WIN_C_UF_INT | WIN_A_OF_INT;
+	tegra_dc_writel(dc, value, DC_CMD_INT_TYPE);
+
+	value = WIN_A_UF_INT | WIN_B_UF_INT | WIN_C_UF_INT |
+		WIN_A_OF_INT | WIN_B_OF_INT | WIN_C_OF_INT;
+	tegra_dc_writel(dc, value, DC_CMD_INT_POLARITY);
+
+	/* initialize timer */
+	value = CURSOR_THRESHOLD(0) | WINDOW_A_THRESHOLD(0x20) |
+		WINDOW_B_THRESHOLD(0x20) | WINDOW_C_THRESHOLD(0x20);
+	tegra_dc_writel(dc, value, DC_DISP_DISP_MEM_HIGH_PRIORITY);
+
+	value = CURSOR_THRESHOLD(0) | WINDOW_A_THRESHOLD(1) |
+		WINDOW_B_THRESHOLD(1) | WINDOW_C_THRESHOLD(1);
+	tegra_dc_writel(dc, value, DC_DISP_DISP_MEM_HIGH_PRIORITY_TIMER);
+
+	value = VBLANK_INT | WIN_A_UF_INT | WIN_B_UF_INT | WIN_C_UF_INT;
+	tegra_dc_writel(dc, value, DC_CMD_INT_ENABLE);
+
+	value = WIN_A_UF_INT | WIN_B_UF_INT | WIN_C_UF_INT;
+	tegra_dc_writel(dc, value, DC_CMD_INT_MASK);
+
+	if (dc->soc->supports_border_color)
+		tegra_dc_writel(dc, 0, DC_DISP_BORDER_COLOR);
+
 	return 0;
 }
 
@@ -1352,6 +1413,7 @@ static const struct host1x_client_ops dc_client_ops = {
 };
 
 static const struct tegra_dc_soc_info tegra20_dc_soc_info = {
+	.supports_border_color = true,
 	.supports_interlacing = false,
 	.supports_cursor = false,
 	.supports_block_linear = false,
@@ -1359,6 +1421,7 @@ static const struct tegra_dc_soc_info tegra20_dc_soc_info = {
 };
 
 static const struct tegra_dc_soc_info tegra30_dc_soc_info = {
+	.supports_border_color = true,
 	.supports_interlacing = false,
 	.supports_cursor = false,
 	.supports_block_linear = false,
@@ -1366,6 +1429,7 @@ static const struct tegra_dc_soc_info tegra30_dc_soc_info = {
 };
 
 static const struct tegra_dc_soc_info tegra114_dc_soc_info = {
+	.supports_border_color = true,
 	.supports_interlacing = false,
 	.supports_cursor = false,
 	.supports_block_linear = false,
@@ -1373,6 +1437,7 @@ static const struct tegra_dc_soc_info tegra114_dc_soc_info = {
 };
 
 static const struct tegra_dc_soc_info tegra124_dc_soc_info = {
+	.supports_border_color = false,
 	.supports_interlacing = true,
 	.supports_cursor = true,
 	.supports_block_linear = true,

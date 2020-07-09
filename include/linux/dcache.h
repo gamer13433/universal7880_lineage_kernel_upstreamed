@@ -322,9 +322,6 @@ static inline unsigned d_count(const struct dentry *dentry)
 	return dentry->d_lockref.count;
 }
 
-/* validate "insecure" dentry pointer */
-extern int d_validate(struct dentry *, struct dentry *);
-
 /*
  * helper function for dentry_operations.d_dname() members
  */
@@ -429,6 +426,16 @@ static inline unsigned __d_entry_type(const struct dentry *dentry)
 	return dentry->d_flags & DCACHE_ENTRY_TYPE;
 }
 
+static inline bool d_is_miss(const struct dentry *dentry)
+{
+	return __d_entry_type(dentry) == DCACHE_MISS_TYPE;
+}
+
+static inline bool d_is_whiteout(const struct dentry *dentry)
+{
+	return __d_entry_type(dentry) == DCACHE_WHITEOUT_TYPE;
+}
+
 static inline bool d_can_lookup(const struct dentry *dentry)
 {
 	return __d_entry_type(dentry) == DCACHE_DIRECTORY_TYPE;
@@ -449,14 +456,25 @@ static inline bool d_is_symlink(const struct dentry *dentry)
 	return __d_entry_type(dentry) == DCACHE_SYMLINK_TYPE;
 }
 
+static inline bool d_is_reg(const struct dentry *dentry)
+{
+	return __d_entry_type(dentry) == DCACHE_REGULAR_TYPE;
+}
+
+static inline bool d_is_special(const struct dentry *dentry)
+{
+	return __d_entry_type(dentry) == DCACHE_SPECIAL_TYPE;
+}
+
 static inline bool d_is_file(const struct dentry *dentry)
 {
-	return __d_entry_type(dentry) == DCACHE_FILE_TYPE;
+	return d_is_reg(dentry) || d_is_special(dentry);
 }
 
 static inline bool d_is_negative(const struct dentry *dentry)
 {
-	return __d_entry_type(dentry) == DCACHE_MISS_TYPE;
+	// TODO: check d_is_whiteout(dentry) also.
+	return d_is_miss(dentry);
 }
 
 static inline bool d_is_positive(const struct dentry *dentry)

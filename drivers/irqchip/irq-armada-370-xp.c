@@ -378,6 +378,20 @@ static struct notifier_block mpic_cascaded_cpu_notifier = {
 	.priority = 100,
 };
 
+static int mpic_cascaded_secondary_init(struct notifier_block *nfb,
+					unsigned long action, void *hcpu)
+{
+	if (action == CPU_STARTING || action == CPU_STARTING_FROZEN)
+		enable_percpu_irq(parent_irq, IRQ_TYPE_NONE);
+
+	return NOTIFY_OK;
+}
+
+static struct notifier_block mpic_cascaded_cpu_notifier = {
+	.notifier_call = mpic_cascaded_secondary_init,
+	.priority = 100,
+};
+
 #endif /* CONFIG_SMP */
 
 static struct irq_domain_ops armada_370_xp_mpic_irq_ops = {

@@ -19,10 +19,8 @@
 /*
  * Driver: rtd520
  * Description: Real Time Devices PCI4520/DM7520
- * Devices: (Real Time Devices) DM7520HR-1 [DM7520]
- *	    (Real Time Devices) DM7520HR-8 [DM7520]
- *	    (Real Time Devices) PCI4520 [PCI4520]
- *	    (Real Time Devices) PCI4520-8 [PCI4520]
+ * Devices: [Real Time Devices] DM7520HR-1 (DM7520), DM7520HR-8,
+ *   PCI4520 (PCI4520), PCI4520-8
  * Author: Dan Christian
  * Status: Works. Only tested on DM7520-8. Not SMP safe.
  *
@@ -1055,10 +1053,8 @@ static int rtd_ai_cmd(struct comedi_device *dev, struct comedi_subdevice *s)
 	readw(dev->mmio + LAS0_CLEAR);
 
 	/* TODO: allow multiple interrupt sources */
-	if (devpriv->xfer_count > 0)	/* transfer every N samples */
-		writew(IRQM_ADC_ABOUT_CNT, dev->mmio + LAS0_IT);
-	else				/* 1/2 FIFO transfers */
-		writew(IRQM_ADC_ABOUT_CNT, dev->mmio + LAS0_IT);
+	/* transfer every N samples */
+	writew(IRQM_ADC_ABOUT_CNT, dev->mmio + LAS0_IT);
 
 	/* BUG: start_src is ASSUMED to be TRIG_NOW */
 	/* BUG? it seems like things are running before the "start" */
@@ -1072,8 +1068,6 @@ static int rtd_ai_cmd(struct comedi_device *dev, struct comedi_subdevice *s)
 static int rtd_ai_cancel(struct comedi_device *dev, struct comedi_subdevice *s)
 {
 	struct rtd_private *devpriv = dev->private;
-	u32 overrun;
-	u16 status;
 
 	/* pacer stop source: SOFTWARE */
 	writel(0, dev->mmio + LAS0_PACER_STOP);

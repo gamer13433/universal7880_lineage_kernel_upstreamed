@@ -74,6 +74,42 @@ static inline struct dvb_frontend *rtl2832_sdr_attach(struct dvb_frontend *fe,
 
 #endif
 
+#include "rtl2830.h"
+#include "rtl2832.h"
+#include "rtl2832_sdr.h"
+#include "mn88472.h"
+#include "mn88473.h"
+
+#include "qt1010.h"
+#include "mt2060.h"
+#include "mxl5005s.h"
+#include "fc0012.h"
+#include "fc0013.h"
+#include "e4000.h"
+#include "fc2580.h"
+#include "tua9001.h"
+#include "r820t.h"
+
+
+#ifdef CONFIG_MEDIA_ATTACH
+#define dvb_attach_sdr(FUNCTION, ARGS...) ({ \
+	void *__r = NULL; \
+	typeof(&FUNCTION) __a = symbol_request(FUNCTION); \
+	if (__a) { \
+		__r = (void *) __a(ARGS); \
+		if (__r == NULL) \
+			symbol_put(FUNCTION); \
+	} \
+	__r; \
+})
+
+#else
+#define dvb_attach_sdr(FUNCTION, ARGS...) ({ \
+	FUNCTION(ARGS); \
+})
+
+#endif
+
 static int rtl28xxu_disable_rc;
 module_param_named(disable_rc, rtl28xxu_disable_rc, int, 0644);
 MODULE_PARM_DESC(disable_rc, "disable RTL2832U remote controller");

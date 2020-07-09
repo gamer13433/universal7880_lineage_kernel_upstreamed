@@ -151,4 +151,9 @@ static inline void inet_proto_csum_replace2(__sum16 *sum, struct sk_buff *skb,
 				 (__force __be32)to, pseudohdr);
 }
 
+static inline void remcsum_unadjust(__sum16 *psum, __wsum delta)
+{
+	*psum = csum_fold(csum_sub(delta, *psum));
+}
+
 #endif

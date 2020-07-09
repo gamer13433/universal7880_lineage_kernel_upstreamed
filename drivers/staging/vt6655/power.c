@@ -132,13 +132,13 @@ PSvDisablePowerSaving(
 {
 	struct vnt_private *pDevice = hDeviceContext;
 
-	// disable power saving hw function
+	/* disable power saving hw function */
 	MACbPSWakeup(pDevice->PortOffset);
-	//clear AutoSleep
+	/* clear AutoSleep */
 	MACvRegBitsOff(pDevice->PortOffset, MAC_REG_PSCFG, PSCFG_AUTOSLEEP);
-	//clear HWUTSF
+	/* clear HWUTSF */
 	MACvRegBitsOff(pDevice->PortOffset, MAC_REG_TFTCTL, TFTCTL_HWUTSF);
-	// set always listen beacon
+	/* set always listen beacon */
 	MACvRegBitsOn(pDevice->PortOffset, MAC_REG_PSCTL, PSCTL_ALBCN);
 
 	pDevice->bEnablePSMode = false;

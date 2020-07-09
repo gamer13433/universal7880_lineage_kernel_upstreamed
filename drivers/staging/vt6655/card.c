@@ -85,8 +85,8 @@ static unsigned char abyDefaultSuppRatesB[] = {WLAN_EID_SUPP_RATES, 4, 0x02, 0x0
 
 /*---------------------  Static Variables  --------------------------*/
 
-static const unsigned short cwRXBCNTSFOff[MAX_RATE] =
-{17, 17, 17, 17, 34, 23, 17, 11, 8, 5, 4, 3};
+static const unsigned short cwRXBCNTSFOff[MAX_RATE] = {
+	17, 17, 17, 17, 34, 23, 17, 11, 8, 5, 4, 3};
 
 /*---------------------  Static Functions  --------------------------*/
 
@@ -325,6 +325,8 @@ s_vSetRSPINF(struct vnt_private *pDevice, CARD_PHY_TYPE ePHYType,
 	VNSvOutPortW(pDevice->PortOffset + MAC_REG_RSPINF_A_72, MAKEWORD(byTxRate, byRsvTime));
 	//Set to Page0
 	MACvSelectPage0(pDevice->PortOffset);
+
+	spin_unlock_irqrestore(&pDevice->lock, flags);
 }
 
 /*---------------------  Export Functions  --------------------------*/

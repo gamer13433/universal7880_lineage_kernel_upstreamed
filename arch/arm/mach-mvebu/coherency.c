@@ -53,7 +53,7 @@ enum {
 	COHERENCY_FABRIC_TYPE_ARMADA_380,
 };
 
-static struct of_device_id of_coherency_table[] = {
+static const struct of_device_id of_coherency_table[] = {
 	{.compatible = "marvell,coherency-fabric",
 	 .data = (void *) COHERENCY_FABRIC_TYPE_ARMADA_370_XP },
 	{.compatible = "marvell,armada-375-coherency-fabric",
@@ -283,7 +283,7 @@ static int mvebu_hwcc_notifier(struct notifier_block *nb,
 
 	if (event != BUS_NOTIFY_ADD_DEVICE)
 		return NOTIFY_DONE;
-	set_dma_ops(dev, &mvebu_hwcc_dma_ops);
+	set_dma_ops(dev, &arm_coherent_dma_ops);
 
 	return NOTIFY_OK;
 }
@@ -405,14 +405,9 @@ static int coherency_type(void)
 	return type;
 }
 
-/*
- * As a precaution, we currently completely disable hardware I/O
- * coherency, until enough testing is done with automatic I/O
- * synchronization barriers to validate that it is a proper solution.
- */
 int coherency_available(void)
 {
-	return false;
+	return coherency_type() != COHERENCY_FABRIC_TYPE_NONE;
 }
 
 int __init coherency_init(void)

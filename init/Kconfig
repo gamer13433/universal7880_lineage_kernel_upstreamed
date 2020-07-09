@@ -470,7 +470,6 @@ choice
 config TREE_RCU
 	bool "Tree-based hierarchical RCU"
 	depends on !PREEMPT && SMP
-	select IRQ_WORK
 	help
 	  This option selects the RCU implementation that is
 	  designed for very large SMP system with hundreds or
@@ -480,7 +479,6 @@ config TREE_RCU
 config TREE_PREEMPT_RCU
 	bool "Preemptible tree-based hierarchical RCU"
 	depends on PREEMPT
-	select IRQ_WORK
 	help
 	  This option selects the RCU implementation that is
 	  designed for very large SMP systems with hundreds or
@@ -507,9 +505,17 @@ config PREEMPT_RCU
 	  This option enables preemptible-RCU code that is common between
 	  TREE_PREEMPT_RCU and, in the old days, TINY_PREEMPT_RCU.
 
+config SRCU
+	bool
+	help
+	  This option selects the sleepable version of RCU. This version
+	  permits arbitrary sleeping or blocking within RCU read-side critical
+	  sections.
+
 config TASKS_RCU
 	bool "Task_based RCU implementation using voluntary context switch"
 	default n
+	select SRCU
 	help
 	  This option enables a task-based RCU implementation that uses
 	  only voluntary context switch (not preemption!), idle, and
@@ -921,7 +927,7 @@ config NUMA_BALANCING
 	  This system will be inactive on UMA systems.
 
 menuconfig CGROUPS
-	boolean "Control Group support"
+	bool "Control Group support"
 	select KERNFS
 	help
 	  This option adds support for grouping sets of processes together, for
@@ -1600,6 +1606,7 @@ config PERF_EVENTS
 	depends on HAVE_PERF_EVENTS
 	select ANON_INODES
 	select IRQ_WORK
+	select SRCU
 	help
 	  Enable kernel support for various performance events provided
 	  by software and hardware.
@@ -1783,7 +1790,7 @@ config SLABINFO
 	default y
 
 config RT_MUTEXES
-	boolean
+	bool
 
 config BASE_SMALL
 	int

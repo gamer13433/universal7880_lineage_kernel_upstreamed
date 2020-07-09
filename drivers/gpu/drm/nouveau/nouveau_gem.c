@@ -88,14 +88,14 @@ out:
 static void
 nouveau_gem_object_delete(void *data)
 {
-	struct nouveau_vma *vma = data;
-	nouveau_vm_unmap(vma);
-	nouveau_vm_put(vma);
+	struct nvkm_vma *vma = data;
+	nvkm_vm_unmap(vma);
+	nvkm_vm_put(vma);
 	kfree(vma);
 }
 
 static void
-nouveau_gem_object_unmap(struct nouveau_bo *nvbo, struct nouveau_vma *vma)
+nouveau_gem_object_unmap(struct nouveau_bo *nvbo, struct nvkm_vma *vma)
 {
 	const bool mapped = nvbo->bo.mem.mem_type != TTM_PL_SYSTEM;
 	struct reservation_object *resv = nvbo->bo.resv;
@@ -118,8 +118,8 @@ nouveau_gem_object_unmap(struct nouveau_bo *nvbo, struct nouveau_vma *vma)
 		nouveau_fence_work(fence, nouveau_gem_object_delete, vma);
 	} else {
 		if (mapped)
-			nouveau_vm_unmap(vma);
-		nouveau_vm_put(vma);
+			nvkm_vm_unmap(vma);
+		nvkm_vm_put(vma);
 		kfree(vma);
 	}
 }
@@ -197,7 +197,7 @@ nouveau_gem_info(struct drm_file *file_priv, struct drm_gem_object *gem,
 {
 	struct nouveau_cli *cli = nouveau_cli(file_priv);
 	struct nouveau_bo *nvbo = nouveau_gem_object(gem);
-	struct nouveau_vma *vma;
+	struct nvkm_vma *vma;
 
 	if (nvbo->bo.mem.mem_type == TTM_PL_TT)
 		rep->domain = NOUVEAU_GEM_DOMAIN_GART;
@@ -226,7 +226,7 @@ nouveau_gem_ioctl_new(struct drm_device *dev, void *data,
 {
 	struct nouveau_drm *drm = nouveau_drm(dev);
 	struct nouveau_cli *cli = nouveau_cli(file_priv);
-	struct nouveau_fb *pfb = nvkm_fb(&drm->device);
+	struct nvkm_fb *pfb = nvxx_fb(&drm->device);
 	struct drm_nouveau_gem_new *req = data;
 	struct nouveau_bo *nvbo = NULL;
 	int ret = 0;
@@ -823,19 +823,6 @@ out_next:
 	}
 
 	return nouveau_abi16_put(abi16, ret);
-}
-
-static inline uint32_t
-domain_to_ttm(struct nouveau_bo *nvbo, uint32_t domain)
-{
-	uint32_t flags = 0;
-
-	if (domain & NOUVEAU_GEM_DOMAIN_VRAM)
-		flags |= TTM_PL_FLAG_VRAM;
-	if (domain & NOUVEAU_GEM_DOMAIN_GART)
-		flags |= TTM_PL_FLAG_TT;
-
-	return flags;
 }
 
 int

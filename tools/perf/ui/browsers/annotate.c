@@ -512,7 +512,7 @@ static bool annotate_browser__jump(struct annotate_browser *browser)
 	}
 
 	annotate_browser__set_top(browser, dl, idx);
-	
+
 	return true;
 }
 
@@ -857,7 +857,6 @@ static void annotate_browser__mark_jump_targets(struct annotate_browser *browser
 
 		++browser->nr_jumps;
 	}
-		
 }
 
 static inline int width_jumps(int n)

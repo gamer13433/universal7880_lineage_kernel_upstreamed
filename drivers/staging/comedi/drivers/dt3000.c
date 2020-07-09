@@ -357,7 +357,7 @@ static irqreturn_t dt3k_interrupt(int irq, void *d)
 	}
 
 	if (status & (DT3000_ADSWERR | DT3000_ADHWERR))
-		s->async->events |= COMEDI_CB_ERROR | COMEDI_CB_EOA;
+		s->async->events |= COMEDI_CB_ERROR;
 
 	debug_n_ints++;
 	if (debug_n_ints >= 10)

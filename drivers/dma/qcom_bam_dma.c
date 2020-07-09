@@ -448,11 +448,18 @@ static void bam_free_chan(struct dma_chan *chan)
  * Sets slave configuration for channel
  *
  */
-static void bam_slave_config(struct bam_chan *bchan,
-		struct dma_slave_config *cfg)
+static int bam_slave_config(struct dma_chan *chan,
+			    struct dma_slave_config *cfg)
 {
+	struct bam_chan *bchan = to_bam_chan(chan);
+	unsigned long flag;
+
+	spin_lock_irqsave(&bchan->vc.lock, flag);
 	memcpy(&bchan->slave, cfg, sizeof(*cfg));
 	bchan->reconfigure = 1;
+	spin_unlock_irqrestore(&bchan->vc.lock, flag);
+
+	return 0;
 }
 
 /**
@@ -545,8 +552,9 @@ err_out:
  * No callbacks are done
  *
  */
-static void bam_dma_terminate_all(struct bam_chan *bchan)
+static int bam_dma_terminate_all(struct dma_chan *chan)
 {
+	struct bam_chan *bchan = to_bam_chan(chan);
 	unsigned long flag;
 	LIST_HEAD(head);
 
@@ -1047,10 +1055,17 @@ static int bam_dma_probe(struct platform_device *pdev)
 	dma_cap_set(DMA_SLAVE, bdev->common.cap_mask);
 
 	/* initialize dmaengine apis */
+	bdev->common.directions = BIT(DMA_DEV_TO_MEM) | BIT(DMA_MEM_TO_DEV);
+	bdev->common.residue_granularity = DMA_RESIDUE_GRANULARITY_SEGMENT;
+	bdev->common.src_addr_widths = DMA_SLAVE_BUSWIDTH_4_BYTES;
+	bdev->common.dst_addr_widths = DMA_SLAVE_BUSWIDTH_4_BYTES;
 	bdev->common.device_alloc_chan_resources = bam_alloc_chan;
 	bdev->common.device_free_chan_resources = bam_free_chan;
 	bdev->common.device_prep_slave_sg = bam_prep_slave_sg;
-	bdev->common.device_control = bam_control;
+	bdev->common.device_config = bam_slave_config;
+	bdev->common.device_pause = bam_pause;
+	bdev->common.device_resume = bam_resume;
+	bdev->common.device_terminate_all = bam_dma_terminate_all;
 	bdev->common.device_issue_pending = bam_issue_pending;
 	bdev->common.device_tx_status = bam_tx_status;
 	bdev->common.dev = bdev->dev;
@@ -1089,7 +1104,7 @@ static int bam_dma_remove(struct platform_device *pdev)
 	devm_free_irq(bdev->dev, bdev->irq, bdev);
 
 	for (i = 0; i < bdev->num_channels; i++) {
-		bam_dma_terminate_all(&bdev->channels[i]);
+		bam_dma_terminate_all(&bdev->channels[i].vc.chan);
 		tasklet_kill(&bdev->channels[i].vc.task);
 
 		dma_free_writecombine(bdev->dev, BAM_DESC_FIFO_SIZE,

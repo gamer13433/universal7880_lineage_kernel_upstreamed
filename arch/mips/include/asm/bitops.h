@@ -484,7 +484,7 @@ static inline unsigned long __fls(unsigned long word)
 	    __builtin_constant_p(cpu_has_clo_clz) && cpu_has_clo_clz) {
 		__asm__(
 		"	.set	push					\n"
-		"	.set	mips32					\n"
+		"	.set	"MIPS_ISA_LEVEL"			\n"
 		"	clz	%0, %1					\n"
 		"	.set	pop					\n"
 		: "=r" (num)
@@ -497,7 +497,7 @@ static inline unsigned long __fls(unsigned long word)
 	    __builtin_constant_p(cpu_has_mips64) && cpu_has_mips64) {
 		__asm__(
 		"	.set	push					\n"
-		"	.set	mips64					\n"
+		"	.set	"MIPS_ISA_LEVEL"			\n"
 		"	dclz	%0, %1					\n"
 		"	.set	pop					\n"
 		: "=r" (num)
@@ -561,7 +561,7 @@ static inline int fls(int x)
 	if (__builtin_constant_p(cpu_has_clo_clz) && cpu_has_clo_clz) {
 		__asm__(
 		"	.set	push					\n"
-		"	.set	mips32					\n"
+		"	.set	"MIPS_ISA_LEVEL"			\n"
 		"	clz	%0, %1					\n"
 		"	.set	pop					\n"
 		: "=r" (x)

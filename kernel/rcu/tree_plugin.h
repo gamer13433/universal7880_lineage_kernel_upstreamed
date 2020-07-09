@@ -46,6 +46,10 @@ static bool __read_mostly rcu_nocb_poll;    /* Offload kthread are to poll. */
 static char __initdata nocb_buf[NR_CPUS * 5];
 #endif /* #ifdef CONFIG_RCU_NOCB_CPU */
 
+/* rcuc/rcub kthread realtime priority */
+static int kthread_prio = CONFIG_RCU_KTHREAD_PRIO;
+module_param(kthread_prio, int, 0644);
+
 /*
  * Check the RCU kernel configuration parameters and print informative
  * messages about anything out of the ordinary.  If you like #ifdef, you
@@ -102,6 +106,25 @@ static void __init rcu_bootup_announce(void)
 	pr_info("Preemptible hierarchical RCU implementation.\n");
 	rcu_bootup_announce_oddness();
 }
+
+/*
+ * Return the number of RCU-preempt batches processed thus far
+ * for debug and statistics.
+ */
+static long rcu_batches_completed_preempt(void)
+{
+	return rcu_preempt_state.completed;
+}
+EXPORT_SYMBOL_GPL(rcu_batches_completed_preempt);
+
+/*
+ * Return the number of RCU batches processed thus far for debug & stats.
+ */
+long rcu_batches_completed(void)
+{
+	return rcu_batches_completed_preempt();
+}
+EXPORT_SYMBOL_GPL(rcu_batches_completed);
 
 /*
  * Return the number of RCU-preempt batches processed thus far
@@ -979,6 +1002,15 @@ static void rcu_print_detail_task_stall(struct rcu_state *rsp)
 }
 
 /*
+ * Return the number of RCU batches processed thus far for debug & stats.
+ */
+long rcu_batches_completed(void)
+{
+	return rcu_batches_completed_sched();
+}
+EXPORT_SYMBOL_GPL(rcu_batches_completed);
+
+/*
  * Because preemptible RCU does not exist, we never have to check for
  * tasks blocked within RCU read-side critical sections.
  */
@@ -1034,6 +1066,23 @@ EXPORT_SYMBOL_GPL(synchronize_rcu_expedited);
 
 #ifdef CONFIG_HOTPLUG_CPU
 
+#ifdef CONFIG_HOTPLUG_CPU
+
+/*
+ * Because preemptible RCU does not exist, it never needs to migrate
+ * tasks that were blocked within RCU read-side critical sections, and
+ * such non-existent tasks cannot possibly have been blocking the current
+ * grace period.
+ */
+static int rcu_preempt_offline_tasks(struct rcu_state *rsp,
+				     struct rcu_node *rnp,
+				     struct rcu_data *rdp)
+{
+	return 0;
+}
+
+#endif /* #ifdef CONFIG_HOTPLUG_CPU */
+
 /*
  * Because preemptible RCU does not exist, there is never any need to
  * report on tasks preempted in RCU read-side critical sections during
@@ -1055,6 +1104,20 @@ void rcu_barrier(void)
 	rcu_barrier_sched();
 }
 EXPORT_SYMBOL_GPL(rcu_barrier);
+
+#ifdef CONFIG_HOTPLUG_CPU
+
+/*
+ * Because preemptible RCU does not exist, there is never any need to
+ * report on tasks preempted in RCU read-side critical sections during
+ * expedited RCU grace periods.
+ */
+static void rcu_report_exp_rnp(struct rcu_state *rsp, struct rcu_node *rnp,
+			       bool wake)
+{
+}
+
+#endif /* #ifdef CONFIG_HOTPLUG_CPU */
 
 /*
  * Because preemptible RCU does not exist, it need not be initialized.

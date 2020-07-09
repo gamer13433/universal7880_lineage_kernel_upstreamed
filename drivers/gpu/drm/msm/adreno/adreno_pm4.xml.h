@@ -171,7 +171,9 @@ enum adreno_pm4_type3_packets {
 	CP_DRAW_INDIRECT = 40,
 	CP_DRAW_INDX_INDIRECT = 41,
 	CP_DRAW_AUTO = 36,
+	CP_UNKNOWN_19 = 25,
 	CP_UNKNOWN_1A = 26,
+	CP_UNKNOWN_4E = 78,
 	CP_WIDE_REG_WRITE = 116,
 	IN_IB_PREFETCH_END = 23,
 	IN_SUBBLK_PREFETCH = 31,
@@ -200,6 +202,12 @@ enum adreno_state_type {
 enum adreno_state_src {
 	SS_DIRECT = 0,
 	SS_INDIRECT = 4,
+};
+
+enum a4xx_index_size {
+	INDEX4_SIZE_8_BIT = 0,
+	INDEX4_SIZE_16_BIT = 1,
+	INDEX4_SIZE_32_BIT = 2,
 };
 
 #define REG_CP_LOAD_STATE_0					0x00000000

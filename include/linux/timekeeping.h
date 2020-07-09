@@ -31,6 +31,7 @@ extern void ktime_get_ts64(struct timespec64 *ts);
 
 extern int __getnstimeofday64(struct timespec64 *tv);
 extern void getnstimeofday64(struct timespec64 *tv);
+extern void getboottime64(struct timespec64 *ts);
 
 #if BITS_PER_LONG == 64
 static inline int __getnstimeofday(struct timespec *ts)
@@ -86,9 +87,15 @@ static inline void ktime_get_real_ts(struct timespec *ts)
 	getnstimeofday64(&ts64);
 	*ts = timespec64_to_timespec(ts64);
 }
-#endif
 
-extern void getboottime(struct timespec *ts);
+static inline void getboottime(struct timespec *ts)
+{
+	struct timespec64 ts64;
+
+	getboottime64(&ts64);
+	*ts = timespec64_to_timespec(ts64);
+}
+#endif
 
 #define do_posix_clock_monotonic_gettime(ts) ktime_get_ts(ts)
 #define ktime_get_real_ts64(ts)	getnstimeofday64(ts)
@@ -172,6 +179,11 @@ extern u64 ktime_get_mono_fast_ns(void);
 static inline void get_monotonic_boottime(struct timespec *ts)
 {
 	*ts = ktime_to_timespec(ktime_get_boottime());
+}
+
+static inline void get_monotonic_boottime64(struct timespec64 *ts)
+{
+	*ts = ktime_to_timespec64(ktime_get_boottime());
 }
 
 static inline void timekeeping_clocktai(struct timespec *ts)

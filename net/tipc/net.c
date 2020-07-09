@@ -40,7 +40,6 @@
 #include "subscr.h"
 #include "socket.h"
 #include "node.h"
-#include "config.h"
 
 /*
  * The TIPC locking policy is designed to ensure a very fine locking

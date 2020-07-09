@@ -345,8 +345,10 @@ void *mwifiex_process_uap_txpd(struct mwifiex_private *priv,
 	struct mwifiex_adapter *adapter = priv->adapter;
 	struct uap_txpd *txpd;
 	struct mwifiex_txinfo *tx_info = MWIFIEX_SKB_TXCB(skb);
-	int pad, len;
-	u16 pkt_type;
+	int pad;
+	u16 pkt_type, pkt_offset;
+	int hroom = (priv->adapter->iface_type == MWIFIEX_USB) ? 0 :
+		       INTF_HEADER_LEN;
 
 	if (!skb->len) {
 		dev_err(adapter->dev, "Tx: bad packet length: %d\n", skb->len);
@@ -383,16 +385,17 @@ void *mwifiex_process_uap_txpd(struct mwifiex_private *priv,
 		    cpu_to_le32(priv->wmm.user_pri_pkt_tx_ctrl[txpd->priority]);
 
 	/* Offset of actual data */
+	pkt_offset = sizeof(*txpd) + pad;
 	if (pkt_type == PKT_TYPE_MGMT) {
 		/* Set the packet type and add header for management frame */
 		txpd->tx_pkt_type = cpu_to_le16(pkt_type);
-		len += MWIFIEX_MGMT_FRAME_HEADER_SIZE;
+		pkt_offset += MWIFIEX_MGMT_FRAME_HEADER_SIZE;
 	}
 
-	txpd->tx_pkt_offset = cpu_to_le16(len);
+	txpd->tx_pkt_offset = cpu_to_le16(pkt_offset);
 
 	/* make space for INTF_HEADER_LEN */
-	skb_push(skb, INTF_HEADER_LEN);
+	skb_push(skb, hroom);
 
 	if (!txpd->tx_control)
 		/* TxCtrl set by user or default */

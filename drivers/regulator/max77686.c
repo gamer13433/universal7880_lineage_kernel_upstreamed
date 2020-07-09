@@ -26,6 +26,7 @@
 #include <linux/bug.h>
 #include <linux/err.h>
 #include <linux/gpio.h>
+#include <linux/of_gpio.h>
 #include <linux/slab.h>
 #include <linux/platform_device.h>
 #include <linux/regulator/driver.h>
@@ -129,7 +130,7 @@ static int max77686_ldo_set_suspend_mode(struct regulator_dev *rdev,
 {
 	unsigned int val;
 	struct max77686_data *max77686 = rdev_get_drvdata(rdev);
-	int ret;
+	int ret, id = rdev_get_id(rdev);
 
 	switch (mode) {
 	case REGULATOR_MODE_STANDBY:			/* switch off */
@@ -152,7 +153,7 @@ static int max77686_ldo_set_suspend_mode(struct regulator_dev *rdev,
 	if (ret)
 		return ret;
 
-	max77686->opmode[rdev_get_id(rdev)] = val;
+	max77686->opmode[id] = val;
 	return 0;
 }
 
@@ -188,6 +189,36 @@ static int max77686_set_ramp_delay(struct regulator_dev *rdev, int ramp_delay)
 
 	return regmap_update_bits(rdev->regmap, rdev->desc->enable_reg,
 				  MAX77686_RAMP_RATE_MASK, ramp_value << 6);
+}
+
+static int max77686_of_parse_cb(struct device_node *np,
+		const struct regulator_desc *desc,
+		struct regulator_config *config)
+{
+	struct max77686_data *max77686 = config->driver_data;
+
+	switch (desc->id) {
+	case MAX77686_BUCK8:
+	case MAX77686_BUCK9:
+	case MAX77686_LDO20 ... MAX77686_LDO22:
+		config->ena_gpio = of_get_named_gpio(np,
+					"maxim,ena-gpios", 0);
+		config->ena_gpio_flags = GPIOF_OUT_INIT_HIGH;
+		config->ena_gpio_initialized = true;
+		break;
+	default:
+		return 0;
+	}
+
+	if (gpio_is_valid(config->ena_gpio)) {
+		max77686->gpio_enabled |= (1 << desc->id);
+
+		return regmap_update_bits(config->regmap, desc->enable_reg,
+					  desc->enable_mask,
+					  MAX77686_GPIO_CONTROL);
+	}
+
+	return 0;
 }
 
 static struct regulator_ops max77686_ops = {

@@ -19,6 +19,7 @@
 #include <linux/vmalloc.h>
 #include <asm/asm-offsets.h>
 #include <asm/uaccess.h>
+#include <asm/sclp.h>
 #include "kvm-s390.h"
 #include "gaccess.h"
 #include "trace-s390.h"
@@ -161,9 +162,6 @@ static void __reset_intercept_indicators(struct kvm_vcpu *vcpu)
 					       LCTL_CR10 | LCTL_CR11);
 		vcpu->arch.sie_block->ictl |= (ICTL_STCTL | ICTL_PINT);
 	}
-
-	if (vcpu->arch.local_int.action_bits & ACTION_STOP_ON_STOP)
-		atomic_set_mask(CPUSTAT_STOP_INT, &vcpu->arch.sie_block->cpuflags);
 }
 
 static void __set_cpuflag(struct kvm_vcpu *vcpu, u32 flag)
@@ -523,21 +521,20 @@ static int __must_check deliver_ckc_interrupt(struct kvm_vcpu *vcpu)
 	return rc;
 }
 
-/* Check whether SIGP interpretation facility has an external call pending */
-int kvm_s390_si_ext_call_pending(struct kvm_vcpu *vcpu)
+/* Check whether an external call is pending (deliverable or not) */
+int kvm_s390_ext_call_pending(struct kvm_vcpu *vcpu)
 {
-	atomic_t *sigp_ctrl = &vcpu->kvm->arch.sca->cpu[vcpu->vcpu_id].ctrl;
+	struct kvm_s390_local_interrupt *li = &vcpu->arch.local_int;
+	uint8_t sigp_ctrl = vcpu->kvm->arch.sca->cpu[vcpu->vcpu_id].sigp_ctrl;
 
-	if (!psw_extint_disabled(vcpu) &&
-	    (vcpu->arch.sie_block->gcr[0] & 0x2000ul) &&
-	    (atomic_read(sigp_ctrl) & SIGP_CTRL_C) &&
-	    (atomic_read(&vcpu->arch.sie_block->cpuflags) & CPUSTAT_ECALL_PEND))
-		return 1;
+	if (!sclp_has_sigpif())
+		return test_bit(IRQ_PEND_EXT_EXTERNAL, &li->pending_irqs);
 
-	return 0;
+	return (sigp_ctrl & SIGP_CTRL_C) &&
+	       (atomic_read(&vcpu->arch.sie_block->cpuflags) & CPUSTAT_ECALL_PEND);
 }
 
-int kvm_cpu_has_interrupt(struct kvm_vcpu *vcpu)
+int kvm_s390_vcpu_has_irq(struct kvm_vcpu *vcpu, int exclude_stop)
 {
 	struct kvm_s390_local_interrupt *li = &vcpu->arch.local_int;
 	struct kvm_s390_float_interrupt *fi = vcpu->arch.local_int.float_int;
@@ -567,7 +564,13 @@ int kvm_cpu_has_interrupt(struct kvm_vcpu *vcpu)
 	if (!rc && kvm_cpu_has_pending_timer(vcpu))
 		rc = 1;
 
-	if (!rc && kvm_s390_si_ext_call_pending(vcpu))
+	/* external call pending and deliverable */
+	if (!rc && kvm_s390_ext_call_pending(vcpu) &&
+	    !psw_extint_disabled(vcpu) &&
+	    (vcpu->arch.sie_block->gcr[0] & 0x2000ul))
+		rc = 1;
+
+	if (!rc && !exclude_stop && kvm_s390_is_stop_irq_pending(vcpu))
 		rc = 1;
 
 	return rc;
@@ -598,14 +601,20 @@ int kvm_s390_handle_wait(struct kvm_vcpu *vcpu)
 		return -EOPNOTSUPP; /* disabled wait */
 	}
 
-	__set_cpu_idle(vcpu);
 	if (!ckc_interrupts_enabled(vcpu)) {
 		VCPU_EVENT(vcpu, 3, "%s", "enabled wait w/o timer");
+		__set_cpu_idle(vcpu);
 		goto no_timer;
 	}
 
 	now = get_tod_clock_fast() + vcpu->arch.sie_block->epoch;
 	sltime = tod_to_ns(vcpu->arch.sie_block->ckc - now);
+
+	/* underflow */
+	if (vcpu->arch.sie_block->ckc < now)
+		return 0;
+
+	__set_cpu_idle(vcpu);
 	hrtimer_start(&vcpu->arch.ckc_timer, ktime_set (0, sltime) , HRTIMER_MODE_REL);
 	VCPU_EVENT(vcpu, 5, "enabled wait via clock comparator: %llx ns", sltime);
 no_timer:
@@ -938,6 +947,7 @@ int kvm_s390_inject_vcpu(struct kvm_vcpu *vcpu,
 {
 	struct kvm_s390_local_interrupt *li;
 	struct kvm_s390_interrupt_info *inti;
+	int rc;
 
 	inti = kzalloc(sizeof(*inti), GFP_KERNEL);
 	if (!inti)

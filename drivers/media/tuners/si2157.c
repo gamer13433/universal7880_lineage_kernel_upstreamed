@@ -19,16 +19,17 @@
 static const struct dvb_tuner_ops si2157_ops;
 
 /* execute firmware command */
-static int si2157_cmd_execute(struct si2157 *s, struct si2157_cmd *cmd)
+static int si2157_cmd_execute(struct i2c_client *client, struct si2157_cmd *cmd)
 {
+	struct si2157_dev *dev = i2c_get_clientdata(client);
 	int ret;
 	unsigned long timeout;
 
-	mutex_lock(&s->i2c_mutex);
+	mutex_lock(&dev->i2c_mutex);
 
 	if (cmd->wlen) {
 		/* write cmd and args for firmware */
-		ret = i2c_master_send(s->client, cmd->args, cmd->wlen);
+		ret = i2c_master_send(client, cmd->args, cmd->wlen);
 		if (ret < 0) {
 			goto err_mutex_unlock;
 		} else if (ret != cmd->wlen) {
@@ -42,7 +43,7 @@ static int si2157_cmd_execute(struct si2157 *s, struct si2157_cmd *cmd)
 		#define TIMEOUT 80
 		timeout = jiffies + msecs_to_jiffies(TIMEOUT);
 		while (!time_after(jiffies, timeout)) {
-			ret = i2c_master_recv(s->client, cmd->args, cmd->rlen);
+			ret = i2c_master_recv(client, cmd->args, cmd->rlen);
 			if (ret < 0) {
 				goto err_mutex_unlock;
 			} else if (ret != cmd->rlen) {
@@ -55,7 +56,7 @@ static int si2157_cmd_execute(struct si2157 *s, struct si2157_cmd *cmd)
 				break;
 		}
 
-		dev_dbg(&s->client->dev, "cmd execution took %d ms\n",
+		dev_dbg(&client->dev, "cmd execution took %d ms\n",
 				jiffies_to_msecs(jiffies) -
 				(jiffies_to_msecs(timeout) - TIMEOUT));
 
@@ -96,7 +97,7 @@ static int si2157_init(struct dvb_frontend *fe)
 	memcpy(cmd.args, "\xc0\x00\x0c\x00\x00\x01\x01\x01\x01\x01\x01\x02\x00\x00\x01", 15);
 	cmd.wlen = 15;
 	cmd.rlen = 1;
-	ret = si2157_cmd_execute(s, &cmd);
+	ret = si2157_cmd_execute(client, &cmd);
 	if (ret)
 		goto err;
 
@@ -104,7 +105,7 @@ static int si2157_init(struct dvb_frontend *fe)
 	memcpy(cmd.args, "\x02", 1);
 	cmd.wlen = 1;
 	cmd.rlen = 13;
-	ret = si2157_cmd_execute(s, &cmd);
+	ret = si2157_cmd_execute(client, &cmd);
 	if (ret)
 		goto err;
 
@@ -287,13 +288,13 @@ static int si2157_set_params(struct dvb_frontend *fe)
 	cmd.args[7] = (c->frequency >> 24) & 0xff;
 	cmd.wlen = 8;
 	cmd.rlen = 1;
-	ret = si2157_cmd_execute(s, &cmd);
+	ret = si2157_cmd_execute(client, &cmd);
 	if (ret)
 		goto err;
 
 	return 0;
 err:
-	dev_dbg(&s->client->dev, "failed=%d\n", ret);
+	dev_dbg(&client->dev, "failed=%d\n", ret);
 	return ret;
 }
 
@@ -388,7 +389,7 @@ static struct i2c_driver si2157_driver = {
 	},
 	.probe		= si2157_probe,
 	.remove		= si2157_remove,
-	.id_table	= si2157_id,
+	.id_table	= si2157_id_table,
 };
 
 module_i2c_driver(si2157_driver);

@@ -47,6 +47,7 @@
 #include "t4vf_defs.h"
 
 #include "../cxgb4/t4_regs.h"
+#include "../cxgb4/t4_values.h"
 #include "../cxgb4/t4fw_api.h"
 #include "../cxgb4/t4_msg.h"
 
@@ -1169,8 +1170,8 @@ int t4vf_eth_xmit(struct sk_buff *skb, struct net_device *dev)
 	BUG_ON(DIV_ROUND_UP(ETHTXQ_MAX_HDR, TXD_PER_EQ_UNIT) > 1);
 	wr = (void *)&txq->q.desc[txq->q.pidx];
 	wr->equiq_to_len16 = cpu_to_be32(wr_mid);
-	wr->r3[0] = cpu_to_be64(0);
-	wr->r3[1] = cpu_to_be64(0);
+	wr->r3[0] = cpu_to_be32(0);
+	wr->r3[1] = cpu_to_be32(0);
 	skb_copy_from_linear_data(skb, (void *)wr->ethmacdst, fw_hdr_copy_len);
 	end = (u64 *)wr + flits;
 
@@ -1243,9 +1244,9 @@ int t4vf_eth_xmit(struct sk_buff *skb, struct net_device *dev)
 	 * If there's a VLAN tag present, add that to the list of things to
 	 * do in this Work Request.
 	 */
-	if (vlan_tx_tag_present(skb)) {
+	if (skb_vlan_tag_present(skb)) {
 		txq->vlan_ins++;
-		cntrl |= TXPKT_VLAN_VLD | TXPKT_VLAN(vlan_tx_tag_get(skb));
+		cntrl |= TXPKT_VLAN_VLD | TXPKT_VLAN(skb_vlan_tag_get(skb));
 	}
 
 	/*
@@ -1521,7 +1522,7 @@ int t4vf_ethrx_handler(struct sge_rspq *rspq, const __be64 *rsp,
 	 * If this is a good TCP packet and we have Generic Receive Offload
 	 * enabled, handle the packet in the GRO path.
 	 */
-	if ((pkt->l2info & cpu_to_be32(RXF_TCP)) &&
+	if ((pkt->l2info & cpu_to_be32(RXF_TCP_F)) &&
 	    (rspq->netdev->features & NETIF_F_GRO) && csum_ok &&
 	    !pkt->ip_frag) {
 		do_gro(rxq, gl, pkt);
@@ -1543,7 +1544,7 @@ int t4vf_ethrx_handler(struct sge_rspq *rspq, const __be64 *rsp,
 	rxq->stats.pkts++;
 
 	if (csum_ok && !pkt->err_vec &&
-	    (be32_to_cpu(pkt->l2info) & (RXF_UDP|RXF_TCP))) {
+	    (be32_to_cpu(pkt->l2info) & (RXF_UDP_F | RXF_TCP_F))) {
 		if (!pkt->ip_frag)
 			skb->ip_summed = CHECKSUM_UNNECESSARY;
 		else {
@@ -2442,7 +2443,7 @@ int t4vf_sge_init(struct adapter *adapter)
 			fl0, fl1);
 		return -EINVAL;
 	}
-	if ((sge_params->sge_control & RXPKTCPLMODE_MASK) == 0) {
+	if ((sge_params->sge_control & RXPKTCPLMODE_F) == 0) {
 		dev_err(adapter->pdev_dev, "bad SGE CPL MODE\n");
 		return -EINVAL;
 	}
@@ -2452,9 +2453,9 @@ int t4vf_sge_init(struct adapter *adapter)
 	 */
 	if (fl1)
 		s->fl_pg_order = ilog2(fl1) - PAGE_SHIFT;
-	s->stat_len = ((sge_params->sge_control & EGRSTATUSPAGESIZE_MASK)
+	s->stat_len = ((sge_params->sge_control & EGRSTATUSPAGESIZE_F)
 			? 128 : 64);
-	s->pktshift = PKTSHIFT_GET(sge_params->sge_control);
+	s->pktshift = PKTSHIFT_G(sge_params->sge_control);
 
 	/* T4 uses a single control field to specify both the PCIe Padding and
 	 * Packing Boundary.  T5 introduced the ability to specify these
@@ -2466,8 +2467,8 @@ int t4vf_sge_init(struct adapter *adapter)
 	 * end doing this because it would initialize the Padding Boundary and
 	 * leave the Packing Boundary initialized to 0 (16 bytes).)
 	 */
-	ingpadboundary = 1 << (INGPADBOUNDARY_GET(sge_params->sge_control) +
-			       X_INGPADBOUNDARY_SHIFT);
+	ingpadboundary = 1 << (INGPADBOUNDARY_G(sge_params->sge_control) +
+			       INGPADBOUNDARY_SHIFT_X);
 	if (is_t4(adapter->params.chip)) {
 		s->fl_align = ingpadboundary;
 	} else {
@@ -2492,7 +2493,7 @@ int t4vf_sge_init(struct adapter *adapter)
 	 * Congestion Threshold is in units of 2 Free List pointers.)
 	 */
 	s->fl_starve_thres
-		= EGRTHRESHOLD_GET(sge_params->sge_congestion_control)*2 + 1;
+		= EGRTHRESHOLD_G(sge_params->sge_congestion_control)*2 + 1;
 
 	/*
 	 * Set up tasklet timers.

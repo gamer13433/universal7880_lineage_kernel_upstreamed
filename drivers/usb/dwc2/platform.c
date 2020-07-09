@@ -152,6 +152,8 @@ static int dwc2_driver_probe(struct platform_device *dev)
 	struct dwc2_core_params defparams;
 	struct dwc2_hsotg *hsotg;
 	struct resource *res;
+	struct phy *phy;
+	struct usb_phy *uphy;
 	int retval;
 	int irq;
 

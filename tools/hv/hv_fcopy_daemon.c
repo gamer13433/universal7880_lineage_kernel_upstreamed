@@ -42,15 +42,9 @@ static int hv_start_fcopy(struct hv_start_fcopy *smsg)
 	int error = HV_E_FAIL;
 	char *q, *p;
 
-	/*
-	 * If possile append a path seperator to the path.
-	 */
-	if (strlen((char *)smsg->path_name) < (W_MAX_PATH - 2))
-		strcat((char *)smsg->path_name, "/");
-
 	p = (char *)smsg->path_name;
 	snprintf(target_fname, sizeof(target_fname), "%s/%s",
-		(char *)smsg->path_name, smsg->file_name);
+		 (char *)smsg->path_name, (char *)smsg->file_name);
 
 	syslog(LOG_INFO, "Target file name: %s", target_fname);
 	/*
@@ -128,7 +122,7 @@ static int hv_copy_cancel(void)
 
 int main(void)
 {
-	int fd, fcopy_fd, len;
+	int fcopy_fd, len;
 	int error;
 	int version = FCOPY_CURRENT_VERSION;
 	char *buffer[4096 * 2];

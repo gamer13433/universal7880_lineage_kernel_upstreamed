@@ -1033,7 +1033,7 @@ struct sony_backlight_props {
 	u8			offset;
 	u8			maxlvl;
 };
-struct sony_backlight_props sony_bl_props;
+static struct sony_backlight_props sony_bl_props;
 
 static int sony_backlight_update_status(struct backlight_device *bd)
 {

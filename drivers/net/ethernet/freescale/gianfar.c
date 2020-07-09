@@ -531,7 +531,7 @@ static void gfar_ints_enable(struct gfar_private *priv)
 	}
 }
 
-void lock_tx_qs(struct gfar_private *priv)
+static void lock_tx_qs(struct gfar_private *priv)
 {
 	int i;
 
@@ -539,7 +539,7 @@ void lock_tx_qs(struct gfar_private *priv)
 		spin_lock(&priv->tx_queue[i]->txlock);
 }
 
-void unlock_tx_qs(struct gfar_private *priv)
+static void unlock_tx_qs(struct gfar_private *priv)
 {
 	int i;
 
@@ -723,6 +723,18 @@ static int gfar_parse_group(struct device_node *np,
 	return 0;
 }
 
+static int gfar_of_group_count(struct device_node *np)
+{
+	struct device_node *child;
+	int num = 0;
+
+	for_each_available_child_of_node(np, child)
+		if (!of_node_cmp(child->name, "queue-group"))
+			num++;
+
+	return num;
+}
+
 static int gfar_of_init(struct platform_device *ofdev, struct net_device **pdev)
 {
 	const char *model;
@@ -740,7 +752,7 @@ static int gfar_of_init(struct platform_device *ofdev, struct net_device **pdev)
 	u32 *tx_queues, *rx_queues;
 	unsigned short mode, poll_mode;
 
-	if (!np || !of_device_is_available(np))
+	if (!np)
 		return -ENODEV;
 
 	if (of_device_is_compatible(np, "fsl,etsec2")) {
@@ -760,7 +772,7 @@ static int gfar_of_init(struct platform_device *ofdev, struct net_device **pdev)
 		num_rx_qs = 1;
 	} else { /* MQ_MG_MODE */
 		/* get the actual number of supported groups */
-		unsigned int num_grps = of_get_available_child_count(np);
+		unsigned int num_grps = gfar_of_group_count(np);
 
 		if (num_grps == 0 || num_grps > MAXGROUPS) {
 			dev_err(&ofdev->dev, "Invalid # of int groups(%d)\n",
@@ -827,7 +839,10 @@ static int gfar_of_init(struct platform_device *ofdev, struct net_device **pdev)
 
 	/* Parse and initialize group specific information */
 	if (priv->mode == MQ_MG_MODE) {
-		for_each_child_of_node(np, child) {
+		for_each_available_child_of_node(np, child) {
+			if (of_node_cmp(child->name, "queue-group"))
+				continue;
+
 			err = gfar_parse_group(child, priv, model);
 			if (err)
 				goto err_grp_init;
@@ -2143,7 +2158,7 @@ static inline void gfar_tx_checksum(struct sk_buff *skb, struct txfcb *fcb,
 void inline gfar_tx_vlan(struct sk_buff *skb, struct txfcb *fcb)
 {
 	fcb->flags |= TXFCB_VLN;
-	fcb->vlctl = vlan_tx_tag_get(skb);
+	fcb->vlctl = skb_vlan_tag_get(skb);
 }
 
 static inline struct txbd8 *skip_txbd(struct txbd8 *bdp, int stride,
@@ -2203,7 +2218,7 @@ static int gfar_start_xmit(struct sk_buff *skb, struct net_device *dev)
 	regs = tx_queue->grp->regs;
 
 	do_csum = (CHECKSUM_PARTIAL == skb->ip_summed);
-	do_vlan = vlan_tx_tag_present(skb);
+	do_vlan = skb_vlan_tag_present(skb);
 	do_tstamp = (skb_shinfo(skb)->tx_flags & SKBTX_HW_TSTAMP) &&
 		    priv->hwts_tx_en;
 
@@ -3100,8 +3115,8 @@ static void adjust_link(struct net_device *dev)
 	struct phy_device *phydev = priv->phydev;
 
 	if (unlikely(phydev->link != priv->oldlink ||
-		     phydev->duplex != priv->oldduplex ||
-		     phydev->speed != priv->oldspeed))
+		     (phydev->link && (phydev->duplex != priv->oldduplex ||
+				       phydev->speed != priv->oldspeed))))
 		gfar_update_link_state(priv);
 }
 

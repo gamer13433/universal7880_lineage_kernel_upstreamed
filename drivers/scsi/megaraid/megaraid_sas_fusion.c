@@ -61,7 +61,6 @@ extern struct megasas_cmd *megasas_get_cmd(struct megasas_instance
 extern void
 megasas_complete_cmd(struct megasas_instance *instance,
 		     struct megasas_cmd *cmd, u8 alt_status);
-int megasas_is_ldio(struct scsi_cmnd *cmd);
 int
 wait_and_poll(struct megasas_instance *instance, struct megasas_cmd *cmd,
 	      int seconds);
@@ -195,6 +194,7 @@ inline void megasas_return_cmd_fusion(struct megasas_instance *instance,
 
 	cmd->scmd = NULL;
 	cmd->sync_cmd_idx = (u32)ULONG_MAX;
+	memset(cmd->io_request, 0, sizeof(struct MPI2_RAID_SCSI_IO_REQUEST));
 	list_add(&cmd->list, (&fusion->cmd_pool)->next);
 
 	spin_unlock_irqrestore(&fusion->mpt_pool_lock, flags);
@@ -688,6 +688,8 @@ megasas_ioc_init_fusion(struct megasas_instance *instance)
 		= 1;
 	init_frame->driver_operations.mfi_capabilities.support_ndrive_r1_lb
 		= 1;
+	init_frame->driver_operations.mfi_capabilities.security_protocol_cmds_fw
+		= 1;
 	/* Convert capability to LE32 */
 	cpu_to_le32s((u32 *)&init_frame->driver_operations.mfi_capabilities);
 
@@ -1015,8 +1017,12 @@ megasas_init_adapter_fusion(struct megasas_instance *instance)
 	 * does not exceed max cmds that the FW can support
 	 */
 	instance->max_fw_cmds = instance->max_fw_cmds-1;
-	/* Only internal cmds (DCMD) need to have MFI frames */
-	instance->max_mfi_cmds = MEGASAS_INT_CMDS;
+
+	/*
+	 * Only Driver's internal DCMDs and IOCTL DCMDs needs to have MFI frames
+	 */
+	instance->max_mfi_cmds =
+		MEGASAS_FUSION_INTERNAL_CMDS + MEGASAS_FUSION_IOCTL_CMDS;
 
 	max_cmd = instance->max_fw_cmds;
 
@@ -1321,6 +1327,7 @@ megasas_make_sgl_fusion(struct megasas_instance *instance,
 
 			sgl_ptr =
 			  (struct MPI25_IEEE_SGE_CHAIN64 *)cmd->sg_frame;
+			memset(sgl_ptr, 0, MEGASAS_MAX_SZ_CHAIN_FRAME);
 		}
 	}
 
@@ -1694,6 +1701,8 @@ megasas_build_dcdb_fusion(struct megasas_instance *instance,
 	u32 device_id;
 	struct MPI2_RAID_SCSI_IO_REQUEST *io_request;
 	u16 pd_index = 0;
+	u16 os_timeout_value;
+	u16 timeout_limit;
 	struct MR_DRV_RAID_MAP_ALL *local_map_ptr;
 	struct fusion_context *fusion = instance->ctrl_context;
 	u8                          span, physArm;
@@ -1857,7 +1866,7 @@ megasas_build_io_fusion(struct megasas_instance *instance,
 	 */
 	io_request->IoFlags = cpu_to_le16(scp->cmd_len);
 
-	if (megasas_is_ldio(scp))
+	if (megasas_cmd_type(scp) == READ_WRITE_LDIO)
 		megasas_build_ldio_fusion(instance, scp, cmd);
 	else
 		megasas_build_dcdb_fusion(instance, scp, cmd);

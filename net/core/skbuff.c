@@ -74,6 +74,8 @@
 #include <asm/uaccess.h>
 #include <trace/events/skb.h>
 #include <linux/highmem.h>
+#include <linux/capability.h>
+#include <linux/user_namespace.h>
 
 struct kmem_cache *skbuff_head_cache __read_mostly;
 static struct kmem_cache *skbuff_fclone_cache __read_mostly;
@@ -600,13 +602,6 @@ static void skb_release_head_state(struct sk_buff *skb)
 #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
 	nf_bridge_put(skb->nf_bridge);
 #endif
-/* XXX: IS this still necessary? - JHS */
-#ifdef CONFIG_NET_SCHED
-	skb->tc_index = 0;
-#ifdef CONFIG_NET_CLS_ACT
-	skb->tc_verd = 0;
-#endif
-#endif
 }
 
 /* Free everything but the sk_buff shell. */
@@ -752,6 +747,9 @@ static void __copy_skb_header(struct sk_buff *new, const struct sk_buff *old)
 #endif
 #ifdef CONFIG_NET_RX_BUSY_POLL
 	CHECK_SKB_FIELD(napi_id);
+#endif
+#ifdef CONFIG_XPS
+	CHECK_SKB_FIELD(sender_cpu);
 #endif
 #ifdef CONFIG_NET_SCHED
 	CHECK_SKB_FIELD(tc_index);
@@ -3614,10 +3612,27 @@ static void __skb_complete_tx_timestamp(struct sk_buff *skb,
 		kfree_skb(skb);
 }
 
+static bool skb_may_tx_timestamp(struct sock *sk, bool tsonly)
+{
+	bool ret;
+
+	if (likely(sysctl_tstamp_allow_data || tsonly))
+		return true;
+
+	read_lock_bh(&sk->sk_callback_lock);
+	ret = sk->sk_socket && sk->sk_socket->file &&
+	      file_ns_capable(sk->sk_socket->file, &init_user_ns, CAP_NET_RAW);
+	read_unlock_bh(&sk->sk_callback_lock);
+	return ret;
+}
+
 void skb_complete_tx_timestamp(struct sk_buff *skb,
 			       struct skb_shared_hwtstamps *hwtstamps)
 {
 	struct sock *sk = skb->sk;
+
+	if (!skb_may_tx_timestamp(sk, false))
+		return;
 
 	/* take a reference to prevent skb_orphan() from freeing the socket */
 	sock_hold(sk);
@@ -3634,18 +3649,31 @@ void __skb_tstamp_tx(struct sk_buff *orig_skb,
 		     struct sock *sk, int tstype)
 {
 	struct sk_buff *skb;
+	bool tsonly;
 
 	if (!sk)
 		return;
 
-	if (hwtstamps)
-		*skb_hwtstamps(orig_skb) = *hwtstamps;
-	else
-		orig_skb->tstamp = ktime_get_real();
+	tsonly = sk->sk_tsflags & SOF_TIMESTAMPING_OPT_TSONLY;
+	if (!skb_may_tx_timestamp(sk, tsonly))
+		return;
 
-	skb = skb_clone(orig_skb, GFP_ATOMIC);
+	if (tsonly)
+		skb = alloc_skb(0, GFP_ATOMIC);
+	else
+		skb = skb_clone(orig_skb, GFP_ATOMIC);
 	if (!skb)
 		return;
+
+	if (tsonly) {
+		skb_shinfo(skb)->tx_flags = skb_shinfo(orig_skb)->tx_flags;
+		skb_shinfo(skb)->tskey = skb_shinfo(orig_skb)->tskey;
+	}
+
+	if (hwtstamps)
+		*skb_hwtstamps(skb) = *hwtstamps;
+	else
+		skb->tstamp = ktime_get_real();
 
 	__skb_complete_tx_timestamp(skb, sk, tstype);
 }
@@ -4123,7 +4151,7 @@ struct sk_buff *skb_vlan_untag(struct sk_buff *skb)
 	struct vlan_hdr *vhdr;
 	u16 vlan_tci;
 
-	if (unlikely(vlan_tx_tag_present(skb))) {
+	if (unlikely(skb_vlan_tag_present(skb))) {
 		/* vlan_tci is already set-up so leave this for another time */
 		return skb;
 	}

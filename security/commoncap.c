@@ -456,7 +456,6 @@ int get_vfs_caps_from_disk(const struct dentry *dentry, struct cpu_vfs_cap_data 
  */
 static int get_file_caps(struct linux_binprm *bprm, bool *effective, bool *has_cap)
 {
-	struct dentry *dentry;
 	int rc = 0;
 	struct cpu_vfs_cap_data vcaps;
 
@@ -486,7 +485,6 @@ static int get_file_caps(struct linux_binprm *bprm, bool *effective, bool *has_c
 		       __func__, rc, bprm->filename);
 
 out:
-	dput(dentry);
 	if (rc)
 		bprm_clear_caps(bprm);
 

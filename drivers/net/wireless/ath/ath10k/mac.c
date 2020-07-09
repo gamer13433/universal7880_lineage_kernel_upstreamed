@@ -27,6 +27,8 @@
 #include "htt.h"
 #include "txrx.h"
 #include "testmode.h"
+#include "wmi.h"
+#include "wmi-ops.h"
 
 /**********/
 /* Crypto */
@@ -35,7 +37,7 @@
 static int ath10k_send_key(struct ath10k_vif *arvif,
 			   struct ieee80211_key_conf *key,
 			   enum set_key_cmd cmd,
-			   const u8 *macaddr)
+			   const u8 *macaddr, bool def_idx)
 {
 	struct ath10k *ar = arvif->ar;
 	struct wmi_vdev_install_key_arg arg = {
@@ -56,10 +58,7 @@ static int ath10k_send_key(struct ath10k_vif *arvif,
 	switch (key->cipher) {
 	case WLAN_CIPHER_SUITE_CCMP:
 		arg.key_cipher = WMI_CIPHER_AES_CCM;
-		if (arvif->vdev_type == WMI_VDEV_TYPE_AP)
-			key->flags |= IEEE80211_KEY_FLAG_GENERATE_IV_MGMT;
-		else
-			key->flags |= IEEE80211_KEY_FLAG_SW_MGMT_TX;
+		key->flags |= IEEE80211_KEY_FLAG_GENERATE_IV_MGMT;
 		break;
 	case WLAN_CIPHER_SUITE_TKIP:
 		arg.key_cipher = WMI_CIPHER_TKIP;
@@ -73,7 +72,13 @@ static int ath10k_send_key(struct ath10k_vif *arvif,
 		 * Otherwise pairwise key must be set */
 		if (memcmp(macaddr, arvif->vif->addr, ETH_ALEN))
 			arg.key_flags = WMI_KEY_PAIRWISE;
+
+		if (def_idx)
+			arg.key_flags |= WMI_KEY_TX_USAGE;
 		break;
+	case WLAN_CIPHER_SUITE_AES_CMAC:
+		/* this one needs to be done in software */
+		return 1;
 	default:
 		ath10k_warn(ar, "cipher %d is not supported\n", key->cipher);
 		return -EOPNOTSUPP;
@@ -90,7 +95,7 @@ static int ath10k_send_key(struct ath10k_vif *arvif,
 static int ath10k_install_key(struct ath10k_vif *arvif,
 			      struct ieee80211_key_conf *key,
 			      enum set_key_cmd cmd,
-			      const u8 *macaddr)
+			      const u8 *macaddr, bool def_idx)
 {
 	struct ath10k *ar = arvif->ar;
 	int ret;
@@ -99,7 +104,7 @@ static int ath10k_install_key(struct ath10k_vif *arvif,
 
 	reinit_completion(&ar->install_key_done);
 
-	ret = ath10k_send_key(arvif, key, cmd, macaddr);
+	ret = ath10k_send_key(arvif, key, cmd, macaddr, def_idx);
 	if (ret)
 		return ret;
 
@@ -117,6 +122,7 @@ static int ath10k_install_peer_wep_keys(struct ath10k_vif *arvif,
 	struct ath10k_peer *peer;
 	int ret;
 	int i;
+	bool def_idx;
 
 	lockdep_assert_held(&ar->conf_mutex);
 
@@ -130,9 +136,14 @@ static int ath10k_install_peer_wep_keys(struct ath10k_vif *arvif,
 	for (i = 0; i < ARRAY_SIZE(arvif->wep_keys); i++) {
 		if (arvif->wep_keys[i] == NULL)
 			continue;
+		/* set TX_USAGE flag for default key id */
+		if (arvif->def_wep_key_idx == i)
+			def_idx = true;
+		else
+			def_idx = false;
 
 		ret = ath10k_install_key(arvif, arvif->wep_keys[i], SET_KEY,
-					 addr);
+					 addr, def_idx);
 		if (ret)
 			return ret;
 
@@ -164,8 +175,9 @@ static int ath10k_clear_peer_keys(struct ath10k_vif *arvif,
 		if (peer->keys[i] == NULL)
 			continue;
 
+		/* key flags are not required to delete the key */
 		ret = ath10k_install_key(arvif, peer->keys[i],
-					 DISABLE_KEY, addr);
+					 DISABLE_KEY, addr, false);
 		if (ret && first_errno == 0)
 			first_errno = ret;
 
@@ -212,8 +224,8 @@ static int ath10k_clear_vdev_key(struct ath10k_vif *arvif,
 
 		if (i == ARRAY_SIZE(peer->keys))
 			break;
-
-		ret = ath10k_install_key(arvif, key, DISABLE_KEY, addr);
+		/* key flags are not required to delete the key */
+		ret = ath10k_install_key(arvif, key, DISABLE_KEY, addr, false);
 		if (ret && first_errno == 0)
 			first_errno = ret;
 
@@ -238,7 +250,10 @@ chan_to_phymode(const struct cfg80211_chan_def *chandef)
 	case IEEE80211_BAND_2GHZ:
 		switch (chandef->width) {
 		case NL80211_CHAN_WIDTH_20_NOHT:
-			phymode = MODE_11G;
+			if (chandef->chan->flags & IEEE80211_CHAN_NO_OFDM)
+				phymode = MODE_11B;
+			else
+				phymode = MODE_11G;
 			break;
 		case NL80211_CHAN_WIDTH_20:
 			phymode = MODE_11NG_HT20;
@@ -894,6 +909,143 @@ static int ath10k_vdev_stop(struct ath10k_vif *arvif)
 	return ret;
 }
 
+static int ath10k_mac_setup_bcn_p2p_ie(struct ath10k_vif *arvif,
+				       struct sk_buff *bcn)
+{
+	struct ath10k *ar = arvif->ar;
+	struct ieee80211_mgmt *mgmt;
+	const u8 *p2p_ie;
+	int ret;
+
+	if (arvif->vdev_type != WMI_VDEV_TYPE_AP)
+		return 0;
+
+	if (arvif->vdev_subtype != WMI_VDEV_SUBTYPE_P2P_GO)
+		return 0;
+
+	mgmt = (void *)bcn->data;
+	p2p_ie = cfg80211_find_vendor_ie(WLAN_OUI_WFA, WLAN_OUI_TYPE_WFA_P2P,
+					 mgmt->u.beacon.variable,
+					 bcn->len - (mgmt->u.beacon.variable -
+						     bcn->data));
+	if (!p2p_ie)
+		return -ENOENT;
+
+	ret = ath10k_wmi_p2p_go_bcn_ie(ar, arvif->vdev_id, p2p_ie);
+	if (ret) {
+		ath10k_warn(ar, "failed to submit p2p go bcn ie for vdev %i: %d\n",
+			    arvif->vdev_id, ret);
+		return ret;
+	}
+
+	return 0;
+}
+
+static int ath10k_mac_remove_vendor_ie(struct sk_buff *skb, unsigned int oui,
+				       u8 oui_type, size_t ie_offset)
+{
+	size_t len;
+	const u8 *next;
+	const u8 *end;
+	u8 *ie;
+
+	if (WARN_ON(skb->len < ie_offset))
+		return -EINVAL;
+
+	ie = (u8 *)cfg80211_find_vendor_ie(oui, oui_type,
+					   skb->data + ie_offset,
+					   skb->len - ie_offset);
+	if (!ie)
+		return -ENOENT;
+
+	len = ie[1] + 2;
+	end = skb->data + skb->len;
+	next = ie + len;
+
+	if (WARN_ON(next > end))
+		return -EINVAL;
+
+	memmove(ie, next, end - next);
+	skb_trim(skb, skb->len - len);
+
+	return 0;
+}
+
+static int ath10k_mac_setup_bcn_tmpl(struct ath10k_vif *arvif)
+{
+	struct ath10k *ar = arvif->ar;
+	struct ieee80211_hw *hw = ar->hw;
+	struct ieee80211_vif *vif = arvif->vif;
+	struct ieee80211_mutable_offsets offs = {};
+	struct sk_buff *bcn;
+	int ret;
+
+	if (!test_bit(WMI_SERVICE_BEACON_OFFLOAD, ar->wmi.svc_map))
+		return 0;
+
+	bcn = ieee80211_beacon_get_template(hw, vif, &offs);
+	if (!bcn) {
+		ath10k_warn(ar, "failed to get beacon template from mac80211\n");
+		return -EPERM;
+	}
+
+	ret = ath10k_mac_setup_bcn_p2p_ie(arvif, bcn);
+	if (ret) {
+		ath10k_warn(ar, "failed to setup p2p go bcn ie: %d\n", ret);
+		kfree_skb(bcn);
+		return ret;
+	}
+
+	/* P2P IE is inserted by firmware automatically (as configured above)
+	 * so remove it from the base beacon template to avoid duplicate P2P
+	 * IEs in beacon frames.
+	 */
+	ath10k_mac_remove_vendor_ie(bcn, WLAN_OUI_WFA, WLAN_OUI_TYPE_WFA_P2P,
+				    offsetof(struct ieee80211_mgmt,
+					     u.beacon.variable));
+
+	ret = ath10k_wmi_bcn_tmpl(ar, arvif->vdev_id, offs.tim_offset, bcn, 0,
+				  0, NULL, 0);
+	kfree_skb(bcn);
+
+	if (ret) {
+		ath10k_warn(ar, "failed to submit beacon template command: %d\n",
+			    ret);
+		return ret;
+	}
+
+	return 0;
+}
+
+static int ath10k_mac_setup_prb_tmpl(struct ath10k_vif *arvif)
+{
+	struct ath10k *ar = arvif->ar;
+	struct ieee80211_hw *hw = ar->hw;
+	struct ieee80211_vif *vif = arvif->vif;
+	struct sk_buff *prb;
+	int ret;
+
+	if (!test_bit(WMI_SERVICE_BEACON_OFFLOAD, ar->wmi.svc_map))
+		return 0;
+
+	prb = ieee80211_proberesp_get(hw, vif);
+	if (!prb) {
+		ath10k_warn(ar, "failed to get probe resp template from mac80211\n");
+		return -EPERM;
+	}
+
+	ret = ath10k_wmi_prb_tmpl(ar, arvif->vdev_id, prb);
+	kfree_skb(prb);
+
+	if (ret) {
+		ath10k_warn(ar, "failed to submit probe resp template command: %d\n",
+			    ret);
+		return ret;
+	}
+
+	return 0;
+}
+
 static void ath10k_control_beaconing(struct ath10k_vif *arvif,
 				     struct ieee80211_bss_conf *info)
 {
@@ -994,28 +1146,85 @@ static void ath10k_control_ibss(struct ath10k_vif *arvif,
 			    arvif->vdev_id, ret);
 }
 
-/*
- * Review this when mac80211 gains per-interface powersave support.
- */
+static int ath10k_mac_vif_recalc_ps_wake_threshold(struct ath10k_vif *arvif)
+{
+	struct ath10k *ar = arvif->ar;
+	u32 param;
+	u32 value;
+	int ret;
+
+	lockdep_assert_held(&arvif->ar->conf_mutex);
+
+	if (arvif->u.sta.uapsd)
+		value = WMI_STA_PS_TX_WAKE_THRESHOLD_NEVER;
+	else
+		value = WMI_STA_PS_TX_WAKE_THRESHOLD_ALWAYS;
+
+	param = WMI_STA_PS_PARAM_TX_WAKE_THRESHOLD;
+	ret = ath10k_wmi_set_sta_ps_param(ar, arvif->vdev_id, param, value);
+	if (ret) {
+		ath10k_warn(ar, "failed to submit ps wake threshold %u on vdev %i: %d\n",
+			    value, arvif->vdev_id, ret);
+		return ret;
+	}
+
+	return 0;
+}
+
+static int ath10k_mac_vif_recalc_ps_poll_count(struct ath10k_vif *arvif)
+{
+	struct ath10k *ar = arvif->ar;
+	u32 param;
+	u32 value;
+	int ret;
+
+	lockdep_assert_held(&arvif->ar->conf_mutex);
+
+	if (arvif->u.sta.uapsd)
+		value = WMI_STA_PS_PSPOLL_COUNT_UAPSD;
+	else
+		value = WMI_STA_PS_PSPOLL_COUNT_NO_MAX;
+
+	param = WMI_STA_PS_PARAM_PSPOLL_COUNT;
+	ret = ath10k_wmi_set_sta_ps_param(ar, arvif->vdev_id,
+					  param, value);
+	if (ret) {
+		ath10k_warn(ar, "failed to submit ps poll count %u on vdev %i: %d\n",
+			    value, arvif->vdev_id, ret);
+		return ret;
+	}
+
+	return 0;
+}
+
 static int ath10k_mac_vif_setup_ps(struct ath10k_vif *arvif)
 {
 	struct ath10k *ar = arvif->ar;
+	struct ieee80211_vif *vif = arvif->vif;
 	struct ieee80211_conf *conf = &ar->hw->conf;
 	enum wmi_sta_powersave_param param;
 	enum wmi_sta_ps_mode psmode;
 	int ret;
+	int ps_timeout;
 
 	lockdep_assert_held(&arvif->ar->conf_mutex);
 
 	if (arvif->vif->type != NL80211_IFTYPE_STATION)
 		return 0;
 
-	if (conf->flags & IEEE80211_CONF_PS) {
+	if (vif->bss_conf.ps) {
 		psmode = WMI_STA_PS_MODE_ENABLED;
 		param = WMI_STA_PS_PARAM_INACTIVITY_TIME;
 
+		ps_timeout = conf->dynamic_ps_timeout;
+		if (ps_timeout == 0) {
+			/* Firmware doesn't like 0 */
+			ps_timeout = ieee80211_tu_to_usec(
+				vif->bss_conf.beacon_int) / 1000;
+		}
+
 		ret = ath10k_wmi_set_sta_ps_param(ar, arvif->vdev_id, param,
-						  conf->dynamic_ps_timeout);
+						  ps_timeout);
 		if (ret) {
 			ath10k_warn(ar, "failed to set inactivity time for vdev %d: %i\n",
 				    arvif->vdev_id, ret);
@@ -1032,6 +1241,38 @@ static int ath10k_mac_vif_setup_ps(struct ath10k_vif *arvif)
 	if (ret) {
 		ath10k_warn(ar, "failed to set PS Mode %d for vdev %d: %d\n",
 			    psmode, arvif->vdev_id, ret);
+		return ret;
+	}
+
+	return 0;
+}
+
+static int ath10k_mac_vif_disable_keepalive(struct ath10k_vif *arvif)
+{
+	struct ath10k *ar = arvif->ar;
+	struct wmi_sta_keepalive_arg arg = {};
+	int ret;
+
+	lockdep_assert_held(&arvif->ar->conf_mutex);
+
+	if (arvif->vdev_type != WMI_VDEV_TYPE_STA)
+		return 0;
+
+	if (!test_bit(WMI_SERVICE_STA_KEEP_ALIVE, ar->wmi.svc_map))
+		return 0;
+
+	/* Some firmware revisions have a bug and ignore the `enabled` field.
+	 * Instead use the interval to disable the keepalive.
+	 */
+	arg.vdev_id = arvif->vdev_id;
+	arg.enabled = 1;
+	arg.method = WMI_STA_KEEPALIVE_METHOD_NULL_FRAME;
+	arg.interval = WMI_STA_KEEPALIVE_INTERVAL_DISABLE;
+
+	ret = ath10k_wmi_sta_keepalive(ar, &arg);
+	if (ret) {
+		ath10k_warn(ar, "failed to submit keepalive on vdev %i: %d\n",
+			    arvif->vdev_id, ret);
 		return ret;
 	}
 
@@ -1312,6 +1553,10 @@ static void ath10k_peer_assoc_h_vht(struct ath10k *ar,
 		return;
 
 	arg->peer_flags |= WMI_PEER_VHT;
+
+	if (ar->hw->conf.chandef.chan->band == IEEE80211_BAND_2GHZ)
+		arg->peer_flags |= WMI_PEER_VHT_2G;
+
 	arg->peer_vht_caps = vht_cap->cap;
 
 	ampdu_factor = (vht_cap->cap &
@@ -1362,9 +1607,22 @@ static void ath10k_peer_assoc_h_qos(struct ath10k *ar,
 		if (bss_conf->qos)
 			arg->peer_flags |= WMI_PEER_QOS;
 		break;
+	case WMI_VDEV_TYPE_IBSS:
+		if (sta->wme)
+			arg->peer_flags |= WMI_PEER_QOS;
+		break;
 	default:
 		break;
 	}
+
+	ath10k_dbg(ar, ATH10K_DBG_MAC, "mac peer %pM qos %d\n",
+		   sta->addr, !!(arg->peer_flags & WMI_PEER_QOS));
+}
+
+static bool ath10k_mac_sta_has_11g_rates(struct ieee80211_sta *sta)
+{
+	/* First 4 rates in ath10k_rates are CCK (11b) rates. */
+	return sta->supp_rates[IEEE80211_BAND_2GHZ] >> 4;
 }
 
 static void ath10k_peer_assoc_h_phymode(struct ath10k *ar,
@@ -1376,13 +1634,20 @@ static void ath10k_peer_assoc_h_phymode(struct ath10k *ar,
 
 	switch (ar->hw->conf.chandef.chan->band) {
 	case IEEE80211_BAND_2GHZ:
-		if (sta->ht_cap.ht_supported) {
+		if (sta->vht_cap.vht_supported) {
+			if (sta->bandwidth == IEEE80211_STA_RX_BW_40)
+				phymode = MODE_11AC_VHT40;
+			else
+				phymode = MODE_11AC_VHT20;
+		} else if (sta->ht_cap.ht_supported) {
 			if (sta->bandwidth == IEEE80211_STA_RX_BW_40)
 				phymode = MODE_11NG_HT40;
 			else
 				phymode = MODE_11NG_HT20;
-		} else {
+		} else if (ath10k_mac_sta_has_11g_rates(sta)) {
 			phymode = MODE_11G;
+		} else {
+			phymode = MODE_11B;
 		}
 
 		break;
@@ -1890,73 +2155,11 @@ static void ath10k_tx_h_nwifi(struct ieee80211_hw *hw, struct sk_buff *skb)
 	 * used only for CQM purposes (e.g. hostapd station keepalive ping) so
 	 * it is safe to downgrade to NullFunc.
 	 */
+	hdr = (void *)skb->data;
 	if (ieee80211_is_qos_nullfunc(hdr->frame_control)) {
 		hdr->frame_control &= ~__cpu_to_le16(IEEE80211_STYPE_QOS_DATA);
 		cb->htt.tid = HTT_DATA_TX_EXT_TID_NON_QOS_MCAST_BCAST;
 	}
-}
-
-static void ath10k_tx_wep_key_work(struct work_struct *work)
-{
-	struct ath10k_vif *arvif = container_of(work, struct ath10k_vif,
-						wep_key_work);
-	struct ath10k *ar = arvif->ar;
-	int ret, keyidx = arvif->def_wep_key_newidx;
-
-	mutex_lock(&arvif->ar->conf_mutex);
-
-	if (arvif->ar->state != ATH10K_STATE_ON)
-		goto unlock;
-
-	if (arvif->def_wep_key_idx == keyidx)
-		goto unlock;
-
-	ath10k_dbg(ar, ATH10K_DBG_MAC, "mac vdev %d set keyidx %d\n",
-		   arvif->vdev_id, keyidx);
-
-	ret = ath10k_wmi_vdev_set_param(arvif->ar,
-					arvif->vdev_id,
-					arvif->ar->wmi.vdev_param->def_keyid,
-					keyidx);
-	if (ret) {
-		ath10k_warn(ar, "failed to update wep key index for vdev %d: %d\n",
-			    arvif->vdev_id,
-			    ret);
-		goto unlock;
-	}
-
-	arvif->def_wep_key_idx = keyidx;
-
-unlock:
-	mutex_unlock(&arvif->ar->conf_mutex);
-}
-
-static void ath10k_tx_h_update_wep_key(struct ieee80211_vif *vif,
-				       struct ieee80211_key_conf *key,
-				       struct sk_buff *skb)
-{
-	struct ath10k_vif *arvif = ath10k_vif_to_arvif(vif);
-	struct ath10k *ar = arvif->ar;
-	struct ieee80211_hdr *hdr = (struct ieee80211_hdr *)skb->data;
-
-	if (!ieee80211_has_protected(hdr->frame_control))
-		return;
-
-	if (!key)
-		return;
-
-	if (key->cipher != WLAN_CIPHER_SUITE_WEP40 &&
-	    key->cipher != WLAN_CIPHER_SUITE_WEP104)
-		return;
-
-	if (key->keyidx == arvif->def_wep_key_idx)
-		return;
-
-	/* FIXME: Most likely a few frames will be TXed with an old key. Simply
-	 * queueing frames until key index is updated is not an option because
-	 * sk_buff may need more processing to be done, e.g. offchannel */
-	arvif->def_wep_key_newidx = key->keyidx;
-	ieee80211_queue_work(ar->hw, &arvif->wep_key_work);
 }
 
 static void ath10k_tx_h_add_p2p_noa_ie(struct ath10k *ar,
@@ -2098,7 +2301,7 @@ void ath10k_offchan_tx_work(struct work_struct *work)
 
 		ret = wait_for_completion_timeout(&ar->offchan_tx_completed,
 						  3 * HZ);
-		if (ret <= 0)
+		if (ret == 0)
 			ath10k_warn(ar, "timed out waiting for offchannel skb %p\n",
 				    skb);
 
@@ -2306,7 +2509,6 @@ static void ath10k_tx(struct ieee80211_hw *hw,
 	struct ath10k *ar = hw->priv;
 	struct ieee80211_tx_info *info = IEEE80211_SKB_CB(skb);
 	struct ieee80211_vif *vif = info->control.vif;
-	struct ieee80211_key_conf *key = info->control.hw_key;
 	struct ieee80211_hdr *hdr = (struct ieee80211_hdr *)skb->data;
 
 	/* We should disable CCK RATE due to P2P */
@@ -2320,7 +2522,6 @@ static void ath10k_tx(struct ieee80211_hw *hw,
 	/* it makes no sense to process injected frames like that */
 	if (vif && vif->type != NL80211_IFTYPE_MONITOR) {
 		ath10k_tx_h_nwifi(hw, skb);
-		ath10k_tx_h_update_wep_key(vif, key, skb);
 		ath10k_tx_h_add_p2p_noa_ie(ar, vif, skb);
 		ath10k_tx_h_seq_no(vif, skb);
 	}
@@ -2757,6 +2958,8 @@ static int ath10k_add_interface(struct ieee80211_hw *hw,
 	int bit;
 	u32 vdev_param;
 
+	vif->driver_flags |= IEEE80211_VIF_SUPPORTS_UAPSD;
+
 	mutex_lock(&ar->conf_mutex);
 
 	memset(arvif, 0, sizeof(*arvif));
@@ -2764,7 +2967,6 @@ static int ath10k_add_interface(struct ieee80211_hw *hw,
 	arvif->ar = ar;
 	arvif->vif = vif;
 
-	INIT_WORK(&arvif->wep_key_work, ath10k_tx_wep_key_work);
 	INIT_LIST_HEAD(&arvif->list);
 
 	if (ar->free_vdev_map == 0) {
@@ -2777,10 +2979,11 @@ static int ath10k_add_interface(struct ieee80211_hw *hw,
 	arvif->vdev_id = bit - 1;
 	arvif->vdev_subtype = WMI_VDEV_SUBTYPE_NONE;
 
-	if (ar->p2p)
-		arvif->vdev_subtype = WMI_VDEV_SUBTYPE_P2P_DEVICE;
-
 	switch (vif->type) {
+	case NL80211_IFTYPE_P2P_DEVICE:
+		arvif->vdev_type = WMI_VDEV_TYPE_STA;
+		arvif->vdev_subtype = WMI_VDEV_SUBTYPE_P2P_DEVICE;
+		break;
 	case NL80211_IFTYPE_UNSPECIFIED:
 	case NL80211_IFTYPE_STATION:
 		arvif->vdev_type = WMI_VDEV_TYPE_STA;
@@ -2818,14 +3021,17 @@ static int ath10k_add_interface(struct ieee80211_hw *hw,
 	ar->free_vdev_map &= ~(1 << arvif->vdev_id);
 	list_add(&arvif->list, &ar->arvifs);
 
-	vdev_param = ar->wmi.vdev_param->def_keyid;
-	ret = ath10k_wmi_vdev_set_param(ar, 0, vdev_param,
-					arvif->def_wep_key_idx);
+	/* It makes no sense to have firmware do keepalives. mac80211 already
+	 * takes care of this with idle connection polling.
+	 */
+	ret = ath10k_mac_vif_disable_keepalive(arvif);
 	if (ret) {
-		ath10k_warn(ar, "failed to set vdev %i default key id: %d\n",
+		ath10k_warn(ar, "failed to disable keepalive on vdev %i: %d\n",
 			    arvif->vdev_id, ret);
 		goto err_vdev_delete;
 	}
+
+	arvif->def_wep_key_idx = -1;
 
 	vdev_param = ar->wmi.vdev_param->tx_encap_type;
 	ret = ath10k_wmi_vdev_set_param(ar, arvif->vdev_id, vdev_param,
@@ -2864,22 +3070,16 @@ static int ath10k_add_interface(struct ieee80211_hw *hw,
 			goto err_peer_delete;
 		}
 
-		param = WMI_STA_PS_PARAM_TX_WAKE_THRESHOLD;
-		value = WMI_STA_PS_TX_WAKE_THRESHOLD_ALWAYS;
-		ret = ath10k_wmi_set_sta_ps_param(ar, arvif->vdev_id,
-						  param, value);
+		ret = ath10k_mac_vif_recalc_ps_wake_threshold(arvif);
 		if (ret) {
-			ath10k_warn(ar, "failed to set vdev %i TX wake thresh: %d\n",
+			ath10k_warn(ar, "failed to recalc ps wake threshold on vdev %i: %d\n",
 				    arvif->vdev_id, ret);
 			goto err_peer_delete;
 		}
 
-		param = WMI_STA_PS_PARAM_PSPOLL_COUNT;
-		value = WMI_STA_PS_PSPOLL_COUNT_NO_MAX;
-		ret = ath10k_wmi_set_sta_ps_param(ar, arvif->vdev_id,
-						  param, value);
+		ret = ath10k_mac_vif_recalc_ps_poll_count(arvif);
 		if (ret) {
-			ath10k_warn(ar, "failed to set vdev %i PSPOLL count: %d\n",
+			ath10k_warn(ar, "failed to recalc ps poll count on vdev %i: %d\n",
 				    arvif->vdev_id, ret);
 			goto err_peer_delete;
 		}
@@ -3043,9 +3243,21 @@ static void ath10k_bss_info_changed(struct ieee80211_hw *hw,
 		if (ret)
 			ath10k_warn(ar, "failed to set beacon mode for vdev %d: %i\n",
 				    arvif->vdev_id, ret);
+
+		ret = ath10k_mac_setup_bcn_tmpl(arvif);
+		if (ret)
+			ath10k_warn(ar, "failed to update beacon template: %d\n",
+				    ret);
 	}
 
-	if (changed & BSS_CHANGED_BEACON_INFO) {
+	if (changed & BSS_CHANGED_AP_PROBE_RESP) {
+		ret = ath10k_mac_setup_prb_tmpl(arvif);
+		if (ret)
+			ath10k_warn(ar, "failed to setup probe resp template on vdev %i: %d\n",
+				    arvif->vdev_id, ret);
+	}
+
+	if (changed & (BSS_CHANGED_BEACON_INFO | BSS_CHANGED_BEACON)) {
 		arvif->dtim_period = info->dtim_period;
 
 		ath10k_dbg(ar, ATH10K_DBG_MAC,
@@ -3459,6 +3671,13 @@ static void ath10k_sta_rc_update_wk(struct work_struct *wk)
 				    sta->addr);
 	}
 
+	if (changed & BSS_CHANGED_PS) {
+		ret = ath10k_mac_vif_setup_ps(arvif);
+		if (ret)
+			ath10k_warn(ar, "failed to setup ps on vdev %i: %d\n",
+				    arvif->vdev_id, ret);
+	}
+
 	mutex_unlock(&ar->conf_mutex);
 }
 
@@ -3567,6 +3786,8 @@ static int ath10k_conf_tx_uapsd(struct ath10k *ar, struct ieee80211_vif *vif,
 				u16 ac, bool enable)
 {
 	struct ath10k_vif *arvif = ath10k_vif_to_arvif(vif);
+	struct wmi_sta_uapsd_auto_trig_arg arg = {};
+	u32 prio = 0, acc = 0;
 	u32 value = 0;
 	int ret = 0;
 
@@ -3579,18 +3800,26 @@ static int ath10k_conf_tx_uapsd(struct ath10k *ar, struct ieee80211_vif *vif,
 	case IEEE80211_AC_VO:
 		value = WMI_STA_PS_UAPSD_AC3_DELIVERY_EN |
 			WMI_STA_PS_UAPSD_AC3_TRIGGER_EN;
+		prio = 7;
+		acc = 3;
 		break;
 	case IEEE80211_AC_VI:
 		value = WMI_STA_PS_UAPSD_AC2_DELIVERY_EN |
 			WMI_STA_PS_UAPSD_AC2_TRIGGER_EN;
+		prio = 5;
+		acc = 2;
 		break;
 	case IEEE80211_AC_BE:
 		value = WMI_STA_PS_UAPSD_AC1_DELIVERY_EN |
 			WMI_STA_PS_UAPSD_AC1_TRIGGER_EN;
+		prio = 2;
+		acc = 1;
 		break;
 	case IEEE80211_AC_BK:
 		value = WMI_STA_PS_UAPSD_AC0_DELIVERY_EN |
 			WMI_STA_PS_UAPSD_AC0_TRIGGER_EN;
+		prio = 0;
+		acc = 0;
 		break;
 	}
 
@@ -3618,6 +3847,43 @@ static int ath10k_conf_tx_uapsd(struct ath10k *ar, struct ieee80211_vif *vif,
 	if (ret)
 		ath10k_warn(ar, "failed to set rx wake param: %d\n", ret);
 
+	ret = ath10k_mac_vif_recalc_ps_wake_threshold(arvif);
+	if (ret) {
+		ath10k_warn(ar, "failed to recalc ps wake threshold on vdev %i: %d\n",
+			    arvif->vdev_id, ret);
+		return ret;
+	}
+
+	ret = ath10k_mac_vif_recalc_ps_poll_count(arvif);
+	if (ret) {
+		ath10k_warn(ar, "failed to recalc ps poll count on vdev %i: %d\n",
+			    arvif->vdev_id, ret);
+		return ret;
+	}
+
+	if (test_bit(WMI_SERVICE_STA_UAPSD_BASIC_AUTO_TRIG, ar->wmi.svc_map) ||
+	    test_bit(WMI_SERVICE_STA_UAPSD_VAR_AUTO_TRIG, ar->wmi.svc_map)) {
+		/* Only userspace can make an educated decision when to send
+		 * trigger frame. The following effectively disables u-UAPSD
+		 * autotrigger in firmware (which is enabled by default
+		 * provided the autotrigger service is available).
+		 */
+
+		arg.wmm_ac = acc;
+		arg.user_priority = prio;
+		arg.service_interval = 0;
+		arg.suspend_interval = WMI_STA_UAPSD_MAX_INTERVAL_MSEC;
+		arg.delay_interval = WMI_STA_UAPSD_MAX_INTERVAL_MSEC;
+
+		ret = ath10k_wmi_vdev_sta_uapsd(ar, arvif->vdev_id,
+						arvif->bssid, &arg, 1);
+		if (ret) {
+			ath10k_warn(ar, "failed to set uapsd auto trigger %d\n",
+				    ret);
+			return ret;
+		}
+	}
+
 exit:
 	return ret;
 }
@@ -3627,6 +3893,7 @@ static int ath10k_conf_tx(struct ieee80211_hw *hw,
 			  const struct ieee80211_tx_queue_params *params)
 {
 	struct ath10k *ar = hw->priv;
+	struct ath10k_vif *arvif = ath10k_vif_to_arvif(vif);
 	struct wmi_wmm_params_arg *p = NULL;
 	int ret;
 
@@ -3634,16 +3901,16 @@ static int ath10k_conf_tx(struct ieee80211_hw *hw,
 
 	switch (ac) {
 	case IEEE80211_AC_VO:
-		p = &ar->wmm_params.ac_vo;
+		p = &arvif->wmm_params.ac_vo;
 		break;
 	case IEEE80211_AC_VI:
-		p = &ar->wmm_params.ac_vi;
+		p = &arvif->wmm_params.ac_vi;
 		break;
 	case IEEE80211_AC_BE:
-		p = &ar->wmm_params.ac_be;
+		p = &arvif->wmm_params.ac_be;
 		break;
 	case IEEE80211_AC_BK:
-		p = &ar->wmm_params.ac_bk;
+		p = &arvif->wmm_params.ac_bk;
 		break;
 	}
 
@@ -3663,11 +3930,23 @@ static int ath10k_conf_tx(struct ieee80211_hw *hw,
 	 */
 	p->txop = params->txop * 32;
 
-	/* FIXME: FW accepts wmm params per hw, not per vif */
-	ret = ath10k_wmi_pdev_set_wmm_params(ar, &ar->wmm_params);
-	if (ret) {
-		ath10k_warn(ar, "failed to set wmm params: %d\n", ret);
-		goto exit;
+	if (ar->wmi.ops->gen_vdev_wmm_conf) {
+		ret = ath10k_wmi_vdev_wmm_conf(ar, arvif->vdev_id,
+					       &arvif->wmm_params);
+		if (ret) {
+			ath10k_warn(ar, "failed to set vdev wmm params on vdev %i: %d\n",
+				    arvif->vdev_id, ret);
+			goto exit;
+		}
+	} else {
+		/* This won't work well with multi-interface cases but it's
+		 * better than nothing.
+		 */
+		ret = ath10k_wmi_pdev_set_wmm_params(ar, &arvif->wmm_params);
+		if (ret) {
+			ath10k_warn(ar, "failed to set wmm params: %d\n", ret);
+			goto exit;
+		}
 	}
 
 	ret = ath10k_conf_tx_uapsd(ar, vif, ac, params->uapsd);
@@ -4440,12 +4719,12 @@ static const struct ieee80211_ops ath10k_ops = {
 	.hw_scan			= ath10k_hw_scan,
 	.cancel_hw_scan			= ath10k_cancel_hw_scan,
 	.set_key			= ath10k_set_key,
+	.set_default_unicast_key        = ath10k_set_default_unicast_key,
 	.sta_state			= ath10k_sta_state,
 	.conf_tx			= ath10k_conf_tx,
 	.remain_on_channel		= ath10k_remain_on_channel,
 	.cancel_remain_on_channel	= ath10k_cancel_remain_on_channel,
 	.set_rts_threshold		= ath10k_set_rts_threshold,
-	.set_frag_threshold		= ath10k_set_frag_threshold,
 	.flush				= ath10k_flush,
 	.tx_last_beacon			= ath10k_tx_last_beacon,
 	.set_antenna			= ath10k_set_antenna,
@@ -4462,6 +4741,9 @@ static const struct ieee80211_ops ath10k_ops = {
 #ifdef CONFIG_PM
 	.suspend			= ath10k_suspend,
 	.resume				= ath10k_resume,
+#endif
+#ifdef CONFIG_MAC80211_DEBUGFS
+	.sta_add_debugfs		= ath10k_sta_add_debugfs,
 #endif
 };
 
@@ -4533,6 +4815,9 @@ static const struct ieee80211_channel ath10k_5ghz_channels[] = {
 	CHAN5G(165, 5825, 0),
 };
 
+/* Note: Be careful if you re-order these. There is code which depends on this
+ * ordering.
+ */
 static struct ieee80211_rate ath10k_rates[] = {
 	/* CCK */
 	RATETAB_ENT(10,  0x82, 0),
@@ -4584,6 +4869,10 @@ static const struct ieee80211_iface_limit ath10k_if_limits[] = {
 	{
 	.max	= 3,
 	.types	= BIT(NL80211_IFTYPE_P2P_GO)
+	},
+	{
+	.max	= 1,
+	.types	= BIT(NL80211_IFTYPE_P2P_DEVICE)
 	},
 	{
 	.max	= 7,
@@ -4743,6 +5032,13 @@ struct ath10k_vif *ath10k_get_arvif(struct ath10k *ar, u32 vdev_id)
 
 int ath10k_mac_register(struct ath10k *ar)
 {
+	static const u32 cipher_suites[] = {
+		WLAN_CIPHER_SUITE_WEP40,
+		WLAN_CIPHER_SUITE_WEP104,
+		WLAN_CIPHER_SUITE_TKIP,
+		WLAN_CIPHER_SUITE_CCMP,
+		WLAN_CIPHER_SUITE_AES_CMAC,
+	};
 	struct ieee80211_supported_band *band;
 	struct ieee80211_sta_vht_cap vht_cap;
 	struct ieee80211_sta_ht_cap ht_cap;
@@ -4772,7 +5068,8 @@ int ath10k_mac_register(struct ath10k *ar)
 		band->bitrates = ath10k_g_rates;
 		band->ht_cap = ht_cap;
 
-		/* vht is not supported in 2.4 GHz */
+		/* Enable the VHT support at 2.4 GHz */
+		band->vht_cap = vht_cap;
 
 		ar->hw->wiphy->bands[IEEE80211_BAND_2GHZ] = band;
 	}
@@ -4814,18 +5111,19 @@ int ath10k_mac_register(struct ath10k *ar)
 
 	if (!test_bit(ATH10K_FW_FEATURE_NO_P2P, ar->fw_features))
 		ar->hw->wiphy->interface_modes |=
+			BIT(NL80211_IFTYPE_P2P_DEVICE) |
 			BIT(NL80211_IFTYPE_P2P_CLIENT) |
 			BIT(NL80211_IFTYPE_P2P_GO);
 
 	ar->hw->flags = IEEE80211_HW_SIGNAL_DBM |
 			IEEE80211_HW_SUPPORTS_PS |
 			IEEE80211_HW_SUPPORTS_DYNAMIC_PS |
-			IEEE80211_HW_SUPPORTS_UAPSD |
 			IEEE80211_HW_MFP_CAPABLE |
 			IEEE80211_HW_REPORTS_TX_ACK_STATUS |
 			IEEE80211_HW_HAS_RATE_CONTROL |
 			IEEE80211_HW_AP_LINK_PS |
-			IEEE80211_HW_SPECTRUM_MGMT;
+			IEEE80211_HW_SPECTRUM_MGMT |
+			IEEE80211_HW_SW_CRYPTO_CONTROL;
 
 	/* MSDU can have HTT TX fragment pushed in front. The additional 4
 	 * bytes is used for padding/alignment if necessary. */
@@ -4849,6 +5147,19 @@ int ath10k_mac_register(struct ath10k *ar)
 
 	ar->hw->max_listen_interval = ATH10K_MAX_HW_LISTEN_INTERVAL;
 
+	if (test_bit(WMI_SERVICE_BEACON_OFFLOAD, ar->wmi.svc_map)) {
+		ar->hw->wiphy->flags |= WIPHY_FLAG_AP_PROBE_RESP_OFFLOAD;
+
+		/* Firmware delivers WPS/P2P Probe Requests frames to driver so
+		 * that userspace (e.g. wpa_supplicant/hostapd) can generate
+		 * correct Probe Responses. This is more of a hack advert..
+		 */
+		ar->hw->wiphy->probe_resp_offload |=
+			NL80211_PROBE_RESP_OFFLOAD_SUPPORT_WPS |
+			NL80211_PROBE_RESP_OFFLOAD_SUPPORT_WPS2 |
+			NL80211_PROBE_RESP_OFFLOAD_SUPPORT_P2P;
+	}
+
 	ar->hw->wiphy->flags |= WIPHY_FLAG_HAS_REMAIN_ON_CHANNEL;
 	ar->hw->wiphy->flags |= WIPHY_FLAG_HAS_CHANNEL_SWITCH;
 	ar->hw->wiphy->max_remain_on_channel_duration = 5000;
@@ -4860,16 +5171,26 @@ int ath10k_mac_register(struct ath10k *ar)
 	 */
 	ar->hw->queues = 4;
 
-	if (test_bit(ATH10K_FW_FEATURE_WMI_10X, ar->fw_features)) {
-		ar->hw->wiphy->iface_combinations = ath10k_10x_if_comb;
-		ar->hw->wiphy->n_iface_combinations =
-			ARRAY_SIZE(ath10k_10x_if_comb);
-	} else {
+	switch (ar->wmi.op_version) {
+	case ATH10K_FW_WMI_OP_VERSION_MAIN:
+	case ATH10K_FW_WMI_OP_VERSION_TLV:
 		ar->hw->wiphy->iface_combinations = ath10k_if_comb;
 		ar->hw->wiphy->n_iface_combinations =
 			ARRAY_SIZE(ath10k_if_comb);
-
 		ar->hw->wiphy->interface_modes |= BIT(NL80211_IFTYPE_ADHOC);
+		break;
+	case ATH10K_FW_WMI_OP_VERSION_10_1:
+	case ATH10K_FW_WMI_OP_VERSION_10_2:
+	case ATH10K_FW_WMI_OP_VERSION_10_2_4:
+		ar->hw->wiphy->iface_combinations = ath10k_10x_if_comb;
+		ar->hw->wiphy->n_iface_combinations =
+			ARRAY_SIZE(ath10k_10x_if_comb);
+		break;
+	case ATH10K_FW_WMI_OP_VERSION_UNSET:
+	case ATH10K_FW_WMI_OP_VERSION_MAX:
+		WARN_ON(1);
+		ret = -EINVAL;
+		goto err_free;
 	}
 
 	ar->hw->netdev_features = NETIF_F_HW_CSUM;
@@ -4890,6 +5211,9 @@ int ath10k_mac_register(struct ath10k *ar)
 		ath10k_err(ar, "failed to initialise regulatory: %i\n", ret);
 		goto err_free;
 	}
+
+	ar->hw->wiphy->cipher_suites = cipher_suites;
+	ar->hw->wiphy->n_cipher_suites = ARRAY_SIZE(cipher_suites);
 
 	ret = ieee80211_register_hw(ar->hw);
 	if (ret) {

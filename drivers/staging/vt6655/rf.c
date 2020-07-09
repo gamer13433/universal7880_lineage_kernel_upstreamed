@@ -899,13 +899,12 @@ bool RFvWriteWakeProgSyn(void __iomem *dwIoBase, unsigned char byRFType, unsigne
 bool RFbSetPower(
 	struct vnt_private *pDevice,
 	unsigned int uRATE,
-	unsigned int uCH
+	u16 uCH
 )
 {
 	bool bResult = true;
 	unsigned char byPwr = 0;
 	unsigned char byDec = 0;
-	unsigned char byPwrdBm = 0;
 
 	if (pDevice->dwDiagRefCount != 0)
 		return true;

@@ -232,10 +232,7 @@ int rxrpc_kernel_send_data(struct rxrpc_call *call, struct msghdr *msg,
 		   call->state != RXRPC_CALL_SERVER_SEND_REPLY) {
 		ret = -EPROTO; /* request phase complete for this client call */
 	} else {
-		mm_segment_t oldfs = get_fs();
-		set_fs(KERNEL_DS);
 		ret = rxrpc_send_data(NULL, call->socket, call, msg, len);
-		set_fs(oldfs);
 	}
 
 	release_sock(&call->socket->sk);
@@ -633,13 +630,13 @@ static int rxrpc_send_data(struct kiocb *iocb,
 		/* append next segment of data to the current buffer */
 		copy = skb_tailroom(skb);
 		ASSERTCMP(copy, >, 0);
-		if (copy > segment)
-			copy = segment;
+		if (copy > len)
+			copy = len;
 		if (copy > sp->remain)
 			copy = sp->remain;
 
 		_debug("add");
-		ret = skb_add_data(skb, from, copy);
+		ret = skb_add_data(skb, &msg->msg_iter, copy);
 		_debug("added");
 		if (ret < 0)
 			goto efault;
@@ -648,18 +645,6 @@ static int rxrpc_send_data(struct kiocb *iocb,
 		copied += copy;
 
 		len -= copy;
-		segment -= copy;
-		from += copy;
-		while (segment == 0 && ioc > 0) {
-			from = iov->iov_base;
-			segment = iov->iov_len;
-			iov++;
-			ioc--;
-		}
-		if (len == 0) {
-			segment = 0;
-			ioc = 0;
-		}
 
 		/* check for the far side aborting the call or a network error
 		 * occurring */
@@ -667,7 +652,7 @@ static int rxrpc_send_data(struct kiocb *iocb,
 			goto call_aborted;
 
 		/* add the packet to the send queue if it's now full */
-		if (sp->remain <= 0 || (segment == 0 && !more)) {
+		if (sp->remain <= 0 || (!len && !more)) {
 			struct rxrpc_connection *conn = call->conn;
 			uint32_t seq;
 			size_t pad;
@@ -713,11 +698,10 @@ static int rxrpc_send_data(struct kiocb *iocb,
 
 			memcpy(skb->head, &sp->hdr,
 			       sizeof(struct rxrpc_header));
-			rxrpc_queue_packet(call, skb, segment == 0 && !more);
+			rxrpc_queue_packet(call, skb, !iov_iter_count(&msg->msg_iter) && !more);
 			skb = NULL;
 		}
-
-	} while (segment > 0);
+	}
 
 success:
 	ret = copied;

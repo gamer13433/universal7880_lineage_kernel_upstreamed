@@ -59,4 +59,12 @@ Example:
 				regulator-always-on;
 				regulator-boot-on;
 			};
+
+			buck9_reg {
+				regulator-compatible = "BUCK9";
+				regulator-name = "CAM_ISP_CORE_1.2V";
+				regulator-min-microvolt = <1000000>;
+				regulator-max-microvolt = <1200000>;
+				maxim,ena-gpios = <&gpm0 3 GPIO_ACTIVE_HIGH>;
+			};
 	}

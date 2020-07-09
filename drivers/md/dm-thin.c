@@ -1470,8 +1470,8 @@ static void process_bio_fail(struct thin_c *tc, struct bio *bio)
  */
 static int need_commit_due_to_time(struct pool *pool)
 {
-	return jiffies < pool->last_commit_jiffies ||
-	       jiffies > pool->last_commit_jiffies + COMMIT_PERIOD;
+	return !time_in_range(jiffies, pool->last_commit_jiffies,
+			      pool->last_commit_jiffies + COMMIT_PERIOD);
 }
 
 #define thin_pbd(node) rb_entry((node), struct dm_thin_endio_hook, rb_node)

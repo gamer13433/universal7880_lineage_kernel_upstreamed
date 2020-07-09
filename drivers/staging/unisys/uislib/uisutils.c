@@ -44,14 +44,13 @@ atomic_t UisUtils_Registered_Services = ATOMIC_INIT(0);
 					 * uisctrl_register_req_handler() or
 					 * uisctrl_register_req_handler_ex() */
 
-
 /*****************************************************/
 /* Utility functions                                 */
 /*****************************************************/
 
 int
 uisutil_add_proc_line_ex(int *total, char **buffer, int *buffer_remaining,
-		      char *format, ...)
+			 char *format, ...)
 {
 	va_list args;
 	int len;
@@ -59,6 +58,7 @@ uisutil_add_proc_line_ex(int *total, char **buffer, int *buffer_remaining,
 	DBGINF("buffer = 0x%p : *buffer = 0x%p.\n", buffer, *buffer);
 	va_start(args, format);
 	len = vsnprintf(*buffer, *buffer_remaining, format, args);
+	va_end(args);
 	if (len >= *buffer_remaining) {
 		*buffer += *buffer_remaining;
 		*total += *buffer_remaining;
@@ -98,7 +98,7 @@ uisctrl_register_req_handler(int type, void *fptr,
 	}
 	if (chipset_driver_info)
 		bus_device_info_init(chipset_driver_info, "chipset", "uislib",
-				   VERSION, NULL);
+				     VERSION, NULL);
 
 	return 1;
 }
@@ -217,10 +217,10 @@ uisutil_copy_fragsinfo_from_skb(unsigned char *calling_ctx, void *skb_in,
 		frags[count].pi_pfn =
 		    page_to_pfn(virt_to_page(skb->data + offset));
 		frags[count].pi_off =
-		    (unsigned long) (skb->data + offset) & PI_PAGE_MASK;
+		    (unsigned long)(skb->data + offset) & PI_PAGE_MASK;
 		size =
 		    min(firstfraglen,
-			(unsigned int) (PI_PAGE_SIZE - frags[count].pi_off));
+			(unsigned int)(PI_PAGE_SIZE - frags[count].pi_off));
 		/* can take smallest of firstfraglen(what's left) OR
 		* bytes left in the page
 		*/
@@ -234,7 +234,7 @@ uisutil_copy_fragsinfo_from_skb(unsigned char *calling_ctx, void *skb_in,
 
 	if ((count + numfrags) > frags_max) {
 		LOGERR("**** FAILED %s frags array too small: max:%d count+nr_frags:%d\n",
-		     calling_ctx, frags_max, count + numfrags);
+		       calling_ctx, frags_max, count + numfrags);
 		return -1;	/* failure */
 	}
 
@@ -258,7 +258,6 @@ dolist: if (skb_shinfo(skb)->frag_list) {
 
 		for (skbinlist = skb_shinfo(skb)->frag_list; skbinlist;
 		     skbinlist = skbinlist->next) {
-
 			c = uisutil_copy_fragsinfo_from_skb("recursive",
 				skbinlist,
 				skbinlist->len - skbinlist->data_len,
@@ -341,6 +340,6 @@ ReqHandlerDel(uuid_le switchTypeGuid)
 			rc++;
 		}
 	}
-	spin_unlock(&ReqHandlerInfo_list_lock);
+	spin_unlock(&req_handler_info_list_lock);
 	return rc;
 }

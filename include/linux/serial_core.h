@@ -124,6 +124,7 @@ struct uart_port {
 	void			(*set_termios)(struct uart_port *,
 				               struct ktermios *new,
 				               struct ktermios *old);
+	void			(*set_mctrl)(struct uart_port *, unsigned int);
 	int			(*startup)(struct uart_port *port);
 	void			(*shutdown)(struct uart_port *port);
 	void			(*throttle)(struct uart_port *port);
@@ -194,11 +195,17 @@ struct uart_port {
 #define UPF_CHANGE_MASK		((__force upf_t) (0x17fff))
 #define UPF_USR_MASK		((__force upf_t) (UPF_SPD_MASK|UPF_LOW_LATENCY))
 
-	/* status must be updated while holding port lock */
+	/*
+	 * Must hold termios_rwsem, port mutex and port lock to change;
+	 * can hold any one lock to read.
+	 */
 	upstat_t		status;
 
 #define UPSTAT_CTS_ENABLE	((__force upstat_t) (1 << 0))
 #define UPSTAT_DCD_ENABLE	((__force upstat_t) (1 << 1))
+#define UPSTAT_AUTORTS		((__force upstat_t) (1 << 2))
+#define UPSTAT_AUTOCTS		((__force upstat_t) (1 << 3))
+#define UPSTAT_AUTOXOFF		((__force upstat_t) (1 << 4))
 
 	int			hw_stopped;		/* sw-assisted CTS flow state */
 	unsigned int		mctrl;			/* current modem ctrl settings */
@@ -369,6 +376,13 @@ static inline int uart_tx_stopped(struct uart_port *port)
 static inline bool uart_cts_enabled(struct uart_port *uport)
 {
 	return uport->status & UPSTAT_CTS_ENABLE;
+}
+
+static inline bool uart_softcts_mode(struct uart_port *uport)
+{
+	upstat_t mask = UPSTAT_CTS_ENABLE | UPSTAT_AUTOCTS;
+
+	return ((uport->status & mask) == UPSTAT_CTS_ENABLE);
 }
 
 /*

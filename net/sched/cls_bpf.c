@@ -37,7 +37,7 @@ struct cls_bpf_prog {
 	struct tcf_result res;
 	struct list_head link;
 	u32 handle;
-	u16 bpf_len;
+	u16 bpf_num_ops;
 	struct tcf_proto *tp;
 	struct rcu_head rcu;
 };
@@ -171,7 +171,7 @@ static int cls_bpf_modify_existing(struct net *net, struct tcf_proto *tp,
 	struct tcf_exts exts;
 	struct sock_fprog_kern tmp;
 	struct bpf_prog *fp;
-	u16 bpf_size, bpf_len;
+	u16 bpf_size, bpf_num_ops;
 	u32 classid;
 	int ret;
 
@@ -199,14 +199,14 @@ static int cls_bpf_modify_existing(struct net *net, struct tcf_proto *tp,
 
 	memcpy(bpf_ops, nla_data(tb[TCA_BPF_OPS]), bpf_size);
 
-	tmp.len = bpf_len;
+	tmp.len = bpf_num_ops;
 	tmp.filter = bpf_ops;
 
 	ret = bpf_prog_create(&fp, &tmp);
 	if (ret)
 		goto errout_free;
 
-	prog->bpf_len = bpf_len;
+	prog->bpf_num_ops = bpf_num_ops;
 	prog->bpf_ops = bpf_ops;
 	prog->filter = fp;
 	prog->res.classid = classid;
@@ -314,10 +314,10 @@ static int cls_bpf_dump(struct net *net, struct tcf_proto *tp, unsigned long fh,
 
 	if (nla_put_u32(skb, TCA_BPF_CLASSID, prog->res.classid))
 		goto nla_put_failure;
-	if (nla_put_u16(skb, TCA_BPF_OPS_LEN, prog->bpf_len))
+	if (nla_put_u16(skb, TCA_BPF_OPS_LEN, prog->bpf_num_ops))
 		goto nla_put_failure;
 
-	nla = nla_reserve(skb, TCA_BPF_OPS, prog->bpf_len *
+	nla = nla_reserve(skb, TCA_BPF_OPS, prog->bpf_num_ops *
 			  sizeof(struct sock_filter));
 	if (nla == NULL)
 		goto nla_put_failure;

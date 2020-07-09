@@ -77,7 +77,8 @@ dtb-$(CONFIG_ARCH_EXYNOS) += exynos4210-origen.dtb \
 	exynos4412-origen.dtb \
 	exynos4412-smdk4412.dtb \
 	exynos4412-tiny4412.dtb \
-	exynos4412-trats2.dtb \
+	exynos4412-trats2.dtb
+dtb-$(CONFIG_ARCH_EXYNOS5) += \
 	exynos5250-arndale.dtb \
 	exynos5250-smdk5250.dtb \
 	exynos5250-snow.dtb \
@@ -86,20 +87,31 @@ dtb-$(CONFIG_ARCH_EXYNOS) += exynos4210-origen.dtb \
 	exynos5420-arndale-octa.dtb \
 	exynos5420-peach-pit.dtb \
 	exynos5420-smdk5420.dtb \
+	exynos5422-odroidxu3.dtb \
 	exynos5440-sd5v1.dtb \
 	exynos5440-ssdk5440.dtb \
 	exynos5800-peach-pi.dtb
-dtb-$(CONFIG_ARCH_HI3xxx) += hi3620-hi4511.dtb
-dtb-$(CONFIG_ARCH_HIX5HD2) += hisi-x5hd2-dkb.dtb
-dtb-$(CONFIG_ARCH_HIGHBANK) += highbank.dtb \
+dtb-$(CONFIG_ARCH_HI3xxx) += \
+	hi3620-hi4511.dtb
+dtb-$(CONFIG_ARCH_HIX5HD2) += \
+	hisi-x5hd2-dkb.dtb
+dtb-$(CONFIG_ARCH_HIGHBANK) += \
+	highbank.dtb \
 	ecx-2000.dtb
-dtb-$(CONFIG_ARCH_HIP04) += hip04-d01.dtb
-dtb-$(CONFIG_ARCH_INTEGRATOR) += integratorap.dtb \
+dtb-$(CONFIG_ARCH_HIP01) += \
+	hip01-ca9x2.dtb
+dtb-$(CONFIG_ARCH_HIP04) += \
+	hip04-d01.dtb
+dtb-$(CONFIG_ARCH_INTEGRATOR) += \
+	integratorap.dtb \
 	integratorcp.dtb
-dtb-$(CONFIG_ARCH_KEYSTONE) += k2hk-evm.dtb \
+dtb-$(CONFIG_ARCH_KEYSTONE) += \
+	k2hk-evm.dtb \
 	k2l-evm.dtb \
 	k2e-evm.dtb
-dtb-$(CONFIG_MACH_KIRKWOOD) += kirkwood-b3.dtb \
+dtb-$(CONFIG_MACH_KIRKWOOD) += \
+	kirkwood-b3.dtb \
+	kirkwood-blackarmor-nas220.dtb \
 	kirkwood-cloudbox.dtb \
 	kirkwood-d2net.dtb \
 	kirkwood-db-88f6281.dtb \
@@ -147,6 +159,7 @@ dtb-$(CONFIG_MACH_KIRKWOOD) += kirkwood-b3.dtb \
 	kirkwood-openrd-base.dtb \
 	kirkwood-openrd-client.dtb \
 	kirkwood-openrd-ultimate.dtb \
+	kirkwood-pogo_e02.dtb \
 	kirkwood-rd88f6192.dtb \
 	kirkwood-rd88f6281-z0.dtb \
 	kirkwood-rd88f6281-a.dtb \
@@ -197,7 +210,8 @@ dtb-$(CONFIG_ARCH_MXC) += \
 	imx53-smd.dtb \
 	imx53-tx53-x03x.dtb \
 	imx53-tx53-x13x.dtb \
-	imx53-voipac-bsb.dtb \
+	imx53-voipac-bsb.dtb
+dtb-$(CONFIG_SOC_IMX6Q) += \
 	imx6dl-aristainetos_4.dtb \
 	imx6dl-aristainetos_7.dtb \
 	imx6dl-cubox-i.dtb \
@@ -218,6 +232,7 @@ dtb-$(CONFIG_ARCH_MXC) += \
 	imx6dl-tx6dl-comtft.dtb \
 	imx6dl-tx6u-801x.dtb \
 	imx6dl-tx6u-811x.dtb \
+	imx6dl-udoo.dtb \
 	imx6dl-wandboard.dtb \
 	imx6dl-wandboard-revb1.dtb \
 	imx6q-arm2.dtb \
@@ -325,7 +340,10 @@ dtb-$(CONFIG_ARCH_OMAP3) += am3517-craneboard.dtb \
 	omap3-sbc-t3730.dtb \
 	omap3-thunder.dtb \
 	omap3-zoom3.dtb
-dtb-$(CONFIG_SOC_AM33XX) += am335x-base0033.dtb \
+dtb-$(CONFIG_SOC_TI81XX) += \
+	dm8168-evm.dtb
+dtb-$(CONFIG_SOC_AM33XX) += \
+	am335x-base0033.dtb \
 	am335x-bone.dtb \
 	am335x-boneblack.dtb \
 	am335x-evm.dtb \
@@ -453,34 +471,43 @@ dtb-$(CONFIG_ARCH_TEGRA) += tegra20-harmony.dtb \
 	tegra20-tec.dtb \
 	tegra20-trimslice.dtb \
 	tegra20-ventana.dtb \
-	tegra20-whistler.dtb \
+	tegra20-whistler.dtb
+dtb-$(CONFIG_ARCH_TEGRA_3x_SOC) += \
 	tegra30-apalis-eval.dtb \
 	tegra30-beaver.dtb \
 	tegra30-cardhu-a02.dtb \
 	tegra30-cardhu-a04.dtb \
-	tegra30-colibri-eval-v3.dtb \
+	tegra30-colibri-eval-v3.dtb
+dtb-$(CONFIG_ARCH_TEGRA_114_SOC) += \
 	tegra114-dalmore.dtb \
 	tegra114-roth.dtb \
-	tegra114-tn7.dtb \
+	tegra114-tn7.dtb
+dtb-$(CONFIG_ARCH_TEGRA_124_SOC) += \
 	tegra124-jetson-tk1.dtb \
 	tegra124-nyan-big.dtb \
 	tegra124-venice2.dtb
-dtb-$(CONFIG_ARCH_U300) += ste-u300.dtb
-dtb-$(CONFIG_ARCH_U8500) += ste-snowball.dtb \
+dtb-$(CONFIG_ARCH_U300) += \
+	ste-u300.dtb
+dtb-$(CONFIG_ARCH_U8500) += \
+	ste-snowball.dtb \
 	ste-hrefprev60-stuib.dtb \
 	ste-hrefprev60-tvk.dtb \
 	ste-hrefv60plus-stuib.dtb \
 	ste-hrefv60plus-tvk.dtb \
 	ste-ccu8540.dtb \
 	ste-ccu9540.dtb
-dtb-$(CONFIG_ARCH_VERSATILE) += versatile-ab.dtb \
+dtb-$(CONFIG_ARCH_VERSATILE) += \
+	versatile-ab.dtb \
 	versatile-pb.dtb
-dtb-$(CONFIG_ARCH_VEXPRESS) += vexpress-v2p-ca5s.dtb \
+dtb-$(CONFIG_ARCH_VEXPRESS) += \
+	vexpress-v2p-ca5s.dtb \
 	vexpress-v2p-ca9.dtb \
 	vexpress-v2p-ca15-tc1.dtb \
 	vexpress-v2p-ca15_a7.dtb
-dtb-$(CONFIG_ARCH_VIRT) += xenvm-4.2.dtb
-dtb-$(CONFIG_ARCH_VT8500) += vt8500-bv07.dtb \
+dtb-$(CONFIG_ARCH_VIRT) += \
+	xenvm-4.2.dtb
+dtb-$(CONFIG_ARCH_VT8500) += \
+	vt8500-bv07.dtb \
 	wm8505-ref.dtb \
 	wm8650-mid.dtb \
 	wm8750-apc8750.dtb \
@@ -499,8 +526,10 @@ dtb-$(CONFIG_MACH_ARMADA_370) += \
 dtb-$(CONFIG_MACH_ARMADA_375) += \
 	armada-375-db.dtb
 dtb-$(CONFIG_MACH_ARMADA_38X) += \
-	armada-385-db.dtb \
-	armada-385-rd.dtb
+	armada-385-db-ap.dtb \
+	armada-388-db.dtb \
+	armada-388-gp.dtb \
+	armada-388-rd.dtb
 dtb-$(CONFIG_MACH_ARMADA_XP) += \
 	armada-xp-axpwifiap.dtb \
 	armada-xp-db.dtb \

@@ -92,7 +92,7 @@ static void *vb2_vmalloc_get_userptr(void *alloc_ctx, unsigned long vaddr,
 		if (vb2_get_contig_userptr(vaddr, size, &vma, &physp))
 			goto fail_pages_array_alloc;
 		buf->vma = vma;
-		buf->vaddr = ioremap_nocache(physp, size);
+		buf->vaddr = (__force void *)ioremap_nocache(physp, size);
 		if (!buf->vaddr)
 			goto fail_pages_array_alloc;
 	} else {
@@ -208,6 +208,7 @@ static int vb2_vmalloc_mmap(void *buf_priv, struct vm_area_struct *vma)
 	return 0;
 }
 
+#ifdef CONFIG_HAS_DMA
 /*********************************************/
 /*       callbacks for DMABUF buffers        */
 /*********************************************/
@@ -257,6 +258,8 @@ static void *vb2_vmalloc_attach_dmabuf(void *alloc_ctx, struct dma_buf *dbuf,
 
 	return buf;
 }
+#endif /* CONFIG_HAS_DMA */
+
 
 
 const struct vb2_mem_ops vb2_vmalloc_memops = {

@@ -50,7 +50,7 @@ static int mcb_pci_probe(struct pci_dev *pdev, const struct pci_device_id *id)
 	mapbase = pci_resource_start(pdev, 0);
 	if (!mapbase) {
 		dev_err(&pdev->dev, "No PCI resource\n");
-		goto err_start;
+		goto out_disable;
 	}
 
 	ret = pci_request_region(pdev, 0, KBUILD_MODNAME);
@@ -71,7 +71,7 @@ static int mcb_pci_probe(struct pci_dev *pdev, const struct pci_device_id *id)
 		ret = -ENOTSUPP;
 		dev_err(&pdev->dev,
 			"IO mapped PCI devices are not supported\n");
-		goto err_ioremap;
+		goto out_release;
 	}
 
 	pci_set_drvdata(pdev, priv);

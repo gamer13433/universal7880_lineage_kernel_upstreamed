@@ -608,7 +608,7 @@ out:
 	return err;
 }
 
-static int rawv6_send_hdrinc(struct sock *sk, void *from, int length,
+static int rawv6_send_hdrinc(struct sock *sk, struct msghdr *msg, int length,
 			struct flowi6 *fl6, struct dst_entry **dstp,
 			unsigned int flags)
 {
@@ -649,7 +649,7 @@ static int rawv6_send_hdrinc(struct sock *sk, void *from, int length,
 	skb->ip_summed = CHECKSUM_NONE;
 
 	skb->transport_header = skb->network_header;
-	err = memcpy_fromiovecend((void *)iph, from, 0, length);
+	err = memcpy_from_msg(iph, msg, length);
 	if (err)
 		goto error_fault;
 

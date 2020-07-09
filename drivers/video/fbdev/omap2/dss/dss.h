@@ -208,6 +208,9 @@ void dss_overlay_kobj_uninit(struct omap_overlay *ovl);
 int dss_init_platform_driver(void) __init;
 void dss_uninit_platform_driver(void);
 
+int dss_runtime_get(void);
+void dss_runtime_put(void);
+
 unsigned long dss_get_dispc_clk_rate(void);
 int dss_dpi_select_source(enum omap_channel channel);
 void dss_select_hdmi_venc_clk_source(enum dss_hdmi_venc_clk_source_select);
@@ -218,6 +221,10 @@ void dss_dump_clocks(struct seq_file *s);
 #if defined(CONFIG_OMAP2_DSS_DEBUGFS)
 void dss_debug_dump_clocks(struct seq_file *s);
 #endif
+
+void dss_ctrl_pll_enable(enum dss_pll_id pll_id, bool enable);
+void dss_ctrl_pll_set_control_mux(enum dss_pll_id pll_id,
+	enum omap_channel channel);
 
 void dss_sdi_init(int datapairs);
 int dss_sdi_enable(void);

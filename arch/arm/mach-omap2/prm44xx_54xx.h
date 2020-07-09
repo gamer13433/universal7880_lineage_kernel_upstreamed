@@ -58,7 +58,6 @@ extern void omap44xx_prm_save_and_clear_irqen(u32 *saved_mask);
 extern void omap44xx_prm_restore_irqen(u32 *saved_mask);
 
 extern int __init omap44xx_prm_init(void);
-extern u32 omap44xx_prm_get_reset_sources(void);
 
 #endif
 

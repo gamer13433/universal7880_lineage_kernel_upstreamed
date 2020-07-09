@@ -484,6 +484,10 @@ struct nfsd4_op {
 		struct nfsd4_reclaim_complete	reclaim_complete;
 		struct nfsd4_test_stateid	test_stateid;
 		struct nfsd4_free_stateid	free_stateid;
+		struct nfsd4_getdeviceinfo	getdeviceinfo;
+		struct nfsd4_layoutget		layoutget;
+		struct nfsd4_layoutcommit	layoutcommit;
+		struct nfsd4_layoutreturn	layoutreturn;
 
 		/* NFSv4.2 */
 		struct nfsd4_seek		seek;

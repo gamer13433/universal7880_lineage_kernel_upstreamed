@@ -31,16 +31,6 @@
 #include "vdso.h"
 #include "p2m.h"
 
-/* These are code, but not functions.  Defined in entry.S */
-extern const char xen_hypervisor_callback[];
-extern const char xen_failsafe_callback[];
-#ifdef CONFIG_X86_64
-extern asmlinkage void nmi(void);
-#endif
-extern void xen_sysenter_target(void);
-extern void xen_syscall_target(void);
-extern void xen_syscall32_target(void);
-
 /* Amount of extra memory space we add to the e820 ranges */
 struct xen_memory_region xen_extra_mem[XEN_EXTRA_MEM_MAX_REGIONS] __initdata;
 
@@ -62,7 +52,7 @@ unsigned long xen_remap_buf[P2M_PER_PAGE] __initdata;
  */
 #define EXTRA_MEM_RATIO		(10)
 
-static void __init xen_add_extra_mem(u64 start, u64 size)
+static void __init xen_add_extra_mem(phys_addr_t start, phys_addr_t size)
 {
 	unsigned long pfn;
 	int i;
@@ -220,7 +210,7 @@ static unsigned long __init xen_update_mem_tables(unsigned long pfn,
 						  unsigned long mfn)
 {
 	struct mmu_update update = {
-		.ptr = ((unsigned long long)mfn << PAGE_SHIFT) | MMU_MACHPHYS_UPDATE,
+		.ptr = ((uint64_t)mfn << PAGE_SHIFT) | MMU_MACHPHYS_UPDATE,
 		.val = pfn
 	};
 
@@ -533,20 +523,21 @@ static unsigned long __init xen_get_max_pages(void)
 	return min(max_pages, MAX_DOMAIN_PAGES);
 }
 
-static void xen_align_and_add_e820_region(u64 start, u64 size, int type)
+static void __init xen_align_and_add_e820_region(phys_addr_t start,
+						 phys_addr_t size, int type)
 {
-	u64 end = start + size;
+	phys_addr_t end = start + size;
 
 	/* Align RAM regions to page boundaries. */
 	if (type == E820_RAM) {
 		start = PAGE_ALIGN(start);
-		end &= ~((u64)PAGE_SIZE - 1);
+		end &= ~((phys_addr_t)PAGE_SIZE - 1);
 	}
 
 	e820_add_region(start, end - start, type);
 }
 
-void xen_ignore_unusable(struct e820entry *list, size_t map_size)
+static void __init xen_ignore_unusable(struct e820entry *list, size_t map_size)
 {
 	struct e820entry *entry;
 	unsigned int i;
@@ -565,7 +556,7 @@ char * __init xen_memory_setup(void)
 	static struct e820entry map[E820MAX] __initdata;
 
 	unsigned long max_pfn = xen_start_info->nr_pages;
-	unsigned long long mem_end;
+	phys_addr_t mem_end;
 	int rc;
 	struct xen_memory_map memmap;
 	unsigned long max_pages;
@@ -642,16 +633,16 @@ char * __init xen_memory_setup(void)
 			  extra_pages);
 	i = 0;
 	while (i < memmap.nr_entries) {
-		u64 addr = map[i].addr;
-		u64 size = map[i].size;
+		phys_addr_t addr = map[i].addr;
+		phys_addr_t size = map[i].size;
 		u32 type = map[i].type;
 
 		if (type == E820_RAM) {
 			if (addr < mem_end) {
 				size = min(size, mem_end - addr);
 			} else if (extra_pages) {
-				size = min(size, (u64)extra_pages * PAGE_SIZE);
-				extra_pages -= size / PAGE_SIZE;
+				size = min(size, PFN_PHYS(extra_pages));
+				extra_pages -= PFN_DOWN(size);
 				xen_add_extra_mem(addr, size);
 			} else
 				type = E820_UNUSABLE;

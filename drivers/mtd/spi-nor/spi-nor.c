@@ -510,6 +510,7 @@ static const struct spi_device_id spi_nor_ids[] = {
 	/* GigaDevice */
 	{ "gd25q32", INFO(0xc84016, 0, 64 * 1024,  64, SECT_4K) },
 	{ "gd25q64", INFO(0xc84017, 0, 64 * 1024, 128, SECT_4K) },
+	{ "gd25q128", INFO(0xc84018, 0, 64 * 1024, 256, SECT_4K) },
 
 	/* Intel/Numonyx -- xxxs33b */
 	{ "160s33b",  INFO(0x898911, 0, 64 * 1024,  32, 0) },
@@ -883,6 +884,13 @@ static int set_quad_mode(struct spi_nor *nor, u32 jedec_id)
 		status = macronix_quad_enable(nor);
 		if (status) {
 			dev_err(nor->dev, "Macronix quad-read not enabled\n");
+			return -EINVAL;
+		}
+		return status;
+	case CFI_MFR_ST:
+		status = micron_quad_enable(nor);
+		if (status) {
+			dev_err(nor->dev, "Micron quad-read not enabled\n");
 			return -EINVAL;
 		}
 		return status;

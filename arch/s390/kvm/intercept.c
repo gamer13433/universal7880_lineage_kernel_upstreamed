@@ -55,18 +55,27 @@ static int handle_noop(struct kvm_vcpu *vcpu)
 
 static int handle_stop(struct kvm_vcpu *vcpu)
 {
+	struct kvm_s390_local_interrupt *li = &vcpu->arch.local_int;
 	int rc = 0;
-	unsigned int action_bits;
+	uint8_t flags, stop_pending;
 
 	vcpu->stat.exit_stop_request++;
-	trace_kvm_s390_stop_request(vcpu->arch.local_int.action_bits);
 
-	action_bits = vcpu->arch.local_int.action_bits;
-
-	if (!(action_bits & ACTION_STOP_ON_STOP))
+	/* delay the stop if any non-stop irq is pending */
+	if (kvm_s390_vcpu_has_irq(vcpu, 1))
 		return 0;
 
-	if (action_bits & ACTION_STORE_ON_STOP) {
+	/* avoid races with the injection/SIGP STOP code */
+	spin_lock(&li->lock);
+	flags = li->irq.stop.flags;
+	stop_pending = kvm_s390_is_stop_irq_pending(vcpu);
+	spin_unlock(&li->lock);
+
+	trace_kvm_s390_stop_request(stop_pending, flags);
+	if (!stop_pending)
+		return 0;
+
+	if (flags & KVM_S390_STOP_FLAG_STORE_STATUS) {
 		rc = kvm_s390_vcpu_store_status(vcpu,
 						KVM_S390_STORE_STATUS_NOADDR);
 		if (rc)
@@ -295,17 +304,19 @@ static int handle_mvpg_pei(struct kvm_vcpu *vcpu)
 	kvm_s390_get_regs_rre(vcpu, &reg1, &reg2);
 
 	/* Make sure that the source is paged-in */
-	srcaddr = kvm_s390_real_to_abs(vcpu, vcpu->run->s.regs.gprs[reg2]);
-	if (kvm_is_error_gpa(vcpu->kvm, srcaddr))
-		return kvm_s390_inject_program_int(vcpu, PGM_ADDRESSING);
+	rc = guest_translate_address(vcpu, vcpu->run->s.regs.gprs[reg2],
+				     &srcaddr, 0);
+	if (rc)
+		return kvm_s390_inject_prog_cond(vcpu, rc);
 	rc = kvm_arch_fault_in_page(vcpu, srcaddr, 0);
 	if (rc != 0)
 		return rc;
 
 	/* Make sure that the destination is paged-in */
-	dstaddr = kvm_s390_real_to_abs(vcpu, vcpu->run->s.regs.gprs[reg1]);
-	if (kvm_is_error_gpa(vcpu->kvm, dstaddr))
-		return kvm_s390_inject_program_int(vcpu, PGM_ADDRESSING);
+	rc = guest_translate_address(vcpu, vcpu->run->s.regs.gprs[reg1],
+				     &dstaddr, 1);
+	if (rc)
+		return kvm_s390_inject_prog_cond(vcpu, rc);
 	rc = kvm_arch_fault_in_page(vcpu, dstaddr, 1);
 	if (rc != 0)
 		return rc;

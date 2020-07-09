@@ -37,6 +37,8 @@
 #include <net/bluetooth/l2cap.h>
 #include <net/bluetooth/mgmt.h>
 
+#include "hci_request.h"
+#include "hci_debugfs.h"
 #include "smp.h"
 
 static void hci_rx_work(struct work_struct *work);
@@ -1415,43 +1417,6 @@ static void le_setup(struct hci_request *req)
 		set_bit(HCI_LE_ENABLED, &hdev->dev_flags);
 }
 
-static u8 hci_get_inquiry_mode(struct hci_dev *hdev)
-{
-	if (lmp_ext_inq_capable(hdev))
-		return 0x02;
-
-	if (lmp_inq_rssi_capable(hdev))
-		return 0x01;
-
-	if (hdev->manufacturer == 11 && hdev->hci_rev == 0x00 &&
-	    hdev->lmp_subver == 0x0757)
-		return 0x01;
-
-	if (hdev->manufacturer == 15) {
-		if (hdev->hci_rev == 0x03 && hdev->lmp_subver == 0x6963)
-			return 0x01;
-		if (hdev->hci_rev == 0x09 && hdev->lmp_subver == 0x6963)
-			return 0x01;
-		if (hdev->hci_rev == 0x00 && hdev->lmp_subver == 0x6965)
-			return 0x01;
-	}
-
-	if (hdev->manufacturer == 31 && hdev->hci_rev == 0x2005 &&
-	    hdev->lmp_subver == 0x1805)
-		return 0x01;
-
-	return 0x00;
-}
-
-static void hci_setup_inquiry_mode(struct hci_request *req)
-{
-	u8 mode;
-
-	mode = hci_get_inquiry_mode(req->hdev);
-
-	hci_req_add(req, HCI_OP_WRITE_INQUIRY_MODE, 1, &mode);
-}
-
 static void hci_setup_event_mask(struct hci_request *req)
 {
 	struct hci_dev *hdev = req->hdev;
@@ -1541,10 +1506,16 @@ static void hci_init2_req(struct hci_request *req, unsigned long opt)
 	if (lmp_le_capable(hdev))
 		le_setup(req);
 
-	/* AVM Berlin (31), aka "BlueFRITZ!", doesn't support the read
-	 * local supported commands HCI command.
+	/* All Bluetooth 1.2 and later controllers should support the
+	 * HCI command for reading the local supported commands.
+	 *
+	 * Unfortunately some controllers indicate Bluetooth 1.2 support,
+	 * but do not have support for this command. If that is the case,
+	 * the driver can quirk the behavior and skip reading the local
+	 * supported commands.
 	 */
-	if (hdev->manufacturer != 31 && hdev->hci_ver > BLUETOOTH_VER_1_1)
+	if (hdev->hci_ver > BLUETOOTH_VER_1_1 &&
+	    !test_bit(HCI_QUIRK_BROKEN_LOCAL_COMMANDS, &hdev->quirks))
 		hci_req_add(req, HCI_OP_READ_LOCAL_COMMANDS, 0, NULL);
 
 	if (lmp_ssp_capable(hdev)) {
@@ -1558,6 +1529,7 @@ static void hci_init2_req(struct hci_request *req, unsigned long opt)
 
 		if (test_bit(HCI_SSP_ENABLED, &hdev->dev_flags)) {
 			u8 mode = 0x01;
+
 			hci_req_add(req, HCI_OP_WRITE_SSP_MODE,
 				    sizeof(mode), &mode);
 		} else {
@@ -1570,8 +1542,18 @@ static void hci_init2_req(struct hci_request *req, unsigned long opt)
 		}
 	}
 
-	if (lmp_inq_rssi_capable(hdev))
-		hci_setup_inquiry_mode(req);
+	if (lmp_inq_rssi_capable(hdev) ||
+	    test_bit(HCI_QUIRK_FIXUP_INQUIRY_MODE, &hdev->quirks)) {
+		u8 mode;
+
+		/* If Extended Inquiry Result events are supported, then
+		 * they are clearly preferred over Inquiry Result with RSSI
+		 * events.
+		 */
+		mode = lmp_ext_inq_capable(hdev) ? 0x02 : 0x01;
+
+		hci_req_add(req, HCI_OP_WRITE_INQUIRY_MODE, 1, &mode);
+	}
 
 	if (lmp_inq_tx_pwr_capable(hdev))
 		hci_req_add(req, HCI_OP_READ_INQ_RSP_TX_POWER, 0, NULL);
@@ -1670,27 +1652,12 @@ static void hci_init3_req(struct hci_request *req, unsigned long opt)
 
 	hci_setup_event_mask(req);
 
-	/* Some Broadcom based Bluetooth controllers do not support the
-	 * Delete Stored Link Key command. They are clearly indicating its
-	 * absence in the bit mask of supported commands.
-	 *
-	 * Check the supported commands and only if the the command is marked
-	 * as supported send it. If not supported assume that the controller
-	 * does not have actual support for stored link keys which makes this
-	 * command redundant anyway.
-	 *
-	 * Some controllers indicate that they support handling deleting
-	 * stored link keys, but they don't. The quirk lets a driver
-	 * just disable this command.
-	 */
-	if (hdev->commands[6] & 0x80 &&
-	    !test_bit(HCI_QUIRK_BROKEN_STORED_LINK_KEY, &hdev->quirks)) {
-		struct hci_cp_delete_stored_link_key cp;
+	if (hdev->commands[6] & 0x20) {
+		struct hci_cp_read_stored_link_key cp;
 
 		bacpy(&cp.bdaddr, BDADDR_ANY);
-		cp.delete_all = 0x01;
-		hci_req_add(req, HCI_OP_DELETE_STORED_LINK_KEY,
-			    sizeof(cp), &cp);
+		cp.read_all = 0x01;
+		hci_req_add(req, HCI_OP_READ_STORED_LINK_KEY, sizeof(cp), &cp);
 	}
 
 	if (hdev->commands[5] & 0x10)
@@ -1721,6 +1688,14 @@ static void hci_init3_req(struct hci_request *req, unsigned long opt)
 			hci_req_add(req, HCI_OP_LE_READ_ADV_TX_POWER, 0, NULL);
 		}
 
+		if (hdev->le_features[0] & HCI_LE_DATA_LEN_EXT) {
+			/* Read LE Maximum Data Length */
+			hci_req_add(req, HCI_OP_LE_READ_MAX_DATA_LEN, 0, NULL);
+
+			/* Read LE Suggested Default Data Length */
+			hci_req_add(req, HCI_OP_LE_READ_DEF_DATA_LEN, 0, NULL);
+		}
+
 		hci_set_le_support(req);
 	}
 
@@ -1737,6 +1712,29 @@ static void hci_init3_req(struct hci_request *req, unsigned long opt)
 static void hci_init4_req(struct hci_request *req, unsigned long opt)
 {
 	struct hci_dev *hdev = req->hdev;
+
+	/* Some Broadcom based Bluetooth controllers do not support the
+	 * Delete Stored Link Key command. They are clearly indicating its
+	 * absence in the bit mask of supported commands.
+	 *
+	 * Check the supported commands and only if the the command is marked
+	 * as supported send it. If not supported assume that the controller
+	 * does not have actual support for stored link keys which makes this
+	 * command redundant anyway.
+	 *
+	 * Some controllers indicate that they support handling deleting
+	 * stored link keys, but they don't. The quirk lets a driver
+	 * just disable this command.
+	 */
+	if (hdev->commands[6] & 0x80 &&
+	    !test_bit(HCI_QUIRK_BROKEN_STORED_LINK_KEY, &hdev->quirks)) {
+		struct hci_cp_delete_stored_link_key cp;
+
+		bacpy(&cp.bdaddr, BDADDR_ANY);
+		cp.delete_all = 0x01;
+		hci_req_add(req, HCI_OP_DELETE_STORED_LINK_KEY,
+			    sizeof(cp), &cp);
+	}
 
 	/* Set event mask page 2 if the HCI command for it is supported */
 	if (hdev->commands[22] & 0x04)
@@ -2580,6 +2578,7 @@ static int hci_dev_do_close(struct hci_dev *hdev)
 		cancel_delayed_work(&hdev->service_cache);
 
 	cancel_delayed_work_sync(&hdev->le_scan_disable);
+	cancel_delayed_work_sync(&hdev->le_scan_restart);
 
 	if (test_bit(HCI_MGMT, &hdev->dev_flags))
 		cancel_delayed_work_sync(&hdev->rpa_expired);
@@ -2632,6 +2631,8 @@ static int hci_dev_do_close(struct hci_dev *hdev)
 	hdev->flags &= BIT(HCI_RAW);
 	hdev->dev_flags &= ~HCI_PERSISTENT_MASK;
 
+	hci_discovery_set_state(hdev, DISCOVERY_STOPPED);
+
 	if (!test_and_clear_bit(HCI_AUTO_OFF, &hdev->dev_flags)) {
 		if (hdev->dev_type == HCI_BREDR) {
 			hci_dev_lock(hdev);
@@ -2677,31 +2678,13 @@ done:
 	return err;
 }
 
-int hci_dev_reset(__u16 dev)
+static int hci_dev_do_reset(struct hci_dev *hdev)
 {
-	struct hci_dev *hdev;
-	int ret = 0;
+	int ret;
 
-	hdev = hci_dev_get(dev);
-	if (!hdev)
-		return -ENODEV;
+	BT_DBG("%s %p", hdev->name, hdev);
 
 	hci_req_lock(hdev);
-
-	if (!test_bit(HCI_UP, &hdev->flags)) {
-		ret = -ENETDOWN;
-		goto done;
-	}
-
-	if (test_bit(HCI_USER_CHANNEL, &hdev->dev_flags)) {
-		ret = -EBUSY;
-		goto done;
-	}
-
-	if (test_bit(HCI_UNCONFIGURED, &hdev->dev_flags)) {
-		ret = -EOPNOTSUPP;
-		goto done;
-	}
 
 	/* Drop queues */
 	skb_queue_purge(&hdev->rx_q);
@@ -2720,10 +2703,39 @@ int hci_dev_reset(__u16 dev)
 
 	ret = __hci_req_sync(hdev, hci_reset_req, 0, HCI_INIT_TIMEOUT);
 
-done:
 	hci_req_unlock(hdev);
-	hci_dev_put(hdev);
 	return ret;
+}
+
+int hci_dev_reset(__u16 dev)
+{
+	struct hci_dev *hdev;
+	int err;
+
+	hdev = hci_dev_get(dev);
+	if (!hdev)
+		return -ENODEV;
+
+	if (!test_bit(HCI_UP, &hdev->flags)) {
+		err = -ENETDOWN;
+		goto done;
+	}
+
+	if (test_bit(HCI_USER_CHANNEL, &hdev->dev_flags)) {
+		err = -EBUSY;
+		goto done;
+	}
+
+	if (test_bit(HCI_UNCONFIGURED, &hdev->dev_flags)) {
+		err = -EOPNOTSUPP;
+		goto done;
+	}
+
+	err = hci_dev_do_reset(hdev);
+
+done:
+	hci_dev_put(hdev);
+	return err;
 }
 
 int hci_dev_reset_stat(__u16 dev)
@@ -3087,6 +3099,24 @@ static void hci_power_off(struct work_struct *work)
 	BT_DBG("%s", hdev->name);
 
 	hci_dev_do_close(hdev);
+}
+
+static void hci_error_reset(struct work_struct *work)
+{
+	struct hci_dev *hdev = container_of(work, struct hci_dev, error_reset);
+
+	BT_DBG("%s", hdev->name);
+
+	if (hdev->hw_error)
+		hdev->hw_error(hdev, hdev->hw_error_code);
+	else
+		BT_ERR("%s hardware error 0x%2.2x", hdev->name,
+		       hdev->hw_error_code);
+
+	if (hci_dev_do_close(hdev))
+		return;
+
+	hci_dev_do_open(hdev);
 }
 
 static void hci_discov_off(struct work_struct *work)
@@ -3613,23 +3643,6 @@ struct hci_conn_params *hci_conn_params_lookup(struct hci_dev *hdev,
 	return NULL;
 }
 
-static bool is_connected(struct hci_dev *hdev, bdaddr_t *addr, u8 type)
-{
-	struct hci_conn *conn;
-
-	conn = hci_conn_hash_lookup_ba(hdev, LE_LINK, addr);
-	if (!conn)
-		return false;
-
-	if (conn->dst_type != type)
-		return false;
-
-	if (conn->state != BT_CONNECTED)
-		return false;
-
-	return true;
-}
-
 /* This function requires the caller holds hdev->lock */
 struct hci_conn_params *hci_pend_le_action_lookup(struct list_head *list,
 						  bdaddr_t *addr, u8 addr_type)
@@ -3683,47 +3696,6 @@ struct hci_conn_params *hci_conn_params_add(struct hci_dev *hdev,
 	BT_DBG("addr %pMR (type %u)", addr, addr_type);
 
 	return params;
-}
-
-/* This function requires the caller holds hdev->lock */
-int hci_conn_params_set(struct hci_dev *hdev, bdaddr_t *addr, u8 addr_type,
-			u8 auto_connect)
-{
-	struct hci_conn_params *params;
-
-	params = hci_conn_params_add(hdev, addr, addr_type);
-	if (!params)
-		return -EIO;
-
-	if (params->auto_connect == auto_connect)
-		return 0;
-
-	list_del_init(&params->action);
-
-	switch (auto_connect) {
-	case HCI_AUTO_CONN_DISABLED:
-	case HCI_AUTO_CONN_LINK_LOSS:
-		hci_update_background_scan(hdev);
-		break;
-	case HCI_AUTO_CONN_REPORT:
-		list_add(&params->action, &hdev->pend_le_reports);
-		hci_update_background_scan(hdev);
-		break;
-	case HCI_AUTO_CONN_DIRECT:
-	case HCI_AUTO_CONN_ALWAYS:
-		if (!is_connected(hdev, addr, addr_type)) {
-			list_add(&params->action, &hdev->pend_le_conns);
-			hci_update_background_scan(hdev);
-		}
-		break;
-	}
-
-	params->auto_connect = auto_connect;
-
-	BT_DBG("addr %pMR (type %u) auto_connect %u", addr, addr_type,
-	       auto_connect);
-
-	return 0;
 }
 
 static void hci_conn_params_free(struct hci_conn_params *params)
@@ -3782,7 +3754,7 @@ void hci_conn_params_clear_all(struct hci_dev *hdev)
 	BT_DBG("All LE connection parameters were removed");
 }
 
-static void inquiry_complete(struct hci_dev *hdev, u8 status)
+static void inquiry_complete(struct hci_dev *hdev, u8 status, u16 opcode)
 {
 	if (status) {
 		BT_ERR("Failed to start inquiry: status %d", status);
@@ -3794,7 +3766,8 @@ static void inquiry_complete(struct hci_dev *hdev, u8 status)
 	}
 }
 
-static void le_scan_disable_work_complete(struct hci_dev *hdev, u8 status)
+static void le_scan_disable_work_complete(struct hci_dev *hdev, u8 status,
+					  u16 opcode)
 {
 	/* General inquiry access code (GIAC) */
 	u8 lap[3] = { 0x33, 0x8b, 0x9e };
@@ -3806,6 +3779,8 @@ static void le_scan_disable_work_complete(struct hci_dev *hdev, u8 status)
 		BT_ERR("Failed to disable LE scanning: status %d", status);
 		return;
 	}
+
+	hdev->discovery.scan_start = 0;
 
 	switch (hdev->discovery.type) {
 	case DISCOV_TYPE_LE:
@@ -3845,6 +3820,8 @@ static void le_scan_disable_work(struct work_struct *work)
 	int err;
 
 	BT_DBG("%s", hdev->name);
+
+	cancel_delayed_work_sync(&hdev->le_scan_restart);
 
 	hci_req_init(&req, hdev);
 
@@ -3957,12 +3934,18 @@ int hci_update_random_address(struct hci_request *req, bool require_privacy,
  *
  * For debugging purposes it is possible to force controllers with a
  * public address to use the static random address instead.
+ *
+ * In case BR/EDR has been disabled on a dual-mode controller and
+ * userspace has configured a static address, then that address
+ * becomes the identity address instead of the public BR/EDR address.
  */
 void hci_copy_identity_address(struct hci_dev *hdev, bdaddr_t *bdaddr,
 			       u8 *bdaddr_type)
 {
 	if (test_bit(HCI_FORCE_STATIC_ADDR, &hdev->dbg_flags) ||
-	    !bacmp(&hdev->bdaddr, BDADDR_ANY)) {
+	    !bacmp(&hdev->bdaddr, BDADDR_ANY) ||
+	    (!test_bit(HCI_BREDR_ENABLED, &hdev->dev_flags) &&
+	     bacmp(&hdev->static_addr, BDADDR_ANY))) {
 		bacpy(bdaddr, &hdev->static_addr);
 		*bdaddr_type = ADDR_LE_DEV_RANDOM;
 	} else {
@@ -4001,6 +3984,12 @@ struct hci_dev *hci_alloc_dev(void)
 	hdev->le_conn_max_interval = 0x0038;
 	hdev->le_conn_latency = 0x0000;
 	hdev->le_supv_timeout = 0x002a;
+	hdev->le_def_tx_len = 0x001b;
+	hdev->le_def_tx_time = 0x0148;
+	hdev->le_max_tx_len = 0x001b;
+	hdev->le_max_tx_time = 0x0148;
+	hdev->le_max_rx_len = 0x001b;
+	hdev->le_max_rx_time = 0x0148;
 
 	hdev->rpa_timeout = HCI_DEFAULT_RPA_TIMEOUT;
 	hdev->discov_interleaved_timeout = DISCOV_INTERLEAVED_TIMEOUT;
@@ -4028,10 +4017,12 @@ struct hci_dev *hci_alloc_dev(void)
 	INIT_WORK(&hdev->cmd_work, hci_cmd_work);
 	INIT_WORK(&hdev->tx_work, hci_tx_work);
 	INIT_WORK(&hdev->power_on, hci_power_on);
+	INIT_WORK(&hdev->error_reset, hci_error_reset);
 
 	INIT_DELAYED_WORK(&hdev->power_off, hci_power_off);
 	INIT_DELAYED_WORK(&hdev->discov_off, hci_discov_off);
 	INIT_DELAYED_WORK(&hdev->le_scan_disable, le_scan_disable_work);
+	INIT_DELAYED_WORK(&hdev->le_scan_restart, le_scan_restart_work);
 
 	skb_queue_head_init(&hdev->rx_q);
 	skb_queue_head_init(&hdev->cmd_q);
@@ -4200,8 +4191,6 @@ void hci_unregister_dev(struct hci_dev *hdev)
 		rfkill_unregister(hdev->rfkill);
 		rfkill_destroy(hdev->rfkill);
 	}
-
-	smp_unregister(hdev);
 
 	device_del(&hdev->dev);
 
@@ -5348,7 +5337,7 @@ void hci_req_cmd_complete(struct hci_dev *hdev, u16 opcode, u8 status)
 
 call_complete:
 	if (req_complete)
-		req_complete(hdev, status);
+		req_complete(hdev, status, status ? opcode : HCI_OP_NOP);
 }
 
 static void hci_rx_work(struct work_struct *work)

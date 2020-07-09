@@ -710,7 +710,7 @@ static int mxs_saif_probe(struct platform_device *pdev)
 	struct device_node *np = pdev->dev.of_node;
 	struct resource *iores;
 	struct mxs_saif *saif;
-	int ret = 0;
+	int irq, ret = 0;
 	struct device_node *master;
 
 	if (!np)

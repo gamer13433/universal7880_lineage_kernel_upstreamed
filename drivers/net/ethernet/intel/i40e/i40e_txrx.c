@@ -586,6 +586,20 @@ void i40e_free_tx_resources(struct i40e_ring *tx_ring)
 }
 
 /**
+ * i40e_get_head - Retrieve head from head writeback
+ * @tx_ring:  tx ring to fetch head of
+ *
+ * Returns value of Tx ring head based on value stored
+ * in head write-back location
+ **/
+static inline u32 i40e_get_head(struct i40e_ring *tx_ring)
+{
+	void *head = (struct i40e_tx_desc *)tx_ring->desc + tx_ring->count;
+
+	return le32_to_cpu(*(volatile __le32 *)head);
+}
+
+/**
  * i40e_get_tx_pending - how many tx descriptors not processed
  * @tx_ring: the ring of descriptors
  *
@@ -594,10 +608,16 @@ void i40e_free_tx_resources(struct i40e_ring *tx_ring)
  **/
 static u32 i40e_get_tx_pending(struct i40e_ring *ring)
 {
-	u32 ntu = ((ring->next_to_clean <= ring->next_to_use)
-			? ring->next_to_use
-			: ring->next_to_use + ring->count);
-	return ntu - ring->next_to_clean;
+	u32 head, tail;
+
+	head = i40e_get_head(ring);
+	tail = readl(ring->tail);
+
+	if (head != tail)
+		return (head < tail) ?
+			tail - head : (tail + ring->count - head);
+
+	return 0;
 }
 
 /**
@@ -606,6 +626,8 @@ static u32 i40e_get_tx_pending(struct i40e_ring *ring)
  **/
 static bool i40e_check_tx_hang(struct i40e_ring *tx_ring)
 {
+	u32 tx_done = tx_ring->stats.packets;
+	u32 tx_done_old = tx_ring->tx_stats.tx_done_old;
 	u32 tx_pending = i40e_get_tx_pending(tx_ring);
 	struct i40e_pf *pf = tx_ring->vsi->back;
 	bool ret = false;
@@ -1062,6 +1084,8 @@ int i40e_setup_rx_descriptors(struct i40e_ring *rx_ring)
 	rx_ring->rx_bi = kzalloc(bi_size, GFP_KERNEL);
 	if (!rx_ring->rx_bi)
 		goto err;
+
+	u64_stats_init(&rx_ring->syncp);
 
 	/* Round up to nearest 4K */
 	rx_ring->size = ring_is_16byte_desc_enabled(rx_ring)
@@ -1772,8 +1796,8 @@ static int i40e_tx_prepare_vlan_flags(struct sk_buff *skb,
 	u32  tx_flags = 0;
 
 	/* if we have a HW VLAN tag being added, default to the HW one */
-	if (vlan_tx_tag_present(skb)) {
-		tx_flags |= vlan_tx_tag_get(skb) << I40E_TX_FLAGS_VLAN_SHIFT;
+	if (skb_vlan_tag_present(skb)) {
+		tx_flags |= skb_vlan_tag_get(skb) << I40E_TX_FLAGS_VLAN_SHIFT;
 		tx_flags |= I40E_TX_FLAGS_HW_VLAN;
 	/* else if it is a SW VLAN, check the next protocol and store the tag */
 	} else if (protocol == htons(ETH_P_8021Q)) {
@@ -1897,6 +1921,9 @@ static int i40e_tsyn(struct i40e_ring *tx_ring, struct sk_buff *skb,
 	 * we are not already transmitting a packet to be timestamped
 	 */
 	pf = i40e_netdev_to_pf(tx_ring->netdev);
+	if (!(pf->flags & I40E_FLAG_PTP))
+		return 0;
+
 	if (pf->ptp_tx &&
 	    !test_and_set_bit_lock(__I40E_PTP_TX_IN_PROGRESS, &pf->state)) {
 		skb_shinfo(skb)->tx_flags |= SKBTX_IN_PROGRESS;
@@ -2091,6 +2118,67 @@ static int i40e_maybe_stop_tx(struct i40e_ring *tx_ring, int size)
 	if (likely(I40E_DESC_UNUSED(tx_ring) >= size))
 		return 0;
 	return __i40e_maybe_stop_tx(tx_ring, size);
+}
+
+/**
+ * i40e_chk_linearize - Check if there are more than 8 fragments per packet
+ * @skb:      send buffer
+ * @tx_flags: collected send information
+ * @hdr_len:  size of the packet header
+ *
+ * Note: Our HW can't scatter-gather more than 8 fragments to build
+ * a packet on the wire and so we need to figure out the cases where we
+ * need to linearize the skb.
+ **/
+static bool i40e_chk_linearize(struct sk_buff *skb, u32 tx_flags,
+			       const u8 hdr_len)
+{
+	struct skb_frag_struct *frag;
+	bool linearize = false;
+	unsigned int size = 0;
+	u16 num_frags;
+	u16 gso_segs;
+
+	num_frags = skb_shinfo(skb)->nr_frags;
+	gso_segs = skb_shinfo(skb)->gso_segs;
+
+	if (tx_flags & (I40E_TX_FLAGS_TSO | I40E_TX_FLAGS_FSO)) {
+		u16 j = 1;
+
+		if (num_frags < (I40E_MAX_BUFFER_TXD))
+			goto linearize_chk_done;
+		/* try the simple math, if we have too many frags per segment */
+		if (DIV_ROUND_UP((num_frags + gso_segs), gso_segs) >
+		    I40E_MAX_BUFFER_TXD) {
+			linearize = true;
+			goto linearize_chk_done;
+		}
+		frag = &skb_shinfo(skb)->frags[0];
+		size = hdr_len;
+		/* we might still have more fragments per segment */
+		do {
+			size += skb_frag_size(frag);
+			frag++; j++;
+			if (j == I40E_MAX_BUFFER_TXD) {
+				if (size < skb_shinfo(skb)->gso_size) {
+					linearize = true;
+					break;
+				}
+				j = 1;
+				size -= skb_shinfo(skb)->gso_size;
+				if (size)
+					j++;
+				size += hdr_len;
+			}
+			num_frags--;
+		} while (num_frags);
+	} else {
+		if (num_frags >= I40E_MAX_BUFFER_TXD)
+			linearize = true;
+	}
+
+linearize_chk_done:
+	return linearize;
 }
 
 /**
@@ -2350,6 +2438,10 @@ static netdev_tx_t i40e_xmit_frame_ring(struct sk_buff *skb,
 
 	if (tsyn)
 		tx_flags |= I40E_TX_FLAGS_TSYN;
+
+	if (i40e_chk_linearize(skb, tx_flags, hdr_len))
+		if (skb_linearize(skb))
+			goto out_drop;
 
 	skb_tx_timestamp(skb);
 

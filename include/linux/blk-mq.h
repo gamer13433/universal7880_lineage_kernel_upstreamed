@@ -148,6 +148,12 @@ enum {
 
 	BLK_MQ_CPU_WORK_BATCH	= 8,
 };
+#define BLK_MQ_FLAG_TO_ALLOC_POLICY(flags) \
+	((flags >> BLK_MQ_F_ALLOC_POLICY_START_BIT) & \
+		((1 << BLK_MQ_F_ALLOC_POLICY_BITS) - 1))
+#define BLK_ALLOC_POLICY_TO_MQ_FLAG(policy) \
+	((policy & ((1 << BLK_MQ_F_ALLOC_POLICY_BITS) - 1)) \
+		<< BLK_MQ_F_ALLOC_POLICY_START_BIT)
 
 struct request_queue *blk_mq_init_queue(struct blk_mq_tag_set *);
 void blk_mq_finish_init(struct request_queue *q);
@@ -160,7 +166,6 @@ void blk_mq_free_tag_set(struct blk_mq_tag_set *set);
 void blk_mq_flush_plug_list(struct blk_plug *plug, bool from_schedule);
 
 void blk_mq_insert_request(struct request *, bool, bool, bool);
-void blk_mq_run_queues(struct request_queue *q, bool async);
 void blk_mq_free_request(struct request *rq);
 bool blk_mq_can_queue(struct blk_mq_hw_ctx *);
 struct request *blk_mq_alloc_request(struct request_queue *q, int rw,

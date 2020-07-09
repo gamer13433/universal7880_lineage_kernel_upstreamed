@@ -1277,7 +1277,6 @@ static int pxa25x_udc_start(struct usb_gadget *g,
 			goto bind_fail;
 	}
 
-	pullup(dev);
 	dump_state(dev);
 	return 0;
 bind_fail:

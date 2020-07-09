@@ -61,7 +61,8 @@ struct mount {
 	int mnt_group_id;		/* peer group identifier */
 	int mnt_expiry_mark;		/* true if marked for expiry */
 	struct hlist_head mnt_pins;
-	struct path mnt_ex_mountpoint;
+	struct fs_pin mnt_umount;
+	struct dentry *mnt_ex_mountpoint;
 };
 
 #define MNT_NS_INTERNAL ERR_PTR(-EINVAL) /* distinct from any mnt_namespace */

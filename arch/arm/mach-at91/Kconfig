@@ -22,6 +22,15 @@ config AT91_PMC_UNIT
 	bool
 	default !ARCH_AT91X40
 
+config HAVE_AT91_DBGU0
+	bool
+
+config HAVE_AT91_DBGU1
+	bool
+
+config HAVE_AT91_DBGU2
+	bool
+
 config COMMON_CLK_AT91
 	bool
 	default AT91_PMC_UNIT && USE_OF && !AT91_USE_OLD_CLK
@@ -49,6 +58,15 @@ config SOC_AT91SAM9
 	select GENERIC_CLOCKEVENTS
 	select MEMORY if USE_OF
 	select ATMEL_SDRAMC if USE_OF
+
+config SOC_AT91SAM9
+	bool
+	select ATMEL_AIC_IRQ
+	select COMMON_CLK_AT91
+	select CPU_ARM926T
+	select GENERIC_CLOCKEVENTS
+	select MEMORY
+	select ATMEL_SDRAMC
 
 config SOC_SAMA5
 	bool
@@ -111,6 +129,7 @@ config SOC_SAMA5D4
 	select CACHE_L2X0
 	select CACHE_PL310
 	select HAVE_FB_ATMEL
+	select HAVE_AT91_DBGU1
 	select HAVE_AT91_UTMI
 	select HAVE_AT91_SMD
 	select HAVE_AT91_USB_CLK

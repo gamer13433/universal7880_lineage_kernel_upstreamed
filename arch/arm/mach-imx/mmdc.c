@@ -51,7 +51,7 @@ static int imx_mmdc_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static struct of_device_id imx_mmdc_dt_ids[] = {
+static const struct of_device_id imx_mmdc_dt_ids[] = {
 	{ .compatible = "fsl,imx6q-mmdc", },
 	{ /* sentinel */ }
 };

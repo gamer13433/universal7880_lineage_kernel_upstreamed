@@ -8,6 +8,7 @@
 #include <asm/thread_info.h>
 #include <asm/memory.h>
 #include <asm/page.h>
+#include <asm/pgtable.h>
 
 #include "image.h"
 
@@ -38,6 +39,14 @@ jiffies = jiffies_64;
 	*(.hyp.text)					\
 	VMLINUX_SYMBOL(__hyp_text_end) = .;
 
+#ifdef CONFIG_DEBUG_ALIGN_RODATA
+#define ALIGN_DEBUG_RO			. = ALIGN(1<<SECTION_SHIFT);
+#define ALIGN_DEBUG_RO_MIN(min)		ALIGN_DEBUG_RO
+#else
+#define ALIGN_DEBUG_RO
+#define ALIGN_DEBUG_RO_MIN(min)		. = ALIGN(min);
+#endif
+
 SECTIONS
 {
 	/*
@@ -60,6 +69,7 @@ SECTIONS
 		_text = .;
 		HEAD_TEXT
 	}
+	ALIGN_DEBUG_RO
 	.text : {			/* Real text segment		*/
 		_stext = .;		/* Text and read-only data	*/
 			__exception_text_start = .;

@@ -755,8 +755,8 @@ rx_dequeued++;
 		}
 		eni_vcc->rxing--;
 		eni_vcc->rx_pos = ENI_PRV_POS(skb) & (eni_vcc->words-1);
-		pci_unmap_single(eni_dev->pci_dev,ENI_PRV_PADDR(skb),skb->len,
-		    PCI_DMA_TODEVICE);
+		dma_unmap_single(&eni_dev->pci_dev->dev,ENI_PRV_PADDR(skb),skb->len,
+			         DMA_TO_DEVICE);
 		if (!skb->len) dev_kfree_skb_irq(skb);
 		else {
 			EVENT("pushing (len=%ld)\n",skb->len,0);
@@ -1109,8 +1109,8 @@ DPRINTK("iovcnt = %d\n",skb_shinfo(skb)->nr_frags);
 		    vcc->dev->number);
 		return enq_jam;
 	}
-	paddr = pci_map_single(eni_dev->pci_dev,skb->data,skb->len,
-	    PCI_DMA_TODEVICE);
+	paddr = dma_map_single(&eni_dev->pci_dev->dev,skb->data,skb->len,
+			       DMA_TO_DEVICE);
 	ENI_PRV_PADDR(skb) = paddr;
 	/* prepare DMA queue entries */
 	j = 0;
@@ -1223,8 +1223,8 @@ static void dequeue_tx(struct atm_dev *dev)
 			break;
 		}
 		ENI_VCC(vcc)->txing -= ENI_PRV_SIZE(skb);
-		pci_unmap_single(eni_dev->pci_dev,ENI_PRV_PADDR(skb),skb->len,
-		    PCI_DMA_TODEVICE);
+		dma_unmap_single(&eni_dev->pci_dev->dev,ENI_PRV_PADDR(skb),skb->len,
+				 DMA_TO_DEVICE);
 		if (vcc->pop) vcc->pop(vcc,skb);
 		else dev_kfree_skb_irq(skb);
 		atomic_inc(&vcc->stats->tx);
@@ -2237,13 +2237,18 @@ static int eni_init_one(struct pci_dev *pci_dev,
 	if (rc < 0)
 		goto out;
 
+	rc = dma_set_mask_and_coherent(&pci_dev->dev, DMA_BIT_MASK(32));
+	if (rc < 0)
+		goto out;
+
 	rc = -ENOMEM;
 	eni_dev = kmalloc(sizeof(struct eni_dev), GFP_KERNEL);
 	if (!eni_dev)
 		goto err_disable;
 
 	zero = &eni_dev->zero;
-	zero->addr = pci_alloc_consistent(pci_dev, ENI_ZEROES_SIZE, &zero->dma);
+	zero->addr = dma_alloc_coherent(&pci_dev->dev,
+					ENI_ZEROES_SIZE, &zero->dma, GFP_KERNEL);
 	if (!zero->addr)
 		goto err_kfree;
 
@@ -2274,7 +2279,7 @@ err_eni_release:
 err_unregister:
 	atm_dev_deregister(dev);
 err_free_consistent:
-	pci_free_consistent(pci_dev, ENI_ZEROES_SIZE, zero->addr, zero->dma);
+	dma_free_coherent(&pci_dev->dev, ENI_ZEROES_SIZE, zero->addr, zero->dma);
 err_kfree:
 	kfree(eni_dev);
 err_disable:
@@ -2299,7 +2304,7 @@ static void eni_remove_one(struct pci_dev *pdev)
 
 	eni_do_release(dev);
 	atm_dev_deregister(dev);
-	pci_free_consistent(pdev, ENI_ZEROES_SIZE, zero->addr, zero->dma);
+	dma_free_coherent(&pdev->dev, ENI_ZEROES_SIZE, zero->addr, zero->dma);
 	kfree(ed);
 	pci_disable_device(pdev);
 }

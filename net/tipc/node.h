@@ -43,10 +43,10 @@
 #include "bearer.h"
 #include "msg.h"
 
-/*
- * Out-of-range value for node signature
- */
-#define INVALID_NODE_SIG 0x10000
+/* Out-of-range value for node signature */
+#define INVALID_NODE_SIG	0x10000
+
+#define NODE_HTABLE_SIZE	512
 
 /* Flags used to take different actions according to flag type
  * TIPC_WAIT_PEER_LINKS_DOWN: wait to see that peer's links are down
@@ -56,14 +56,16 @@
  * TIPC_DISTRIBUTE_NAME: publish or withdraw link state name type
  */
 enum {
+	TIPC_MSG_EVT                    = 1,
 	TIPC_WAIT_PEER_LINKS_DOWN	= (1 << 1),
 	TIPC_WAIT_OWN_LINKS_DOWN	= (1 << 2),
 	TIPC_NOTIFY_NODE_DOWN		= (1 << 3),
 	TIPC_NOTIFY_NODE_UP		= (1 << 4),
-	TIPC_WAKEUP_USERS		= (1 << 5),
-	TIPC_WAKEUP_BCAST_USERS		= (1 << 6),
-	TIPC_NOTIFY_LINK_UP		= (1 << 7),
-	TIPC_NOTIFY_LINK_DOWN		= (1 << 8)
+	TIPC_WAKEUP_BCAST_USERS		= (1 << 5),
+	TIPC_NOTIFY_LINK_UP		= (1 << 6),
+	TIPC_NOTIFY_LINK_DOWN		= (1 << 7),
+	TIPC_NAMED_MSG_EVT		= (1 << 8),
+	TIPC_BCAST_MSG_EVT		= (1 << 9)
 };
 
 /**
@@ -76,6 +78,7 @@ enum {
  * @deferred_head: oldest OOS b'cast message received from node
  * @deferred_tail: newest OOS b'cast message received from node
  * @reasm_buf: broadcast reassembly queue head from node
+ * @inputq_map: bitmap indicating which inqueues should be kicked
  * @recv_permitted: true if node is allowed to receive b'cast messages
  */
 struct tipc_node_bclink {
@@ -87,6 +90,7 @@ struct tipc_node_bclink {
 	struct sk_buff *deferred_head;
 	struct sk_buff *deferred_tail;
 	struct sk_buff *reasm_buf;
+	int inputq_map;
 	bool recv_permitted;
 };
 
@@ -94,7 +98,11 @@ struct tipc_node_bclink {
  * struct tipc_node - TIPC node structure
  * @addr: network address of node
  * @lock: spinlock governing access to structure
+ * @net: the applicable net namespace
  * @hash: links to adjacent nodes in unsorted hash chain
+ * @inputq: pointer to input queue containing messages for msg event
+ * @namedq: pointer to name table input queue with name table messages
+ * @curr_link: the link holding the node lock, if any
  * @active_links: pointers to active links to node
  * @links: pointers to all links to node
  * @action_flags: bit mask of different types of node actions
@@ -110,11 +118,14 @@ struct tipc_node_bclink {
 struct tipc_node {
 	u32 addr;
 	spinlock_t lock;
+	struct net *net;
 	struct hlist_node hash;
+	struct sk_buff_head *inputq;
+	struct sk_buff_head *namedq;
 	struct tipc_link *active_links[2];
 	u32 act_mtus[2];
 	struct tipc_link *links[MAX_BEARERS];
-	unsigned int action_flags;
+	int action_flags;
 	struct tipc_node_bclink bclink;
 	struct list_head list;
 	int link_cnt;
@@ -156,12 +167,12 @@ static inline bool tipc_node_blocked(struct tipc_node *node)
 		TIPC_NOTIFY_NODE_DOWN | TIPC_WAIT_OWN_LINKS_DOWN));
 }
 
-static inline uint tipc_node_get_mtu(u32 addr, u32 selector)
+static inline uint tipc_node_get_mtu(struct net *net, u32 addr, u32 selector)
 {
 	struct tipc_node *node;
 	u32 mtu;
 
-	node = tipc_node_find(addr);
+	node = tipc_node_find(net, addr);
 
 	if (likely(node))
 		mtu = node->act_mtus[selector & 1];

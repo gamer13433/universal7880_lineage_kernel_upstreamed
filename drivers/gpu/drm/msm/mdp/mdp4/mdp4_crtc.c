@@ -224,26 +224,6 @@ static void mdp4_crtc_destroy(struct drm_crtc *crtc)
 	kfree(mdp4_crtc);
 }
 
-static void mdp4_crtc_dpms(struct drm_crtc *crtc, int mode)
-{
-	struct mdp4_crtc *mdp4_crtc = to_mdp4_crtc(crtc);
-	struct mdp4_kms *mdp4_kms = get_kms(crtc);
-	bool enabled = (mode == DRM_MODE_DPMS_ON);
-
-	DBG("%s: mode=%d", mdp4_crtc->name, mode);
-
-	if (enabled != mdp4_crtc->enabled) {
-		if (enabled) {
-			mdp4_enable(mdp4_kms);
-			mdp_irq_register(&mdp4_kms->base, &mdp4_crtc->err);
-		} else {
-			mdp_irq_unregister(&mdp4_kms->base, &mdp4_crtc->err);
-			mdp4_disable(mdp4_kms);
-		}
-		mdp4_crtc->enabled = enabled;
-	}
-}
-
 static bool mdp4_crtc_mode_fixup(struct drm_crtc *crtc,
 		const struct drm_display_mode *mode,
 		struct drm_display_mode *adjusted_mode)
