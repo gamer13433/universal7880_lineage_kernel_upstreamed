@@ -1,26 +1,20 @@
 --- drivers/net/vxlan.c
 +++ drivers/net/vxlan.c
-@@ -1738,12 +1744,6 @@ static int vxlan6_xmit_skb(struct dst_entry *dst, struct sk_buff *skb,
- 		goto err;
+@@ -1218,7 +1218,7 @@ static int vxlan_udp_encap_recv(struct sock *sk, struct sk_buff *skb)
+ 			goto drop;
+ 
+ 		flags &= ~VXLAN_HF_RCO;
+-		vni &= VXLAN_VNI_MASK;
++		vni &= VXLAN_VID_MASK;
  	}
  
--	skb = iptunnel_handle_offloads(skb, udp_sum, type);
--	if (IS_ERR(skb)) {
--		err = -EINVAL;
--		goto err;
--	}
--
- 	vxh = (struct vxlanhdr *) __skb_push(skb, sizeof(*vxh));
- 	vxh->vx_flags = htonl(VXLAN_HF_VNI);
- 	vxh->vx_vni = md->vni;
-@@ -1823,10 +1827,6 @@ int vxlan_xmit_skb(struct rtable *rt, struct sk_buff *skb,
- 	if (WARN_ON(!skb))
- 		return -ENOMEM;
+ 	/* For backwards compatibility, only allow reserved fields to be
+@@ -1239,7 +1239,7 @@ static int vxlan_udp_encap_recv(struct sock *sk, struct sk_buff *skb)
+ 		flags &= ~VXLAN_GBP_USED_BITS;
+ 	}
  
--	skb = iptunnel_handle_offloads(skb, udp_sum, type);
--	if (IS_ERR(skb))
--		return PTR_ERR(skb);
--
- 	vxh = (struct vxlanhdr *) __skb_push(skb, sizeof(*vxh));
- 	vxh->vx_flags = htonl(VXLAN_HF_VNI);
- 	vxh->vx_vni = md->vni;
+-	if (flags || vni & ~VXLAN_VNI_MASK) {
++	if (flags || (vni & ~VXLAN_VID_MASK)) {
+ 		/* If there are any unprocessed flags remaining treat
+ 		 * this as a malformed packet. This behavior diverges from
+ 		 * VXLAN RFC (RFC7348) which stipulates that bits in reserved

@@ -6352,6 +6352,8 @@ static void i9xx_get_plane_config(struct intel_crtc *crtc,
 
 	val = I915_READ(DSPCNTR(plane));
 
+	val = I915_READ(DSPCNTR(plane));
+
 	if (INTEL_INFO(dev)->gen >= 4)
 		if (val & DISPPLANE_TILED)
 			plane_config->tiled = true;
@@ -7391,6 +7393,8 @@ static void ironlake_get_plane_config(struct intel_crtc *crtc,
 	}
 
 	val = I915_READ(DSPCNTR(plane));
+
+	val = I915_READ(DSPCNTR(pipe));
 
 	if (INTEL_INFO(dev)->gen >= 4)
 		if (val & DISPPLANE_TILED)

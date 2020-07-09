@@ -97,6 +97,12 @@
 
 #define DRIVER_NAME	"pl08xdmac"
 
+#define PL80X_DMA_BUSWIDTHS \
+	BIT(DMA_SLAVE_BUSWIDTH_UNDEFINED) | \
+	BIT(DMA_SLAVE_BUSWIDTH_1_BYTE) | \
+	BIT(DMA_SLAVE_BUSWIDTH_2_BYTES) | \
+	BIT(DMA_SLAVE_BUSWIDTH_4_BYTES)
+
 static struct amba_driver pl08x_amba_driver;
 struct pl08x_driver_data;
 

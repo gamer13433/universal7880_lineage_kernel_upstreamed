@@ -1029,7 +1029,7 @@ static int iwl_mvm_send_scan_offload_abort(struct iwl_mvm *mvm)
 		ret = -ENOENT;
 	}
 
-	return ret;
+	return 0;
 }
 
 int iwl_mvm_scan_offload_stop(struct iwl_mvm *mvm, bool notify)

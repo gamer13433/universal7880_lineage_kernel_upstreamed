@@ -330,6 +330,8 @@ static ssize_t codec_list_read_file(struct file *file, char __user *user_buf,
 	if (!buf)
 		return -ENOMEM;
 
+	mutex_lock(&client_mutex);
+
 	list_for_each_entry(codec, &codec_list, list) {
 		len = snprintf(buf + ret, PAGE_SIZE - ret, "%s\n",
 			       codec->component.name);
@@ -340,6 +342,8 @@ static ssize_t codec_list_read_file(struct file *file, char __user *user_buf,
 			break;
 		}
 	}
+
+	mutex_unlock(&client_mutex);
 
 	if (ret >= 0)
 		ret = simple_read_from_buffer(user_buf, count, ppos, buf, ret);
@@ -365,6 +369,8 @@ static ssize_t dai_list_read_file(struct file *file, char __user *user_buf,
 	if (!buf)
 		return -ENOMEM;
 
+	mutex_lock(&client_mutex);
+
 	list_for_each_entry(component, &component_list, list) {
 		list_for_each_entry(dai, &component->dai_list, list) {
 			len = snprintf(buf + ret, PAGE_SIZE - ret, "%s\n",
@@ -377,6 +383,8 @@ static ssize_t dai_list_read_file(struct file *file, char __user *user_buf,
 			}
 		}
 	}
+
+	mutex_unlock(&client_mutex);
 
 	ret = simple_read_from_buffer(user_buf, count, ppos, buf, ret);
 
@@ -401,6 +409,8 @@ static ssize_t platform_list_read_file(struct file *file,
 	if (!buf)
 		return -ENOMEM;
 
+	mutex_lock(&client_mutex);
+
 	list_for_each_entry(platform, &platform_list, list) {
 		len = snprintf(buf + ret, PAGE_SIZE - ret, "%s\n",
 			       platform->component.name);
@@ -411,6 +421,8 @@ static ssize_t platform_list_read_file(struct file *file,
 			break;
 		}
 	}
+
+	mutex_unlock(&client_mutex);
 
 	ret = simple_read_from_buffer(user_buf, count, ppos, buf, ret);
 
@@ -862,6 +874,8 @@ static struct snd_soc_component *soc_find_component(
 {
 	struct snd_soc_component *component;
 
+	lockdep_assert_held(&client_mutex);
+
 	list_for_each_entry(component, &component_list, list) {
 		if (of_node) {
 			if (component->dev->of_node == of_node)
@@ -879,6 +893,8 @@ static struct snd_soc_dai *snd_soc_find_dai(
 {
 	struct snd_soc_component *component;
 	struct snd_soc_dai *dai;
+
+	lockdep_assert_held(&client_mutex);
 
 	/* Find CPU DAI from registered DAIs*/
 	list_for_each_entry(component, &component_list, list) {
@@ -1588,6 +1604,7 @@ static int snd_soc_instantiate_card(struct snd_soc_card *card)
 	struct snd_soc_dai_link *dai_link;
 	int ret, i, order, dai_fmt;
 
+	mutex_lock(&client_mutex);
 	mutex_lock_nested(&card->mutex, SND_SOC_CARD_CLASS_INIT);
 
 	/* bind DAIs */
@@ -1810,6 +1827,7 @@ static int snd_soc_instantiate_card(struct snd_soc_card *card)
 	card->instantiated = 1;
 	snd_soc_dapm_sync(&card->dapm);
 	mutex_unlock(&card->mutex);
+	mutex_unlock(&client_mutex);
 
 	return 0;
 
@@ -1828,6 +1846,7 @@ card_probe_error:
 
 base_error:
 	mutex_unlock(&card->mutex);
+	mutex_unlock(&client_mutex);
 
 	return ret;
 }
@@ -4034,13 +4053,6 @@ static void snd_soc_component_del_unlocked(struct snd_soc_component *component)
 	list_del(&component->list);
 }
 
-static void snd_soc_component_del(struct snd_soc_component *component)
-{
-	mutex_lock(&client_mutex);
-	snd_soc_component_del_unlocked(component);
-	mutex_unlock(&client_mutex);
-}
-
 int snd_soc_register_component(struct device *dev,
 			       const struct snd_soc_component_driver *cmpnt_drv,
 			       struct snd_soc_dai_driver *dai_drv,
@@ -4088,14 +4100,17 @@ void snd_soc_unregister_component(struct device *dev)
 {
 	struct snd_soc_component *cmpnt;
 
+	mutex_lock(&client_mutex);
 	list_for_each_entry(cmpnt, &component_list, list) {
 		if (dev == cmpnt->dev && cmpnt->registered_as_component)
 			goto found;
 	}
+	mutex_unlock(&client_mutex);
 	return;
 
 found:
-	snd_soc_component_del(cmpnt);
+	snd_soc_component_del_unlocked(cmpnt);
+	mutex_unlock(&client_mutex);
 	snd_soc_component_cleanup(cmpnt);
 	kfree(cmpnt);
 }
@@ -4203,10 +4218,14 @@ struct snd_soc_platform *snd_soc_lookup_platform(struct device *dev)
 {
 	struct snd_soc_platform *platform;
 
+	mutex_lock(&client_mutex);
 	list_for_each_entry(platform, &platform_list, list) {
-		if (dev == platform->dev)
+		if (dev == platform->dev) {
+			mutex_unlock(&client_mutex);
 			return platform;
+		}
 	}
+	mutex_unlock(&client_mutex);
 
 	return NULL;
 }
@@ -4412,15 +4431,15 @@ void snd_soc_unregister_codec(struct device *dev)
 {
 	struct snd_soc_codec *codec;
 
+	mutex_lock(&client_mutex);
 	list_for_each_entry(codec, &codec_list, list) {
 		if (dev == codec->dev)
 			goto found;
 	}
+	mutex_unlock(&client_mutex);
 	return;
 
 found:
-
-	mutex_lock(&client_mutex);
 	list_del(&codec->list);
 	snd_soc_component_del_unlocked(&codec->component);
 	mutex_unlock(&client_mutex);

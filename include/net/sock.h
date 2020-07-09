@@ -922,7 +922,8 @@ static inline void sock_rps_reset_rxhash(struct sock *sk)
 		__rc = __condition;					\
 		if (!__rc) {						\
 			*(__timeo) = schedule_timeout(*(__timeo));	\
-		}							\
+  		}							\
+     	sched_annotate_sleep();		\
 		lock_sock(__sk);					\
 		__rc = __condition;					\
 		__rc;							\

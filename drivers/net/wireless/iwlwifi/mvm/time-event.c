@@ -683,7 +683,8 @@ void iwl_mvm_stop_p2p_roc(struct iwl_mvm *mvm)
 	mvmvif = NULL;
 	spin_lock_bh(&mvm->time_event_lock);
 	list_for_each_entry(te_data, &mvm->time_event_list, list) {
-		if (te_data->vif->type == NL80211_IFTYPE_P2P_DEVICE) {
+		if (te_data->vif->type == NL80211_IFTYPE_P2P_DEVICE &&
+		    te_data->running) {
 			mvmvif = iwl_mvm_vif_from_mac80211(te_data->vif);
 			break;
 		}

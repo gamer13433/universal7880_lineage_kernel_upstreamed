@@ -51,9 +51,7 @@ static void devm_phy_consume(struct device *dev, void *res)
 
 static int devm_phy_match(struct device *dev, void *res, void *match_data)
 {
-	struct phy **phy = res;
-
-	return *phy == match_data;
+	return res == match_data;
 }
 
 static struct phy *phy_lookup(struct device *device, const char *port)
@@ -217,6 +215,8 @@ int phy_exit(struct phy *phy)
 			dev_err(&phy->dev, "phy exit failed --> %d\n", ret);
 			goto out;
 		}
+	} else {
+		ret = 0; /* Override possible ret == -ENOTSUPP */
 	}
 	--phy->init_count;
 
@@ -315,6 +315,8 @@ int phy_power_off(struct phy *phy)
 			mutex_unlock(&phy->mutex);
 			return ret;
 		}
+	} else {
+		ret = 0; /* Override possible ret == -ENOTSUPP */
 	}
 	--phy->power_count;
 	mutex_unlock(&phy->mutex);

@@ -939,7 +939,8 @@ void iscsit_take_action_for_connection_exit(struct iscsi_conn *conn)
 
 	if (conn->conn_state == TARG_CONN_STATE_IN_LOGOUT) {
 		spin_unlock_bh(&conn->state_lock);
-		iscsit_close_connection(conn);
+		if (conn->conn_transport->transport_type == ISCSI_TCP)
+			iscsit_close_connection(conn);
 		return;
 	}
 

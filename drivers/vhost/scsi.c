@@ -1940,10 +1940,9 @@ static int tcm_vhost_make_nexus(struct tcm_vhost_tpg *tpg,
 		goto out;
 	}
 	/*
-	 * Now register the TCM vhost virtual I_T Nexus as active with the
-	 * call to __transport_register_session()
+	 * Now register the TCM vhost virtual I_T Nexus as active.
 	 */
-	__transport_register_session(se_tpg, tv_nexus->tvn_se_sess->se_node_acl,
+	transport_register_session(se_tpg, tv_nexus->tvn_se_sess->se_node_acl,
 			tv_nexus->tvn_se_sess, tv_nexus);
 	tpg->tpg_nexus = tv_nexus;
 

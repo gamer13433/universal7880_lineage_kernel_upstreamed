@@ -1698,8 +1698,6 @@ int mlx4_en_start_port(struct net_device *dev)
 	/* Schedule multicast task to populate multicast list */
 	queue_work(mdev->workqueue, &priv->rx_mode_task);
 
-	mlx4_set_stats_bitmap(mdev->dev, &priv->stats_bitmap);
-
 #ifdef CONFIG_MLX4_EN_VXLAN
 	if (priv->mdev->dev->caps.tunnel_offload_mode == MLX4_TUNNEL_OFFLOAD_MODE_VXLAN)
 		vxlan_get_rx_port(dev);
@@ -2653,6 +2651,8 @@ int mlx4_en_init_netdev(struct mlx4_en_dev *mdev, int port,
 	}
 
 	priv->registered = 1;
+
+	mlx4_set_stats_bitmap(mdev->dev, &priv->stats_bitmap);
 
 	return 0;
 

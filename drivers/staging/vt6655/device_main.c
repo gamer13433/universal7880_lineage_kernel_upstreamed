@@ -604,6 +604,16 @@ static void device_init_registers(struct vnt_private *pDevice)
 	pDevice->byRFType &= RF_MASK;
 	pr_debug("pDevice->byRFType = %x\n", pDevice->byRFType);
 
+	/* Get RFType */
+	pDevice->byRFType = SROMbyReadEmbedded(pDevice->PortOffset, EEP_OFS_RFTYPE);
+
+	/* force change RevID for VT3253 emu */
+	if ((pDevice->byRFType & RF_EMU) != 0)
+			pDevice->byRevId = 0x80;
+
+	pDevice->byRFType &= RF_MASK;
+	pr_debug("pDevice->byRFType = %x\n", pDevice->byRFType);
+
 	if (!pDevice->bZoneRegExist)
 		pDevice->byZoneType = pDevice->abyEEPROM[EEP_OFS_ZONETYPE];
 
