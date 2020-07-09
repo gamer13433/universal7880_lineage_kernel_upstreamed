@@ -1,22 +1,7 @@
 --- mm/page_alloc.c
 +++ mm/page_alloc.c
-@@ -1170,12 +1170,10 @@ static int try_to_steal_freepages(struct zone *zone, struct page *page,
- 
- 		/* Claim the whole block if over half of it is free */
- 		if (pages >= (1 << (pageblock_order-1)) ||
--				page_group_by_mobility_disabled) {
--
-+				page_group_by_mobility_disabled)
- 			set_pageblock_migratetype(page, start_type);
--			return start_type;
--		}
- 
-+		return start_type;
- 	}
- 
- 	return fallback_type;
-@@ -2382,8 +2380,15 @@ __alloc_pages_may_oom(gfp_t gfp_mask, unsigned int order,
- 		if (high_zoneidx < ZONE_NORMAL)
+@@ -2353,8 +2353,15 @@ __alloc_pages_may_oom(gfp_t gfp_mask, unsigned int order,
+ 		if (ac->high_zoneidx < ZONE_NORMAL)
  			goto out;
  		/* The OOM killer does not compensate for light reclaim */
 -		if (!(gfp_mask & __GFP_FS))

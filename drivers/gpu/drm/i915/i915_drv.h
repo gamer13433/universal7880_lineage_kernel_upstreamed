@@ -1909,7 +1909,16 @@ struct drm_i915_gem_request {
 	/** Position in the ringbuffer of the end of the request */
 	u32 tail;
 
-	/** Context related to this request */
+	/**
+	 * Context related to this request
+	 * Contexts are refcounted, so when this request is associated with a
+	 * context, we must increment the context's refcount, to guarantee that
+	 * it persists while any request is linked to it. Requests themselves
+	 * are also refcounted, so the request will only be freed when the last
+	 * reference to it is dismissed, and the code in
+	 * i915_gem_request_free() will then decrement the refcount on the
+	 * context.
+	 */
 	struct intel_context *ctx;
 
 	/** Batch buffer related to this request if any */
