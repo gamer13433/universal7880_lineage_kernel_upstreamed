@@ -49,7 +49,6 @@
  */
 #define VA_BITS			(CONFIG_ARM64_VA_BITS)
 #define PAGE_OFFSET		(UL(0xffffffffffffffff) << (VA_BITS - 1))
-#define PAGE_OFFSET_COHERENT	(UL(0xffffffffffffffff) << (VA_BITS - 2))
 #define MODULES_END		(PAGE_OFFSET)
 #define MODULES_VADDR		(MODULES_END - SZ_64M)
 #define PCI_IO_END		(MODULES_VADDR - SZ_2M)
@@ -80,13 +79,6 @@
  */
 #define __virt_to_phys(x)	(((phys_addr_t)(x) - PAGE_OFFSET + PHYS_OFFSET))
 #define __phys_to_virt(x)	((unsigned long)((x) - PHYS_OFFSET + PAGE_OFFSET))
-
-#define __phys_to_coherent_virt(x) \
-		((unsigned long)((x) - PHYS_OFFSET + PAGE_OFFSET_COHERENT))
-#define __virt_to_coherent_virt(x) \
-		((phys_addr_t)(x) - PAGE_OFFSET + PAGE_OFFSET_COHERENT)
-#define __coherent_virt_to_virt(x) \
-		((phys_addr_t)(x) + PAGE_OFFSET - PAGE_OFFSET_COHERENT)
 
 /*
  * Convert a physical address to a Page Frame Number and back
@@ -136,11 +128,13 @@ extern phys_addr_t		memstart_addr;
  * translation for translating DMA addresses.  Use the driver
  * DMA support - see dma-mapping.h.
  */
+#define virt_to_phys virt_to_phys
 static inline phys_addr_t virt_to_phys(const volatile void *x)
 {
 	return __virt_to_phys((unsigned long)(x));
 }
 
+#define phys_to_virt phys_to_virt
 static inline void *phys_to_virt(phys_addr_t x)
 {
 	return (void *)(__phys_to_virt(x));

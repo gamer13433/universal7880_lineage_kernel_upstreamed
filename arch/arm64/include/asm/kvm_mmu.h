@@ -160,8 +160,6 @@ static inline bool kvm_s2pmd_readonly(pmd_t *pmd)
 
 #define kvm_pgd_index(addr)	(((addr) >> PGDIR_SHIFT) & (PTRS_PER_S2_PGD - 1))
 
-#define kvm_pgd_index(addr)	(((addr) >> PGDIR_SHIFT) & (PTRS_PER_S2_PGD - 1))
-
 /*
  * If we are concatenating first level stage-2 page tables, we would have less
  * than or equal to 16 pointers in the fake PGD, because that's what the
@@ -268,7 +266,8 @@ static inline void __kvm_flush_dcache_pud(pud_t pud)
 
 #define kvm_virt_to_phys(x)		__virt_to_phys((unsigned long)(x))
 
-void stage2_flush_vm(struct kvm *kvm);
+void kvm_set_way_flush(struct kvm_vcpu *vcpu);
+void kvm_toggle_cache(struct kvm_vcpu *vcpu, bool was_enabled);
 
 #endif /* __ASSEMBLY__ */
 #endif /* __ARM64_KVM_MMU_H__ */

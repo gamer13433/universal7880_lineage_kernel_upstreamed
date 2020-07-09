@@ -396,28 +396,29 @@ el1_preempt:
 el0_sync:
 	kernel_entry 0
 	mrs	x25, esr_el1			// read the syndrome register
-	lsr	x24, x25, #ESR_EL1_EC_SHIFT	// exception class
-	cmp	x24, #ESR_EL1_EC_SVC64		// SVC in 64-bit state
+	lsr	x24, x25, #ESR_ELx_EC_SHIFT	// exception class
+	cmp	x24, #ESR_ELx_EC_SVC64		// SVC in 64-bit state
 	b.eq	el0_svc
-	cmp	x24, #ESR_EL1_EC_DABT_EL0	// data abort in EL0
+	cmp	x24, #ESR_ELx_EC_DABT_LOW	// data abort in EL0
 	b.eq	el0_da
-	cmp	x24, #ESR_EL1_EC_IABT_EL0	// instruction abort in EL0
+	cmp	x24, #ESR_ELx_EC_IABT_LOW	// instruction abort in EL0
 	b.eq	el0_ia
-	cmp	x24, #ESR_EL1_EC_FP_ASIMD	// FP/ASIMD access
+	cmp	x24, #ESR_ELx_EC_FP_ASIMD	// FP/ASIMD access
 	b.eq	el0_fpsimd_acc
-	cmp	x24, #ESR_EL1_EC_FP_EXC64	// FP/ASIMD exception
+	cmp	x24, #ESR_ELx_EC_FP_EXC64	// FP/ASIMD exception
 	b.eq	el0_fpsimd_exc
-	cmp	x24, #ESR_EL1_EC_SYS64		// configurable trap
-	b.eq	el0_sys
-	cmp	x24, #ESR_EL1_EC_SP_ALIGN	// stack alignment exception
-	b.eq	el0_sp_pc
-	cmp	x24, #ESR_EL1_EC_PC_ALIGN	// pc alignment exception
-	b.eq	el0_sp_pc
-	cmp	x24, #ESR_EL1_EC_UNKNOWN	// unknown exception in EL0
+	cmp	x24, #ESR_ELx_EC_SYS64		// configurable trap
 	b.eq	el0_undef
-	cmp	x24, #ESR_EL1_EC_BREAKPT_EL0	// debug exception in EL0
+	cmp	x24, #ESR_ELx_EC_SP_ALIGN	// stack alignment exception
+	b.eq	el0_sp_pc
+	cmp	x24, #ESR_ELx_EC_PC_ALIGN	// pc alignment exception
+	b.eq	el0_sp_pc
+	cmp	x24, #ESR_ELx_EC_UNKNOWN	// unknown exception in EL0
+	b.eq	el0_undef
+	cmp	x24, #ESR_ELx_EC_BREAKPT_LOW	// debug exception in EL0
 	b.ge	el0_dbg
 	b	el0_inv
+
 
 #ifdef CONFIG_COMPAT
 	.align	6
