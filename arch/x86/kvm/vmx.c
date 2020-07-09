@@ -4239,12 +4239,7 @@ static void vmx_deliver_posted_interrupt(struct kvm_vcpu *vcpu, int vector)
 
 	r = pi_test_and_set_on(&vmx->pi_desc);
 	kvm_make_request(KVM_REQ_EVENT, vcpu);
-#ifdef CONFIG_SMP
-	if (!r && (vcpu->mode == IN_GUEST_MODE))
-		apic->send_IPI_mask(get_cpu_mask(vcpu->cpu),
-				POSTED_INTR_VECTOR);
-	else
-#endif
+	if (r || !kvm_vcpu_trigger_posted_interrupt(vcpu))
 		kvm_vcpu_kick(vcpu);
 }
 

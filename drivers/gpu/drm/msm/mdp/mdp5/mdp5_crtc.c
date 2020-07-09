@@ -163,6 +163,11 @@ static void complete_flip(struct drm_crtc *crtc, struct drm_file *file)
 		if (plane)
 			mdp5_plane_complete_flip(plane);
 	}
+
+	if (mdp5_crtc->ctl && !crtc->state->enable) {
+		mdp5_ctl_release(mdp5_crtc->ctl);
+		mdp5_crtc->ctl = NULL;
+	}
 }
 
 static void pageflip_cb(struct msm_fence_cb *cb)

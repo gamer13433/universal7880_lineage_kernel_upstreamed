@@ -900,6 +900,7 @@ static void update_changeattr(struct inode *dir, struct nfs4_change_info *cinfo)
 	if (!cinfo->atomic || cinfo->before != dir->i_version)
 		nfs_force_lookup_revalidate(dir);
 	dir->i_version = cinfo->after;
+	nfsi->attr_gencount = nfs_inc_attr_generation_counter();
 	nfs_fscache_invalidate(dir);
 	spin_unlock(&dir->i_lock);
 }
@@ -1493,6 +1494,9 @@ static int nfs4_open_recover_helper(struct nfs4_opendata *opendata, fmode_t fmod
 
 	opendata->o_arg.open_flags = 0;
 	opendata->o_arg.fmode = fmode;
+	opendata->o_arg.share_access = nfs4_map_atomic_open_share(
+			NFS_SB(opendata->dentry->d_sb),
+			fmode, 0);
 	memset(&opendata->o_res, 0, sizeof(opendata->o_res));
 	memset(&opendata->c_res, 0, sizeof(opendata->c_res));
 	nfs4_init_opendata_res(opendata);
@@ -2354,8 +2358,8 @@ static int _nfs4_do_open(struct inode *dir,
 				opendata->o_res.f_attr, sattr,
 				state, label, olabel);
 		if (status == 0) {
-			nfs_setattr_update_inode(state->inode, sattr);
-			nfs_post_op_update_inode(state->inode, opendata->o_res.f_attr);
+			nfs_setattr_update_inode(state->inode, sattr,
+					opendata->o_res.f_attr);
 			nfs_setsecurity(state->inode, opendata->o_res.f_attr, olabel);
 		}
 	}
@@ -3254,7 +3258,7 @@ nfs4_proc_setattr(struct dentry *dentry, struct nfs_fattr *fattr,
 
 	status = nfs4_do_setattr(inode, cred, fattr, sattr, state, NULL, label);
 	if (status == 0) {
-		nfs_setattr_update_inode(inode, sattr);
+		nfs_setattr_update_inode(inode, sattr, fattr);
 		nfs_setsecurity(inode, fattr, label);
 	}
 	nfs4_label_free(label);
@@ -4200,7 +4204,7 @@ static int nfs4_write_done_cb(struct rpc_task *task,
 	}
 	if (task->tk_status >= 0) {
 		renew_lease(NFS_SERVER(inode), hdr->timestamp);
-		nfs_post_op_update_inode_force_wcc(inode, &hdr->fattr);
+		nfs_writeback_update_inode(hdr);
 	}
 	return 0;
 }
@@ -6833,9 +6837,13 @@ static int _nfs4_proc_exchange_id(struct nfs_client *clp, struct rpc_cred *cred,
 
 	if (status == 0) {
 		clp->cl_clientid = res.clientid;
-		clp->cl_exchange_flags = (res.flags & ~EXCHGID4_FLAG_CONFIRMED_R);
-		if (!(res.flags & EXCHGID4_FLAG_CONFIRMED_R))
+		clp->cl_exchange_flags = res.flags;
+		/* Client ID is not confirmed */
+		if (!(res.flags & EXCHGID4_FLAG_CONFIRMED_R)) {
+			clear_bit(NFS4_SESSION_ESTABLISHED,
+					&clp->cl_session->session_state);
 			clp->cl_seqid = res.seqid;
+		}
 
 		kfree(clp->cl_serverowner);
 		clp->cl_serverowner = res.server_owner;
@@ -7241,8 +7249,8 @@ int nfs4_proc_destroy_session(struct nfs4_session *session,
 	dprintk("--> nfs4_proc_destroy_session\n");
 
 	/* session is still being setup */
-	if (session->clp->cl_cons_state != NFS_CS_READY)
-		return status;
+	if (!test_and_clear_bit(NFS4_SESSION_ESTABLISHED, &session->session_state))
+		return 0;
 
 	status = rpc_call_sync(session->clp->cl_rpcclient, &msg, RPC_TASK_TIMEOUT);
 	trace_nfs4_destroy_session(session->clp, status);

@@ -49,6 +49,8 @@
 #include <asm/mach-types.h>
 #include <mach/hardware.h>
 
+#include <asm/mach-types.h>
+
 #include "../codecs/wm8731.h"
 #include "atmel-pcm.h"
 #include "atmel_ssc_dai.h"

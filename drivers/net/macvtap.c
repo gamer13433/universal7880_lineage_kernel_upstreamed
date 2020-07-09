@@ -704,7 +704,7 @@ static ssize_t macvtap_get_user(struct macvtap_queue *q, struct msghdr *m,
 			linear = vnet_hdr.hdr_len;
 	}
 
-	skb = macvtap_alloc_skb(&q->sk, NET_IP_ALIGN, copylen,
+	skb = macvtap_alloc_skb(&q->sk, MACVTAP_RESERVE, copylen,
 				linear, noblock, &err);
 	if (!skb)
 		goto err;

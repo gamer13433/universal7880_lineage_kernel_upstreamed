@@ -1,12 +1,21 @@
 --- drivers/net/ethernet/renesas/sh_eth.c
 +++ drivers/net/ethernet/renesas/sh_eth.c
-@@ -1392,9 +1392,6 @@ static void sh_eth_dev_exit(struct net_device *ndev)
+@@ -1391,6 +1390,9 @@ static void sh_eth_dev_exit(struct net_device *ndev)
  	msleep(2); /* max frame time at 10 Mbps < 1250 us */
  	sh_eth_get_stats(ndev);
  	sh_eth_reset(ndev);
--
--	/* Set MAC address again */
--	update_mac_address(ndev);
++
++	/* Set MAC address again */
++	update_mac_address(ndev);
  }
  
  /* free Tx skb function */
+@@ -2178,7 +2185,7 @@ static int sh_eth_start_xmit(struct sk_buff *skb, struct net_device *ndev)
+ 	}
+ 	spin_unlock_irqrestore(&mdp->lock, flags);
+ 
+-	if (skb_padto(skb, ETH_ZLEN))
++	if (skb_put_padto(skb, ETH_ZLEN))
+ 		return NETDEV_TX_OK;
+ 
+ 	entry = mdp->cur_tx % mdp->num_tx_ring;

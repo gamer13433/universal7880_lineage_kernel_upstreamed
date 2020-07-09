@@ -1041,6 +1041,9 @@ static noinline int commit_cowonly_roots(struct btrfs_trans_handle *trans,
 		ret = update_cowonly_root(trans, root);
 		if (ret)
 			return ret;
+		ret = btrfs_run_delayed_refs(trans, root, (unsigned long)-1);
+		if (ret)
+			return ret;
 	}
 
 	list_add_tail(&fs_info->extent_root->dirty_list,

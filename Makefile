@@ -1,8 +1,8 @@
 VERSION = 4
 PATCHLEVEL = 0
 SUBLEVEL = 0
-EXTRAVERSION = -rc2
-NAME = Shuffling Zombie Juror
+EXTRAVERSION = -rc3
+NAME = Hurr durr I'ma sheep
 
 # *DOCUMENTATION*
 # To see a list of typical targets execute "make help"

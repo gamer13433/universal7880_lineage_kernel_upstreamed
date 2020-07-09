@@ -500,7 +500,6 @@ static struct sh_eth_cpu_data r8a779x_data = {
 	.tpauser	= 1,
 	.hw_swap	= 1,
 	.rmiimode	= 1,
-	.shift_rd0	= 1,
 };
 
 static void sh_eth_set_rate_sh7724(struct net_device *ndev)
@@ -1361,6 +1360,8 @@ static int sh_eth_txfree(struct net_device *ndev)
 		txdesc = &mdp->tx_ring[entry];
 		if (txdesc->status & cpu_to_edmac(mdp, TD_TACT))
 			break;
+		/* TACT bit must be checked before all the following reads */
+		rmb();
 		/* Free the original skb. */
 		if (mdp->tx_skbuff[entry]) {
 			dma_unmap_single(&ndev->dev, txdesc->addr,
@@ -1394,6 +1395,8 @@ static int sh_eth_rx(struct net_device *ndev, u32 intr_status, int *quota)
 
 	rxdesc = &mdp->rx_ring[entry];
 	while (!(rxdesc->status & cpu_to_edmac(mdp, RD_RACT))) {
+		/* RACT bit must be checked before all the following reads */
+		rmb();
 		desc_status = edmac_to_cpu(mdp, rxdesc->status);
 		pkt_len = rxdesc->frame_length;
 
@@ -1410,8 +1413,8 @@ static int sh_eth_rx(struct net_device *ndev, u32 intr_status, int *quota)
 
 		/* In case of almost all GETHER/ETHERs, the Receive Frame State
 		 * (RFS) bits in the Receive Descriptor 0 are from bit 9 to
-		 * bit 0. However, in case of the R8A7740, R8A779x, and
-		 * R7S72100 the RFS bits are from bit 25 to bit 16. So, the
+		 * bit 0. However, in case of the R8A7740 and R7S72100
+		 * the RFS bits are from bit 25 to bit 16. So, the
 		 * driver needs right shifting by 16.
 		 */
 		if (mdp->cd->shift_rd0)
@@ -1473,6 +1476,7 @@ static int sh_eth_rx(struct net_device *ndev, u32 intr_status, int *quota)
 			skb_checksum_none_assert(skb);
 			rxdesc->addr = virt_to_phys(PTR_ALIGN(skb->data, 4));
 		}
+		wmb(); /* RACT bit must be set after all the above writes */
 		if (entry >= mdp->num_rx_ring - 1)
 			rxdesc->status |=
 				cpu_to_edmac(mdp, RD_RACT | RD_RFP | RD_RDEL);
@@ -1485,7 +1489,7 @@ static int sh_eth_rx(struct net_device *ndev, u32 intr_status, int *quota)
 	/* If we don't need to check status, don't. -KDU */
 	if (!(sh_eth_read(ndev, EDRRR) & EDRRR_R)) {
 		/* fix the values for the next receiving if RDE is set */
-		if (intr_status & EESR_RDE) {
+		if (intr_status & EESR_RDE && mdp->reg_offset[RDFAR] != 0) {
 			u32 count = (sh_eth_read(ndev, RDFAR) -
 				     sh_eth_read(ndev, RDLAR)) >> 4;
 
@@ -2114,6 +2118,7 @@ static int sh_eth_start_xmit(struct sk_buff *skb, struct net_device *ndev)
 	else
 		txdesc->buffer_length = skb->len;
 
+	wmb(); /* TACT bit must be set after all the above writes */
 	if (entry >= mdp->num_tx_ring - 1)
 		txdesc->status |= cpu_to_edmac(mdp, TD_TACT | TD_TDLE);
 	else

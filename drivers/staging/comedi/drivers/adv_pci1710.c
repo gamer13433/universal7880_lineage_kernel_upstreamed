@@ -456,6 +456,7 @@ static int pci171x_insn_read_ai(struct comedi_device *dev,
 				struct comedi_insn *insn, unsigned int *data)
 {
 	struct pci1710_private *devpriv = dev->private;
+	unsigned int chan = CR_CHAN(insn->chanspec);
 	int ret = 0;
 	int i;
 

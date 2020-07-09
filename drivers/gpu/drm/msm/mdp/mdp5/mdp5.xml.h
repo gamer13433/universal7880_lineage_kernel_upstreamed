@@ -765,6 +765,7 @@ static inline uint32_t __offset_LM(uint32_t idx)
 		case 2: return (mdp5_cfg->lm.base[2]);
 		case 3: return (mdp5_cfg->lm.base[3]);
 		case 4: return (mdp5_cfg->lm.base[4]);
+		case 5: return (mdp5_cfg->lm.base[5]);
 		default: return INVALID_IDX(idx);
 	}
 }

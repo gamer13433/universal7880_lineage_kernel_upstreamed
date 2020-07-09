@@ -62,6 +62,7 @@ config CM36651
 config GP2AP020A00F
 	tristate "Sharp GP2AP020A00F Proximity/ALS sensor"
 	depends on I2C
+	select REGMAP_I2C
 	select IIO_BUFFER
 	select IIO_TRIGGERED_BUFFER
 	select IRQ_WORK
@@ -165,6 +166,7 @@ config TCS3472
 config SENSORS_TSL2563
 	tristate "TAOS TSL2560, TSL2561, TSL2562 and TSL2563 ambient light sensors"
 	depends on I2C
+	select REGMAP_I2C
 	help
 	 If you say yes here you get support for the Taos TSL2560,
 	 TSL2561, TSL2562 and TSL2563 ambient light sensors.

@@ -164,22 +164,33 @@ MODULE_DESCRIPTION("AMD 10GbE (amd-xgbe) PHY driver");
 #define SPEED_2500_RATE			0x1
 #define SPEED_2500_TXAMP		0xf
 #define SPEED_2500_WORD			0x1
+#define SPEED_2500_DFE_TAP_CONFIG	0x3
+#define SPEED_2500_DFE_TAP_ENABLE	0x0
 
 #define SPEED_1000_CDR			0x2
 #define SPEED_1000_PLL			0x0
 #define SPEED_1000_RATE			0x3
 #define SPEED_1000_TXAMP		0xf
 #define SPEED_1000_WORD			0x1
+#define SPEED_1000_DFE_TAP_CONFIG	0x3
+#define SPEED_1000_DFE_TAP_ENABLE	0x0
 
 /* SerDes RxTx register offsets */
+#define RXTX_REG6			0x0018
 #define RXTX_REG20			0x0050
+#define RXTX_REG22			0x0058
 #define RXTX_REG114			0x01c8
+#define RXTX_REG129			0x0204
 
 /* SerDes RxTx register entry bit positions and sizes */
+#define RXTX_REG6_RESETB_RXD_INDEX	8
+#define RXTX_REG6_RESETB_RXD_WIDTH	1
 #define RXTX_REG20_BLWC_ENA_INDEX	2
 #define RXTX_REG20_BLWC_ENA_WIDTH	1
 #define RXTX_REG114_PQ_REG_INDEX	9
 #define RXTX_REG114_PQ_REG_WIDTH	7
+#define RXTX_REG129_RXDFE_CONFIG_INDEX	14
+#define RXTX_REG129_RXDFE_CONFIG_WIDTH	2
 
 #define RXTX_10000_BLWC			0
 #define RXTX_10000_PQ			0x1e
@@ -290,6 +301,18 @@ do {									\
 		 _reg##_##_field##_WIDTH, (_val));			\
 	XRXTX_IOWRITE((_priv), _reg, reg_val);				\
 } while (0)
+
+static const u32 amd_xgbe_phy_serdes_dfe_tap_cfg[] = {
+	SPEED_1000_DFE_TAP_CONFIG,
+	SPEED_2500_DFE_TAP_CONFIG,
+	SPEED_10000_DFE_TAP_CONFIG,
+};
+
+static const u32 amd_xgbe_phy_serdes_dfe_tap_ena[] = {
+	SPEED_1000_DFE_TAP_ENABLE,
+	SPEED_2500_DFE_TAP_ENABLE,
+	SPEED_10000_DFE_TAP_ENABLE,
+};
 
 enum amd_xgbe_phy_an {
 	AMD_XGBE_AN_READY = 0,
@@ -423,11 +446,16 @@ static void amd_xgbe_phy_serdes_complete_ratechange(struct phy_device *phydev)
 		status = XSIR0_IOREAD(priv, SIR0_STATUS);
 		if (XSIR_GET_BITS(status, SIR0_STATUS, RX_READY) &&
 		    XSIR_GET_BITS(status, SIR0_STATUS, TX_READY))
-			return;
+			goto rx_reset;
 	}
 
 	netdev_dbg(phydev->attached_dev, "SerDes rx/tx not ready (%#hx)\n",
 		   status);
+
+rx_reset:
+	/* Perform Rx reset for the DFE changes */
+	XRXTX_IOWRITE_BITS(priv, RXTX_REG6, RESETB_RXD, 0);
+	XRXTX_IOWRITE_BITS(priv, RXTX_REG6, RESETB_RXD, 1);
 }
 
 static int amd_xgbe_phy_xgmii_mode(struct phy_device *phydev)
@@ -1375,6 +1403,38 @@ static int amd_xgbe_phy_probe(struct phy_device *phydev)
 	if (!priv->an_workqueue) {
 		ret = -ENOMEM;
 		goto err_sir1;
+	}
+
+	if (device_property_present(phy_dev, XGBE_PHY_DFE_CFG_PROPERTY)) {
+		ret = device_property_read_u32_array(phy_dev,
+						     XGBE_PHY_DFE_CFG_PROPERTY,
+						     priv->serdes_dfe_tap_cfg,
+						     XGBE_PHY_SPEEDS);
+		if (ret) {
+			dev_err(dev, "invalid %s property\n",
+				XGBE_PHY_DFE_CFG_PROPERTY);
+			goto err_sir1;
+		}
+	} else {
+		memcpy(priv->serdes_dfe_tap_cfg,
+		       amd_xgbe_phy_serdes_dfe_tap_cfg,
+		       sizeof(priv->serdes_dfe_tap_cfg));
+	}
+
+	if (device_property_present(phy_dev, XGBE_PHY_DFE_ENA_PROPERTY)) {
+		ret = device_property_read_u32_array(phy_dev,
+						     XGBE_PHY_DFE_ENA_PROPERTY,
+						     priv->serdes_dfe_tap_ena,
+						     XGBE_PHY_SPEEDS);
+		if (ret) {
+			dev_err(dev, "invalid %s property\n",
+				XGBE_PHY_DFE_ENA_PROPERTY);
+			goto err_sir1;
+		}
+	} else {
+		memcpy(priv->serdes_dfe_tap_ena,
+		       amd_xgbe_phy_serdes_dfe_tap_ena,
+		       sizeof(priv->serdes_dfe_tap_ena));
 	}
 
 	phydev->priv = priv;

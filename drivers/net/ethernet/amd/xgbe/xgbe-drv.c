@@ -444,6 +444,68 @@ static void xgbe_napi_disable(struct xgbe_prv_data *pdata, unsigned int del)
 		netif_napi_del(&pdata->napi);
 }
 
+static int xgbe_request_irqs(struct xgbe_prv_data *pdata)
+{
+	struct xgbe_channel *channel;
+	struct net_device *netdev = pdata->netdev;
+	unsigned int i;
+	int ret;
+
+	ret = devm_request_irq(pdata->dev, pdata->dev_irq, xgbe_isr, 0,
+			       netdev->name, pdata);
+	if (ret) {
+		netdev_alert(netdev, "error requesting irq %d\n",
+			     pdata->dev_irq);
+		return ret;
+	}
+
+	if (!pdata->per_channel_irq)
+		return 0;
+
+	channel = pdata->channel;
+	for (i = 0; i < pdata->channel_count; i++, channel++) {
+		snprintf(channel->dma_irq_name,
+			 sizeof(channel->dma_irq_name) - 1,
+			 "%s-TxRx-%u", netdev_name(netdev),
+			 channel->queue_index);
+
+		ret = devm_request_irq(pdata->dev, channel->dma_irq,
+				       xgbe_dma_isr, 0,
+				       channel->dma_irq_name, channel);
+		if (ret) {
+			netdev_alert(netdev, "error requesting irq %d\n",
+				     channel->dma_irq);
+			goto err_irq;
+		}
+	}
+
+	return 0;
+
+err_irq:
+	/* Using an unsigned int, 'i' will go to UINT_MAX and exit */
+	for (i--, channel--; i < pdata->channel_count; i--, channel--)
+		devm_free_irq(pdata->dev, channel->dma_irq, channel);
+
+	devm_free_irq(pdata->dev, pdata->dev_irq, pdata);
+
+	return ret;
+}
+
+static void xgbe_free_irqs(struct xgbe_prv_data *pdata)
+{
+	struct xgbe_channel *channel;
+	unsigned int i;
+
+	devm_free_irq(pdata->dev, pdata->dev_irq, pdata);
+
+	if (!pdata->per_channel_irq)
+		return;
+
+	channel = pdata->channel;
+	for (i = 0; i < pdata->channel_count; i++, channel++)
+		devm_free_irq(pdata->dev, channel->dma_irq, channel);
+}
+
 void xgbe_init_tx_coalesce(struct xgbe_prv_data *pdata)
 {
 	struct xgbe_hw_if *hw_if = &pdata->hw_if;
@@ -645,19 +707,19 @@ int xgbe_powerdown(struct net_device *netdev, unsigned int caller)
 		return -EINVAL;
 	}
 
-	phy_stop(pdata->phydev);
-
 	spin_lock_irqsave(&pdata->lock, flags);
 
 	if (caller == XGMAC_DRIVER_CONTEXT)
 		netif_device_detach(netdev);
 
 	netif_tx_stop_all_queues(netdev);
-	xgbe_napi_disable(pdata, 0);
 
-	/* Powerdown Tx/Rx */
 	hw_if->powerdown_tx(pdata);
 	hw_if->powerdown_rx(pdata);
+
+	xgbe_napi_disable(pdata, 0);
+
+	phy_stop(pdata->phydev);
 
 	pdata->power_down = 1;
 
@@ -689,14 +751,14 @@ int xgbe_powerup(struct net_device *netdev, unsigned int caller)
 
 	phy_start(pdata->phydev);
 
-	/* Enable Tx/Rx */
+	xgbe_napi_enable(pdata, 0);
+
 	hw_if->powerup_tx(pdata);
 	hw_if->powerup_rx(pdata);
 
 	if (caller == XGMAC_DRIVER_CONTEXT)
 		netif_device_attach(netdev);
 
-	xgbe_napi_enable(pdata, 0);
 	netif_tx_start_all_queues(netdev);
 
 	spin_unlock_irqrestore(&pdata->lock, flags);
@@ -710,6 +772,7 @@ static int xgbe_start(struct xgbe_prv_data *pdata)
 {
 	struct xgbe_hw_if *hw_if = &pdata->hw_if;
 	struct net_device *netdev = pdata->netdev;
+	int ret;
 
 	DBGPR("-->xgbe_start\n");
 
@@ -719,17 +782,31 @@ static int xgbe_start(struct xgbe_prv_data *pdata)
 
 	phy_start(pdata->phydev);
 
+	xgbe_napi_enable(pdata, 1);
+
+	ret = xgbe_request_irqs(pdata);
+	if (ret)
+		goto err_napi;
+
 	hw_if->enable_tx(pdata);
 	hw_if->enable_rx(pdata);
 
 	xgbe_init_tx_timers(pdata);
 
-	xgbe_napi_enable(pdata, 1);
 	netif_tx_start_all_queues(netdev);
 
 	DBGPR("<--xgbe_start\n");
 
 	return 0;
+
+err_napi:
+	xgbe_napi_disable(pdata, 1);
+
+	phy_stop(pdata->phydev);
+
+	hw_if->exit(pdata);
+
+	return ret;
 }
 
 static void xgbe_stop(struct xgbe_prv_data *pdata)

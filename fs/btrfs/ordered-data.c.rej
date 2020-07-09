@@ -1,13 +1,13 @@
 --- fs/btrfs/ordered-data.c
 +++ fs/btrfs/ordered-data.c
-@@ -452,7 +452,9 @@ void btrfs_get_logged_extents(struct inode *inode,
+@@ -452,9 +452,7 @@ void btrfs_get_logged_extents(struct inode *inode,
  			continue;
  		if (entry_end(ordered) <= start)
  			break;
--		if (test_and_set_bit(BTRFS_ORDERED_LOGGED, &ordered->flags))
-+		if (!list_empty(&ordered->log_list))
-+			continue;
-+		if (test_bit(BTRFS_ORDERED_LOGGED, &ordered->flags))
+-		if (!list_empty(&ordered->log_list))
+-			continue;
+-		if (test_bit(BTRFS_ORDERED_LOGGED, &ordered->flags))
++		if (test_and_set_bit(BTRFS_ORDERED_LOGGED, &ordered->flags))
  			continue;
  		list_add(&ordered->log_list, logged_list);
  		atomic_inc(&ordered->refs);
