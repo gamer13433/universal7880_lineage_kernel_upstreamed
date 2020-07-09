@@ -42,7 +42,6 @@
 #include <linux/mlx4/device.h>
 #include <linux/semaphore.h>
 #include <rdma/ib_smi.h>
-#include <linux/delay.h>
 
 #include <asm/io.h>
 
@@ -183,72 +182,6 @@ static u8 mlx4_errno_to_status(int errno)
 	}
 }
 
-static int mlx4_internal_err_ret_value(struct mlx4_dev *dev, u16 op,
-				       u8 op_modifier)
-{
-	switch (op) {
-	case MLX4_CMD_UNMAP_ICM:
-	case MLX4_CMD_UNMAP_ICM_AUX:
-	case MLX4_CMD_UNMAP_FA:
-	case MLX4_CMD_2RST_QP:
-	case MLX4_CMD_HW2SW_EQ:
-	case MLX4_CMD_HW2SW_CQ:
-	case MLX4_CMD_HW2SW_SRQ:
-	case MLX4_CMD_HW2SW_MPT:
-	case MLX4_CMD_CLOSE_HCA:
-	case MLX4_QP_FLOW_STEERING_DETACH:
-	case MLX4_CMD_FREE_RES:
-	case MLX4_CMD_CLOSE_PORT:
-		return CMD_STAT_OK;
-
-	case MLX4_CMD_QP_ATTACH:
-		/* On Detach case return success */
-		if (op_modifier == 0)
-			return CMD_STAT_OK;
-		return mlx4_status_to_errno(CMD_STAT_INTERNAL_ERR);
-
-	default:
-		return mlx4_status_to_errno(CMD_STAT_INTERNAL_ERR);
-	}
-}
-
-static int mlx4_closing_cmd_fatal_error(u16 op, u8 fw_status)
-{
-	/* Any error during the closing commands below is considered fatal */
-	if (op == MLX4_CMD_CLOSE_HCA ||
-	    op == MLX4_CMD_HW2SW_EQ ||
-	    op == MLX4_CMD_HW2SW_CQ ||
-	    op == MLX4_CMD_2RST_QP ||
-	    op == MLX4_CMD_HW2SW_SRQ ||
-	    op == MLX4_CMD_SYNC_TPT ||
-	    op == MLX4_CMD_UNMAP_ICM ||
-	    op == MLX4_CMD_UNMAP_ICM_AUX ||
-	    op == MLX4_CMD_UNMAP_FA)
-		return 1;
-	/* Error on MLX4_CMD_HW2SW_MPT is fatal except when fw status equals
-	  * CMD_STAT_REG_BOUND.
-	  * This status indicates that memory region has memory windows bound to it
-	  * which may result from invalid user space usage and is not fatal.
-	  */
-	if (op == MLX4_CMD_HW2SW_MPT && fw_status != CMD_STAT_REG_BOUND)
-		return 1;
-	return 0;
-}
-
-static int mlx4_cmd_reset_flow(struct mlx4_dev *dev, u16 op, u8 op_modifier,
-			       int err)
-{
-	/* Only if reset flow is really active return code is based on
-	  * command, otherwise current error code is returned.
-	  */
-	if (mlx4_internal_err_reset) {
-		mlx4_enter_error_state(dev->persist);
-		err = mlx4_internal_err_ret_value(dev, op, op_modifier);
-	}
-
-	return err;
-}
-
 static int comm_pending(struct mlx4_dev *dev)
 {
 	struct mlx4_priv *priv = mlx4_priv(dev);
@@ -257,30 +190,16 @@ static int comm_pending(struct mlx4_dev *dev)
 	return (swab32(status) >> 31) != priv->cmd.comm_toggle;
 }
 
-static int mlx4_comm_cmd_post(struct mlx4_dev *dev, u8 cmd, u16 param)
+static void mlx4_comm_cmd_post(struct mlx4_dev *dev, u8 cmd, u16 param)
 {
 	struct mlx4_priv *priv = mlx4_priv(dev);
 	u32 val;
-
-	/* To avoid writing to unknown addresses after the device state was
-	 * changed to internal error and the function was rest,
-	 * check the INTERNAL_ERROR flag which is updated under
-	 * device_state_mutex lock.
-	 */
-	mutex_lock(&dev->persist->device_state_mutex);
-
-	if (dev->persist->state & MLX4_DEVICE_STATE_INTERNAL_ERROR) {
-		mutex_unlock(&dev->persist->device_state_mutex);
-		return -EIO;
-	}
 
 	priv->cmd.comm_toggle ^= 1;
 	val = param | (cmd << 16) | (priv->cmd.comm_toggle << 31);
 	__raw_writel((__force u32) cpu_to_be32(val),
 		     &priv->mfunc.comm->slave_write);
 	mmiowb();
-	mutex_unlock(&dev->persist->device_state_mutex);
-	return 0;
 }
 
 static int mlx4_comm_cmd_poll(struct mlx4_dev *dev, u8 cmd, u16 param,
@@ -300,13 +219,7 @@ static int mlx4_comm_cmd_poll(struct mlx4_dev *dev, u8 cmd, u16 param,
 
 	/* Write command */
 	down(&priv->cmd.poll_sem);
-	if (mlx4_comm_cmd_post(dev, cmd, param)) {
-		/* Only in case the device state is INTERNAL_ERROR,
-		 * mlx4_comm_cmd_post returns with an error
-		 */
-		err = mlx4_status_to_errno(CMD_STAT_INTERNAL_ERR);
-		goto out;
-	}
+	mlx4_comm_cmd_post(dev, cmd, param);
 
 	end = msecs_to_jiffies(timeout) + jiffies;
 	while (comm_pending(dev) && time_before(jiffies, end))
@@ -318,23 +231,18 @@ static int mlx4_comm_cmd_poll(struct mlx4_dev *dev, u8 cmd, u16 param,
 		 * is MLX4_DELAY_RESET_SLAVE*/
 		if ((MLX4_COMM_CMD_RESET == cmd)) {
 			err = MLX4_DELAY_RESET_SLAVE;
-			goto out;
 		} else {
-			mlx4_warn(dev, "Communication channel command 0x%x timed out\n",
-				  cmd);
-			err = mlx4_status_to_errno(CMD_STAT_INTERNAL_ERR);
+			mlx4_warn(dev, "Communication channel timed out\n");
+			err = -ETIMEDOUT;
 		}
 	}
 
-	if (err)
-		mlx4_enter_error_state(dev->persist);
-out:
 	up(&priv->cmd.poll_sem);
 	return err;
 }
 
-static int mlx4_comm_cmd_wait(struct mlx4_dev *dev, u8 vhcr_cmd,
-			      u16 param, u16 op, unsigned long timeout)
+static int mlx4_comm_cmd_wait(struct mlx4_dev *dev, u8 op,
+			      u16 param, unsigned long timeout)
 {
 	struct mlx4_cmd *cmd = &mlx4_priv(dev)->cmd;
 	struct mlx4_cmd_context *context;
@@ -350,49 +258,34 @@ static int mlx4_comm_cmd_wait(struct mlx4_dev *dev, u8 vhcr_cmd,
 	cmd->free_head = context->next;
 	spin_unlock(&cmd->context_lock);
 
-	reinit_completion(&context->done);
+	init_completion(&context->done);
 
-	if (mlx4_comm_cmd_post(dev, vhcr_cmd, param)) {
-		/* Only in case the device state is INTERNAL_ERROR,
-		 * mlx4_comm_cmd_post returns with an error
-		 */
-		err = mlx4_status_to_errno(CMD_STAT_INTERNAL_ERR);
-		goto out;
-	}
+	mlx4_comm_cmd_post(dev, op, param);
 
 	if (!wait_for_completion_timeout(&context->done,
 					 msecs_to_jiffies(timeout))) {
-		mlx4_warn(dev, "communication channel command 0x%x (op=0x%x) timed out\n",
-			  vhcr_cmd, op);
-		goto out_reset;
+		mlx4_warn(dev, "communication channel command 0x%x timed out\n",
+			  op);
+		err = -EBUSY;
+		goto out;
 	}
 
 	err = context->result;
 	if (err && context->fw_status != CMD_STAT_MULTI_FUNC_REQ) {
 		mlx4_err(dev, "command 0x%x failed: fw status = 0x%x\n",
-			 vhcr_cmd, context->fw_status);
-		if (mlx4_closing_cmd_fatal_error(op, context->fw_status))
-			goto out_reset;
+			 op, context->fw_status);
+		goto out;
 	}
 
+out:
 	/* wait for comm channel ready
 	 * this is necessary for prevention the race
 	 * when switching between event to polling mode
-	 * Skipping this section in case the device is in FATAL_ERROR state,
-	 * In this state, no commands are sent via the comm channel until
-	 * the device has returned from reset.
 	 */
-	if (!(dev->persist->state & MLX4_DEVICE_STATE_INTERNAL_ERROR)) {
-		end = msecs_to_jiffies(timeout) + jiffies;
-		while (comm_pending(dev) && time_before(jiffies, end))
-			cond_resched();
-	}
-	goto out;
+	end = msecs_to_jiffies(timeout) + jiffies;
+	while (comm_pending(dev) && time_before(jiffies, end))
+		cond_resched();
 
-out_reset:
-	err = mlx4_status_to_errno(CMD_STAT_INTERNAL_ERR);
-	mlx4_enter_error_state(dev->persist);
-out:
 	spin_lock(&cmd->context_lock);
 	context->next = cmd->free_head;
 	cmd->free_head = context - cmd->context;
@@ -403,13 +296,10 @@ out:
 }
 
 int mlx4_comm_cmd(struct mlx4_dev *dev, u8 cmd, u16 param,
-		  u16 op, unsigned long timeout)
+		  unsigned long timeout)
 {
-	if (dev->persist->state & MLX4_DEVICE_STATE_INTERNAL_ERROR)
-		return mlx4_status_to_errno(CMD_STAT_INTERNAL_ERR);
-
 	if (mlx4_priv(dev)->cmd.use_events)
-		return mlx4_comm_cmd_wait(dev, cmd, param, op, timeout);
+		return mlx4_comm_cmd_wait(dev, cmd, param, timeout);
 	return mlx4_comm_cmd_poll(dev, cmd, param, timeout);
 }
 
@@ -417,7 +307,7 @@ static int cmd_pending(struct mlx4_dev *dev)
 {
 	u32 status;
 
-	if (pci_channel_offline(dev->persist->pdev))
+	if (pci_channel_offline(dev->pdev))
 		return -EIO;
 
 	status = readl(mlx4_priv(dev)->cmd.hcr + HCR_STATUS_OFFSET);
@@ -433,21 +323,17 @@ static int mlx4_cmd_post(struct mlx4_dev *dev, u64 in_param, u64 out_param,
 {
 	struct mlx4_cmd *cmd = &mlx4_priv(dev)->cmd;
 	u32 __iomem *hcr = cmd->hcr;
-	int ret = -EIO;
+	int ret = -EAGAIN;
 	unsigned long end;
 
-	mutex_lock(&dev->persist->device_state_mutex);
-	/* To avoid writing to unknown addresses after the device state was
-	  * changed to internal error and the chip was reset,
-	  * check the INTERNAL_ERROR flag which is updated under
-	  * device_state_mutex lock.
-	  */
-	if (pci_channel_offline(dev->persist->pdev) ||
-	    (dev->persist->state & MLX4_DEVICE_STATE_INTERNAL_ERROR)) {
+	mutex_lock(&cmd->hcr_mutex);
+
+	if (pci_channel_offline(dev->pdev)) {
 		/*
 		 * Device is going through error recovery
 		 * and cannot accept commands.
 		 */
+		ret = -EIO;
 		goto out;
 	}
 
@@ -456,11 +342,12 @@ static int mlx4_cmd_post(struct mlx4_dev *dev, u64 in_param, u64 out_param,
 		end += msecs_to_jiffies(GO_BIT_TIMEOUT_MSECS);
 
 	while (cmd_pending(dev)) {
-		if (pci_channel_offline(dev->persist->pdev)) {
+		if (pci_channel_offline(dev->pdev)) {
 			/*
 			 * Device is going through error recovery
 			 * and cannot accept commands.
 			 */
+			ret = -EIO;
 			goto out;
 		}
 
@@ -504,11 +391,7 @@ static int mlx4_cmd_post(struct mlx4_dev *dev, u64 in_param, u64 out_param,
 	ret = 0;
 
 out:
-	if (ret)
-		mlx4_warn(dev, "Could not post command 0x%x: ret=%d, in_param=0x%llx, in_mod=0x%x, op_mod=0x%x\n",
-			  op, ret, in_param, in_modifier, op_modifier);
-	mutex_unlock(&dev->persist->device_state_mutex);
-
+	mutex_unlock(&cmd->hcr_mutex);
 	return ret;
 }
 
@@ -545,11 +428,8 @@ static int mlx4_slave_cmd(struct mlx4_dev *dev, u64 in_param, u64 *out_param,
 			}
 			ret = mlx4_status_to_errno(vhcr->status);
 		}
-		if (ret &&
-		    dev->persist->state & MLX4_DEVICE_STATE_INTERNAL_ERROR)
-			ret = mlx4_internal_err_ret_value(dev, op, op_modifier);
 	} else {
-		ret = mlx4_comm_cmd(dev, MLX4_COMM_CMD_VHCR_POST, 0, op,
+		ret = mlx4_comm_cmd(dev, MLX4_COMM_CMD_VHCR_POST, 0,
 				    MLX4_COMM_TIME + timeout);
 		if (!ret) {
 			if (out_is_imm) {
@@ -563,14 +443,9 @@ static int mlx4_slave_cmd(struct mlx4_dev *dev, u64 in_param, u64 *out_param,
 				}
 			}
 			ret = mlx4_status_to_errno(vhcr->status);
-		} else {
-			if (dev->persist->state &
-			    MLX4_DEVICE_STATE_INTERNAL_ERROR)
-				ret = mlx4_internal_err_ret_value(dev, op,
-								  op_modifier);
-			else
-				mlx4_err(dev, "failed execution of VHCR_POST command opcode 0x%x\n", op);
-		}
+		} else
+			mlx4_err(dev, "failed execution of VHCR_POST command opcode 0x%x\n",
+				 op);
 	}
 
 	mutex_unlock(&priv->cmd.slave_cmd_mutex);
@@ -589,12 +464,12 @@ static int mlx4_cmd_poll(struct mlx4_dev *dev, u64 in_param, u64 *out_param,
 
 	down(&priv->cmd.poll_sem);
 
-	if (dev->persist->state & MLX4_DEVICE_STATE_INTERNAL_ERROR) {
+	if (pci_channel_offline(dev->pdev)) {
 		/*
 		 * Device is going through error recovery
 		 * and cannot accept commands.
 		 */
-		err = mlx4_internal_err_ret_value(dev, op, op_modifier);
+		err = -EIO;
 		goto out;
 	}
 
@@ -608,21 +483,16 @@ static int mlx4_cmd_poll(struct mlx4_dev *dev, u64 in_param, u64 *out_param,
 	err = mlx4_cmd_post(dev, in_param, out_param ? *out_param : 0,
 			    in_modifier, op_modifier, op, CMD_POLL_TOKEN, 0);
 	if (err)
-		goto out_reset;
+		goto out;
 
 	end = msecs_to_jiffies(timeout) + jiffies;
 	while (cmd_pending(dev) && time_before(jiffies, end)) {
-		if (pci_channel_offline(dev->persist->pdev)) {
+		if (pci_channel_offline(dev->pdev)) {
 			/*
 			 * Device is going through error recovery
 			 * and cannot accept commands.
 			 */
 			err = -EIO;
-			goto out_reset;
-		}
-
-		if (dev->persist->state & MLX4_DEVICE_STATE_INTERNAL_ERROR) {
-			err = mlx4_internal_err_ret_value(dev, op, op_modifier);
 			goto out;
 		}
 
@@ -632,8 +502,8 @@ static int mlx4_cmd_poll(struct mlx4_dev *dev, u64 in_param, u64 *out_param,
 	if (cmd_pending(dev)) {
 		mlx4_warn(dev, "command 0x%x timed out (go bit not cleared)\n",
 			  op);
-		err = -EIO;
-		goto out_reset;
+		err = -ETIMEDOUT;
+		goto out;
 	}
 
 	if (out_is_imm)
@@ -645,17 +515,10 @@ static int mlx4_cmd_poll(struct mlx4_dev *dev, u64 in_param, u64 *out_param,
 	stat = be32_to_cpu((__force __be32)
 			   __raw_readl(hcr + HCR_STATUS_OFFSET)) >> 24;
 	err = mlx4_status_to_errno(stat);
-	if (err) {
+	if (err)
 		mlx4_err(dev, "command 0x%x failed: fw status = 0x%x\n",
 			 op, stat);
-		if (mlx4_closing_cmd_fatal_error(op, stat))
-			goto out_reset;
-		goto out;
-	}
 
-out_reset:
-	if (err)
-		err = mlx4_cmd_reset_flow(dev, op, op_modifier, err);
 out:
 	up(&priv->cmd.poll_sem);
 	return err;
@@ -702,19 +565,17 @@ static int mlx4_cmd_wait(struct mlx4_dev *dev, u64 in_param, u64 *out_param,
 		goto out;
 	}
 
-	reinit_completion(&context->done);
+	init_completion(&context->done);
 
-	err = mlx4_cmd_post(dev, in_param, out_param ? *out_param : 0,
-			    in_modifier, op_modifier, op, context->token, 1);
-	if (err)
-		goto out_reset;
+	mlx4_cmd_post(dev, in_param, out_param ? *out_param : 0,
+		      in_modifier, op_modifier, op, context->token, 1);
 
 	if (!wait_for_completion_timeout(&context->done,
 					 msecs_to_jiffies(timeout))) {
 		mlx4_warn(dev, "command 0x%x timed out (go bit not cleared)\n",
 			  op);
-		err = -EIO;
-		goto out_reset;
+		err = -EBUSY;
+		goto out;
 	}
 
 	err = context->result;
@@ -752,13 +613,10 @@ int __mlx4_cmd(struct mlx4_dev *dev, u64 in_param, u64 *out_param,
 	       int out_is_imm, u32 in_modifier, u8 op_modifier,
 	       u16 op, unsigned long timeout, int native)
 {
-	if (pci_channel_offline(dev->persist->pdev))
-		return mlx4_cmd_reset_flow(dev, op, op_modifier, -EIO);
+	if (pci_channel_offline(dev->pdev))
+		return -EIO;
 
 	if (!mlx4_is_mfunc(dev) || (native && mlx4_is_master(dev))) {
-		if (dev->persist->state & MLX4_DEVICE_STATE_INTERNAL_ERROR)
-			return mlx4_internal_err_ret_value(dev, op,
-							  op_modifier);
 		if (mlx4_priv(dev)->cmd.use_events)
 			return mlx4_cmd_wait(dev, in_param, out_param,
 					     out_is_imm, in_modifier,
@@ -774,7 +632,7 @@ int __mlx4_cmd(struct mlx4_dev *dev, u64 in_param, u64 *out_param,
 EXPORT_SYMBOL_GPL(__mlx4_cmd);
 
 
-int mlx4_ARM_COMM_CHANNEL(struct mlx4_dev *dev)
+static int mlx4_ARM_COMM_CHANNEL(struct mlx4_dev *dev)
 {
 	return mlx4_cmd(dev, 0, 0, 0, MLX4_CMD_ARM_COMM_CHANNEL,
 			MLX4_CMD_TIME_CLASS_B, MLX4_CMD_NATIVE);
@@ -894,9 +752,7 @@ static int mlx4_MAD_IFC_wrapper(struct mlx4_dev *dev, int slave,
 				index = be32_to_cpu(smp->attr_mod);
 				if (port < 1 || port > dev->caps.num_ports)
 					return -EINVAL;
-				table = kcalloc((dev->caps.pkey_table_len[port] / 32) + 1,
-						sizeof(*table) * 32, GFP_KERNEL);
-
+				table = kcalloc(dev->caps.pkey_table_len[port], sizeof *table, GFP_KERNEL);
 				if (!table)
 					return -ENOMEM;
 				/* need to get the full pkey table because the paravirtualized
@@ -1216,7 +1072,7 @@ static struct mlx4_cmd_info cmd_info[] = {
 	{
 		.opcode = MLX4_CMD_HW2SW_EQ,
 		.has_inbox = false,
-		.has_outbox = false,
+		.has_outbox = true,
 		.out_is_imm = false,
 		.encode_slave_id = true,
 		.verify = NULL,
@@ -1567,15 +1423,6 @@ static struct mlx4_cmd_info cmd_info[] = {
 		.verify = NULL,
 		.wrapper = mlx4_CMD_EPERM_wrapper
 	},
-	{
-		.opcode = MLX4_CMD_VIRT_PORT_MAP,
-		.has_inbox = false,
-		.has_outbox = false,
-		.out_is_imm = false,
-		.encode_slave_id = false,
-		.verify = NULL,
-		.wrapper = mlx4_CMD_EPERM_wrapper
-	},
 };
 
 static int mlx4_master_process_vhcr(struct mlx4_dev *dev, int slave,
@@ -1605,10 +1452,8 @@ static int mlx4_master_process_vhcr(struct mlx4_dev *dev, int slave,
 				      ALIGN(sizeof(struct mlx4_vhcr_cmd),
 					    MLX4_ACCESS_MEM_ALIGN), 1);
 		if (ret) {
-			if (!(dev->persist->state &
-			    MLX4_DEVICE_STATE_INTERNAL_ERROR))
-				mlx4_err(dev, "%s: Failed reading vhcr ret: 0x%x\n",
-					 __func__, ret);
+			mlx4_err(dev, "%s: Failed reading vhcr ret: 0x%x\n",
+				 __func__, ret);
 			kfree(vhcr);
 			return ret;
 		}
@@ -1647,14 +1492,11 @@ static int mlx4_master_process_vhcr(struct mlx4_dev *dev, int slave,
 			goto out_status;
 		}
 
-		ret = mlx4_ACCESS_MEM(dev, inbox->dma, slave,
-				      vhcr->in_param,
-				      MLX4_MAILBOX_SIZE, 1);
-		if (ret) {
-			if (!(dev->persist->state &
-			    MLX4_DEVICE_STATE_INTERNAL_ERROR))
-				mlx4_err(dev, "%s: Failed reading inbox (cmd:0x%x)\n",
-					 __func__, cmd->opcode);
+		if (mlx4_ACCESS_MEM(dev, inbox->dma, slave,
+				    vhcr->in_param,
+				    MLX4_MAILBOX_SIZE, 1)) {
+			mlx4_err(dev, "%s: Failed reading inbox (cmd:0x%x)\n",
+				 __func__, cmd->opcode);
 			vhcr_cmd->status = CMD_STAT_INTERNAL_ERR;
 			goto out_status;
 		}
@@ -1702,9 +1544,8 @@ static int mlx4_master_process_vhcr(struct mlx4_dev *dev, int slave,
 	}
 
 	if (err) {
-		if (!(dev->persist->state & MLX4_DEVICE_STATE_INTERNAL_ERROR))
-			mlx4_warn(dev, "vhcr command:0x%x slave:%d failed with error:%d, status %d\n",
-				  vhcr->op, slave, vhcr->errno, err);
+		mlx4_warn(dev, "vhcr command:0x%x slave:%d failed with error:%d, status %d\n",
+			  vhcr->op, slave, vhcr->errno, err);
 		vhcr_cmd->status = mlx4_errno_to_status(err);
 		goto out_status;
 	}
@@ -1719,9 +1560,7 @@ static int mlx4_master_process_vhcr(struct mlx4_dev *dev, int slave,
 			/* If we failed to write back the outbox after the
 			 *command was successfully executed, we must fail this
 			 * slave, as it is now in undefined state */
-			if (!(dev->persist->state &
-			    MLX4_DEVICE_STATE_INTERNAL_ERROR))
-				mlx4_err(dev, "%s:Failed writing outbox\n", __func__);
+			mlx4_err(dev, "%s:Failed writing outbox\n", __func__);
 			goto out;
 		}
 	}
@@ -1977,6 +1816,7 @@ static void mlx4_master_do_cmd(struct mlx4_dev *dev, int slave, u8 cmd,
 			goto reset_slave;
 		slave_state[slave].vhcr_dma = ((u64) param) << 48;
 		priv->mfunc.master.slave_state[slave].cookie = 0;
+		mutex_init(&priv->mfunc.master.gen_eqe_mutex[slave]);
 		break;
 	case MLX4_COMM_CMD_VHCR1:
 		if (slave_state[slave].last_cmd != MLX4_COMM_CMD_VHCR0)
@@ -1999,11 +1839,8 @@ static void mlx4_master_do_cmd(struct mlx4_dev *dev, int slave, u8 cmd,
 		break;
 	case MLX4_COMM_CMD_VHCR_POST:
 		if ((slave_state[slave].last_cmd != MLX4_COMM_CMD_VHCR_EN) &&
-		    (slave_state[slave].last_cmd != MLX4_COMM_CMD_VHCR_POST)) {
-			mlx4_warn(dev, "slave:%d is out of sync, cmd=0x%x, last command=0x%x, reset is needed\n",
-				  slave, cmd, slave_state[slave].last_cmd);
+		    (slave_state[slave].last_cmd != MLX4_COMM_CMD_VHCR_POST))
 			goto reset_slave;
-		}
 
 		mutex_lock(&priv->cmd.slave_cmd_mutex);
 		if (mlx4_master_process_vhcr(dev, slave, NULL)) {
@@ -2037,18 +1874,7 @@ static void mlx4_master_do_cmd(struct mlx4_dev *dev, int slave, u8 cmd,
 
 reset_slave:
 	/* cleanup any slave resources */
-	if (dev->persist->interface_state & MLX4_INTERFACE_STATE_UP)
-		mlx4_delete_all_resources_for_slave(dev, slave);
-
-	if (cmd != MLX4_COMM_CMD_RESET) {
-		mlx4_warn(dev, "Turn on internal error to force reset, slave=%d, cmd=0x%x\n",
-			  slave, cmd);
-		/* Turn on internal error letting slave reset itself immeditaly,
-		 * otherwise it might take till timeout on command is passed
-		 */
-		reply |= ((u32)COMM_CHAN_EVENT_INTERNAL_ERR);
-	}
-
+	mlx4_delete_all_resources_for_slave(dev, slave);
 	spin_lock_irqsave(&priv->mfunc.master.slave_state_lock, flags);
 	if (!slave_state[slave].is_slave_going_down)
 		slave_state[slave].last_cmd = MLX4_COMM_CMD_RESET;
@@ -2124,28 +1950,17 @@ void mlx4_master_comm_channel(struct work_struct *work)
 static int sync_toggles(struct mlx4_dev *dev)
 {
 	struct mlx4_priv *priv = mlx4_priv(dev);
-	u32 wr_toggle;
-	u32 rd_toggle;
+	int wr_toggle;
+	int rd_toggle;
 	unsigned long end;
 
-	wr_toggle = swab32(readl(&priv->mfunc.comm->slave_write));
-	if (wr_toggle == 0xffffffff)
-		end = jiffies + msecs_to_jiffies(30000);
-	else
-		end = jiffies + msecs_to_jiffies(5000);
+	wr_toggle = swab32(readl(&priv->mfunc.comm->slave_write)) >> 31;
+	end = jiffies + msecs_to_jiffies(5000);
 
 	while (time_before(jiffies, end)) {
-		rd_toggle = swab32(readl(&priv->mfunc.comm->slave_read));
-		if (wr_toggle == 0xffffffff || rd_toggle == 0xffffffff) {
-			/* PCI might be offline */
-			msleep(100);
-			wr_toggle = swab32(readl(&priv->mfunc.comm->
-					   slave_write));
-			continue;
-		}
-
-		if (rd_toggle >> 31 == wr_toggle >> 31) {
-			priv->cmd.comm_toggle = rd_toggle >> 31;
+		rd_toggle = swab32(readl(&priv->mfunc.comm->slave_read)) >> 31;
+		if (rd_toggle == wr_toggle) {
+			priv->cmd.comm_toggle = rd_toggle;
 			return 0;
 		}
 
@@ -2174,12 +1989,11 @@ int mlx4_multi_func_init(struct mlx4_dev *dev)
 
 	if (mlx4_is_master(dev))
 		priv->mfunc.comm =
-		ioremap(pci_resource_start(dev->persist->pdev,
-					   priv->fw.comm_bar) +
+		ioremap(pci_resource_start(dev->pdev, priv->fw.comm_bar) +
 			priv->fw.comm_base, MLX4_COMM_PAGESIZE);
 	else
 		priv->mfunc.comm =
-		ioremap(pci_resource_start(dev->persist->pdev, 2) +
+		ioremap(pci_resource_start(dev->pdev, 2) +
 			MLX4_SLAVE_COMM_BASE, MLX4_COMM_PAGESIZE);
 	if (!priv->mfunc.comm) {
 		mlx4_err(dev, "Couldn't map communication vector\n");
@@ -2208,7 +2022,6 @@ int mlx4_multi_func_init(struct mlx4_dev *dev)
 		for (i = 0; i < dev->num_slaves; ++i) {
 			s_state = &priv->mfunc.master.slave_state[i];
 			s_state->last_cmd = MLX4_COMM_CMD_RESET;
-			mutex_init(&priv->mfunc.master.gen_eqe_mutex[i]);
 			for (j = 0; j < MLX4_EVENT_TYPES_NUM; ++j)
 				s_state->event_eq[j].eqn = -1;
 			__raw_writel((__force u32) 0,
@@ -2252,6 +2065,13 @@ int mlx4_multi_func_init(struct mlx4_dev *dev)
 		if (mlx4_init_resource_tracker(dev))
 			goto err_thread;
 
+		err = mlx4_ARM_COMM_CHANNEL(dev);
+		if (err) {
+			mlx4_err(dev, " Failed to arm comm channel eq: %x\n",
+				 err);
+			goto err_resource;
+		}
+
 	} else {
 		err = sync_toggles(dev);
 		if (err) {
@@ -2261,6 +2081,8 @@ int mlx4_multi_func_init(struct mlx4_dev *dev)
 	}
 	return 0;
 
+err_resource:
+	mlx4_free_resource_tracker(dev, RES_TR_FREE_ALL);
 err_thread:
 	flush_workqueue(priv->mfunc.master.comm_wq);
 	destroy_workqueue(priv->mfunc.master.comm_wq);
@@ -2277,9 +2099,9 @@ err_comm_admin:
 err_comm:
 	iounmap(priv->mfunc.comm);
 err_vhcr:
-	dma_free_coherent(&dev->persist->pdev->dev, PAGE_SIZE,
-			  priv->mfunc.vhcr,
-			  priv->mfunc.vhcr_dma);
+	dma_free_coherent(&(dev->pdev->dev), PAGE_SIZE,
+					     priv->mfunc.vhcr,
+					     priv->mfunc.vhcr_dma);
 	priv->mfunc.vhcr = NULL;
 	return -ENOMEM;
 }
@@ -2334,27 +2156,6 @@ err_hcr:
 	return -ENOMEM;
 }
 
-void mlx4_report_internal_err_comm_event(struct mlx4_dev *dev)
-{
-	struct mlx4_priv *priv = mlx4_priv(dev);
-	int slave;
-	u32 slave_read;
-
-	/* Report an internal error event to all
-	 * communication channels.
-	 */
-	for (slave = 0; slave < dev->num_slaves; slave++) {
-		slave_read = swab32(readl(&priv->mfunc.comm[slave].slave_read));
-		slave_read |= (u32)COMM_CHAN_EVENT_INTERNAL_ERR;
-		__raw_writel((__force u32)cpu_to_be32(slave_read),
-			     &priv->mfunc.comm[slave].slave_read);
-		/* Make sure that our comm channel write doesn't
-		 * get mixed in with writes from another CPU.
-		 */
-		mmiowb();
-	}
-}
-
 void mlx4_multi_func_cleanup(struct mlx4_dev *dev)
 {
 	struct mlx4_priv *priv = mlx4_priv(dev);
@@ -2370,7 +2171,6 @@ void mlx4_multi_func_cleanup(struct mlx4_dev *dev)
 		kfree(priv->mfunc.master.slave_state);
 		kfree(priv->mfunc.master.vf_admin);
 		kfree(priv->mfunc.master.vf_oper);
-		dev->num_slaves = 0;
 	}
 
 	iounmap(priv->mfunc.comm);
@@ -2409,11 +2209,6 @@ int mlx4_cmd_use_events(struct mlx4_dev *dev)
 	for (i = 0; i < priv->cmd.max_cmds; ++i) {
 		priv->cmd.context[i].token = i;
 		priv->cmd.context[i].next  = i + 1;
-		/* To support fatal error flow, initialize all
-		 * cmd contexts to allow simulating completions
-		 * with complete() at any time.
-		 */
-		init_completion(&priv->cmd.context[i].done);
 	}
 
 	priv->cmd.context[priv->cmd.max_cmds - 1].next = -1;
@@ -2491,9 +2286,8 @@ u32 mlx4_comm_get_version(void)
 
 static int mlx4_get_slave_indx(struct mlx4_dev *dev, int vf)
 {
-	if ((vf < 0) || (vf >= dev->persist->num_vfs)) {
-		mlx4_err(dev, "Bad vf number:%d (number of activated vf: %d)\n",
-			 vf, dev->persist->num_vfs);
+	if ((vf < 0) || (vf >= dev->num_vfs)) {
+		mlx4_err(dev, "Bad vf number:%d (number of activated vf: %d)\n", vf, dev->num_vfs);
 		return -EINVAL;
 	}
 
@@ -2502,32 +2296,13 @@ static int mlx4_get_slave_indx(struct mlx4_dev *dev, int vf)
 
 int mlx4_get_vf_indx(struct mlx4_dev *dev, int slave)
 {
-	if (slave < 1 || slave > dev->persist->num_vfs) {
+	if (slave < 1 || slave > dev->num_vfs) {
 		mlx4_err(dev,
 			 "Bad slave number:%d (number of activated slaves: %lu)\n",
 			 slave, dev->num_slaves);
 		return -EINVAL;
 	}
 	return slave - 1;
-}
-
-void mlx4_cmd_wake_completions(struct mlx4_dev *dev)
-{
-	struct mlx4_priv *priv = mlx4_priv(dev);
-	struct mlx4_cmd_context *context;
-	int i;
-
-	spin_lock(&priv->cmd.context_lock);
-	if (priv->cmd.context) {
-		for (i = 0; i < priv->cmd.max_cmds; ++i) {
-			context = &priv->cmd.context[i];
-			context->fw_status = CMD_STAT_INTERNAL_ERR;
-			context->result    =
-				mlx4_status_to_errno(CMD_STAT_INTERNAL_ERR);
-			complete(&context->done);
-		}
-	}
-	spin_unlock(&priv->cmd.context_lock);
 }
 
 struct mlx4_active_ports mlx4_get_active_ports(struct mlx4_dev *dev, int slave)
@@ -2593,7 +2368,7 @@ struct mlx4_slaves_pport mlx4_phys_to_slaves_pport(struct mlx4_dev *dev,
 	if (port <= 0 || port > dev->caps.num_ports)
 		return slaves_pport;
 
-	for (i = 0; i < dev->persist->num_vfs + 1; i++) {
+	for (i = 0; i < dev->num_vfs + 1; i++) {
 		struct mlx4_active_ports actv_ports =
 			mlx4_get_active_ports(dev, i);
 		if (test_bit(port - 1, actv_ports.ports))
@@ -2613,7 +2388,7 @@ struct mlx4_slaves_pport mlx4_phys_to_slaves_pport_actv(
 
 	bitmap_zero(slaves_pport.slaves, MLX4_MFUNC_MAX);
 
-	for (i = 0; i < dev->persist->num_vfs + 1; i++) {
+	for (i = 0; i < dev->num_vfs + 1; i++) {
 		struct mlx4_active_ports actv_ports =
 			mlx4_get_active_ports(dev, i);
 		if (bitmap_equal(crit_ports->ports, actv_ports.ports,

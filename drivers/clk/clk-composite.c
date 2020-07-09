@@ -27,7 +27,7 @@ static int clk_composite_get_parent(struct clk_hw *hw)
 	const struct clk_ops *mux_ops = composite->mux_ops;
 	struct clk_hw *mux_hw = composite->mux_hw;
 
-	__clk_hw_set_clk(mux_hw, hw);
+	mux_hw->clk = hw->clk;
 
 	return mux_ops->get_parent(mux_hw);
 }
@@ -38,7 +38,7 @@ static int clk_composite_set_parent(struct clk_hw *hw, u8 index)
 	const struct clk_ops *mux_ops = composite->mux_ops;
 	struct clk_hw *mux_hw = composite->mux_hw;
 
-	__clk_hw_set_clk(mux_hw, hw);
+	mux_hw->clk = hw->clk;
 
 	return mux_ops->set_parent(mux_hw, index);
 }
@@ -50,14 +50,12 @@ static unsigned long clk_composite_recalc_rate(struct clk_hw *hw,
 	const struct clk_ops *rate_ops = composite->rate_ops;
 	struct clk_hw *rate_hw = composite->rate_hw;
 
-	__clk_hw_set_clk(rate_hw, hw);
+	rate_hw->clk = hw->clk;
 
 	return rate_ops->recalc_rate(rate_hw, parent_rate);
 }
 
 static long clk_composite_determine_rate(struct clk_hw *hw, unsigned long rate,
-					unsigned long min_rate,
-					unsigned long max_rate,
 					unsigned long *best_parent_rate,
 					struct clk **best_parent_p)
 {
@@ -74,10 +72,8 @@ static long clk_composite_determine_rate(struct clk_hw *hw, unsigned long rate,
 	int i;
 
 	if (rate_hw && rate_ops && rate_ops->determine_rate) {
-		__clk_hw_set_clk(rate_hw, hw);
-		return rate_ops->determine_rate(rate_hw, rate, min_rate,
-						max_rate,
-						best_parent_rate,
+		rate_hw->clk = hw->clk;
+		return rate_ops->determine_rate(rate_hw, rate, best_parent_rate,
 						best_parent_p);
 	} else if (rate_hw && rate_ops && rate_ops->round_rate &&
 		   mux_hw && mux_ops && mux_ops->set_parent) {
@@ -119,9 +115,8 @@ static long clk_composite_determine_rate(struct clk_hw *hw, unsigned long rate,
 
 		return best_rate;
 	} else if (mux_hw && mux_ops && mux_ops->determine_rate) {
-		__clk_hw_set_clk(mux_hw, hw);
-		return mux_ops->determine_rate(mux_hw, rate, min_rate,
-					       max_rate, best_parent_rate,
+		mux_hw->clk = hw->clk;
+		return mux_ops->determine_rate(mux_hw, rate, best_parent_rate,
 					       best_parent_p);
 	} else {
 		pr_err("clk: clk_composite_determine_rate function called, but no mux or rate callback set!\n");
@@ -136,7 +131,7 @@ static long clk_composite_round_rate(struct clk_hw *hw, unsigned long rate,
 	const struct clk_ops *rate_ops = composite->rate_ops;
 	struct clk_hw *rate_hw = composite->rate_hw;
 
-	__clk_hw_set_clk(rate_hw, hw);
+	rate_hw->clk = hw->clk;
 
 	return rate_ops->round_rate(rate_hw, rate, prate);
 }
@@ -148,7 +143,7 @@ static int clk_composite_set_rate(struct clk_hw *hw, unsigned long rate,
 	const struct clk_ops *rate_ops = composite->rate_ops;
 	struct clk_hw *rate_hw = composite->rate_hw;
 
-	__clk_hw_set_clk(rate_hw, hw);
+	rate_hw->clk = hw->clk;
 
 	return rate_ops->set_rate(rate_hw, rate, parent_rate);
 }
@@ -159,7 +154,7 @@ static int clk_composite_is_enabled(struct clk_hw *hw)
 	const struct clk_ops *gate_ops = composite->gate_ops;
 	struct clk_hw *gate_hw = composite->gate_hw;
 
-	__clk_hw_set_clk(gate_hw, hw);
+	gate_hw->clk = hw->clk;
 
 	return gate_ops->is_enabled(gate_hw);
 }
@@ -170,7 +165,7 @@ static int clk_composite_enable(struct clk_hw *hw)
 	const struct clk_ops *gate_ops = composite->gate_ops;
 	struct clk_hw *gate_hw = composite->gate_hw;
 
-	__clk_hw_set_clk(gate_hw, hw);
+	gate_hw->clk = hw->clk;
 
 	return gate_ops->enable(gate_hw);
 }
@@ -181,7 +176,7 @@ static void clk_composite_disable(struct clk_hw *hw)
 	const struct clk_ops *gate_ops = composite->gate_ops;
 	struct clk_hw *gate_hw = composite->gate_hw;
 
-	__clk_hw_set_clk(gate_hw, hw);
+	gate_hw->clk = hw->clk;
 
 	gate_ops->disable(gate_hw);
 }

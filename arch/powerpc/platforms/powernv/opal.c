@@ -208,7 +208,7 @@ static int __init opal_register_exception_handlers(void)
 	 * start catching/handling HMI directly in Linux.
 	 */
 	if (!opal_check_token(OPAL_HANDLE_HMI)) {
-		pr_info("Old firmware detected, OPAL handles HMIs.\n");
+		pr_info("opal: Old firmware detected, OPAL handles HMIs.\n");
 		opal_register_exception_handler(
 				OPAL_HYPERVISOR_MAINTENANCE_HANDLER,
 				0, glue);
@@ -634,13 +634,7 @@ static void __init opal_dump_region_init(void)
 
 	/* Register kernel log buffer */
 	addr = log_buf_addr_get();
-	if (addr == NULL)
-		return;
-
 	size = log_buf_len_get();
-	if (size == 0)
-		return;
-
 	rc = opal_register_dump_region(OPAL_DUMP_REGION_LOG_BUF,
 				       __pa(addr), size);
 	/* Don't warn if this is just an older OPAL that doesn't
@@ -677,7 +671,24 @@ static int __init opal_init(void)
 	}
 
 	/* Find all OPAL interrupts and request them */
-	opal_irq_init(opal_node);
+	irqs = of_get_property(opal_node, "opal-interrupts", &irqlen);
+	pr_debug("opal: Found %d interrupts reserved for OPAL\n",
+		 irqs ? (irqlen / 4) : 0);
+	opal_irq_count = irqlen / 4;
+	opal_irqs = kzalloc(opal_irq_count * sizeof(unsigned int), GFP_KERNEL);
+	for (i = 0; irqs && i < (irqlen / 4); i++, irqs++) {
+		unsigned int hwirq = be32_to_cpup(irqs);
+		unsigned int irq = irq_create_mapping(NULL, hwirq);
+		if (irq == NO_IRQ) {
+			pr_warning("opal: Failed to map irq 0x%x\n", hwirq);
+			continue;
+		}
+		rc = request_irq(irq, opal_interrupt, 0, "opal", NULL);
+		if (rc)
+			pr_warning("opal: Error %d requesting irq %d"
+				   " (0x%x)\n", rc, irq, hwirq);
+		opal_irqs[i] = irq;
+	}
 
 	/* Create "opal" kobject under /sys/firmware */
 	rc = opal_sysfs_init();

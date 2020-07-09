@@ -752,7 +752,7 @@ int esas2r_show_info(struct seq_file *m, struct Scsi_Host *sh)
 	if (dev_count == 0)
 		seq_puts(m, "none\n");
 
-	seq_putc(m, '\n');
+	seq_puts(m, "\n");
 	return 0;
 
 }

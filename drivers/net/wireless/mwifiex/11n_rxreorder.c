@@ -45,7 +45,7 @@ static int mwifiex_11n_dispatch_amsdu_pkt(struct mwifiex_private *priv,
 		skb_trim(skb, le16_to_cpu(local_rx_pd->rx_pkt_length));
 
 		ieee80211_amsdu_to_8023s(skb, &list, priv->curr_addr,
-					 priv->wdev.iftype, 0, false);
+					 priv->wdev->iftype, 0, false);
 
 		while (!skb_queue_empty(&list)) {
 			rx_skb = __skb_dequeue(&list);
@@ -352,6 +352,9 @@ mwifiex_11n_create_rx_reorder_tbl(struct mwifiex_private *priv, u8 *ta,
 	new_node->flags = 0;
 
 	if (mwifiex_queuing_ra_based(priv)) {
+		dev_dbg(priv->adapter->dev,
+			"info: AP/ADHOC:last_seq=%d start_win=%d\n",
+			last_seq, new_node->start_win);
 		if (priv->bss_role == MWIFIEX_BSS_ROLE_UAP) {
 			node = mwifiex_get_sta_entry(priv, ta);
 			if (node)
@@ -364,9 +367,6 @@ mwifiex_11n_create_rx_reorder_tbl(struct mwifiex_private *priv, u8 *ta,
 		else
 			last_seq = priv->rx_seq[tid];
 	}
-
-	dev_dbg(priv->adapter->dev, "info: last_seq=%d start_win=%d\n",
-		last_seq, new_node->start_win);
 
 	if (last_seq != MWIFIEX_DEF_11N_RX_SEQ_NUM &&
 	    last_seq >= new_node->start_win) {
@@ -389,8 +389,10 @@ mwifiex_11n_create_rx_reorder_tbl(struct mwifiex_private *priv, u8 *ta,
 	new_node->timer_context.priv = priv;
 	new_node->timer_context.timer_is_set = false;
 
-	setup_timer(&new_node->timer_context.timer, mwifiex_flush_data,
-		    (unsigned long)&new_node->timer_context);
+	init_timer(&new_node->timer_context.timer);
+	new_node->timer_context.timer.function = mwifiex_flush_data;
+	new_node->timer_context.timer.data =
+			(unsigned long) &new_node->timer_context;
 
 	for (i = 0; i < win_size; ++i)
 		new_node->rx_reorder_ptr[i] = NULL;

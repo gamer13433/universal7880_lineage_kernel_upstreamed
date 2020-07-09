@@ -1740,9 +1740,10 @@ static int tcm_usbg_make_nexus(struct usbg_tpg *tpg, char *name)
 		goto err_session;
 	}
 	/*
-	 * Now register the TCM vHost virtual I_T Nexus as active.
+	 * Now register the TCM vHost virtual I_T Nexus as active with the
+	 * call to __transport_register_session()
 	 */
-	transport_register_session(se_tpg, tv_nexus->tvn_se_sess->se_node_acl,
+	__transport_register_session(se_tpg, tv_nexus->tvn_se_sess->se_node_acl,
 			tv_nexus->tvn_se_sess, tv_nexus);
 	tpg->tpg_nexus = tv_nexus;
 	mutex_unlock(&tpg->tpg_mutex);

@@ -124,13 +124,6 @@ enum CPL_error {
 };
 
 enum {
-	CPL_CONN_POLICY_AUTO = 0,
-	CPL_CONN_POLICY_ASK  = 1,
-	CPL_CONN_POLICY_FILTER = 2,
-	CPL_CONN_POLICY_DENY = 3
-};
-
-enum {
 	ULP_MODE_NONE          = 0,
 	ULP_MODE_ISCSI         = 2,
 	ULP_MODE_RDMA          = 4,
@@ -167,28 +160,16 @@ union opcode_tid {
 	u8 opcode;
 };
 
-#define CPL_OPCODE_S    24
-#define CPL_OPCODE_V(x) ((x) << CPL_OPCODE_S)
-#define CPL_OPCODE_G(x) (((x) >> CPL_OPCODE_S) & 0xFF)
-#define TID_G(x)    ((x) & 0xFFFFFF)
-
-/* tid is assumed to be 24-bits */
-#define MK_OPCODE_TID(opcode, tid) (CPL_OPCODE_V(opcode) | (tid))
-
+#define CPL_OPCODE(x) ((x) << 24)
+#define G_CPL_OPCODE(x) (((x) >> 24) & 0xFF)
+#define MK_OPCODE_TID(opcode, tid) (CPL_OPCODE(opcode) | (tid))
 #define OPCODE_TID(cmd) ((cmd)->ot.opcode_tid)
-
-/* extract the TID from a CPL command */
-#define GET_TID(cmd) (TID_G(be32_to_cpu(OPCODE_TID(cmd))))
+#define GET_TID(cmd) (ntohl(OPCODE_TID(cmd)) & 0xFFFFFF)
 
 /* partitioning of TID fields that also carry a queue id */
-#define TID_TID_S    0
-#define TID_TID_M    0x3fff
-#define TID_TID_G(x) (((x) >> TID_TID_S) & TID_TID_M)
-
-#define TID_QID_S    14
-#define TID_QID_M    0x3ff
-#define TID_QID_V(x) ((x) << TID_QID_S)
-#define TID_QID_G(x) (((x) >> TID_QID_S) & TID_QID_M)
+#define GET_TID_TID(x) ((x) & 0x3fff)
+#define GET_TID_QID(x) (((x) >> 14) & 0x3ff)
+#define TID_QID(x)     ((x) << 14)
 
 struct rss_header {
 	u8 opcode;
@@ -218,8 +199,8 @@ struct work_request_hdr {
 };
 
 /* wr_hi fields */
-#define WR_OP_S    24
-#define WR_OP_V(x) ((__u64)(x) << WR_OP_S)
+#define S_WR_OP    24
+#define V_WR_OP(x) ((__u64)(x) << S_WR_OP)
 
 #define WR_HDR struct work_request_hdr wr
 
@@ -373,60 +354,29 @@ struct cpl_t5_act_open_req6 {
 struct cpl_act_open_rpl {
 	union opcode_tid ot;
 	__be32 atid_status;
+#define GET_AOPEN_STATUS(x) ((x) & 0xff)
+#define GET_AOPEN_ATID(x)   (((x) >> 8) & 0xffffff)
 };
-
-/* cpl_act_open_rpl.atid_status fields */
-#define AOPEN_STATUS_S    0
-#define AOPEN_STATUS_M    0xFF
-#define AOPEN_STATUS_G(x) (((x) >> AOPEN_STATUS_S) & AOPEN_STATUS_M)
-
-#define AOPEN_ATID_S    8
-#define AOPEN_ATID_M    0xFFFFFF
-#define AOPEN_ATID_G(x) (((x) >> AOPEN_ATID_S) & AOPEN_ATID_M)
 
 struct cpl_pass_establish {
 	union opcode_tid ot;
 	__be32 rsvd;
 	__be32 tos_stid;
+#define PASS_OPEN_TID(x) ((x) << 0)
+#define PASS_OPEN_TOS(x) ((x) << 24)
+#define GET_PASS_OPEN_TID(x)	(((x) >> 0) & 0xFFFFFF)
+#define GET_POPEN_TID(x) ((x) & 0xffffff)
+#define GET_POPEN_TOS(x) (((x) >> 24) & 0xff)
 	__be16 mac_idx;
 	__be16 tcp_opt;
+#define GET_TCPOPT_WSCALE_OK(x)  (((x) >> 5) & 1)
+#define GET_TCPOPT_SACK(x)       (((x) >> 6) & 1)
+#define GET_TCPOPT_TSTAMP(x)     (((x) >> 7) & 1)
+#define GET_TCPOPT_SND_WSCALE(x) (((x) >> 8) & 0xf)
+#define GET_TCPOPT_MSS(x)        (((x) >> 12) & 0xf)
 	__be32 snd_isn;
 	__be32 rcv_isn;
 };
-
-/* cpl_pass_establish.tos_stid fields */
-#define PASS_OPEN_TID_S    0
-#define PASS_OPEN_TID_M    0xFFFFFF
-#define PASS_OPEN_TID_V(x) ((x) << PASS_OPEN_TID_S)
-#define PASS_OPEN_TID_G(x) (((x) >> PASS_OPEN_TID_S) & PASS_OPEN_TID_M)
-
-#define PASS_OPEN_TOS_S    24
-#define PASS_OPEN_TOS_M    0xFF
-#define PASS_OPEN_TOS_V(x) ((x) << PASS_OPEN_TOS_S)
-#define PASS_OPEN_TOS_G(x) (((x) >> PASS_OPEN_TOS_S) & PASS_OPEN_TOS_M)
-
-/* cpl_pass_establish.tcp_opt fields (also applies to act_open_establish) */
-#define TCPOPT_WSCALE_OK_S	5
-#define TCPOPT_WSCALE_OK_M	0x1
-#define TCPOPT_WSCALE_OK_G(x)	\
-	(((x) >> TCPOPT_WSCALE_OK_S) & TCPOPT_WSCALE_OK_M)
-
-#define TCPOPT_SACK_S		6
-#define TCPOPT_SACK_M		0x1
-#define TCPOPT_SACK_G(x)	(((x) >> TCPOPT_SACK_S) & TCPOPT_SACK_M)
-
-#define TCPOPT_TSTAMP_S		7
-#define TCPOPT_TSTAMP_M		0x1
-#define TCPOPT_TSTAMP_G(x)	(((x) >> TCPOPT_TSTAMP_S) & TCPOPT_TSTAMP_M)
-
-#define TCPOPT_SND_WSCALE_S	8
-#define TCPOPT_SND_WSCALE_M	0xF
-#define TCPOPT_SND_WSCALE_G(x)	\
-	(((x) >> TCPOPT_SND_WSCALE_S) & TCPOPT_SND_WSCALE_M)
-
-#define TCPOPT_MSS_S	12
-#define TCPOPT_MSS_M	0xF
-#define TCPOPT_MSS_G(x)	(((x) >> TCPOPT_MSS_S) & TCPOPT_MSS_M)
 
 struct cpl_act_establish {
 	union opcode_tid ot;
@@ -442,38 +392,23 @@ struct cpl_get_tcb {
 	WR_HDR;
 	union opcode_tid ot;
 	__be16 reply_ctrl;
+#define QUEUENO(x)    ((x) << 0)
+#define REPLY_CHAN(x) ((x) << 14)
+#define NO_REPLY(x)   ((x) << 15)
 	__be16 cookie;
 };
-
-/* cpl_get_tcb.reply_ctrl fields */
-#define QUEUENO_S    0
-#define QUEUENO_V(x) ((x) << QUEUENO_S)
-
-#define REPLY_CHAN_S    14
-#define REPLY_CHAN_V(x) ((x) << REPLY_CHAN_S)
-#define REPLY_CHAN_F    REPLY_CHAN_V(1U)
-
-#define NO_REPLY_S    15
-#define NO_REPLY_V(x) ((x) << NO_REPLY_S)
-#define NO_REPLY_F    NO_REPLY_V(1U)
 
 struct cpl_set_tcb_field {
 	WR_HDR;
 	union opcode_tid ot;
 	__be16 reply_ctrl;
 	__be16 word_cookie;
+#define TCB_WORD(x)   ((x) << 0)
+#define TCB_COOKIE(x) ((x) << 5)
+#define GET_TCB_COOKIE(x) (((x) >> 5) & 7)
 	__be64 mask;
 	__be64 val;
 };
-
-/* cpl_set_tcb_field.word_cookie fields */
-#define TCB_WORD_S    0
-#define TCB_WORD(x)   ((x) << TCB_WORD_S)
-
-#define TCB_COOKIE_S    5
-#define TCB_COOKIE_M    0x7
-#define TCB_COOKIE_V(x) ((x) << TCB_COOKIE_S)
-#define TCB_COOKIE_G(x) (((x) >> TCB_COOKIE_S) & TCB_COOKIE_M)
 
 struct cpl_set_tcb_rpl {
 	union opcode_tid ot;
@@ -501,13 +436,9 @@ struct cpl_close_listsvr_req {
 	WR_HDR;
 	union opcode_tid ot;
 	__be16 reply_ctrl;
+#define LISTSVR_IPV6(x) ((x) << 14)
 	__be16 rsvd;
 };
-
-/* additional cpl_close_listsvr_req.reply_ctrl field */
-#define LISTSVR_IPV6_S    14
-#define LISTSVR_IPV6_V(x) ((x) << LISTSVR_IPV6_S)
-#define LISTSVR_IPV6_F    LISTSVR_IPV6_V(1U)
 
 struct cpl_close_listsvr_rpl {
 	union opcode_tid ot;
@@ -604,34 +535,6 @@ struct cpl_tx_pkt_lso_core {
 	/* encapsulated CPL (TX_PKT, TX_PKT_XT or TX_DATA) follows here */
 };
 
-/* cpl_tx_pkt_lso_core.lso_ctrl fields */
-#define LSO_TCPHDR_LEN_S    0
-#define LSO_TCPHDR_LEN_V(x) ((x) << LSO_TCPHDR_LEN_S)
-
-#define LSO_IPHDR_LEN_S    4
-#define LSO_IPHDR_LEN_V(x) ((x) << LSO_IPHDR_LEN_S)
-
-#define LSO_ETHHDR_LEN_S    16
-#define LSO_ETHHDR_LEN_V(x) ((x) << LSO_ETHHDR_LEN_S)
-
-#define LSO_IPV6_S    20
-#define LSO_IPV6_V(x) ((x) << LSO_IPV6_S)
-#define LSO_IPV6_F    LSO_IPV6_V(1U)
-
-#define LSO_LAST_SLICE_S    22
-#define LSO_LAST_SLICE_V(x) ((x) << LSO_LAST_SLICE_S)
-#define LSO_LAST_SLICE_F    LSO_LAST_SLICE_V(1U)
-
-#define LSO_FIRST_SLICE_S    23
-#define LSO_FIRST_SLICE_V(x) ((x) << LSO_FIRST_SLICE_S)
-#define LSO_FIRST_SLICE_F    LSO_FIRST_SLICE_V(1U)
-
-#define LSO_OPCODE_S    24
-#define LSO_OPCODE_V(x) ((x) << LSO_OPCODE_S)
-
-#define LSO_T5_XFER_SIZE_S	   0
-#define LSO_T5_XFER_SIZE_V(x) ((x) << LSO_T5_XFER_SIZE_S)
-
 struct cpl_tx_pkt_lso {
 	WR_HDR;
 	struct cpl_tx_pkt_lso_core c;
@@ -641,22 +544,14 @@ struct cpl_tx_pkt_lso {
 struct cpl_iscsi_hdr {
 	union opcode_tid ot;
 	__be16 pdu_len_ddp;
+#define ISCSI_PDU_LEN(x) ((x) & 0x7FFF)
+#define ISCSI_DDP        (1 << 15)
 	__be16 len;
 	__be32 seq;
 	__be16 urg;
 	u8 rsvd;
 	u8 status;
 };
-
-/* cpl_iscsi_hdr.pdu_len_ddp fields */
-#define ISCSI_PDU_LEN_S    0
-#define ISCSI_PDU_LEN_M    0x7FFF
-#define ISCSI_PDU_LEN_V(x) ((x) << ISCSI_PDU_LEN_S)
-#define ISCSI_PDU_LEN_G(x) (((x) >> ISCSI_PDU_LEN_S) & ISCSI_PDU_LEN_M)
-
-#define ISCSI_DDP_S    15
-#define ISCSI_DDP_V(x) ((x) << ISCSI_DDP_S)
-#define ISCSI_DDP_F    ISCSI_DDP_V(1U)
 
 struct cpl_rx_data {
 	union opcode_tid ot;
@@ -708,61 +603,49 @@ struct cpl_rx_pkt {
 	__be16 vlan;
 	__be16 len;
 	__be32 l2info;
+#define RXF_UDP (1 << 22)
+#define RXF_TCP (1 << 23)
+#define RXF_IP  (1 << 24)
+#define RXF_IP6 (1 << 25)
 	__be16 hdr_len;
 	__be16 err_vec;
 };
 
-#define RXF_UDP_S    22
-#define RXF_UDP_V(x) ((x) << RXF_UDP_S)
-#define RXF_UDP_F    RXF_UDP_V(1U)
-
-#define RXF_TCP_S    23
-#define RXF_TCP_V(x) ((x) << RXF_TCP_S)
-#define RXF_TCP_F    RXF_TCP_V(1U)
-
-#define RXF_IP_S    24
-#define RXF_IP_V(x) ((x) << RXF_IP_S)
-#define RXF_IP_F    RXF_IP_V(1U)
-
-#define RXF_IP6_S    25
-#define RXF_IP6_V(x) ((x) << RXF_IP6_S)
-#define RXF_IP6_F    RXF_IP6_V(1U)
-
 /* rx_pkt.l2info fields */
-#define RX_ETHHDR_LEN_S    0
-#define RX_ETHHDR_LEN_M    0x1F
-#define RX_ETHHDR_LEN_V(x) ((x) << RX_ETHHDR_LEN_S)
-#define RX_ETHHDR_LEN_G(x) (((x) >> RX_ETHHDR_LEN_S) & RX_ETHHDR_LEN_M)
+#define S_RX_ETHHDR_LEN    0
+#define M_RX_ETHHDR_LEN    0x1F
+#define V_RX_ETHHDR_LEN(x) ((x) << S_RX_ETHHDR_LEN)
+#define G_RX_ETHHDR_LEN(x) (((x) >> S_RX_ETHHDR_LEN) & M_RX_ETHHDR_LEN)
 
-#define RX_T5_ETHHDR_LEN_S    0
-#define RX_T5_ETHHDR_LEN_M    0x3F
-#define RX_T5_ETHHDR_LEN_V(x) ((x) << RX_T5_ETHHDR_LEN_S)
-#define RX_T5_ETHHDR_LEN_G(x) (((x) >> RX_T5_ETHHDR_LEN_S) & RX_T5_ETHHDR_LEN_M)
+#define S_RX_T5_ETHHDR_LEN    0
+#define M_RX_T5_ETHHDR_LEN    0x3F
+#define V_RX_T5_ETHHDR_LEN(x) ((x) << S_RX_T5_ETHHDR_LEN)
+#define G_RX_T5_ETHHDR_LEN(x) (((x) >> S_RX_T5_ETHHDR_LEN) & M_RX_T5_ETHHDR_LEN)
 
-#define RX_MACIDX_S    8
-#define RX_MACIDX_M    0x1FF
-#define RX_MACIDX_V(x) ((x) << RX_MACIDX_S)
-#define RX_MACIDX_G(x) (((x) >> RX_MACIDX_S) & RX_MACIDX_M)
+#define S_RX_MACIDX    8
+#define M_RX_MACIDX    0x1FF
+#define V_RX_MACIDX(x) ((x) << S_RX_MACIDX)
+#define G_RX_MACIDX(x) (((x) >> S_RX_MACIDX) & M_RX_MACIDX)
 
-#define RXF_SYN_S    21
-#define RXF_SYN_V(x) ((x) << RXF_SYN_S)
-#define RXF_SYN_F    RXF_SYN_V(1U)
+#define S_RXF_SYN    21
+#define V_RXF_SYN(x) ((x) << S_RXF_SYN)
+#define F_RXF_SYN    V_RXF_SYN(1U)
 
-#define RX_CHAN_S    28
-#define RX_CHAN_M    0xF
-#define RX_CHAN_V(x) ((x) << RX_CHAN_S)
-#define RX_CHAN_G(x) (((x) >> RX_CHAN_S) & RX_CHAN_M)
+#define S_RX_CHAN    28
+#define M_RX_CHAN    0xF
+#define V_RX_CHAN(x) ((x) << S_RX_CHAN)
+#define G_RX_CHAN(x) (((x) >> S_RX_CHAN) & M_RX_CHAN)
 
 /* rx_pkt.hdr_len fields */
-#define RX_TCPHDR_LEN_S    0
-#define RX_TCPHDR_LEN_M    0x3F
-#define RX_TCPHDR_LEN_V(x) ((x) << RX_TCPHDR_LEN_S)
-#define RX_TCPHDR_LEN_G(x) (((x) >> RX_TCPHDR_LEN_S) & RX_TCPHDR_LEN_M)
+#define S_RX_TCPHDR_LEN    0
+#define M_RX_TCPHDR_LEN    0x3F
+#define V_RX_TCPHDR_LEN(x) ((x) << S_RX_TCPHDR_LEN)
+#define G_RX_TCPHDR_LEN(x) (((x) >> S_RX_TCPHDR_LEN) & M_RX_TCPHDR_LEN)
 
-#define RX_IPHDR_LEN_S    6
-#define RX_IPHDR_LEN_M    0x3FF
-#define RX_IPHDR_LEN_V(x) ((x) << RX_IPHDR_LEN_S)
-#define RX_IPHDR_LEN_G(x) (((x) >> RX_IPHDR_LEN_S) & RX_IPHDR_LEN_M)
+#define S_RX_IPHDR_LEN    6
+#define M_RX_IPHDR_LEN    0x3FF
+#define V_RX_IPHDR_LEN(x) ((x) << S_RX_IPHDR_LEN)
+#define G_RX_IPHDR_LEN(x) (((x) >> S_RX_IPHDR_LEN) & M_RX_IPHDR_LEN)
 
 struct cpl_trace_pkt {
 	u8 opcode;
@@ -811,21 +694,13 @@ struct cpl_l2t_write_req {
 	WR_HDR;
 	union opcode_tid ot;
 	__be16 params;
+#define L2T_W_INFO(x)    ((x) << 2)
+#define L2T_W_PORT(x)    ((x) << 8)
+#define L2T_W_NOREPLY(x) ((x) << 15)
 	__be16 l2t_idx;
 	__be16 vlan;
 	u8 dst_mac[6];
 };
-
-/* cpl_l2t_write_req.params fields */
-#define L2T_W_INFO_S    2
-#define L2T_W_INFO_V(x) ((x) << L2T_W_INFO_S)
-
-#define L2T_W_PORT_S    8
-#define L2T_W_PORT_V(x) ((x) << L2T_W_PORT_S)
-
-#define L2T_W_NOREPLY_S    15
-#define L2T_W_NOREPLY_V(x) ((x) << L2T_W_NOREPLY_S)
-#define L2T_W_NOREPLY_F    L2T_W_NOREPLY_V(1U)
 
 struct cpl_l2t_write_rpl {
 	union opcode_tid ot;
@@ -841,14 +716,10 @@ struct cpl_rdma_terminate {
 
 struct cpl_sge_egr_update {
 	__be32 opcode_qid;
+#define EGR_QID(x) ((x) & 0x1FFFF)
 	__be16 cidx;
 	__be16 pidx;
 };
-
-/* cpl_sge_egr_update.ot fields */
-#define EGR_QID_S    0
-#define EGR_QID_M    0x1FFFF
-#define EGR_QID_G(x) (((x) >> EGR_QID_S) & EGR_QID_M)
 
 /* cpl_fw*.type values */
 enum {
@@ -959,8 +830,12 @@ struct ulp_mem_io {
 #define ULP_MEMIO_LOCK(x) ((x) << 31)
 };
 
-#define T5_ULP_MEMIO_ORDER_S    22
-#define T5_ULP_MEMIO_ORDER_V(x) ((x) << T5_ULP_MEMIO_ORDER_S)
-#define T5_ULP_MEMIO_ORDER_F    T5_ULP_MEMIO_ORDER_V(1U)
+#define S_T5_ULP_MEMIO_IMM    23
+#define V_T5_ULP_MEMIO_IMM(x) ((x) << S_T5_ULP_MEMIO_IMM)
+#define F_T5_ULP_MEMIO_IMM    V_T5_ULP_MEMIO_IMM(1U)
+
+#define S_T5_ULP_MEMIO_ORDER    22
+#define V_T5_ULP_MEMIO_ORDER(x) ((x) << S_T5_ULP_MEMIO_ORDER)
+#define F_T5_ULP_MEMIO_ORDER    V_T5_ULP_MEMIO_ORDER(1U)
 
 #endif  /* __T4_MSG_H */

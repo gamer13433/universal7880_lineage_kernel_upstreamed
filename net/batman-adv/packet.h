@@ -198,7 +198,6 @@ struct batadv_bla_claim_dst {
 	uint8_t type;		/* bla_claimframe */
 	__be16 group;		/* group id */
 };
-
 #pragma pack()
 
 /**
@@ -377,7 +376,7 @@ struct batadv_frag_packet {
 	uint8_t reserved:4;
 	uint8_t no:4;
 #else
-#error "unknown bitfield endianness"
+#error "unknown bitfield endianess"
 #endif
 	uint8_t dest[ETH_ALEN];
 	uint8_t orig[ETH_ALEN];
@@ -453,7 +452,7 @@ struct batadv_coded_packet {
  * @src: address of the source
  * @dst: address of the destination
  * @tvlv_len: length of tvlv data following the unicast tvlv header
- * @align: 2 bytes to align the header to a 4 byte boundary
+ * @align: 2 bytes to align the header to a 4 byte boundry
  */
 struct batadv_unicast_tvlv_packet {
 	uint8_t  packet_type;

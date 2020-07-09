@@ -58,7 +58,6 @@ struct vfio_pci_device {
 	struct pci_saved_state	*pci_saved_state;
 	int			refcnt;
 	struct eventfd_ctx	*err_trigger;
-	struct eventfd_ctx	*req_trigger;
 };
 
 #define is_intx(vdev) (vdev->irq_type == VFIO_PCI_INTX_IRQ_INDEX)

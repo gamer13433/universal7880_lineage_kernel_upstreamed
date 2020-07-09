@@ -1578,8 +1578,8 @@ void at91_pinctrl_gpio_resume(void)
 static struct irq_chip gpio_irqchip = {
 	.name		= "GPIO",
 	.irq_ack	= gpio_irq_ack,
-	.irq_request_resources = gpio_irq_request_res,
-	.irq_release_resources = gpio_irq_release_res,
+	.irq_startup	= gpio_irq_startup,
+	.irq_shutdown	= gpio_irq_shutdown,
 	.irq_disable	= gpio_irq_mask,
 	.irq_mask	= gpio_irq_mask,
 	.irq_unmask	= gpio_irq_unmask,

@@ -118,27 +118,6 @@ static inline void kvm_set_s2pmd_writable(pmd_t *pmd)
 	pmd_val(*pmd) |= PMD_S2_RDWR;
 }
 
-static inline void kvm_set_s2pte_readonly(pte_t *pte)
-{
-	pte_val(*pte) = (pte_val(*pte) & ~PTE_S2_RDWR) | PTE_S2_RDONLY;
-}
-
-static inline bool kvm_s2pte_readonly(pte_t *pte)
-{
-	return (pte_val(*pte) & PTE_S2_RDWR) == PTE_S2_RDONLY;
-}
-
-static inline void kvm_set_s2pmd_readonly(pmd_t *pmd)
-{
-	pmd_val(*pmd) = (pmd_val(*pmd) & ~PMD_S2_RDWR) | PMD_S2_RDONLY;
-}
-
-static inline bool kvm_s2pmd_readonly(pmd_t *pmd)
-{
-	return (pmd_val(*pmd) & PMD_S2_RDWR) == PMD_S2_RDONLY;
-}
-
-
 #define kvm_pgd_addr_end(addr, end)	pgd_addr_end(addr, end)
 #define kvm_pud_addr_end(addr, end)	pud_addr_end(addr, end)
 #define kvm_pmd_addr_end(addr, end)	pmd_addr_end(addr, end)
@@ -157,8 +136,6 @@ static inline bool kvm_s2pmd_readonly(pmd_t *pmd)
 #endif
 #define PTRS_PER_S2_PGD		(1 << PTRS_PER_S2_PGD_SHIFT)
 #define S2_PGD_ORDER		get_order(PTRS_PER_S2_PGD * sizeof(pgd_t))
-
-#define kvm_pgd_index(addr)	(((addr) >> PGDIR_SHIFT) & (PTRS_PER_S2_PGD - 1))
 
 #define kvm_pgd_index(addr)	(((addr) >> PGDIR_SHIFT) & (PTRS_PER_S2_PGD - 1))
 

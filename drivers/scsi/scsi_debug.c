@@ -491,22 +491,6 @@ static int scsi_debug_ioctl(struct scsi_device *dev, int cmd, void __user *arg)
 	/* return -ENOTTY; // correct return but upsets fdisk */
 }
 
-static void clear_luns_changed_on_target(struct sdebug_dev_info *devip)
-{
-	struct sdebug_host_info *sdhp;
-	struct sdebug_dev_info *dp;
-
-	spin_lock(&sdebug_host_list_lock);
-	list_for_each_entry(sdhp, &sdebug_host_list, host_list) {
-		list_for_each_entry(dp, &sdhp->dev_info_list, dev_list) {
-			if ((devip->sdbg_host == dp->sdbg_host) &&
-			    (devip->target == dp->target))
-				clear_bit(SDEBUG_UA_LUNS_CHANGED, dp->uas_bm);
-		}
-	}
-	spin_unlock(&sdebug_host_list_lock);
-}
-
 static int check_readiness(struct scsi_cmnd *SCpnt, int uas_only,
 			   struct sdebug_dev_info * devip)
 {
@@ -535,36 +519,6 @@ static int check_readiness(struct scsi_cmnd *SCpnt, int uas_only,
 					UA_CHANGED_ASC, MODE_CHANGED_ASCQ);
 			if (debug)
 				cp = "mode parameters changed";
-			break;
-		case SDEBUG_UA_MICROCODE_CHANGED:
-			mk_sense_buffer(SCpnt, UNIT_ATTENTION,
-				 TARGET_CHANGED_ASC, MICROCODE_CHANGED_ASCQ);
-			if (debug)
-				cp = "microcode has been changed";
-			break;
-		case SDEBUG_UA_MICROCODE_CHANGED_WO_RESET:
-			mk_sense_buffer(SCpnt, UNIT_ATTENTION,
-					TARGET_CHANGED_ASC,
-					MICROCODE_CHANGED_WO_RESET_ASCQ);
-			if (debug)
-				cp = "microcode has been changed without reset";
-			break;
-		case SDEBUG_UA_LUNS_CHANGED:
-			/*
-			 * SPC-3 behavior is to report a UNIT ATTENTION with
-			 * ASC/ASCQ REPORTED LUNS DATA HAS CHANGED on every LUN
-			 * on the target, until a REPORT LUNS command is
-			 * received.  SPC-4 behavior is to report it only once.
-			 * NOTE:  scsi_debug_scsi_level does not use the same
-			 * values as struct scsi_device->scsi_level.
-			 */
-			if (scsi_debug_scsi_level >= 6)	/* SPC-4 and above */
-				clear_luns_changed_on_target(devip);
-			mk_sense_buffer(SCpnt, UNIT_ATTENTION,
-					TARGET_CHANGED_ASC,
-					LUNS_CHANGED_ASCQ);
-			if (debug)
-				cp = "reported luns data has changed";
 			break;
 		default:
 			pr_warn("%s: unexpected unit attention code=%d\n",
@@ -3052,55 +3006,6 @@ static void __init sdebug_build_parts(unsigned char *ramp,
 	}
 }
 
-/* Note the mode field is in the same position as the (lower) service action
- * field. For the Report supported operation codes command, SPC-4 suggests
- * each mode of this command should be reported separately; for future. */
-static int
-resp_write_buffer(struct scsi_cmnd *scp, struct sdebug_dev_info *devip)
-{
-	u8 *cmd = scp->cmnd;
-	struct scsi_device *sdp = scp->device;
-	struct sdebug_dev_info *dp;
-	u8 mode;
-
-	mode = cmd[1] & 0x1f;
-	switch (mode) {
-	case 0x4:	/* download microcode (MC) and activate (ACT) */
-		/* set UAs on this device only */
-		set_bit(SDEBUG_UA_BUS_RESET, devip->uas_bm);
-		set_bit(SDEBUG_UA_MICROCODE_CHANGED, devip->uas_bm);
-		break;
-	case 0x5:	/* download MC, save and ACT */
-		set_bit(SDEBUG_UA_MICROCODE_CHANGED_WO_RESET, devip->uas_bm);
-		break;
-	case 0x6:	/* download MC with offsets and ACT */
-		/* set UAs on most devices (LUs) in this target */
-		list_for_each_entry(dp,
-				    &devip->sdbg_host->dev_info_list,
-				    dev_list)
-			if (dp->target == sdp->id) {
-				set_bit(SDEBUG_UA_BUS_RESET, dp->uas_bm);
-				if (devip != dp)
-					set_bit(SDEBUG_UA_MICROCODE_CHANGED,
-						dp->uas_bm);
-			}
-		break;
-	case 0x7:	/* download MC with offsets, save, and ACT */
-		/* set UA on all devices (LUs) in this target */
-		list_for_each_entry(dp,
-				    &devip->sdbg_host->dev_info_list,
-				    dev_list)
-			if (dp->target == sdp->id)
-				set_bit(SDEBUG_UA_MICROCODE_CHANGED_WO_RESET,
-					dp->uas_bm);
-		break;
-	default:
-		/* do nothing for this command for other mode values */
-		break;
-	}
-	return 0;
-}
-
 static int
 schedule_resp(struct scsi_cmnd *cmnd, struct sdebug_dev_info *devip,
 	      int scsi_result, int delta_jiff)
@@ -3624,27 +3529,10 @@ static ssize_t max_luns_store(struct device_driver *ddp, const char *buf,
 			      size_t count)
 {
         int n;
-	bool changed;
 
 	if ((count > 0) && (1 == sscanf(buf, "%d", &n)) && (n >= 0)) {
-		changed = (scsi_debug_max_luns != n);
 		scsi_debug_max_luns = n;
 		sdebug_max_tgts_luns();
-		if (changed && (scsi_debug_scsi_level >= 5)) {	/* >= SPC-3 */
-			struct sdebug_host_info *sdhp;
-			struct sdebug_dev_info *dp;
-
-			spin_lock(&sdebug_host_list_lock);
-			list_for_each_entry(sdhp, &sdebug_host_list,
-					    host_list) {
-				list_for_each_entry(dp, &sdhp->dev_info_list,
-						    dev_list) {
-					set_bit(SDEBUG_UA_LUNS_CHANGED,
-						dp->uas_bm);
-				}
-			}
-			spin_unlock(&sdebug_host_list_lock);
-		}
 		return count;
 	}
 	return -EINVAL;
@@ -3793,10 +3681,10 @@ static ssize_t map_show(struct device_driver *ddp, char *buf)
 		return scnprintf(buf, PAGE_SIZE, "0-%u\n",
 				 sdebug_store_sectors);
 
-	count = scnprintf(buf, PAGE_SIZE - 1, "%*pbl",
-			  (int)map_size, map_storep);
+	count = bitmap_scnlistprintf(buf, PAGE_SIZE, map_storep, map_size);
+
 	buf[count++] = '\n';
-	buf[count] = '\0';
+	buf[count++] = 0;
 
 	return count;
 }

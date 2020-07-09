@@ -100,6 +100,8 @@ static struct snd_soc_ops broadwell_rt286_ops = {
 
 static int broadwell_rtd_init(struct snd_soc_pcm_runtime *rtd)
 {
+	struct snd_soc_codec *codec = rtd->codec;
+	struct snd_soc_dapm_context *dapm = &codec->dapm;
 	struct sst_pdata *pdata = dev_get_platdata(rtd->platform->dev);
 	struct sst_hsw *broadwell = pdata->dsp;
 	int ret;

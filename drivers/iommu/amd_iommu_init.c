@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2007-2010 Advanced Micro Devices, Inc.
- * Author: Joerg Roedel <jroedel@suse.de>
+ * Author: Joerg Roedel <joerg.roedel@amd.com>
  *         Leo Duran <leo.duran@amd.com>
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -2014,6 +2014,9 @@ static bool detect_ivrs(void)
 	/* Make sure ACS will be enabled during PCI probe */
 	pci_request_acs();
 
+	if (!disable_irq_remap)
+		amd_iommu_irq_remap = true;
+
 	return true;
 }
 
@@ -2120,14 +2123,12 @@ static int __init iommu_go_to_state(enum iommu_init_state state)
 #ifdef CONFIG_IRQ_REMAP
 int __init amd_iommu_prepare(void)
 {
-	int ret;
+	return iommu_go_to_state(IOMMU_ACPI_FINISHED);
+}
 
-	amd_iommu_irq_remap = true;
-
-	ret = iommu_go_to_state(IOMMU_ACPI_FINISHED);
-	if (ret)
-		return ret;
-	return amd_iommu_irq_remap ? 0 : -ENODEV;
+int __init amd_iommu_supported(void)
+{
+	return amd_iommu_irq_remap ? 1 : 0;
 }
 
 int __init amd_iommu_enable(void)

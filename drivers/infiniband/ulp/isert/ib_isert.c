@@ -1485,15 +1485,9 @@ isert_rx_opcode(struct isert_conn *isert_conn, struct iser_rx_desc *rx_desc,
 						    HZ);
 		break;
 	case ISCSI_OP_TEXT:
-		if (be32_to_cpu(hdr->ttt) != 0xFFFFFFFF) {
-			cmd = iscsit_find_cmd_from_itt(conn, hdr->itt);
-			if (!cmd)
-				break;
-		} else {
-			cmd = isert_allocate_cmd(conn);
-			if (!cmd)
-				break;
-		}
+		cmd = isert_allocate_cmd(conn);
+		if (!cmd)
+			break;
 
 		isert_cmd = iscsit_priv_cmd(cmd);
 		ret = isert_handle_text_cmd(isert_conn, isert_cmd, cmd,
@@ -1716,7 +1710,6 @@ isert_put_cmd(struct isert_cmd *isert_cmd, bool comp_err)
 	struct isert_conn *isert_conn = isert_cmd->conn;
 	struct iscsi_conn *conn = isert_conn->conn;
 	struct isert_device *device = isert_conn->conn_device;
-	struct iscsi_text_rsp *hdr;
 
 	pr_debug("Entering isert_put_cmd: %p\n", isert_cmd);
 
@@ -1757,11 +1750,6 @@ isert_put_cmd(struct isert_cmd *isert_cmd, bool comp_err)
 	case ISCSI_OP_REJECT:
 	case ISCSI_OP_NOOP_OUT:
 	case ISCSI_OP_TEXT:
-		hdr = (struct iscsi_text_rsp *)&isert_cmd->tx_desc.iscsi_header;
-		/* If the continue bit is on, keep the command alive */
-		if (hdr->flags & ISCSI_FLAG_TEXT_CONTINUE)
-			break;
-
 		spin_lock_bh(&conn->cmd_lock);
 		if (!list_empty(&cmd->i_conn_node))
 			list_del_init(&cmd->i_conn_node);
@@ -3471,8 +3459,7 @@ static int __init isert_init(void)
 		return -ENOMEM;
 	}
 
-	isert_comp_wq = alloc_workqueue("isert_comp_wq",
-					WQ_UNBOUND | WQ_HIGHPRI, 0);
+	isert_comp_wq = alloc_workqueue("isert_comp_wq", 0, 0);
 	if (!isert_comp_wq) {
 		pr_err("Unable to allocate isert_comp_wq\n");
 		ret = -ENOMEM;

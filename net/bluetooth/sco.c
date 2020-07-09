@@ -618,7 +618,7 @@ done:
 
 static int sco_sock_accept(struct socket *sock, struct socket *newsock, int flags)
 {
-	DEFINE_WAIT_FUNC(wait, woken_wake_function);
+	DECLARE_WAITQUEUE(wait, current);
 	struct sock *sk = sock->sk, *ch;
 	long timeo;
 	int err = 0;
@@ -632,6 +632,8 @@ static int sco_sock_accept(struct socket *sock, struct socket *newsock, int flag
 	/* Wait for an incoming connection. (wake-one). */
 	add_wait_queue_exclusive(sk_sleep(sk), &wait);
 	while (1) {
+		set_current_state(TASK_INTERRUPTIBLE);
+
 		if (sk->sk_state != BT_LISTEN) {
 			err = -EBADFD;
 			break;
@@ -652,10 +654,10 @@ static int sco_sock_accept(struct socket *sock, struct socket *newsock, int flag
 		}
 
 		release_sock(sk);
-
-		timeo = wait_woken(&wait, TASK_INTERRUPTIBLE, timeo);
+		timeo = schedule_timeout(timeo);
 		lock_sock(sk);
 	}
+	__set_current_state(TASK_RUNNING);
 	remove_wait_queue(sk_sleep(sk), &wait);
 
 	if (err)
@@ -1181,8 +1183,6 @@ static const struct net_proto_family sco_sock_family_ops = {
 int __init sco_init(void)
 {
 	int err;
-
-	BUILD_BUG_ON(sizeof(struct sockaddr_sco) > sizeof(struct sockaddr));
 
 	err = proto_register(&sco_proto, 0);
 	if (err < 0)

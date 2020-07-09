@@ -818,6 +818,7 @@ static int fsl_asrc_probe(struct platform_device *pdev)
 		return -ENOMEM;
 
 	asrc_priv->pdev = pdev;
+	strncpy(asrc_priv->name, np->name, sizeof(asrc_priv->name) - 1);
 
 	/* Get the addresses and IRQ */
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
@@ -836,12 +837,12 @@ static int fsl_asrc_probe(struct platform_device *pdev)
 
 	irq = platform_get_irq(pdev, 0);
 	if (irq < 0) {
-		dev_err(&pdev->dev, "no irq for node %s\n", pdev->name);
+		dev_err(&pdev->dev, "no irq for node %s\n", np->full_name);
 		return irq;
 	}
 
 	ret = devm_request_irq(&pdev->dev, irq, fsl_asrc_isr, 0,
-			       dev_name(&pdev->dev), asrc_priv);
+			       asrc_priv->name, asrc_priv);
 	if (ret) {
 		dev_err(&pdev->dev, "failed to claim irq %u: %d\n", irq, ret);
 		return ret;

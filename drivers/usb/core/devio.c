@@ -501,6 +501,7 @@ static void async_completed(struct urb *urb)
 	as->status = urb->status;
 	signr = as->signr;
 	if (signr) {
+		memset(&sinfo, 0, sizeof(sinfo));
 		sinfo.si_signo = as->signr;
 		sinfo.si_errno = as->status;
 		sinfo.si_code = SI_ASYNCIO;
@@ -2242,16 +2243,6 @@ static long usbdev_do_ioctl(struct file *file, unsigned int cmd,
 		ret = proc_reapurbnonblock_compat(ps, p);
 		break;
 
-	case USBDEVFS_REAPURB32:
-		snoop(&dev->dev, "%s: REAPURB32\n", __func__);
-		ret = proc_reapurb_compat(ps, p);
-		break;
-
-	case USBDEVFS_REAPURBNDELAY32:
-		snoop(&dev->dev, "%s: REAPURBNDELAY32\n", __func__);
-		ret = proc_reapurbnonblock_compat(ps, p);
-		break;
-
 	case USBDEVFS_IOCTL32:
 		snoop(&dev->dev, "%s: IOCTL32\n", __func__);
 		ret = proc_ioctl_compat(ps, ptr_to_compat(p));
@@ -2261,16 +2252,6 @@ static long usbdev_do_ioctl(struct file *file, unsigned int cmd,
 	case USBDEVFS_DISCARDURB:
 		snoop(&dev->dev, "%s: DISCARDURB\n", __func__);
 		ret = proc_unlinkurb(ps, p);
-		break;
-
-	case USBDEVFS_REAPURB:
-		snoop(&dev->dev, "%s: REAPURB\n", __func__);
-		ret = proc_reapurb(ps, p);
-		break;
-
-	case USBDEVFS_REAPURBNDELAY:
-		snoop(&dev->dev, "%s: REAPURBNDELAY\n", __func__);
-		ret = proc_reapurbnonblock(ps, p);
 		break;
 
 	case USBDEVFS_REAPURB:
@@ -2478,6 +2459,7 @@ static void usbdev_remove(struct usb_device *udev)
 		wake_up_all(&ps->wait);
 		list_del_init(&ps->list);
 		if (ps->discsignr) {
+			memset(&sinfo, 0, sizeof(sinfo));
 			sinfo.si_signo = ps->discsignr;
 			sinfo.si_errno = EPIPE;
 			sinfo.si_code = SI_ASYNCIO;

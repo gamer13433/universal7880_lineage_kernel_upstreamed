@@ -247,7 +247,9 @@ static int snd_opl3_seq_new_device(struct snd_seq_device *dev)
 	}
 
 	/* setup system timer */
-	setup_timer(&opl3->tlist, snd_opl3_timer_func, (unsigned long) opl3);
+	init_timer(&opl3->tlist);
+	opl3->tlist.function = snd_opl3_timer_func;
+	opl3->tlist.data = (unsigned long) opl3;
 	spin_lock_init(&opl3->sys_timer_lock);
 	opl3->sys_timer_status = 0;
 

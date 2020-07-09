@@ -93,7 +93,7 @@ struct lu_server_fld {
 
 	/**
 	 * Fld service name in form "fld-srv-lustre-MDTXXX" */
-	char		     lsf_name[LUSTRE_MDT_MAXNAMELEN];
+	char		     lsf_name[80];
 
 };
 
@@ -124,7 +124,7 @@ struct lu_client_fld {
 
 	/**
 	 * Client fld proc entry name. */
-	char		     lcf_name[LUSTRE_MDT_MAXNAMELEN];
+	char		     lcf_name[80];
 
 	int		      lcf_flags;
 };

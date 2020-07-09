@@ -988,10 +988,10 @@ static ssize_t ath10k_read_fw_dbglog(struct file *file,
 {
 	struct ath10k *ar = file->private_data;
 	unsigned int len;
-	char buf[64];
+	char buf[32];
 
-	len = scnprintf(buf, sizeof(buf), "0x%08x %u\n",
-			ar->debug.fw_dbglog_mask, ar->debug.fw_dbglog_level);
+	len = scnprintf(buf, sizeof(buf), "0x%08x\n",
+			ar->debug.fw_dbglog_mask);
 
 	return simple_read_from_buffer(user_buf, count, ppos, buf, len);
 }
@@ -1001,32 +1001,19 @@ static ssize_t ath10k_write_fw_dbglog(struct file *file,
 				      size_t count, loff_t *ppos)
 {
 	struct ath10k *ar = file->private_data;
+	unsigned long mask;
 	int ret;
-	char buf[64];
-	unsigned int log_level, mask;
 
-	simple_write_to_buffer(buf, sizeof(buf) - 1, ppos, user_buf, count);
-
-	/* make sure that buf is null terminated */
-	buf[sizeof(buf) - 1] = 0;
-
-	ret = sscanf(buf, "%x %u", &mask, &log_level);
-
-	if (!ret)
-		return -EINVAL;
-
-	if (ret == 1)
-		/* default if user did not specify */
-		log_level = ATH10K_DBGLOG_LEVEL_WARN;
+	ret = kstrtoul_from_user(user_buf, count, 0, &mask);
+	if (ret)
+		return ret;
 
 	mutex_lock(&ar->conf_mutex);
 
 	ar->debug.fw_dbglog_mask = mask;
-	ar->debug.fw_dbglog_level = log_level;
 
 	if (ar->state == ATH10K_STATE_ON) {
-		ret = ath10k_wmi_dbglog_cfg(ar, ar->debug.fw_dbglog_mask,
-					    ar->debug.fw_dbglog_level);
+		ret = ath10k_wmi_dbglog_cfg(ar, ar->debug.fw_dbglog_mask);
 		if (ret) {
 			ath10k_warn(ar, "dbglog cfg failed from debugfs: %d\n",
 				    ret);
@@ -1050,73 +1037,6 @@ static const struct file_operations fops_fw_dbglog = {
 	.llseek = default_llseek,
 };
 
-static ssize_t ath10k_read_nf_cal_period(struct file *file,
-					 char __user *user_buf,
-					 size_t count, loff_t *ppos)
-{
-	struct ath10k *ar = file->private_data;
-	unsigned int len;
-	char buf[32];
-
-	len = scnprintf(buf, sizeof(buf), "%d\n",
-			ar->debug.nf_cal_period);
-
-	return simple_read_from_buffer(user_buf, count, ppos, buf, len);
-}
-
-static ssize_t ath10k_write_nf_cal_period(struct file *file,
-					  const char __user *user_buf,
-					  size_t count, loff_t *ppos)
-{
-	struct ath10k *ar = file->private_data;
-	unsigned long period;
-	int ret;
-
-	ret = kstrtoul_from_user(user_buf, count, 0, &period);
-	if (ret)
-		return ret;
-
-	if (period > WMI_PDEV_PARAM_CAL_PERIOD_MAX)
-		return -EINVAL;
-
-	/* there's no way to switch back to the firmware default */
-	if (period == 0)
-		return -EINVAL;
-
-	mutex_lock(&ar->conf_mutex);
-
-	ar->debug.nf_cal_period = period;
-
-	if (ar->state != ATH10K_STATE_ON) {
-		/* firmware is not running, nothing else to do */
-		ret = count;
-		goto exit;
-	}
-
-	ret = ath10k_wmi_pdev_set_param(ar, ar->wmi.pdev_param->cal_period,
-					ar->debug.nf_cal_period);
-	if (ret) {
-		ath10k_warn(ar, "cal period cfg failed from debugfs: %d\n",
-			    ret);
-		goto exit;
-	}
-
-	ret = count;
-
-exit:
-	mutex_unlock(&ar->conf_mutex);
-
-	return ret;
-}
-
-static const struct file_operations fops_nf_cal_period = {
-	.read = ath10k_read_nf_cal_period,
-	.write = ath10k_write_nf_cal_period,
-	.open = simple_open,
-	.owner = THIS_MODULE,
-	.llseek = default_llseek,
-};
-
 int ath10k_debug_start(struct ath10k *ar)
 {
 	int ret;
@@ -1130,8 +1050,7 @@ int ath10k_debug_start(struct ath10k *ar)
 			    ret);
 
 	if (ar->debug.fw_dbglog_mask) {
-		ret = ath10k_wmi_dbglog_cfg(ar, ar->debug.fw_dbglog_mask,
-					    ATH10K_DBGLOG_LEVEL_WARN);
+		ret = ath10k_wmi_dbglog_cfg(ar, ar->debug.fw_dbglog_mask);
 		if (ret)
 			/* not serious */
 			ath10k_warn(ar, "failed to enable dbglog during start: %d",
@@ -1290,9 +1209,6 @@ int ath10k_debug_register(struct ath10k *ar)
 
 	debugfs_create_file("fw_dbglog", S_IRUSR, ar->debug.debugfs_phy,
 			    ar, &fops_fw_dbglog);
-
-	debugfs_create_file("nf_cal_period", S_IRUSR | S_IWUSR,
-			    ar->debug.debugfs_phy, ar, &fops_nf_cal_period);
 
 	if (config_enabled(CONFIG_ATH10K_DFS_CERTIFIED)) {
 		debugfs_create_file("dfs_simulate_radar", S_IWUSR,

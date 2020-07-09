@@ -175,7 +175,7 @@ struct nx_sg *nx_walk_and_build(struct nx_sg       *nx_dst,
 			break;
 
 		offset += sg_src->length;
-		sg_src = sg_next(sg_src);
+		sg_src = scatterwalk_sg_next(sg_src);
 	}
 
 	/* start - offset is the number of bytes to advance in the scatterlist

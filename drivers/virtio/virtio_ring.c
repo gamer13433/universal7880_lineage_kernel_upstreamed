@@ -54,7 +54,8 @@
 #define END_USE(vq)
 #endif
 
-struct vring_virtqueue {
+struct vring_virtqueue
+{
 	struct virtqueue vq;
 
 	/* Actual memory layout for this queue */
@@ -243,13 +244,13 @@ static inline int virtqueue_add(struct virtqueue *_vq,
 	vq->vring.avail->idx++;
 	vq->num_added++;
 
-	pr_debug("Added buffer head %i to %p\n", head, vq);
-	END_USE(vq);
-
 	/* This is very unlikely, but theoretically possible.  Kick
 	 * just in case. */
 	if (unlikely(vq->num_added == (1 << 16) - 1))
 		virtqueue_kick(_vq);
+
+	pr_debug("Added buffer head %i to %p\n", head, vq);
+	END_USE(vq);
 
 	return 0;
 }

@@ -717,7 +717,7 @@ static void prepare_optimized_kprobe(struct kprobe *p)
 	struct optimized_kprobe *op;
 
 	op = container_of(p, struct optimized_kprobe, kp);
-	arch_prepare_optimized_kprobe(op, p);
+	arch_prepare_optimized_kprobe(op);
 }
 
 /* Allocate new optimized_kprobe and try to prepare optimized instructions */
@@ -731,7 +731,7 @@ static struct kprobe *alloc_aggr_kprobe(struct kprobe *p)
 
 	INIT_LIST_HEAD(&op->list);
 	op->kp.addr = p->addr;
-	arch_prepare_optimized_kprobe(op, p);
+	arch_prepare_optimized_kprobe(op);
 
 	return &op->kp;
 }
@@ -869,8 +869,7 @@ static void __disarm_kprobe(struct kprobe *p, bool reopt)
 {
 	struct kprobe *_p;
 
-	/* Try to unoptimize */
-	unoptimize_kprobe(p, kprobes_all_disarmed);
+	unoptimize_kprobe(p, false);	/* Try to unoptimize */
 
 	if (!kprobe_queued(p)) {
 		arch_disarm_kprobe(p);
@@ -1568,13 +1567,7 @@ static struct kprobe *__disable_kprobe(struct kprobe *p)
 
 		/* Try to disarm and disable this/parent probe */
 		if (p == orig_p || aggr_kprobe_disabled(orig_p)) {
-			/*
-			 * If kprobes_all_disarmed is set, orig_p
-			 * should have already been disarmed, so
-			 * skip unneed disarming process.
-			 */
-			if (!kprobes_all_disarmed)
-				disarm_kprobe(orig_p, true);
+			disarm_kprobe(orig_p, true);
 			orig_p->flags |= KPROBE_FLAG_DISABLED;
 		}
 	}
@@ -2323,12 +2316,6 @@ static void arm_all_kprobes(void)
 	if (!kprobes_all_disarmed)
 		goto already_enabled;
 
-	/*
-	 * optimize_kprobe() called by arm_kprobe() checks
-	 * kprobes_all_disarmed, so set kprobes_all_disarmed before
-	 * arm_kprobe.
-	 */
-	kprobes_all_disarmed = false;
 	/* Arming kprobes doesn't optimize kprobe itself */
 	for (i = 0; i < KPROBE_TABLE_SIZE; i++) {
 		head = &kprobe_table[i];
@@ -2337,6 +2324,7 @@ static void arm_all_kprobes(void)
 				arm_kprobe(p);
 	}
 
+	kprobes_all_disarmed = false;
 	printk(KERN_INFO "Kprobes globally enabled\n");
 
 already_enabled:

@@ -1812,6 +1812,7 @@ static int pxa27x_udc_start(struct usb_gadget *g,
 
 	/* first hook up the driver ... */
 	udc->driver = driver;
+	dplus_pullup(udc, 1);
 
 	if (!IS_ERR_OR_NULL(udc->transceiver)) {
 		retval = otg_set_peripheral(udc->transceiver->otg,
@@ -1865,6 +1866,7 @@ static int pxa27x_udc_stop(struct usb_gadget *g,
 
 	stop_activity(udc, driver);
 	udc_disable(udc);
+	dplus_pullup(udc, 0);
 
 	udc->driver = NULL;
 

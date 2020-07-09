@@ -46,7 +46,7 @@ static __always_inline bool static_key_false(struct static_key *key);
 
 static inline void __ticket_enter_slowpath(arch_spinlock_t *lock)
 {
-	set_bit(0, (volatile unsigned long *)&lock->tickets.head);
+	set_bit(0, (volatile unsigned long *)&lock->tickets.tail);
 }
 
 #else  /* !CONFIG_PARAVIRT_SPINLOCKS */
@@ -60,30 +60,10 @@ static inline void __ticket_unlock_kick(arch_spinlock_t *lock,
 }
 
 #endif /* CONFIG_PARAVIRT_SPINLOCKS */
-static inline int  __tickets_equal(__ticket_t one, __ticket_t two)
-{
-	return !((one ^ two) & ~TICKET_SLOWPATH_FLAG);
-}
-
-static inline void __ticket_check_and_clear_slowpath(arch_spinlock_t *lock,
-							__ticket_t head)
-{
-	if (head & TICKET_SLOWPATH_FLAG) {
-		arch_spinlock_t old, new;
-
-		old.tickets.head = head;
-		new.tickets.head = head & ~TICKET_SLOWPATH_FLAG;
-		old.tickets.tail = new.tickets.head + TICKET_LOCK_INC;
-		new.tickets.tail = old.tickets.tail;
-
-		/* try to clear slowpath flag when there are no contenders */
-		cmpxchg(&lock->head_tail, old.head_tail, new.head_tail);
-	}
-}
 
 static __always_inline int arch_spin_value_unlocked(arch_spinlock_t lock)
 {
-	return __tickets_equal(lock.tickets.head, lock.tickets.tail);
+	return lock.tickets.head == lock.tickets.tail;
 }
 
 /*

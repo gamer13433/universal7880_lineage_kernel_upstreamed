@@ -31,7 +31,7 @@ void x86_pci_root_bus_resources(int bus, struct list_head *resources)
 {
 	struct pci_root_info *info = x86_find_pci_root_info(bus);
 	struct pci_root_res *root_res;
-	struct resource_entry *window;
+	struct pci_host_bridge_window *window;
 	bool found = false;
 
 	if (!info)
@@ -41,7 +41,7 @@ void x86_pci_root_bus_resources(int bus, struct list_head *resources)
 	       bus);
 
 	/* already added by acpi ? */
-	resource_list_for_each_entry(window, resources)
+	list_for_each_entry(window, resources, list)
 		if (window->res->flags & IORESOURCE_BUS) {
 			found = true;
 			break;

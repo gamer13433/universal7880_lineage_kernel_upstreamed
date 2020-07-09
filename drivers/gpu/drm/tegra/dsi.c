@@ -16,7 +16,6 @@
 
 #include <linux/regulator/consumer.h>
 
-#include <drm/drm_atomic_helper.h>
 #include <drm/drm_mipi_dsi.h>
 #include <drm/drm_panel.h>
 
@@ -29,28 +28,6 @@
 
 #define DSI_VIDEO_FIFO_DEPTH (1920 / 4)
 #define DSI_HOST_FIFO_DEPTH 64
-
-struct tegra_dsi_state {
-	struct drm_connector_state base;
-
-	struct mipi_dphy_timing timing;
-	unsigned long period;
-
-	unsigned int vrefresh;
-	unsigned int lanes;
-	unsigned long pclk;
-	unsigned long bclk;
-
-	enum tegra_dsi_format format;
-	unsigned int mul;
-	unsigned int div;
-};
-
-static inline struct tegra_dsi_state *
-to_dsi_state(struct drm_connector_state *state)
-{
-	return container_of(state, struct tegra_dsi_state, base);
-}
 
 struct tegra_dsi {
 	struct host1x_client client;
@@ -95,17 +72,13 @@ static inline struct tegra_dsi *to_dsi(struct tegra_output *output)
 	return container_of(output, struct tegra_dsi, output);
 }
 
-static struct tegra_dsi_state *tegra_dsi_get_state(struct tegra_dsi *dsi)
-{
-	return to_dsi_state(dsi->output.connector.state);
-}
-
-static inline u32 tegra_dsi_readl(struct tegra_dsi *dsi, unsigned long reg)
+static inline unsigned long tegra_dsi_readl(struct tegra_dsi *dsi,
+					    unsigned long reg)
 {
 	return readl(dsi->regs + (reg << 2));
 }
 
-static inline void tegra_dsi_writel(struct tegra_dsi *dsi, u32 value,
+static inline void tegra_dsi_writel(struct tegra_dsi *dsi, unsigned long value,
 				    unsigned long reg)
 {
 	writel(value, dsi->regs + (reg << 2));
@@ -117,7 +90,7 @@ static int tegra_dsi_show_regs(struct seq_file *s, void *data)
 	struct tegra_dsi *dsi = node->info_ent->data;
 
 #define DUMP_REG(name)						\
-	seq_printf(s, "%-32s %#05x %08x\n", #name, name,	\
+	seq_printf(s, "%-32s %#05x %08lx\n", #name, name,	\
 		   tegra_dsi_readl(dsi, name))
 
 	DUMP_REG(DSI_INCR_SYNCPT);
@@ -252,7 +225,7 @@ remove:
 	return err;
 }
 
-static void tegra_dsi_debugfs_exit(struct tegra_dsi *dsi)
+static int tegra_dsi_debugfs_exit(struct tegra_dsi *dsi)
 {
 	drm_debugfs_remove_files(dsi->debugfs_files, ARRAY_SIZE(debugfs_files),
 				 dsi->minor);
@@ -263,6 +236,8 @@ static void tegra_dsi_debugfs_exit(struct tegra_dsi *dsi)
 
 	debugfs_remove(dsi->debugfs);
 	dsi->debugfs = NULL;
+
+	return 0;
 }
 
 #define PKT_ID0(id)	((((id) & 0x3f) <<  3) | (1 <<  9))
@@ -642,6 +617,19 @@ static int tegra_output_dsi_setup_clock(struct tegra_output *output,
 	 */
 	plld /= 2;
 
+	err = clk_set_parent(clk, dsi->clk_parent);
+	if (err < 0) {
+		dev_err(dsi->dev, "failed to set parent clock: %d\n", err);
+		return err;
+	}
+
+	err = clk_set_rate(dsi->clk_parent, plld);
+	if (err < 0) {
+		dev_err(dsi->dev, "failed to set base clock rate to %lu Hz\n",
+			plld);
+		return err;
+	}
+
 	/*
 	 * Derive pixel clock from bit clock using the shift clock divider.
 	 * Note that this is only half of what we would expect, but we need
@@ -973,8 +961,6 @@ static int tegra_dsi_remove(struct platform_device *pdev)
 		return err;
 	}
 
-	tegra_output_remove(&dsi->output);
-
 	mipi_dsi_host_unregister(&dsi->host);
 	tegra_mipi_free(dsi->mipi);
 
@@ -983,6 +969,12 @@ static int tegra_dsi_remove(struct platform_device *pdev)
 	clk_disable_unprepare(dsi->clk_lp);
 	clk_disable_unprepare(dsi->clk);
 	reset_control_assert(dsi->rst);
+
+	err = tegra_output_remove(&dsi->output);
+	if (err < 0) {
+		dev_err(&pdev->dev, "failed to remove output: %d\n", err);
+		return err;
+	}
 
 	return 0;
 }

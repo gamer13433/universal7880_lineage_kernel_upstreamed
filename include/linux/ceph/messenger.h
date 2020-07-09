@@ -53,7 +53,6 @@ struct ceph_messenger {
 
 	atomic_t stopping;
 	bool nocrc;
-	bool tcp_nodelay;
 
 	/*
 	 * the global_seq counts connections i (attempt to) initiate
@@ -258,8 +257,7 @@ extern void ceph_messenger_init(struct ceph_messenger *msgr,
 			struct ceph_entity_addr *myaddr,
 			u64 supported_features,
 			u64 required_features,
-			bool nocrc,
-			bool tcp_nodelay);
+			bool nocrc);
 
 extern void ceph_con_init(struct ceph_connection *con, void *private,
 			const struct ceph_connection_operations *ops,

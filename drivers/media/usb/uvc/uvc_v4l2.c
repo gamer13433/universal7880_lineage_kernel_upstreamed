@@ -13,6 +13,7 @@
 
 #include <linux/compat.h>
 #include <linux/kernel.h>
+#include <linux/version.h>
 #include <linux/list.h>
 #include <linux/module.h>
 #include <linux/slab.h>

@@ -1606,9 +1606,7 @@ void bitmap_destroy(struct mddev *mddev)
 		return;
 
 	mutex_lock(&mddev->bitmap_info.mutex);
-	spin_lock(&mddev->lock);
 	mddev->bitmap = NULL; /* disconnect from the md device */
-	spin_unlock(&mddev->lock);
 	mutex_unlock(&mddev->bitmap_info.mutex);
 	if (mddev->thread)
 		mddev->thread->timeout = MAX_SCHEDULE_TIMEOUT;
@@ -2198,13 +2196,11 @@ __ATTR(metadata, S_IRUGO|S_IWUSR, metadata_show, metadata_store);
 static ssize_t can_clear_show(struct mddev *mddev, char *page)
 {
 	int len;
-	spin_lock(&mddev->lock);
 	if (mddev->bitmap)
 		len = sprintf(page, "%s\n", (mddev->bitmap->need_sync ?
 					     "false" : "true"));
 	else
 		len = sprintf(page, "\n");
-	spin_unlock(&mddev->lock);
 	return len;
 }
 
@@ -2229,15 +2225,10 @@ __ATTR(can_clear, S_IRUGO|S_IWUSR, can_clear_show, can_clear_store);
 static ssize_t
 behind_writes_used_show(struct mddev *mddev, char *page)
 {
-	ssize_t ret;
-	spin_lock(&mddev->lock);
 	if (mddev->bitmap == NULL)
-		ret = sprintf(page, "0\n");
-	else
-		ret = sprintf(page, "%lu\n",
-			      mddev->bitmap->behind_writes_used);
-	spin_unlock(&mddev->lock);
-	return ret;
+		return sprintf(page, "0\n");
+	return sprintf(page, "%lu\n",
+		       mddev->bitmap->behind_writes_used);
 }
 
 static ssize_t

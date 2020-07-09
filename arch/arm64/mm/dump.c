@@ -36,10 +36,10 @@ enum address_markers_idx {
 	VMEMMAP_START_NR,
 	VMEMMAP_END_NR,
 #endif
-	FIXADDR_START_NR,
-	FIXADDR_END_NR,
 	PCI_START_NR,
 	PCI_END_NR,
+	FIXADDR_START_NR,
+	FIXADDR_END_NR,
 	MODULES_START_NR,
 	MODUELS_END_NR,
 	KERNEL_SPACE_NR,
@@ -52,10 +52,10 @@ static struct addr_marker address_markers[] = {
 	{ 0,			"vmemmap start" },
 	{ 0,			"vmemmap end" },
 #endif
+	{ (unsigned long) PCI_IOBASE,		"PCI I/O start" },
+	{ (unsigned long) PCI_IOBASE + SZ_16M,	"PCI I/O end" },
 	{ FIXADDR_START,	"Fixmap start" },
 	{ FIXADDR_TOP,		"Fixmap end" },
-	{ PCI_IO_START,		"PCI I/O start" },
-	{ PCI_IO_END,		"PCI I/O end" },
 	{ MODULES_VADDR,	"Modules start" },
 	{ MODULES_END,		"Modules end" },
 	{ PAGE_OFFSET,		"Kernel Mapping" },
@@ -248,12 +248,10 @@ static void walk_pmd(struct pg_state *st, pud_t *pud, unsigned long start)
 
 	for (i = 0; i < PTRS_PER_PMD; i++, pmd++) {
 		addr = start + i * PMD_SIZE;
-		if (pmd_none(*pmd) || pmd_sect(*pmd)) {
+		if (pmd_none(*pmd) || pmd_sect(*pmd) || pmd_bad(*pmd))
 			note_page(st, addr, 3, pmd_val(*pmd));
-		} else {
-			BUG_ON(pmd_bad(*pmd));
+		else
 			walk_pte(st, pmd, addr);
-		}
 	}
 }
 
@@ -265,12 +263,10 @@ static void walk_pud(struct pg_state *st, pgd_t *pgd, unsigned long start)
 
 	for (i = 0; i < PTRS_PER_PUD; i++, pud++) {
 		addr = start + i * PUD_SIZE;
-		if (pud_none(*pud) || pud_sect(*pud)) {
+		if (pud_none(*pud) || pud_sect(*pud) || pud_bad(*pud))
 			note_page(st, addr, 2, pud_val(*pud));
-		} else {
-			BUG_ON(pud_bad(*pud));
+		else
 			walk_pmd(st, pud, addr);
-		}
 	}
 }
 
@@ -282,12 +278,10 @@ static void walk_pgd(struct pg_state *st, struct mm_struct *mm, unsigned long st
 
 	for (i = 0; i < PTRS_PER_PGD; i++, pgd++) {
 		addr = start + i * PGDIR_SIZE;
-		if (pgd_none(*pgd)) {
+		if (pgd_none(*pgd) || pgd_bad(*pgd))
 			note_page(st, addr, 1, pgd_val(*pgd));
-		} else {
-			BUG_ON(pgd_bad(*pgd));
+		else
 			walk_pud(st, pgd, addr);
-		}
 	}
 }
 

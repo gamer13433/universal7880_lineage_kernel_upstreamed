@@ -32,9 +32,8 @@ struct hpet_scope {
 };
 
 #define IR_X2APIC_MODE(mode) (mode ? (1 << 11) : 0)
-#define IRTE_DEST(dest) ((eim_mode) ? dest : dest << 8)
+#define IRTE_DEST(dest) ((x2apic_mode) ? dest : dest << 8)
 
-static int __read_mostly eim_mode;
 static struct ioapic_scope ir_ioapic[MAX_IO_APICS];
 static struct hpet_scope ir_hpet[MAX_HPET_TBS];
 static int ir_ioapic_num, ir_hpet_num;
@@ -555,27 +554,13 @@ static int __init dmar_x2apic_optout(void)
 	return dmar->flags & DMAR_X2APIC_OPT_OUT;
 }
 
-static void __init intel_cleanup_irq_remapping(void)
+static int __init intel_irq_remapping_supported(void)
 {
 	struct dmar_drhd_unit *drhd;
 	struct intel_iommu *iommu;
 
-	for_each_iommu(iommu, drhd) {
-		if (ecap_ir_support(iommu->ecap)) {
-			iommu_disable_irq_remapping(iommu);
-			intel_teardown_irq_remapping(iommu);
-		}
-	}
-
-	if (x2apic_supported())
-		pr_warn("Failed to enable irq remapping.  You are vulnerable to irq-injection attacks.\n");
-}
-
-static int __init intel_prepare_irq_remapping(void)
-{
-	struct dmar_drhd_unit *drhd;
-	struct intel_iommu *iommu;
-
+	if (disable_irq_remap)
+		return 0;
 	if (irq_remap_broken) {
 		printk(KERN_WARNING
 			"This system BIOS has enabled interrupt remapping\n"
@@ -584,45 +569,38 @@ static int __init intel_prepare_irq_remapping(void)
 			"interrupt remapping is being disabled.  Please\n"
 			"contact your BIOS vendor for an update\n");
 		add_taint(TAINT_FIRMWARE_WORKAROUND, LOCKDEP_STILL_OK);
-		return -ENODEV;
+		disable_irq_remap = 1;
+		return 0;
 	}
-
-	if (dmar_table_init() < 0)
-		return -ENODEV;
 
 	if (!dmar_ir_support())
-		return -ENODEV;
+		return 0;
 
-	if (parse_ioapics_under_ir() != 1) {
-		printk(KERN_INFO "Not enabling interrupt remapping\n");
-		goto error;
-	}
-
-	/* First make sure all IOMMUs support IRQ remapping */
 	for_each_iommu(iommu, drhd)
 		if (!ecap_ir_support(iommu->ecap))
-			goto error;
+			return 0;
 
-	/* Do the allocations early */
-	for_each_iommu(iommu, drhd)
-		if (intel_setup_irq_remapping(iommu))
-			goto error;
-
-	return 0;
-
-error:
-	intel_cleanup_irq_remapping();
-	return -ENODEV;
+	return 1;
 }
 
 static int __init intel_enable_irq_remapping(void)
 {
 	struct dmar_drhd_unit *drhd;
 	struct intel_iommu *iommu;
+	bool x2apic_present;
 	int setup = 0;
 	int eim = 0;
 
-	if (x2apic_supported()) {
+	x2apic_present = x2apic_supported();
+
+	if (parse_ioapics_under_ir() != 1) {
+		printk(KERN_INFO "Not enable interrupt remapping\n");
+		goto error;
+	}
+
+	if (x2apic_present) {
+		pr_info("Queued invalidation will be enabled to support x2apic and Intr-remapping.\n");
+
 		eim = !dmar_x2apic_optout();
 		if (!eim)
 			printk(KERN_WARNING
@@ -656,15 +634,16 @@ static int __init intel_enable_irq_remapping(void)
 	/*
 	 * check for the Interrupt-remapping support
 	 */
-	for_each_iommu(iommu, drhd)
+	for_each_iommu(iommu, drhd) {
+		if (!ecap_ir_support(iommu->ecap))
+			continue;
+
 		if (eim && !ecap_eim_support(iommu->ecap)) {
 			printk(KERN_INFO "DRHD %Lx: EIM not supported by DRHD, "
 			       " ecap %Lx\n", drhd->reg_base_addr, iommu->ecap);
-			eim = 0;
+			goto error;
 		}
-	eim_mode = eim;
-	if (eim)
-		pr_info("Queued invalidation will be enabled to support x2apic and Intr-remapping.\n");
+	}
 
 	/*
 	 * Enable queued invalidation for all the DRHD's.
@@ -1178,7 +1157,8 @@ static int intel_alloc_hpet_msi(unsigned int irq, unsigned int id)
 }
 
 struct irq_remap_ops intel_irq_remap_ops = {
-	.prepare		= intel_prepare_irq_remapping,
+	.supported		= intel_irq_remapping_supported,
+	.prepare		= dmar_table_init,
 	.enable			= intel_enable_irq_remapping,
 	.disable		= disable_irq_remapping,
 	.reenable		= reenable_irq_remapping,

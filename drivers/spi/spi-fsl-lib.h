@@ -28,7 +28,7 @@ struct mpc8xxx_spi {
 	/* rx & tx bufs from the spi_transfer */
 	const void *tx;
 	void *rx;
-#if IS_ENABLED(CONFIG_SPI_FSL_ESPI)
+#ifdef CONFIG_SPI_FSL_ESPI
 	int len;
 #endif
 
@@ -69,7 +69,7 @@ struct mpc8xxx_spi {
 
 	unsigned int flags;
 
-#if IS_ENABLED(CONFIG_SPI_FSL_SPI)
+#ifdef CONFIG_SPI_FSL_SPI
 	int type;
 	int native_chipselects;
 	u8 max_bits_per_word;

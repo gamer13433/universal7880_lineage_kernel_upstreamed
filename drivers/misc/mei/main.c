@@ -303,7 +303,7 @@ static ssize_t mei_write(struct file *file, const char __user *ubuf,
 			 size_t length, loff_t *offset)
 {
 	struct mei_cl *cl = file->private_data;
-	struct mei_me_client *me_cl = NULL;
+	struct mei_me_client *me_cl;
 	struct mei_cl_cb *write_cb = NULL;
 	struct mei_device *dev;
 	unsigned long timeout = 0;
@@ -399,14 +399,12 @@ static ssize_t mei_write(struct file *file, const char __user *ubuf,
 				"amthif write failed with status = %d\n", rets);
 			goto out;
 		}
-		mei_me_cl_put(me_cl);
 		mutex_unlock(&dev->device_lock);
 		return length;
 	}
 
 	rets = mei_cl_write(cl, write_cb, false);
 out:
-	mei_me_cl_put(me_cl);
 	mutex_unlock(&dev->device_lock);
 	if (rets < 0)
 		mei_io_cb_free(write_cb);
@@ -435,19 +433,24 @@ static int mei_ioctl_connect_client(struct file *file,
 	cl = file->private_data;
 	dev = cl->dev;
 
-	if (dev->dev_state != MEI_DEV_ENABLED)
-		return -ENODEV;
+	if (dev->dev_state != MEI_DEV_ENABLED) {
+		rets = -ENODEV;
+		goto end;
+	}
 
 	if (cl->state != MEI_FILE_INITIALIZING &&
-	    cl->state != MEI_FILE_DISCONNECTED)
-		return  -EBUSY;
+	    cl->state != MEI_FILE_DISCONNECTED) {
+		rets = -EBUSY;
+		goto end;
+	}
 
 	/* find ME client we're trying to connect to */
 	me_cl = mei_me_cl_by_uuid(dev, &data->in_client_uuid);
 	if (!me_cl || me_cl->props.fixed_address) {
 		dev_dbg(dev->dev, "Cannot connect to FW Client UUID = %pUl\n",
 				&data->in_client_uuid);
-		return  -ENOTTY;
+		rets = -ENOTTY;
+		goto end;
 	}
 
 	cl->me_client_id = me_cl->client_id;
@@ -484,16 +487,17 @@ static int mei_ioctl_connect_client(struct file *file,
 		goto end;
 	}
 
+
 	/* prepare the output buffer */
 	client = &data->out_client_properties;
 	client->max_msg_length = me_cl->props.max_msg_length;
 	client->protocol_version = me_cl->props.protocol_version;
 	dev_dbg(dev->dev, "Can connect?\n");
 
+
 	rets = mei_cl_connect(cl, file);
 
 end:
-	mei_me_cl_put(me_cl);
 	return rets;
 }
 

@@ -17,8 +17,9 @@
 #ifndef __SOUND_AU88X0_H
 #define __SOUND_AU88X0_H
 
+#ifdef __KERNEL__
 #include <linux/pci.h>
-#include <linux/io.h>
+#include <asm/io.h>
 #include <sound/core.h>
 #include <sound/pcm.h>
 #include <sound/rawmidi.h>
@@ -26,6 +27,7 @@
 #include <sound/hwdep.h>
 #include <sound/ac97_codec.h>
 #include <sound/tlv.h>
+#endif
 
 #ifndef CHIP_AU8820
 #include "au88x0_eq.h"

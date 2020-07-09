@@ -227,7 +227,7 @@ static int i810_insert_dcache_entries(struct agp_memory *mem, off_t pg_start,
 		intel_private.driver->write_entry(addr,
 						  i, type);
 	}
-	wmb();
+	readl(intel_private.gtt+i-1);
 
 	return 0;
 }
@@ -332,7 +332,7 @@ static void i810_write_entry(dma_addr_t addr, unsigned int entry,
 		break;
 	}
 
-	writel_relaxed(addr | pte_flags, intel_private.gtt + entry);
+	writel(addr | pte_flags, intel_private.gtt + entry);
 }
 
 static const struct aper_size_info_fixed intel_fake_agp_sizes[] = {
@@ -739,7 +739,7 @@ static void i830_write_entry(dma_addr_t addr, unsigned int entry,
 	if (flags ==  AGP_USER_CACHED_MEMORY)
 		pte_flags |= I830_PTE_SYSTEM_CACHED;
 
-	writel_relaxed(addr | pte_flags, intel_private.gtt + entry);
+	writel(addr | pte_flags, intel_private.gtt + entry);
 }
 
 bool intel_enable_gtt(void)
@@ -862,7 +862,7 @@ void intel_gtt_insert_sg_entries(struct sg_table *st,
 			j++;
 		}
 	}
-	wmb();
+	readl(intel_private.gtt+j-1);
 }
 EXPORT_SYMBOL(intel_gtt_insert_sg_entries);
 
@@ -879,7 +879,7 @@ static void intel_gtt_insert_pages(unsigned int first_entry,
 		intel_private.driver->write_entry(addr,
 						  j, flags);
 	}
-	wmb();
+	readl(intel_private.gtt+j-1);
 }
 
 static int intel_fake_agp_insert_entries(struct agp_memory *mem,
@@ -942,7 +942,7 @@ void intel_gtt_clear_range(unsigned int first_entry, unsigned int num_entries)
 		intel_private.driver->write_entry(intel_private.scratch_page_dma,
 						  i, 0);
 	}
-	wmb();
+	readl(intel_private.gtt+i-1);
 }
 EXPORT_SYMBOL(intel_gtt_clear_range);
 
@@ -1110,7 +1110,7 @@ static void i965_write_entry(dma_addr_t addr,
 
 	/* Shift high bits down */
 	addr |= (addr >> 28) & 0xf0;
-	writel_relaxed(addr | pte_flags, intel_private.gtt + entry);
+	writel(addr | pte_flags, intel_private.gtt + entry);
 }
 
 static int i9xx_setup(void)

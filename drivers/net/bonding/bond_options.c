@@ -186,7 +186,7 @@ static const struct bond_opt_value bond_tlb_dynamic_lb_tbl[] = {
 	{ NULL,  -1, 0}
 };
 
-static const struct bond_option bond_opts[BOND_OPT_LAST] = {
+static const struct bond_option bond_opts[] = {
 	[BOND_OPT_MODE] = {
 		.id = BOND_OPT_MODE,
 		.name = "mode",
@@ -379,7 +379,8 @@ static const struct bond_option bond_opts[BOND_OPT_LAST] = {
 		.values = bond_tlb_dynamic_lb_tbl,
 		.flags = BOND_OPTFLAG_IFDOWN,
 		.set = bond_option_tlb_dynamic_lb_set,
-	}
+	},
+	{ }
 };
 
 /* Searches for an option by name */
@@ -1181,7 +1182,6 @@ static int bond_option_min_links_set(struct bonding *bond,
 	netdev_info(bond->dev, "Setting min links value to %llu\n",
 		    newval->value);
 	bond->params.min_links = newval->value;
-	bond_set_carrier(bond);
 
 	return 0;
 }

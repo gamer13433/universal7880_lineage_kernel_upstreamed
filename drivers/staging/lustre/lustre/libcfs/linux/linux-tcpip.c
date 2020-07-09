@@ -43,7 +43,7 @@
 /* For sys_open & sys_close */
 #include <linux/syscalls.h>
 
-static int
+int
 libcfs_sock_ioctl(int cmd, unsigned long arg)
 {
 	mm_segment_t	oldmm = get_fs();

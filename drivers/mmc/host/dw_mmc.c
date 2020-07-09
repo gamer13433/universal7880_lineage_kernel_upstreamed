@@ -27,7 +27,6 @@
 #include <linux/stat.h>
 #include <linux/delay.h>
 #include <linux/irq.h>
-#include <linux/mmc/card.h>
 #include <linux/mmc/host.h>
 #include <linux/mmc/mmc.h>
 #include <linux/mmc/sd.h>
@@ -1371,7 +1370,6 @@ pass:
 
 static int dw_mci_submit_data_dma(struct dw_mci *host, struct mmc_data *data)
 {
-	unsigned long irqflags;
 	int sg_len;
 	u32 temp;
 
@@ -1418,7 +1416,6 @@ static int dw_mci_submit_data_dma(struct dw_mci *host, struct mmc_data *data)
 
 static void dw_mci_submit_data(struct dw_mci *host, struct mmc_data *data)
 {
-	unsigned long irqflags;
 	u32 temp;
 
 	data->error = -EINPROGRESS;
@@ -1451,12 +1448,9 @@ static void dw_mci_submit_data(struct dw_mci *host, struct mmc_data *data)
 		host->part_buf_count = 0;
 
 		mci_writel(host, RINTSTS, SDMMC_INT_TXDR | SDMMC_INT_RXDR);
-
-		spin_lock_irqsave(&host->irq_lock, irqflags);
 		temp = mci_readl(host, INTMASK);
 		temp |= SDMMC_INT_TXDR | SDMMC_INT_RXDR;
 		mci_writel(host, INTMASK, temp);
-		spin_unlock_irqrestore(&host->irq_lock, irqflags);
 
 		temp = mci_readl(host, CTRL);
 		temp &= ~SDMMC_CTRL_DMA_ENABLE;
@@ -2104,10 +2098,30 @@ static int dw_mci_execute_tuning(struct mmc_host *mmc, u32 opcode)
 	struct dw_mci_slot *slot = mmc_priv(mmc);
 	struct dw_mci *host = slot->host;
 	const struct dw_mci_drv_data *drv_data = host->drv_data;
+	struct dw_mci_tuning_data tuning_data;
 	int err = -ENOSYS;
 
+	if (opcode == MMC_SEND_TUNING_BLOCK_HS200) {
+		if (mmc->ios.bus_width == MMC_BUS_WIDTH_8) {
+			tuning_data.blk_pattern = tuning_blk_pattern_8bit;
+			tuning_data.blksz = sizeof(tuning_blk_pattern_8bit);
+		} else if (mmc->ios.bus_width == MMC_BUS_WIDTH_4) {
+			tuning_data.blk_pattern = tuning_blk_pattern_4bit;
+			tuning_data.blksz = sizeof(tuning_blk_pattern_4bit);
+		} else {
+			return -EINVAL;
+		}
+	} else if (opcode == MMC_SEND_TUNING_BLOCK) {
+		tuning_data.blk_pattern = tuning_blk_pattern_4bit;
+		tuning_data.blksz = sizeof(tuning_blk_pattern_4bit);
+	} else {
+		dev_err(host->dev,
+			"Undefined command(%d) for tuning\n", opcode);
+		return -EINVAL;
+	}
+
 	if (drv_data && drv_data->execute_tuning)
-		err = drv_data->execute_tuning(slot);
+		err = drv_data->execute_tuning(slot, opcode, &tuning_data);
 	return err;
 }
 
@@ -3667,8 +3681,10 @@ static struct dw_mci_board *dw_mci_parse_dt(struct dw_mci *host)
 	u32 clock_frequency;
 
 	pdata = devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
-	if (!pdata)
+	if (!pdata) {
+		dev_err(dev, "could not allocate memory for pdata\n");
 		return ERR_PTR(-ENOMEM);
+	}
 
 	/* find out number of slots supported */
 	if (of_property_read_u32(dev->of_node, "num-slots",
@@ -3870,7 +3886,6 @@ int dw_mci_probe(struct dw_mci *host)
 		drv_data->cfg_smu(host);
 
 	spin_lock_init(&host->lock);
-	spin_lock_init(&host->irq_lock);
 	INIT_LIST_HEAD(&host->queue);
 
 	/*

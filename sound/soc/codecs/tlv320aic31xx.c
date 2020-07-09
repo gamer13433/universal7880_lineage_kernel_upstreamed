@@ -349,8 +349,7 @@ static int aic31xx_wait_bits(struct aic31xx_priv *aic31xx, unsigned int reg,
 static int aic31xx_dapm_power_event(struct snd_soc_dapm_widget *w,
 				    struct snd_kcontrol *kcontrol, int event)
 {
-	struct snd_soc_codec *codec = snd_soc_dapm_to_codec(w->dapm);
-	struct aic31xx_priv *aic31xx = snd_soc_codec_get_drvdata(codec);
+	struct aic31xx_priv *aic31xx = snd_soc_codec_get_drvdata(w->codec);
 	unsigned int reg = AIC31XX_DACFLAG1;
 	unsigned int mask;
 
@@ -378,7 +377,7 @@ static int aic31xx_dapm_power_event(struct snd_soc_dapm_widget *w,
 		reg = AIC31XX_ADCFLAG;
 		break;
 	default:
-		dev_err(codec->dev, "Unknown widget '%s' calling %s\n",
+		dev_err(w->codec->dev, "Unknown widget '%s' calling %s\n",
 			w->name, __func__);
 		return -EINVAL;
 	}
@@ -389,7 +388,7 @@ static int aic31xx_dapm_power_event(struct snd_soc_dapm_widget *w,
 	case SND_SOC_DAPM_POST_PMD:
 		return aic31xx_wait_bits(aic31xx, reg, mask, 0, 5000, 100);
 	default:
-		dev_dbg(codec->dev,
+		dev_dbg(w->codec->dev,
 			"Unhandled dapm widget event %d from %s\n",
 			event, w->name);
 	}
@@ -434,7 +433,7 @@ static const struct snd_kcontrol_new aic31xx_dapm_spr_switch =
 static int mic_bias_event(struct snd_soc_dapm_widget *w,
 			  struct snd_kcontrol *kcontrol, int event)
 {
-	struct snd_soc_codec *codec = snd_soc_dapm_to_codec(w->dapm);
+	struct snd_soc_codec *codec = w->codec;
 	struct aic31xx_priv *aic31xx = snd_soc_codec_get_drvdata(codec);
 
 	switch (event) {

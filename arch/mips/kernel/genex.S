@@ -125,7 +125,7 @@ LEAF(__r4k_wait)
 	nop
 	nop
 #endif
-	.set	MIPS_ISA_ARCH_LEVEL_RAW
+	.set	arch=r4000
 	wait
 	/* end of rollback region (the region size must be power of two) */
 1:

@@ -205,7 +205,8 @@ affs_get_extblock_slow(struct inode *inode, u32 ext)
 		ext_key = be32_to_cpu(AFFS_TAIL(sb, bh)->extension);
 		if (ext < AFFS_I(inode)->i_extcnt)
 			goto read_ext;
-		BUG_ON(ext > AFFS_I(inode)->i_extcnt);
+		if (ext > AFFS_I(inode)->i_extcnt)
+			BUG();
 		bh = affs_alloc_extblock(inode, bh, ext);
 		if (IS_ERR(bh))
 			return bh;
@@ -222,7 +223,8 @@ affs_get_extblock_slow(struct inode *inode, u32 ext)
 		struct buffer_head *prev_bh;
 
 		/* allocate a new extended block */
-		BUG_ON(ext > AFFS_I(inode)->i_extcnt);
+		if (ext > AFFS_I(inode)->i_extcnt)
+			BUG();
 
 		/* get previous extended block */
 		prev_bh = affs_get_extblock(inode, ext - 1);
@@ -322,8 +324,8 @@ affs_get_block(struct inode *inode, sector_t block, struct buffer_head *bh_resul
 	struct buffer_head	*ext_bh;
 	u32			 ext;
 
-	pr_debug("%s(%lu, %llu)\n", __func__, inode->i_ino,
-		 (unsigned long long)block);
+	pr_debug("%s(%u, %lu)\n",
+		 __func__, (u32)inode->i_ino, (unsigned long)block);
 
 	BUG_ON(block > (sector_t)0x7fffffffUL);
 
@@ -507,7 +509,7 @@ affs_do_readpage_ofs(struct page *page, unsigned to)
 	u32 bidx, boff, bsize;
 	u32 tmp;
 
-	pr_debug("%s(%lu, %ld, 0, %d)\n", __func__, inode->i_ino,
+	pr_debug("%s(%u, %ld, 0, %d)\n", __func__, (u32)inode->i_ino,
 		 page->index, to);
 	BUG_ON(to > PAGE_CACHE_SIZE);
 	kmap(page);
@@ -543,7 +545,7 @@ affs_extent_file_ofs(struct inode *inode, u32 newsize)
 	u32 size, bsize;
 	u32 tmp;
 
-	pr_debug("%s(%lu, %d)\n", __func__, inode->i_ino, newsize);
+	pr_debug("%s(%u, %d)\n", __func__, (u32)inode->i_ino, newsize);
 	bsize = AFFS_SB(sb)->s_data_blksize;
 	bh = NULL;
 	size = AFFS_I(inode)->mmu_private;
@@ -612,7 +614,7 @@ affs_readpage_ofs(struct file *file, struct page *page)
 	u32 to;
 	int err;
 
-	pr_debug("%s(%lu, %ld)\n", __func__, inode->i_ino, page->index);
+	pr_debug("%s(%u, %ld)\n", __func__, (u32)inode->i_ino, page->index);
 	to = PAGE_CACHE_SIZE;
 	if (((page->index + 1) << PAGE_CACHE_SHIFT) > inode->i_size) {
 		to = inode->i_size & ~PAGE_CACHE_MASK;
@@ -635,8 +637,8 @@ static int affs_write_begin_ofs(struct file *file, struct address_space *mapping
 	pgoff_t index;
 	int err = 0;
 
-	pr_debug("%s(%lu, %llu, %llu)\n", __func__, inode->i_ino, pos,
-		 pos + len);
+	pr_debug("%s(%u, %llu, %llu)\n", __func__, (u32)inode->i_ino,
+		 (unsigned long long)pos, (unsigned long long)pos + len);
 	if (pos > AFFS_I(inode)->mmu_private) {
 		/* XXX: this probably leaves a too-big i_size in case of
 		 * failure. Should really be updating i_size at write_end time
@@ -685,8 +687,9 @@ static int affs_write_end_ofs(struct file *file, struct address_space *mapping,
 	 * due to write_begin.
 	 */
 
-	pr_debug("%s(%lu, %llu, %llu)\n", __func__, inode->i_ino, pos,
-		 pos + len);
+	pr_debug("%s(%u, %llu, %llu)\n",
+		 __func__, (u32)inode->i_ino, (unsigned long long)pos,
+		(unsigned long long)pos + len);
 	bsize = AFFS_SB(sb)->s_data_blksize;
 	data = page_address(page);
 
@@ -697,10 +700,8 @@ static int affs_write_end_ofs(struct file *file, struct address_space *mapping,
 	boff = tmp % bsize;
 	if (boff) {
 		bh = affs_bread_ino(inode, bidx, 0);
-		if (IS_ERR(bh)) {
-			written = PTR_ERR(bh);
-			goto err_first_bh;
-		}
+		if (IS_ERR(bh))
+			return PTR_ERR(bh);
 		tmp = min(bsize - boff, to - from);
 		BUG_ON(boff + tmp > bsize || tmp > bsize);
 		memcpy(AFFS_DATA(bh) + boff, data + from, tmp);
@@ -712,16 +713,14 @@ static int affs_write_end_ofs(struct file *file, struct address_space *mapping,
 		bidx++;
 	} else if (bidx) {
 		bh = affs_bread_ino(inode, bidx - 1, 0);
-		if (IS_ERR(bh)) {
-			written = PTR_ERR(bh);
-			goto err_first_bh;
-		}
+		if (IS_ERR(bh))
+			return PTR_ERR(bh);
 	}
 	while (from + bsize <= to) {
 		prev_bh = bh;
 		bh = affs_getemptyblk_ino(inode, bidx);
 		if (IS_ERR(bh))
-			goto err_bh;
+			goto out;
 		memcpy(AFFS_DATA(bh), data + from, bsize);
 		if (buffer_new(bh)) {
 			AFFS_DATA_HEAD(bh)->ptype = cpu_to_be32(T_DATA);
@@ -753,7 +752,7 @@ static int affs_write_end_ofs(struct file *file, struct address_space *mapping,
 		prev_bh = bh;
 		bh = affs_bread_ino(inode, bidx, 1);
 		if (IS_ERR(bh))
-			goto err_bh;
+			goto out;
 		tmp = min(bsize, to - from);
 		BUG_ON(tmp > bsize);
 		memcpy(AFFS_DATA(bh), data + from, tmp);
@@ -792,13 +791,12 @@ done:
 	if (tmp > inode->i_size)
 		inode->i_size = AFFS_I(inode)->mmu_private = tmp;
 
-err_first_bh:
 	unlock_page(page);
 	page_cache_release(page);
 
 	return written;
 
-err_bh:
+out:
 	bh = prev_bh;
 	if (!written)
 		written = PTR_ERR(bh);
@@ -839,8 +837,8 @@ affs_truncate(struct inode *inode)
 	struct buffer_head *ext_bh;
 	int i;
 
-	pr_debug("truncate(inode=%lu, oldsize=%llu, newsize=%llu)\n",
-		 inode->i_ino, AFFS_I(inode)->mmu_private, inode->i_size);
+	pr_debug("truncate(inode=%d, oldsize=%u, newsize=%u)\n",
+		 (u32)inode->i_ino, (u32)AFFS_I(inode)->mmu_private, (u32)inode->i_size);
 
 	last_blk = 0;
 	ext = 0;

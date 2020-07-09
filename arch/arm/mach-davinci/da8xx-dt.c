@@ -20,7 +20,7 @@
 
 #define DA8XX_NUM_UARTS	3
 
-static const struct of_device_id da8xx_irq_match[] __initconst = {
+static struct of_device_id da8xx_irq_match[] __initdata = {
 	{ .compatible = "ti,cp-intc", .data = cp_intc_of_init, },
 	{ }
 };

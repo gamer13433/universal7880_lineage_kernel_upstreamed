@@ -31,6 +31,7 @@
 #include <linux/extcon.h>
 #include <linux/slab.h>
 #include <linux/sysfs.h>
+#include <linux/of.h>
 
 /*
  * extcon_cable_name suggests the standard cable names for commonly used

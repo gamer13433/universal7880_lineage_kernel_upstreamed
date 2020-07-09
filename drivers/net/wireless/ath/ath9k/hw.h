@@ -54,7 +54,6 @@
 #define AR9485_DEVID_AR1111	0x0037
 #define AR9300_DEVID_AR9565     0x0036
 #define AR9300_DEVID_AR953X     0x003d
-#define AR9300_DEVID_QCA956X    0x003f
 
 #define AR5416_AR9100_DEVID	0x000b
 
@@ -199,13 +198,12 @@
 #define KAL_NUM_DESC_WORDS	12
 #define KAL_ANTENNA_MODE	1
 #define KAL_TO_DS		1
-#define KAL_DELAY		4	/* delay of 4ms between 2 KAL frames */
+#define KAL_DELAY		4	/*delay of 4ms between 2 KAL frames */
 #define KAL_TIMEOUT		900
 
 #define MAX_PATTERN_SIZE		256
 #define MAX_PATTERN_MASK_SIZE		32
-#define MAX_NUM_PATTERN			16
-#define MAX_NUM_PATTERN_LEGACY		8
+#define MAX_NUM_PATTERN			8
 #define MAX_NUM_USER_PATTERN		6 /*  deducting the disassociate and
 					      deauthenticate packets */
 
@@ -265,12 +263,6 @@ enum ath9k_hw_caps {
  * disassociation patterns for all types of possible frames recieved
  * of those types.
  */
-
-struct ath9k_hw_wow {
-	u32 wow_event_mask;
-	u32 wow_event_mask2;
-	u8 max_patterns;
-};
 
 struct ath9k_hw_capabilities {
 	u32 hw_caps; /* ATH9K_HW_CAP_* from ath9k_hw_caps */
@@ -927,7 +919,7 @@ struct ath_hw {
 	u32 ent_mode;
 
 #ifdef CONFIG_ATH9K_WOW
-	struct ath9k_hw_wow wow;
+	u32 wow_event_mask;
 #endif
 	bool is_clk_25mhz;
 	int (*get_mac_revision)(void);
@@ -1134,19 +1126,23 @@ ath9k_hw_get_btcoex_scheme(struct ath_hw *ah)
 
 
 #ifdef CONFIG_ATH9K_WOW
-int ath9k_hw_wow_apply_pattern(struct ath_hw *ah, u8 *user_pattern,
-			       u8 *user_mask, int pattern_count,
-			       int pattern_len);
+const char *ath9k_hw_wow_event_to_string(u32 wow_event);
+void ath9k_hw_wow_apply_pattern(struct ath_hw *ah, u8 *user_pattern,
+				u8 *user_mask, int pattern_count,
+				int pattern_len);
 u32 ath9k_hw_wow_wakeup(struct ath_hw *ah);
 void ath9k_hw_wow_enable(struct ath_hw *ah, u32 pattern_enable);
 #else
-static inline int ath9k_hw_wow_apply_pattern(struct ath_hw *ah,
-					     u8 *user_pattern,
-					     u8 *user_mask,
-					     int pattern_count,
-					     int pattern_len)
+static inline const char *ath9k_hw_wow_event_to_string(u32 wow_event)
 {
-	return 0;
+	return NULL;
+}
+static inline void ath9k_hw_wow_apply_pattern(struct ath_hw *ah,
+					      u8 *user_pattern,
+					      u8 *user_mask,
+					      int pattern_count,
+					      int pattern_len)
+{
 }
 static inline u32 ath9k_hw_wow_wakeup(struct ath_hw *ah)
 {

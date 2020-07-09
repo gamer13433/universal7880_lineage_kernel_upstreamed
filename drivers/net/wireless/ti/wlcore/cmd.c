@@ -399,7 +399,7 @@ void wl12xx_free_link(struct wl1271 *wl, struct wl12xx_vif *wlvif, u8 *hlid)
 	WARN_ON_ONCE(wl->active_link_count < 0);
 }
 
-u8 wlcore_get_native_channel_type(u8 nl_channel_type)
+static u8 wlcore_get_native_channel_type(u8 nl_channel_type)
 {
 	switch (nl_channel_type) {
 	case NL80211_CHAN_NO_HT:
@@ -415,7 +415,6 @@ u8 wlcore_get_native_channel_type(u8 nl_channel_type)
 		return WLCORE_CHAN_NO_HT;
 	}
 }
-EXPORT_SYMBOL_GPL(wlcore_get_native_channel_type);
 
 static int wl12xx_cmd_role_start_dev(struct wl1271 *wl,
 				     struct wl12xx_vif *wlvif,
@@ -1680,7 +1679,9 @@ int wlcore_cmd_regdomain_config_locked(struct wl1271 *wl)
 {
 	struct wl12xx_cmd_regdomain_dfs_config *cmd = NULL;
 	int ret = 0, i, b, ch_bit_idx;
+	struct ieee80211_channel *channel;
 	u32 tmp_ch_bitmap[2];
+	u16 ch;
 	struct wiphy *wiphy = wl->hw->wiphy;
 	struct ieee80211_supported_band *band;
 	bool timeout = false;
@@ -1695,16 +1696,12 @@ int wlcore_cmd_regdomain_config_locked(struct wl1271 *wl)
 	for (b = IEEE80211_BAND_2GHZ; b <= IEEE80211_BAND_5GHZ; b++) {
 		band = wiphy->bands[b];
 		for (i = 0; i < band->n_channels; i++) {
-			struct ieee80211_channel *channel = &band->channels[i];
-			u16 ch = channel->hw_value;
-			u32 flags = channel->flags;
+			channel = &band->channels[i];
+			ch = channel->hw_value;
 
-			if (flags & (IEEE80211_CHAN_DISABLED |
-				     IEEE80211_CHAN_NO_IR))
-				continue;
-
-			if ((flags & IEEE80211_CHAN_RADAR) &&
-			    channel->dfs_state != NL80211_DFS_AVAILABLE)
+			if (channel->flags & (IEEE80211_CHAN_DISABLED |
+					      IEEE80211_CHAN_RADAR |
+					      IEEE80211_CHAN_NO_IR))
 				continue;
 
 			ch_bit_idx = wlcore_get_reg_conf_ch_idx(b, ch);
@@ -1729,7 +1726,6 @@ int wlcore_cmd_regdomain_config_locked(struct wl1271 *wl)
 
 	cmd->ch_bit_map1 = cpu_to_le32(tmp_ch_bitmap[0]);
 	cmd->ch_bit_map2 = cpu_to_le32(tmp_ch_bitmap[1]);
-	cmd->dfs_region = wl->dfs_region;
 
 	wl1271_debug(DEBUG_CMD,
 		     "cmd reg domain bitmap1: 0x%08x, bitmap2: 0x%08x",

@@ -21,7 +21,6 @@
 #include <linux/interrupt.h>
 #include <linux/kernel.h>
 #include <linux/mm.h>
-#include <linux/module.h>
 #include <linux/of_platform.h>
 #include <linux/spi/spi.h>
 #ifdef CONFIG_FSL_SOC
@@ -36,8 +35,7 @@ void mpc8xxx_spi_rx_buf_##type(u32 data, struct mpc8xxx_spi *mpc8xxx_spi) \
 	type *rx = mpc8xxx_spi->rx;					  \
 	*rx++ = (type)(data >> mpc8xxx_spi->rx_shift);			  \
 	mpc8xxx_spi->rx = rx;						  \
-}									  \
-EXPORT_SYMBOL_GPL(mpc8xxx_spi_rx_buf_##type);
+}
 
 #define MPC8XXX_SPI_TX_BUF(type)				\
 u32 mpc8xxx_spi_tx_buf_##type(struct mpc8xxx_spi *mpc8xxx_spi)	\
@@ -49,8 +47,7 @@ u32 mpc8xxx_spi_tx_buf_##type(struct mpc8xxx_spi *mpc8xxx_spi)	\
 	data = *tx++ << mpc8xxx_spi->tx_shift;			\
 	mpc8xxx_spi->tx = tx;					\
 	return data;						\
-}								\
-EXPORT_SYMBOL_GPL(mpc8xxx_spi_tx_buf_##type);
+}
 
 MPC8XXX_SPI_RX_BUF(u8)
 MPC8XXX_SPI_RX_BUF(u16)
@@ -63,7 +60,6 @@ struct mpc8xxx_spi_probe_info *to_of_pinfo(struct fsl_spi_platform_data *pdata)
 {
 	return container_of(pdata, struct mpc8xxx_spi_probe_info, pdata);
 }
-EXPORT_SYMBOL_GPL(to_of_pinfo);
 
 static void mpc8xxx_spi_work(struct work_struct *work)
 {
@@ -85,7 +81,6 @@ static void mpc8xxx_spi_work(struct work_struct *work)
 	}
 	spin_unlock_irq(&mpc8xxx_spi->lock);
 }
-EXPORT_SYMBOL_GPL(mpc8xxx_spi_strmode);
 
 int mpc8xxx_spi_transfer(struct spi_device *spi,
 				struct spi_message *m)
@@ -189,7 +184,6 @@ int mpc8xxx_spi_remove(struct device *dev)
 
 	return 0;
 }
-EXPORT_SYMBOL_GPL(mpc8xxx_spi_remove);
 
 int of_mpc8xxx_spi_probe(struct platform_device *ofdev)
 {
@@ -236,6 +230,3 @@ int of_mpc8xxx_spi_probe(struct platform_device *ofdev)
 
 	return 0;
 }
-EXPORT_SYMBOL_GPL(of_mpc8xxx_spi_probe);
-
-MODULE_LICENSE("GPL");

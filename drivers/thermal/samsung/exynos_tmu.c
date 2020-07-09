@@ -1,10 +1,6 @@
 /*
  * exynos_tmu.c - Samsung EXYNOS TMU (Thermal Management Unit)
  *
- *  Copyright (C) 2014 Samsung Electronics
- *  Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
- *  Lukasz Majewski <l.majewski@samsung.com>
- *
  *  Copyright (C) 2011 Samsung Electronics
  *  Donggeun Kim <dg77.kim@samsung.com>
  *  Amit Daniel Kachhap <amit.kachhap@linaro.org>
@@ -66,27 +62,6 @@ struct cpufreq_frequency_table gpu_freq_table[10];
 struct isp_fps_table isp_fps_table[10];
 #endif
 
-/* Exynos7 specific registers */
-#define EXYNOS7_THD_TEMP_RISE7_6		0x50
-#define EXYNOS7_THD_TEMP_FALL7_6		0x60
-#define EXYNOS7_TMU_REG_INTEN			0x110
-#define EXYNOS7_TMU_REG_INTPEND			0x118
-#define EXYNOS7_TMU_REG_EMUL_CON		0x160
-
-#define EXYNOS7_TMU_TEMP_MASK			0x1ff
-#define EXYNOS7_PD_DET_EN_SHIFT			23
-#define EXYNOS7_TMU_INTEN_RISE0_SHIFT		0
-#define EXYNOS7_TMU_INTEN_RISE1_SHIFT		1
-#define EXYNOS7_TMU_INTEN_RISE2_SHIFT		2
-#define EXYNOS7_TMU_INTEN_RISE3_SHIFT		3
-#define EXYNOS7_TMU_INTEN_RISE4_SHIFT		4
-#define EXYNOS7_TMU_INTEN_RISE5_SHIFT		5
-#define EXYNOS7_TMU_INTEN_RISE6_SHIFT		6
-#define EXYNOS7_TMU_INTEN_RISE7_SHIFT		7
-#define EXYNOS7_EMUL_DATA_SHIFT			7
-#define EXYNOS7_EMUL_DATA_MASK			0x1ff
-
-#define MCELSIUS	1000
 /**
  * struct exynos_tmu_data : A structure to hold the private data of the TMU
 	driver
@@ -125,33 +100,6 @@ struct exynos_tmu_data {
 
 /* list of multiple instance for each thermal sensor */
 static LIST_HEAD(dtm_dev_list);
-
-static void exynos_report_trigger(struct exynos_tmu_data *p)
-{
-	char data[10], *envp[] = { data, NULL };
-	struct thermal_zone_device *tz = p->tzd;
-	unsigned long temp;
-	unsigned int i;
-
-	if (!tz) {
-		pr_err("No thermal zone device defined\n");
-		return;
-	}
-
-	thermal_zone_device_update(tz);
-
-	mutex_lock(&tz->lock);
-	/* Find the level for which trip happened */
-	for (i = 0; i < of_thermal_get_ntrips(tz); i++) {
-		tz->ops->get_trip_temp(tz, i, &temp);
-		if (tz->last_temperature < temp)
-			break;
-	}
-
-	snprintf(data, sizeof(data), "%u", i);
-	kobject_uevent_env(&tz->device.kobj, KOBJ_CHANGE, envp);
-	mutex_unlock(&tz->lock);
-}
 
 /*
  * TMU treats temperature as a mapped temperature code.
@@ -776,7 +724,7 @@ out:
 #else
 static int exynos_tmu_set_emulation(void *drv_data,	unsigned long temp)
 	{ return -EINVAL; }
-#endif /* CONFIG_THERMAL_EMULATION */
+#endif/*CONFIG_THERMAL_EMULATION*/
 
 void exynos_tmu_core_control(bool on, int id)
 {
@@ -846,12 +794,6 @@ static struct notifier_block exynos_low_pwr_nb = {
 	.notifier_call = exynos_low_pwr_notifier,
 };
 #endif /* end of CONFIG_CPU_PM */
-
-static int exynos7_tmu_read(struct exynos_tmu_data *data)
-{
-	return readw(data->base + EXYNOS_TMU_REG_CURRENT_TEMP) &
-		EXYNOS7_TMU_TEMP_MASK;
-}
 
 static void exynos_tmu_work(struct work_struct *work)
 {
@@ -1218,16 +1160,12 @@ static int exynos_tmu_ect_set_information(struct platform_device *pdev)
 }
 #endif
 
-static struct thermal_zone_of_device_ops exynos_sensor_ops = {
-	.get_temp = exynos_get_temp,
-	.set_emul_temp = exynos_tmu_set_emulation,
-};
-
 static int exynos_tmu_probe(struct platform_device *pdev)
 {
-	struct exynos_tmu_platform_data *pdata;
 	struct exynos_tmu_data *data;
-	int ret;
+	struct exynos_tmu_platform_data *pdata;
+	struct thermal_sensor_conf *sensor_conf;
+	int ret, i;
 
 	/* make sure cpufreq driver has been initialized */
 	if (!cpufreq_frequency_get_table(0))
@@ -1241,15 +1179,9 @@ static int exynos_tmu_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, data);
 	mutex_init(&data->lock);
 
-	data->tzd = thermal_zone_of_sensor_register(&pdev->dev, 0, data,
-						    &exynos_sensor_ops);
-	if (IS_ERR(data->tzd)) {
-		pr_err("thermal: tz: %p ERROR\n", data->tzd);
-		return PTR_ERR(data->tzd);
-	}
 	ret = exynos_map_dt_data(pdev);
 	if (ret)
-		goto err_sensor;
+		return ret;
 
 	pdata = data->pdata;
 

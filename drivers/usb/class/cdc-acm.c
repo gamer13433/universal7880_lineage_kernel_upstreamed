@@ -1106,6 +1106,7 @@ static int acm_probe(struct usb_interface *intf,
 	unsigned long quirks;
 	int num_rx_buf;
 	int i;
+	unsigned int elength = 0;
 	int combined_interfaces = 0;
 	struct device *tty_dev;
 	int rv = -ENOMEM;
@@ -1160,9 +1161,12 @@ static int acm_probe(struct usb_interface *intf,
 			dev_err(&intf->dev, "skipping garbage\n");
 			goto next_desc;
 		}
+		elength = buffer[0];
 
 		switch (buffer[2]) {
 		case USB_CDC_UNION_TYPE: /* we've found it */
+			if (elength < sizeof(struct usb_cdc_union_desc))
+				goto next_desc;
 			if (union_header) {
 				dev_err(&intf->dev, "More than one "
 					"union descriptor, skipping ...\n");

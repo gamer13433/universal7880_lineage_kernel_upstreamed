@@ -1406,32 +1406,11 @@ void __irq_entry smp_receive_signal_client(int irq, struct pt_regs *regs)
 	scheduler_ipi();
 }
 
-static void stop_this_cpu(void *dummy)
-{
-	prom_stopself();
-}
-
+/* This is a nop because we capture all other cpus
+ * anyways when making the PROM active.
+ */
 void smp_send_stop(void)
 {
-	int cpu;
-
-	if (tlb_type == hypervisor) {
-		for_each_online_cpu(cpu) {
-			if (cpu == smp_processor_id())
-				continue;
-#ifdef CONFIG_SUN_LDOMS
-			if (ldom_domaining_enabled) {
-				unsigned long hv_err;
-				hv_err = sun4v_cpu_stop(cpu);
-				if (hv_err)
-					printk(KERN_ERR "sun4v_cpu_stop() "
-					       "failed err=%lu\n", hv_err);
-			} else
-#endif
-				prom_stopcpu_cpuid(cpu);
-		}
-	} else
-		smp_call_function(stop_this_cpu, NULL, 0);
 }
 
 /**

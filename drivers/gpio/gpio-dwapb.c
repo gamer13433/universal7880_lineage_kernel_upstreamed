@@ -469,13 +469,15 @@ dwapb_gpio_get_pdata_of(struct device *dev)
 	if (nports == 0)
 		return ERR_PTR(-ENODEV);
 
-	pdata = devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
+	pdata = kzalloc(sizeof(*pdata), GFP_KERNEL);
 	if (!pdata)
 		return ERR_PTR(-ENOMEM);
 
-	pdata->properties = devm_kcalloc(dev, nports, sizeof(*pp), GFP_KERNEL);
-	if (!pdata->properties)
+	pdata->properties = kcalloc(nports, sizeof(*pp), GFP_KERNEL);
+	if (!pdata->properties) {
+		kfree(pdata);
 		return ERR_PTR(-ENOMEM);
+	}
 
 	pdata->nports = nports;
 
@@ -488,6 +490,8 @@ dwapb_gpio_get_pdata_of(struct device *dev)
 		    pp->idx >= DWAPB_MAX_PORTS) {
 			dev_err(dev, "missing/invalid port index for %s\n",
 				port_np->full_name);
+			kfree(pdata->properties);
+			kfree(pdata);
 			return ERR_PTR(-EINVAL);
 		}
 
@@ -519,6 +523,15 @@ dwapb_gpio_get_pdata_of(struct device *dev)
 	return pdata;
 }
 
+static inline void dwapb_free_pdata_of(struct dwapb_platform_data *pdata)
+{
+	if (!IS_ENABLED(CONFIG_OF_GPIO) || !pdata)
+		return;
+
+	kfree(pdata->properties);
+	kfree(pdata);
+}
+
 static int dwapb_gpio_probe(struct platform_device *pdev)
 {
 	unsigned int i;
@@ -527,32 +540,40 @@ static int dwapb_gpio_probe(struct platform_device *pdev)
 	int err;
 	struct device *dev = &pdev->dev;
 	struct dwapb_platform_data *pdata = dev_get_platdata(dev);
+	bool is_pdata_alloc = !pdata;
 
-	if (!pdata) {
+	if (is_pdata_alloc) {
 		pdata = dwapb_gpio_get_pdata_of(dev);
 		if (IS_ERR(pdata))
 			return PTR_ERR(pdata);
 	}
 
-	if (!pdata->nports)
-		return -ENODEV;
+	if (!pdata->nports) {
+		err = -ENODEV;
+		goto out_err;
+	}
 
 	gpio = devm_kzalloc(&pdev->dev, sizeof(*gpio), GFP_KERNEL);
-	if (!gpio)
-		return -ENOMEM;
-
+	if (!gpio) {
+		err = -ENOMEM;
+		goto out_err;
+	}
 	gpio->dev = &pdev->dev;
 	gpio->nr_ports = pdata->nports;
 
 	gpio->ports = devm_kcalloc(&pdev->dev, gpio->nr_ports,
 				   sizeof(*gpio->ports), GFP_KERNEL);
-	if (!gpio->ports)
-		return -ENOMEM;
+	if (!gpio->ports) {
+		err = -ENOMEM;
+		goto out_err;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	gpio->regs = devm_ioremap_resource(&pdev->dev, res);
-	if (IS_ERR(gpio->regs))
-		return PTR_ERR(gpio->regs);
+	if (IS_ERR(gpio->regs)) {
+		err = PTR_ERR(gpio->regs);
+		goto out_err;
+	}
 
 	for (i = 0; i < gpio->nr_ports; i++) {
 		err = dwapb_gpio_add_port(gpio, &pdata->properties[i], i);
@@ -561,11 +582,15 @@ static int dwapb_gpio_probe(struct platform_device *pdev)
 	}
 	platform_set_drvdata(pdev, gpio);
 
-	return 0;
+	goto out_err;
 
 out_unregister:
 	dwapb_gpio_unregister(gpio);
 	dwapb_irq_teardown(gpio);
+
+out_err:
+	if (is_pdata_alloc)
+		dwapb_free_pdata_of(pdata);
 
 	return err;
 }

@@ -41,6 +41,7 @@
  *      MACvSetDmaLength - Set Dma Length value
  *      MACvGetDmaLength - Get Dma Length value
  *      MACvSetShortRetryLimit - Set 802.11 Short Retry limit
+ *      MACvGetShortRetryLimit - Get 802.11 Short Retry limit
  *      MACvSetLongRetryLimit - Set 802.11 Long Retry limit
  *      MACvGetLongRetryLimit - Get 802.11 Long Retry limit
  *      MACvSetLoopbackMode - Set MAC Loopback Mode
@@ -452,6 +453,24 @@ void MACvSetShortRetryLimit(void __iomem *dwIoBase, unsigned char byRetryLimit)
 	VNSvOutPortB(dwIoBase + MAC_REG_SRT, byRetryLimit);
 }
 
+/*
+ * Description:
+ *      Get 802.11 Short Retry Limit
+ *
+ * Parameters:
+ *  In:
+ *      dwIoBase        - Base Address for MAC
+ *  Out:
+ *      pbyRetryLimit   - Retry Limit Get
+ *
+ * Return Value: none
+ *
+ */
+void MACvGetShortRetryLimit(void __iomem *dwIoBase, unsigned char *pbyRetryLimit)
+{
+	// get SRT
+	VNSvInPortB(dwIoBase + MAC_REG_SRT, pbyRetryLimit);
+}
 
 /*
  * Description:
@@ -787,7 +806,7 @@ bool MACbSafeSoftwareReset(void __iomem *dwIoBase)
 
 /*
  * Description:
- *      Turn Off MAC Rx
+ *      Trun Off MAC Rx
  *
  * Parameters:
  *  In:
@@ -848,7 +867,7 @@ bool MACbSafeRxOff(void __iomem *dwIoBase)
 
 /*
  * Description:
- *      Turn Off MAC Tx
+ *      Trun Off MAC Tx
  *
  * Parameters:
  *  In:
@@ -1361,7 +1380,7 @@ bool MACbPSWakeup(void __iomem *dwIoBase)
 
 	// Check if SyncFlushOK
 	for (ww = 0; ww < W_MAX_TIMEOUT; ww++) {
-		VNSvInPortB(dwIoBase + MAC_REG_PSCTL, &byOrgValue);
+		VNSvInPortB(dwIoBase + MAC_REG_PSCTL , &byOrgValue);
 		if (byOrgValue & PSCTL_WAKEDONE)
 			break;
 	}

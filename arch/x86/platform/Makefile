@@ -5,7 +5,6 @@ obj-y	+= geode/
 obj-y	+= goldfish/
 obj-y	+= iris/
 obj-y	+= intel-mid/
-obj-y	+= intel-quark/
 obj-y	+= olpc/
 obj-y	+= scx200/
 obj-y	+= sfi/

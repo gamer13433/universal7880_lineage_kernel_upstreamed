@@ -11,7 +11,8 @@ static bool find_by_address(u64 base_address)
 	struct resource res;
 
 	while (dn) {
-		if (!of_address_to_resource(dn, 0, &res)) {
+		if (of_can_translate_address(dn)
+		    && !of_address_to_resource(dn, 0, &res)) {
 			if (res.start == base_address) {
 				of_node_put(dn);
 				return true;

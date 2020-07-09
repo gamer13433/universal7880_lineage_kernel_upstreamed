@@ -710,8 +710,7 @@ void set_pmd_at(struct mm_struct *mm, unsigned long addr,
 		pmd_t *pmdp, pmd_t pmd)
 {
 #ifdef CONFIG_DEBUG_VM
-	WARN_ON((pmd_val(*pmdp) & (_PAGE_PRESENT | _PAGE_USER)) ==
-		(_PAGE_PRESENT | _PAGE_USER));
+	WARN_ON(pmd_val(*pmdp) & _PAGE_PRESENT);
 	assert_spin_locked(&mm->page_table_lock);
 	WARN_ON(!pmd_trans_huge(pmd));
 #endif
@@ -814,7 +813,7 @@ pmd_t pfn_pmd(unsigned long pfn, pgprot_t pgprot)
 {
 	pmd_t pmd;
 	/*
-	 * For a valid pte, we would have _PAGE_PRESENT always
+	 * For a valid pte, we would have _PAGE_PRESENT or _PAGE_FILE always
 	 * set. We use this to check THP page at pmd level.
 	 * leaf pte for huge page, bottom two bits != 00
 	 */

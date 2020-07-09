@@ -24,6 +24,7 @@
 #include <linux/interrupt.h>
 #include <linux/platform_device.h>
 #include <linux/slab.h>
+#include <linux/time.h>
 #include <linux/types.h>
 #include <linux/ioport.h>
 
@@ -162,6 +163,8 @@ struct au1k_private {
 	iobuff_t rx_buff;
 
 	struct net_device *netdev;
+	struct timeval stamp;
+	struct timeval now;
 	struct qos_info qos;
 	struct irlap_cb *irlap;
 

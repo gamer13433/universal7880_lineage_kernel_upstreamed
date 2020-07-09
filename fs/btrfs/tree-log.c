@@ -453,13 +453,11 @@ static noinline int overwrite_item(struct btrfs_trans_handle *trans,
 insert:
 	btrfs_release_path(path);
 	/* try to insert the key into the destination tree */
-	path->skip_release_on_error = 1;
 	ret = btrfs_insert_empty_item(trans, root, path,
 				      key, item_size);
-	path->skip_release_on_error = 0;
 
 	/* make sure any existing item is the correct size */
-	if (ret == -EEXIST || ret == -EOVERFLOW) {
+	if (ret == -EEXIST) {
 		u32 found_size;
 		found_size = btrfs_item_size_nr(path->nodes[0],
 						path->slots[0]);
@@ -858,7 +856,7 @@ out:
 static noinline int backref_in_log(struct btrfs_root *log,
 				   struct btrfs_key *key,
 				   u64 ref_objectid,
-				   const char *name, int namelen)
+				   char *name, int namelen)
 {
 	struct btrfs_path *path;
 	struct btrfs_inode_ref *ref;
@@ -1302,7 +1300,6 @@ static int count_inode_extrefs(struct btrfs_root *root,
 		leaf = path->nodes[0];
 		item_size = btrfs_item_size_nr(leaf, path->slots[0]);
 		ptr = btrfs_item_ptr_offset(leaf, path->slots[0]);
-		cur_offset = 0;
 
 		while (cur_offset < item_size) {
 			extref = (struct btrfs_inode_extref *) (ptr + cur_offset);
@@ -1318,7 +1315,7 @@ static int count_inode_extrefs(struct btrfs_root *root,
 	}
 	btrfs_release_path(path);
 
-	if (ret < 0 && ret != -ENOENT)
+	if (ret < 0)
 		return ret;
 	return nlink;
 }
@@ -1410,6 +1407,9 @@ static noinline int fixup_inode_link_count(struct btrfs_trans_handle *trans,
 	nlink = ret;
 
 	ret = count_inode_extrefs(root, inode, path);
+	if (ret == -ENOENT)
+		ret = 0;
+
 	if (ret < 0)
 		goto out;
 
@@ -1570,30 +1570,6 @@ static noinline int insert_one_name(struct btrfs_trans_handle *trans,
 }
 
 /*
- * Return true if an inode reference exists in the log for the given name,
- * inode and parent inode.
- */
-static bool name_in_log_ref(struct btrfs_root *log_root,
-			    const char *name, const int name_len,
-			    const u64 dirid, const u64 ino)
-{
-	struct btrfs_key search_key;
-
-	search_key.objectid = ino;
-	search_key.type = BTRFS_INODE_REF_KEY;
-	search_key.offset = dirid;
-	if (backref_in_log(log_root, &search_key, dirid, name, name_len))
-		return true;
-
-	search_key.type = BTRFS_INODE_EXTREF_KEY;
-	search_key.offset = btrfs_extref_hash(dirid, name, name_len);
-	if (backref_in_log(log_root, &search_key, dirid, name, name_len))
-		return true;
-
-	return false;
-}
-
-/*
  * take a single entry in a log directory item and replay it into
  * the subvolume.
  *
@@ -1703,17 +1679,10 @@ out:
 	return ret;
 
 insert:
-	if (name_in_log_ref(root->log_root, name, name_len,
-			    key->objectid, log_key.objectid)) {
-		/* The dentry will be added later. */
-		ret = 0;
-		update_size = false;
-		goto out;
-	}
 	btrfs_release_path(path);
 	ret = insert_one_name(trans, root, path, key->objectid, key->offset,
 			      name, name_len, log_type, &log_key);
-	if (ret && ret != -ENOENT && ret != -EEXIST)
+	if (ret && ret != -ENOENT)
 		goto out;
 	update_size = false;
 	ret = 0;
@@ -2208,7 +2177,7 @@ static noinline int walk_down_log_tree(struct btrfs_trans_handle *trans,
 		parent = path->nodes[*level];
 		root_owner = btrfs_header_owner(parent);
 
-		next = btrfs_find_create_tree_block(root, bytenr);
+		next = btrfs_find_create_tree_block(root, bytenr, blocksize);
 		if (!next)
 			return -ENOMEM;
 
@@ -2460,8 +2429,8 @@ static void wait_for_writer(struct btrfs_trans_handle *trans,
 		mutex_unlock(&root->log_mutex);
 		if (atomic_read(&root->log_writers))
 			schedule();
-		finish_wait(&root->log_writer_wait, &wait);
 		mutex_lock(&root->log_mutex);
+		finish_wait(&root->log_writer_wait, &wait);
 	}
 }
 
@@ -3280,19 +3249,19 @@ static void fill_inode_item(struct btrfs_trans_handle *trans,
 	btrfs_set_token_inode_mode(leaf, item, inode->i_mode, &token);
 	btrfs_set_token_inode_nlink(leaf, item, inode->i_nlink, &token);
 
-	btrfs_set_token_timespec_sec(leaf, &item->atime,
+	btrfs_set_token_timespec_sec(leaf, btrfs_inode_atime(item),
 				     inode->i_atime.tv_sec, &token);
-	btrfs_set_token_timespec_nsec(leaf, &item->atime,
+	btrfs_set_token_timespec_nsec(leaf, btrfs_inode_atime(item),
 				      inode->i_atime.tv_nsec, &token);
 
-	btrfs_set_token_timespec_sec(leaf, &item->mtime,
+	btrfs_set_token_timespec_sec(leaf, btrfs_inode_mtime(item),
 				     inode->i_mtime.tv_sec, &token);
-	btrfs_set_token_timespec_nsec(leaf, &item->mtime,
+	btrfs_set_token_timespec_nsec(leaf, btrfs_inode_mtime(item),
 				      inode->i_mtime.tv_nsec, &token);
 
-	btrfs_set_token_timespec_sec(leaf, &item->ctime,
+	btrfs_set_token_timespec_sec(leaf, btrfs_inode_ctime(item),
 				     inode->i_ctime.tv_sec, &token);
-	btrfs_set_token_timespec_nsec(leaf, &item->ctime,
+	btrfs_set_token_timespec_nsec(leaf, btrfs_inode_ctime(item),
 				      inode->i_ctime.tv_nsec, &token);
 
 	btrfs_set_token_inode_nbytes(leaf, item, inode_get_bytes(inode),
@@ -3960,33 +3929,6 @@ static int logged_inode_size(struct btrfs_root *log, struct inode *inode,
 	return 0;
 }
 
-static int logged_inode_size(struct btrfs_root *log, struct inode *inode,
-			     struct btrfs_path *path, u64 *size_ret)
-{
-	struct btrfs_key key;
-	int ret;
-
-	key.objectid = btrfs_ino(inode);
-	key.type = BTRFS_INODE_ITEM_KEY;
-	key.offset = 0;
-
-	ret = btrfs_search_slot(NULL, log, &key, path, 0, 0);
-	if (ret < 0) {
-		return ret;
-	} else if (ret > 0) {
-		*size_ret = i_size_read(inode);
-	} else {
-		struct btrfs_inode_item *item;
-
-		item = btrfs_item_ptr(path->nodes[0], path->slots[0],
-				      struct btrfs_inode_item);
-		*size_ret = btrfs_inode_size(path->nodes[0], item);
-	}
-
-	btrfs_release_path(path);
-	return 0;
-}
-
 /* log a single inode in the tree log.
  * At least one parent directory for this inode must exist in the tree
  * or be logged already.
@@ -4052,22 +3994,15 @@ static int btrfs_log_inode(struct btrfs_trans_handle *trans,
 		max_key.type = (u8)-1;
 	max_key.offset = (u64)-1;
 
-	/*
-	 * Only run delayed items if we are a dir or a new file.
-	 * Otherwise commit the delayed inode only, which is needed in
-	 * order for the log replay code to mark inodes for link count
-	 * fixup (create temporary BTRFS_TREE_LOG_FIXUP_OBJECTID items).
-	 */
+	/* Only run delayed items if we are a dir or a new file */
 	if (S_ISDIR(inode->i_mode) ||
-	    BTRFS_I(inode)->generation > root->fs_info->last_trans_committed)
+	    BTRFS_I(inode)->generation > root->fs_info->last_trans_committed) {
 		ret = btrfs_commit_inode_delayed_items(trans, inode);
-	else
-		ret = btrfs_commit_inode_delayed_inode(inode);
-
-	if (ret) {
-		btrfs_free_path(path);
-		btrfs_free_path(dst_path);
-		return ret;
+		if (ret) {
+			btrfs_free_path(path);
+			btrfs_free_path(dst_path);
+			return ret;
+		}
 	}
 
 	mutex_lock(&BTRFS_I(inode)->log_mutex);
@@ -4372,9 +4307,6 @@ static int btrfs_log_inode_parent(struct btrfs_trans_handle *trans,
 	struct dentry *old_parent = NULL;
 	int ret = 0;
 	u64 last_committed = root->fs_info->last_trans_committed;
-	const struct dentry * const first_parent = parent;
-	const bool did_unlink = (BTRFS_I(inode)->last_unlink_trans >
-				 last_committed);
 
 	sb = inode->i_sb;
 
@@ -4430,6 +4362,7 @@ static int btrfs_log_inode_parent(struct btrfs_trans_handle *trans,
 		goto end_trans;
 	}
 
+	inode_only = LOG_INODE_EXISTS;
 	while (1) {
 		if (!parent || !parent->d_inode || sb != parent->d_inode->i_sb)
 			break;
@@ -4438,22 +4371,8 @@ static int btrfs_log_inode_parent(struct btrfs_trans_handle *trans,
 		if (root != BTRFS_I(inode)->root)
 			break;
 
-		/*
-		 * On unlink we must make sure our immediate parent directory
-		 * inode is fully logged. This is to prevent leaving dangling
-		 * directory index entries and a wrong directory inode's i_size.
-		 * Not doing so can result in a directory being impossible to
-		 * delete after log replay (rmdir will always fail with error
-		 * -ENOTEMPTY).
-		 */
-		if (did_unlink && parent == first_parent)
-			inode_only = LOG_INODE_ALL;
-		else
-			inode_only = LOG_INODE_EXISTS;
-
 		if (BTRFS_I(inode)->generation >
-		    root->fs_info->last_trans_committed ||
-		    inode_only == LOG_INODE_ALL) {
+		    root->fs_info->last_trans_committed) {
 			ret = btrfs_log_inode(trans, root, inode, inode_only,
 					      0, LLONG_MAX, ctx);
 			if (ret)

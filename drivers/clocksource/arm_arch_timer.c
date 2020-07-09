@@ -15,7 +15,6 @@
 #include <linux/cpu.h>
 #include <linux/cpu_pm.h>
 #include <linux/clockchips.h>
-#include <linux/clocksource.h>
 #include <linux/interrupt.h>
 #include <linux/of_irq.h>
 #include <linux/of_address.h>

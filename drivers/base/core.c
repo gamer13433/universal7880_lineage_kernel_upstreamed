@@ -2094,47 +2094,54 @@ int dev_printk_emit(int level, const struct device *dev, const char *fmt, ...)
 }
 EXPORT_SYMBOL(dev_printk_emit);
 
-static void __dev_printk(const char *level, const struct device *dev,
+static int __dev_printk(const char *level, const struct device *dev,
 			struct va_format *vaf)
 {
-	if (dev)
-		dev_printk_emit(level[1] - '0', dev, "%s %s: %pV",
-				dev_driver_string(dev), dev_name(dev), vaf);
-	else
-		printk("%s(NULL device *): %pV", level, vaf);
+	if (!dev)
+		return printk("%s(NULL device *): %pV", level, vaf);
+
+	return dev_printk_emit(level[1] - '0', dev,
+			       "%s %s: %pV",
+			       dev_driver_string(dev), dev_name(dev), vaf);
 }
 
-void dev_printk(const char *level, const struct device *dev,
-		const char *fmt, ...)
+int dev_printk(const char *level, const struct device *dev,
+	       const char *fmt, ...)
 {
 	struct va_format vaf;
 	va_list args;
+	int r;
 
 	va_start(args, fmt);
 
 	vaf.fmt = fmt;
 	vaf.va = &args;
 
-	__dev_printk(level, dev, &vaf);
+	r = __dev_printk(level, dev, &vaf);
 
 	va_end(args);
+
+	return r;
 }
 EXPORT_SYMBOL(dev_printk);
 
 #define define_dev_printk_level(func, kern_level)		\
-void func(const struct device *dev, const char *fmt, ...)	\
+int func(const struct device *dev, const char *fmt, ...)	\
 {								\
 	struct va_format vaf;					\
 	va_list args;						\
+	int r;							\
 								\
 	va_start(args, fmt);					\
 								\
 	vaf.fmt = fmt;						\
 	vaf.va = &args;						\
 								\
-	__dev_printk(kern_level, dev, &vaf);			\
+	r = __dev_printk(kern_level, dev, &vaf);		\
 								\
 	va_end(args);						\
+								\
+	return r;						\
 }								\
 EXPORT_SYMBOL(func);
 

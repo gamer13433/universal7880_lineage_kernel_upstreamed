@@ -22,18 +22,14 @@ static LIST_HEAD(fou_list);
 struct fou {
 	struct socket *sock;
 	u8 protocol;
-	u8 flags;
 	u16 port;
 	struct udp_offload udp_offloads;
 	struct list_head list;
 };
 
-#define FOU_F_REMCSUM_NOPARTIAL BIT(0)
-
 struct fou_cfg {
 	u16 type;
 	u8 protocol;
-	u8 flags;
 	struct udp_port_cfg udp_config;
 };
 
@@ -109,8 +105,7 @@ drop:
 }
 
 static struct sk_buff **fou_gro_receive(struct sk_buff **head,
-					struct sk_buff *skb,
-					struct udp_offload *uoff)
+					struct sk_buff *skb)
 {
 	const struct net_offload *ops;
 	struct sk_buff **pp = NULL;
@@ -131,8 +126,7 @@ out_unlock:
 	return pp;
 }
 
-static int fou_gro_complete(struct sk_buff *skb, int nhoff,
-			    struct udp_offload *uoff)
+static int fou_gro_complete(struct sk_buff *skb, int nhoff)
 {
 	const struct net_offload *ops;
 	u8 proto = NAPI_GRO_CB(skb)->proto;
@@ -156,8 +150,7 @@ out_unlock:
 }
 
 static struct sk_buff **gue_gro_receive(struct sk_buff **head,
-					struct sk_buff *skb,
-					struct udp_offload *uoff)
+					struct sk_buff *skb)
 {
 	const struct net_offload **offloads;
 	const struct net_offload *ops;
@@ -168,10 +161,6 @@ static struct sk_buff **gue_gro_receive(struct sk_buff **head,
 	unsigned int hlen, guehlen;
 	unsigned int off;
 	int flush = 1;
-	struct fou *fou = container_of(uoff, struct fou, udp_offloads);
-	struct gro_remcsum grc;
-
-	skb_gro_remcsum_init(&grc);
 
 	off = skb_gro_offset(skb);
 	hlen = off + sizeof(*guehdr);
@@ -236,13 +225,11 @@ out_unlock:
 	rcu_read_unlock();
 out:
 	NAPI_GRO_CB(skb)->flush |= flush;
-	skb_gro_remcsum_cleanup(skb, &grc);
 
 	return pp;
 }
 
-static int gue_gro_complete(struct sk_buff *skb, int nhoff,
-			    struct udp_offload *uoff)
+static int gue_gro_complete(struct sk_buff *skb, int nhoff)
 {
 	const struct net_offload **offloads;
 	struct guehdr *guehdr = (struct guehdr *)(skb->data + nhoff);
@@ -347,7 +334,6 @@ static int fou_create(struct net *net, struct fou_cfg *cfg,
 
 	sk = sock->sk;
 
-	fou->flags = cfg->flags;
 	fou->port = cfg->udp_config.local_udp_port;
 
 	/* Initial for fou type */
@@ -373,7 +359,7 @@ static int fou_create(struct net *net, struct fou_cfg *cfg,
 	sk->sk_user_data = fou;
 	fou->sock = sock;
 
-	inet_inc_convert_csum(sk);
+	udp_set_convert_csum(sk, true);
 
 	sk->sk_allocation = GFP_ATOMIC;
 
@@ -434,7 +420,6 @@ static struct nla_policy fou_nl_policy[FOU_ATTR_MAX + 1] = {
 	[FOU_ATTR_AF] = { .type = NLA_U8, },
 	[FOU_ATTR_IPPROTO] = { .type = NLA_U8, },
 	[FOU_ATTR_TYPE] = { .type = NLA_U8, },
-	[FOU_ATTR_REMCSUM_NOPARTIAL] = { .type = NLA_FLAG, },
 };
 
 static int parse_nl_config(struct genl_info *info,
@@ -464,9 +449,6 @@ static int parse_nl_config(struct genl_info *info,
 
 	if (info->attrs[FOU_ATTR_TYPE])
 		cfg->type = nla_get_u8(info->attrs[FOU_ATTR_TYPE]);
-
-	if (info->attrs[FOU_ATTR_REMCSUM_NOPARTIAL])
-		cfg->flags |= FOU_F_REMCSUM_NOPARTIAL;
 
 	return 0;
 }

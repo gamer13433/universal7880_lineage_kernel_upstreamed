@@ -244,17 +244,14 @@ static int read_unwind_spec_eh_frame(struct dso *dso, struct machine *machine,
 				     u64 *fde_count)
 {
 	int ret = -EINVAL, fd;
-	u64 offset = dso->data.frame_offset;
+	u64 offset;
 
-	if (offset == 0) {
-		fd = dso__data_fd(dso, machine);
-		if (fd < 0)
-			return -EINVAL;
+	fd = dso__data_fd(dso, machine);
+	if (fd < 0)
+		return -EINVAL;
 
-		/* Check the .eh_frame section for unwinding info */
-		offset = elf_section_offset(fd, ".eh_frame_hdr");
-		dso->data.frame_offset = offset;
-	}
+	/* Check the .eh_frame section for unwinding info */
+	offset = elf_section_offset(fd, ".eh_frame_hdr");
 
 	if (offset)
 		ret = unwind_spec_ehframe(dso, machine, offset,
@@ -268,20 +265,14 @@ static int read_unwind_spec_eh_frame(struct dso *dso, struct machine *machine,
 static int read_unwind_spec_debug_frame(struct dso *dso,
 					struct machine *machine, u64 *offset)
 {
-	int fd;
-	u64 ofs = dso->data.frame_offset;
+	int fd = dso__data_fd(dso, machine);
 
-	if (ofs == 0) {
-		fd = dso__data_fd(dso, machine);
-		if (fd < 0)
-			return -EINVAL;
+	if (fd < 0)
+		return -EINVAL;
 
-		/* Check the .debug_frame section for unwinding info */
-		ofs = elf_section_offset(fd, ".debug_frame");
-		dso->data.frame_offset = ofs;
-	}
+	/* Check the .debug_frame section for unwinding info */
+	*offset = elf_section_offset(fd, ".debug_frame");
 
-	*offset = ofs;
 	if (*offset)
 		return 0;
 

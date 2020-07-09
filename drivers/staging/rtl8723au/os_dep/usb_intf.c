@@ -95,9 +95,11 @@ static struct dvobj_priv *usb_dvobj_init(struct usb_interface *usb_intf)
 	struct usb_config_descriptor *pconf_desc;
 	struct usb_host_interface *phost_iface;
 	struct usb_interface_descriptor *piface_desc;
+	struct usb_host_endpoint *phost_endp;
 	struct usb_endpoint_descriptor *pendp_desc;
-	struct usb_device *pusbd;
-	int i, status = _FAIL;
+	struct usb_device		 *pusbd;
+	int	i;
+	int	status = _FAIL;
 
 	pdvobjpriv = kzalloc(sizeof(*pdvobjpriv), GFP_KERNEL);
 	if (!pdvobjpriv)

@@ -119,22 +119,6 @@ int nft_validate_data_load(const struct nft_ctx *ctx, enum nft_registers reg,
 			   const struct nft_data *data,
 			   enum nft_data_types type);
 
-
-/**
- *	struct nft_userdata - user defined data associated with an object
- *
- *	@len: length of the data
- *	@data: content
- *
- *	The presence of user data is indicated in an object specific fashion,
- *	so a length of zero can't occur and the value "len" indicates data
- *	of length len + 1.
- */
-struct nft_userdata {
-	u8			len;
-	unsigned char		data[0];
-};
-
 /**
  *	struct nft_set_elem - generic representation of set elements
  *
@@ -396,7 +380,7 @@ static inline void *nft_expr_priv(const struct nft_expr *expr)
  *	@handle: rule handle
  *	@genmask: generation mask
  *	@dlen: length of expression data
- *	@udata: user data is appended to the rule
+ *	@ulen: length of user data (used for comments)
  *	@data: expression data
  */
 struct nft_rule {
@@ -404,7 +388,7 @@ struct nft_rule {
 	u64				handle:42,
 					genmask:2,
 					dlen:12,
-					udata:1;
+					ulen:8;
 	unsigned char			data[]
 		__attribute__((aligned(__alignof__(struct nft_expr))));
 };
@@ -492,7 +476,7 @@ static inline struct nft_expr *nft_expr_last(const struct nft_rule *rule)
 	return (struct nft_expr *)&rule->data[rule->dlen];
 }
 
-static inline struct nft_userdata *nft_userdata(const struct nft_rule *rule)
+static inline void *nft_userdata(const struct nft_rule *rule)
 {
 	return (void *)&rule->data[rule->dlen];
 }

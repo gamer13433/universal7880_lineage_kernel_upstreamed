@@ -47,11 +47,11 @@ u8 HalPwrSeqCmdParsing23a(struct rtw_adapter *padapter, u8 CutVersion,
 		       u8 FabVersion, u8 InterfaceType,
 		       struct wlan_pwr_cfg PwrSeqCmd[])
 {
-	struct wlan_pwr_cfg PwrCfgCmd;
-	u8 bPollingBit;
+	struct wlan_pwr_cfg PwrCfgCmd = { 0 };
+	u8 bPollingBit = false;
 	u32 AryIdx = 0;
-	u8 value;
-	u32 offset;
+	u8 value = 0;
+	u32 offset = 0;
 	u32 pollingCount = 0;	/*  polling autoload done. */
 	u32 maxPollingCnt = 5000;
 

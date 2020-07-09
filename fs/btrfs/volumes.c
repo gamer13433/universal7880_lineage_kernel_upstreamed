@@ -1314,8 +1314,6 @@ again:
 	if (ret) {
 		btrfs_error(root->fs_info, ret,
 			    "Failed to remove dev extent item");
-	} else {
-		trans->transaction->have_free_bgs = 1;
 	}
 out:
 	btrfs_free_path(path);
@@ -4202,7 +4200,7 @@ static u32 find_raid56_stripe_len(u32 data_devices, u32 dev_stripe_target)
 
 static void check_raid56_incompat_flag(struct btrfs_fs_info *info, u64 type)
 {
-	if (!(type & BTRFS_BLOCK_GROUP_RAID56_MASK))
+	if (!(type & (BTRFS_BLOCK_GROUP_RAID5 | BTRFS_BLOCK_GROUP_RAID6)))
 		return;
 
 	btrfs_set_fs_incompat(info, RAID56);
@@ -4807,8 +4805,10 @@ unsigned long btrfs_full_stripe_len(struct btrfs_root *root,
 
 	BUG_ON(em->start > logical || em->start + em->len < logical);
 	map = (struct map_lookup *)em->bdev;
-	if (map->type & BTRFS_BLOCK_GROUP_RAID56_MASK)
+	if (map->type & (BTRFS_BLOCK_GROUP_RAID5 |
+			 BTRFS_BLOCK_GROUP_RAID6)) {
 		len = map->stripe_len * nr_data_stripes(map);
+	}
 	free_extent_map(em);
 	return len;
 }
@@ -4828,7 +4828,8 @@ int btrfs_is_parity_mirror(struct btrfs_mapping_tree *map_tree,
 
 	BUG_ON(em->start > logical || em->start + em->len < logical);
 	map = (struct map_lookup *)em->bdev;
-	if (map->type & BTRFS_BLOCK_GROUP_RAID56_MASK)
+	if (map->type & (BTRFS_BLOCK_GROUP_RAID5 |
+			 BTRFS_BLOCK_GROUP_RAID6))
 		ret = 1;
 	free_extent_map(em);
 	return ret;
@@ -4900,48 +4901,10 @@ static void sort_parity_stripes(struct btrfs_bio *bbio, u64 *raid_map)
 	}
 }
 
-static struct btrfs_bio *alloc_btrfs_bio(int total_stripes, int real_stripes)
-{
-	struct btrfs_bio *bbio = kzalloc(
-		 /* the size of the btrfs_bio */
-		sizeof(struct btrfs_bio) +
-		/* plus the variable array for the stripes */
-		sizeof(struct btrfs_bio_stripe) * (total_stripes) +
-		/* plus the variable array for the tgt dev */
-		sizeof(int) * (real_stripes) +
-		/*
-		 * plus the raid_map, which includes both the tgt dev
-		 * and the stripes
-		 */
-		sizeof(u64) * (total_stripes),
-		GFP_NOFS);
-	if (!bbio)
-		return NULL;
-
-	atomic_set(&bbio->error, 0);
-	atomic_set(&bbio->refs, 1);
-
-	return bbio;
-}
-
-void btrfs_get_bbio(struct btrfs_bio *bbio)
-{
-	WARN_ON(!atomic_read(&bbio->refs));
-	atomic_inc(&bbio->refs);
-}
-
-void btrfs_put_bbio(struct btrfs_bio *bbio)
-{
-	if (!bbio)
-		return;
-	if (atomic_dec_and_test(&bbio->refs))
-		kfree(bbio);
-}
-
 static int __btrfs_map_block(struct btrfs_fs_info *fs_info, int rw,
 			     u64 logical, u64 *length,
 			     struct btrfs_bio **bbio_ret,
-			     int mirror_num, int need_raid_map)
+			     int mirror_num, u64 **raid_map_ret)
 {
 	struct extent_map *em;
 	struct map_lookup *map;
@@ -4954,6 +4917,7 @@ static int __btrfs_map_block(struct btrfs_fs_info *fs_info, int rw,
 	u64 stripe_nr_orig;
 	u64 stripe_nr_end;
 	u64 stripe_len;
+	u64 *raid_map = NULL;
 	int stripe_index;
 	int i;
 	int ret = 0;
@@ -5003,7 +4967,7 @@ static int __btrfs_map_block(struct btrfs_fs_info *fs_info, int rw,
 	stripe_offset = offset - stripe_offset;
 
 	/* if we're here for raid56, we need to know the stripe aligned start */
-	if (map->type & BTRFS_BLOCK_GROUP_RAID56_MASK) {
+	if (map->type & (BTRFS_BLOCK_GROUP_RAID5 | BTRFS_BLOCK_GROUP_RAID6)) {
 		unsigned long full_stripe_len = stripe_len * nr_data_stripes(map);
 		raid56_full_stripe_start = offset;
 
@@ -5016,7 +4980,8 @@ static int __btrfs_map_block(struct btrfs_fs_info *fs_info, int rw,
 
 	if (rw & REQ_DISCARD) {
 		/* we don't discard raid56 yet */
-		if (map->type & BTRFS_BLOCK_GROUP_RAID56_MASK) {
+		if (map->type &
+		    (BTRFS_BLOCK_GROUP_RAID5 | BTRFS_BLOCK_GROUP_RAID6)) {
 			ret = -EOPNOTSUPP;
 			goto out;
 		}
@@ -5026,7 +4991,7 @@ static int __btrfs_map_block(struct btrfs_fs_info *fs_info, int rw,
 		/* For writes to RAID[56], allow a full stripeset across all disks.
 		   For other RAID types and for RAID[56] reads, just allow a single
 		   stripe (on a single disk). */
-		if ((map->type & BTRFS_BLOCK_GROUP_RAID56_MASK) &&
+		if (map->type & (BTRFS_BLOCK_GROUP_RAID5 | BTRFS_BLOCK_GROUP_RAID6) &&
 		    (rw & REQ_WRITE)) {
 			max_len = stripe_len * nr_data_stripes(map) -
 				(offset - raid56_full_stripe_start);
@@ -5073,7 +5038,7 @@ static int __btrfs_map_block(struct btrfs_fs_info *fs_info, int rw,
 		u64 physical_of_found = 0;
 
 		ret = __btrfs_map_block(fs_info, REQ_GET_READ_MIRRORS,
-			     logical, &tmp_length, &tmp_bbio, 0, 0);
+			     logical, &tmp_length, &tmp_bbio, 0, NULL);
 		if (ret) {
 			WARN_ON(tmp_bbio != NULL);
 			goto out;
@@ -5087,7 +5052,7 @@ static int __btrfs_map_block(struct btrfs_fs_info *fs_info, int rw,
 			 * is not left of the left cursor
 			 */
 			ret = -EIO;
-			btrfs_put_bbio(tmp_bbio);
+			kfree(tmp_bbio);
 			goto out;
 		}
 
@@ -5122,11 +5087,11 @@ static int __btrfs_map_block(struct btrfs_fs_info *fs_info, int rw,
 		} else {
 			WARN_ON(1);
 			ret = -EIO;
-			btrfs_put_bbio(tmp_bbio);
+			kfree(tmp_bbio);
 			goto out;
 		}
 
-		btrfs_put_bbio(tmp_bbio);
+		kfree(tmp_bbio);
 	} else if (mirror_num > map->num_stripes) {
 		mirror_num = 0;
 	}
@@ -5210,12 +5175,32 @@ static int __btrfs_map_block(struct btrfs_fs_info *fs_info, int rw,
 			num_stripes = map->num_stripes;
 			max_errors = nr_parity_stripes(map);
 
+			raid_map = kmalloc_array(num_stripes, sizeof(u64),
+					   GFP_NOFS);
+			if (!raid_map) {
+				ret = -ENOMEM;
+				goto out;
+			}
+
+			/* Work out the disk rotation on this stripe-set */
+			tmp = stripe_nr;
+			rot = do_div(tmp, num_stripes);
+
+			/* Fill in the logical address of each stripe */
+			tmp = stripe_nr * nr_data_stripes(map);
+			for (i = 0; i < nr_data_stripes(map); i++)
+				raid_map[(i+rot) % num_stripes] =
+					em->start + (tmp + i) * map->stripe_len;
+
+			raid_map[(i+rot) % map->num_stripes] = RAID5_P_STRIPE;
+			if (map->type & BTRFS_BLOCK_GROUP_RAID6)
+				raid_map[(i+rot+1) % num_stripes] =
+					RAID6_Q_STRIPE;
+
 			*length = map->stripe_len;
 			stripe_index = 0;
 			stripe_offset = 0;
 		} else {
-			u64 tmp;
-
 			/*
 			 * Mirror #0 or #1 means the original data block.
 			 * Mirror #2 is RAID5 parity block.
@@ -5424,7 +5409,6 @@ static int __btrfs_map_block(struct btrfs_fs_info *fs_info, int rw,
 	}
 
 	*bbio_ret = bbio;
-	bbio->map_type = map->type;
 	bbio->num_stripes = num_stripes;
 	bbio->max_errors = max_errors;
 	bbio->mirror_num = mirror_num;
@@ -5439,6 +5423,10 @@ static int __btrfs_map_block(struct btrfs_fs_info *fs_info, int rw,
 		bbio->stripes[0].dev = dev_replace->tgtdev;
 		bbio->stripes[0].physical = physical_to_patch_in_first_stripe;
 		bbio->mirror_num = map->num_stripes + 1;
+	}
+	if (raid_map) {
+		sort_parity_stripes(bbio, raid_map);
+		*raid_map_ret = raid_map;
 	}
 out:
 	if (dev_replace_is_ongoing)
@@ -5494,7 +5482,8 @@ int btrfs_rmap_block(struct btrfs_mapping_tree *map_tree,
 		do_div(length, map->num_stripes / map->sub_stripes);
 	else if (map->type & BTRFS_BLOCK_GROUP_RAID0)
 		do_div(length, map->num_stripes);
-	else if (map->type & BTRFS_BLOCK_GROUP_RAID56_MASK) {
+	else if (map->type & (BTRFS_BLOCK_GROUP_RAID5 |
+			      BTRFS_BLOCK_GROUP_RAID6)) {
 		do_div(length, nr_data_stripes(map));
 		rmap_len = map->stripe_len * nr_data_stripes(map);
 	}
@@ -5547,7 +5536,7 @@ static inline void btrfs_end_bbio(struct btrfs_bio *bbio, struct bio *bio, int e
 		bio_endio_nodec(bio, err);
 	else
 		bio_endio(bio, err);
-	btrfs_put_bbio(bbio);
+	kfree(bbio);
 }
 
 static void btrfs_end_bio(struct bio *bio, int err)
@@ -5790,6 +5779,7 @@ int btrfs_map_bio(struct btrfs_root *root, int rw, struct bio *bio,
 	u64 logical = (u64)bio->bi_iter.bi_sector << 9;
 	u64 length = 0;
 	u64 map_length;
+	u64 *raid_map = NULL;
 	int ret;
 	int dev_nr = 0;
 	int total_devs = 1;
@@ -5800,7 +5790,7 @@ int btrfs_map_bio(struct btrfs_root *root, int rw, struct bio *bio,
 
 	btrfs_bio_counter_inc_blocked(root->fs_info);
 	ret = __btrfs_map_block(root->fs_info, rw, logical, &map_length, &bbio,
-			      mirror_num, 1);
+			      mirror_num, &raid_map);
 	if (ret) {
 		btrfs_bio_counter_dec(root->fs_info);
 		return ret;
@@ -6222,22 +6212,17 @@ int btrfs_read_sys_array(struct btrfs_root *root)
 	struct extent_buffer *sb;
 	struct btrfs_disk_key *disk_key;
 	struct btrfs_chunk *chunk;
-	u8 *array_ptr;
-	unsigned long sb_array_offset;
+	u8 *ptr;
+	unsigned long sb_ptr;
 	int ret = 0;
 	u32 num_stripes;
 	u32 array_size;
 	u32 len = 0;
-	u32 cur_offset;
+	u32 cur;
 	struct btrfs_key key;
 
-	ASSERT(BTRFS_SUPER_INFO_SIZE <= root->nodesize);
-	/*
-	 * This will create extent buffer of nodesize, superblock size is
-	 * fixed to BTRFS_SUPER_INFO_SIZE. If nodesize > sb size, this will
-	 * overallocate but we can keep it as-is, only the first page is used.
-	 */
-	sb = btrfs_find_create_tree_block(root, BTRFS_SUPER_INFO_OFFSET);
+	sb = btrfs_find_create_tree_block(root, BTRFS_SUPER_INFO_OFFSET,
+					  BTRFS_SUPER_INFO_SIZE);
 	if (!sb)
 		return -ENOMEM;
 	btrfs_set_buffer_uptodate(sb);
@@ -6260,56 +6245,35 @@ int btrfs_read_sys_array(struct btrfs_root *root)
 	write_extent_buffer(sb, super_copy, 0, BTRFS_SUPER_INFO_SIZE);
 	array_size = btrfs_super_sys_array_size(super_copy);
 
-	array_ptr = super_copy->sys_chunk_array;
-	sb_array_offset = offsetof(struct btrfs_super_block, sys_chunk_array);
-	cur_offset = 0;
+	ptr = super_copy->sys_chunk_array;
+	sb_ptr = offsetof(struct btrfs_super_block, sys_chunk_array);
+	cur = 0;
 
-	while (cur_offset < array_size) {
-		disk_key = (struct btrfs_disk_key *)array_ptr;
-		len = sizeof(*disk_key);
-		if (cur_offset + len > array_size)
-			goto out_short_read;
-
+	while (cur < array_size) {
+		disk_key = (struct btrfs_disk_key *)ptr;
 		btrfs_disk_key_to_cpu(&key, disk_key);
 
-		array_ptr += len;
-		sb_array_offset += len;
-		cur_offset += len;
+		len = sizeof(*disk_key); ptr += len;
+		sb_ptr += len;
+		cur += len;
 
 		if (key.type == BTRFS_CHUNK_ITEM_KEY) {
-			chunk = (struct btrfs_chunk *)sb_array_offset;
-			/*
-			 * At least one btrfs_chunk with one stripe must be
-			 * present, exact stripe count check comes afterwards
-			 */
-			len = btrfs_chunk_item_size(1);
-			if (cur_offset + len > array_size)
-				goto out_short_read;
-
-			num_stripes = btrfs_chunk_num_stripes(sb, chunk);
-			len = btrfs_chunk_item_size(num_stripes);
-			if (cur_offset + len > array_size)
-				goto out_short_read;
-
+			chunk = (struct btrfs_chunk *)sb_ptr;
 			ret = read_one_chunk(root, &key, sb, chunk);
 			if (ret)
 				break;
+			num_stripes = btrfs_chunk_num_stripes(sb, chunk);
+			len = btrfs_chunk_item_size(num_stripes);
 		} else {
 			ret = -EIO;
 			break;
 		}
-		array_ptr += len;
-		sb_array_offset += len;
-		cur_offset += len;
+		ptr += len;
+		sb_ptr += len;
+		cur += len;
 	}
 	free_extent_buffer(sb);
 	return ret;
-
-out_short_read:
-	printk(KERN_ERR "BTRFS: sys_array too short to read %u bytes at offset %u\n",
-			len, cur_offset);
-	free_extent_buffer(sb);
-	return -EIO;
 }
 
 int btrfs_read_chunk_tree(struct btrfs_root *root)

@@ -22,17 +22,11 @@
 #include <linux/ahci_platform.h>
 #include "ahci.h"
 
-#define DRV_NAME "ahci"
-
 static const struct ata_port_info ahci_port_info = {
 	.flags		= AHCI_FLAG_COMMON,
 	.pio_mask	= ATA_PIO4,
 	.udma_mask	= ATA_UDMA6,
 	.port_ops	= &ahci_platform_ops,
-};
-
-static struct scsi_host_template ahci_platform_sht = {
-	AHCI_SHT(DRV_NAME),
 };
 
 static int ahci_probe(struct platform_device *pdev)
@@ -52,8 +46,7 @@ static int ahci_probe(struct platform_device *pdev)
 	if (of_device_is_compatible(dev->of_node, "hisilicon,hisi-ahci"))
 		hpriv->flags |= AHCI_HFLAG_NO_FBS | AHCI_HFLAG_NO_NCQ;
 
-	rc = ahci_platform_init_host(pdev, hpriv, &ahci_port_info,
-				     &ahci_platform_sht);
+	rc = ahci_platform_init_host(pdev, hpriv, &ahci_port_info);
 	if (rc)
 		goto disable_resources;
 

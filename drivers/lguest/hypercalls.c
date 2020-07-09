@@ -117,6 +117,9 @@ static void do_hcall(struct lg_cpu *cpu, struct hcall_args *args)
 		/* Similarly, this sets the halted flag for run_guest(). */
 		cpu->halted = 1;
 		break;
+	case LHCALL_NOTIFY:
+		cpu->pending_notify = args->arg1;
+		break;
 	default:
 		/* It should be an architecture-specific hypercall. */
 		if (lguest_arch_do_hcall(cpu, args))
@@ -186,7 +189,7 @@ static void do_async_hcalls(struct lg_cpu *cpu)
 		 * Stop doing hypercalls if they want to notify the Launcher:
 		 * it needs to service this first.
 		 */
-		if (cpu->pending.trap)
+		if (cpu->pending_notify)
 			break;
 	}
 }
@@ -277,7 +280,7 @@ void do_hypercalls(struct lg_cpu *cpu)
 	 * NOTIFY to the Launcher, we want to return now.  Otherwise we do
 	 * the hypercall.
 	 */
-	if (!cpu->pending.trap) {
+	if (!cpu->pending_notify) {
 		do_hcall(cpu, cpu->hcall);
 		/*
 		 * Tricky point: we reset the hcall pointer to mark the

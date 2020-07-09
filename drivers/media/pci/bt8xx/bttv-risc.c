@@ -901,3 +901,9 @@ bttv_overlay_risc(struct bttv *btv,
 	buf->vb.field = ov->field;
 	return 0;
 }
+
+/*
+ * Local variables:
+ * c-basic-offset: 8
+ * End:
+ */

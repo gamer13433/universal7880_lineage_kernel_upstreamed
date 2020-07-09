@@ -665,11 +665,15 @@ err_desc_get:
 	return NULL;
 }
 
-static int pd_device_terminate_all(struct dma_chan *chan)
+static int pd_device_control(struct dma_chan *chan, enum dma_ctrl_cmd cmd,
+			     unsigned long arg)
 {
 	struct pch_dma_chan *pd_chan = to_pd_chan(chan);
 	struct pch_dma_desc *desc, *_d;
 	LIST_HEAD(list);
+
+	if (cmd != DMA_TERMINATE_ALL)
+		return -ENXIO;
 
 	spin_lock_irq(&pd_chan->lock);
 
@@ -928,7 +932,7 @@ static int pch_dma_probe(struct pci_dev *pdev,
 	pd->dma.device_tx_status = pd_tx_status;
 	pd->dma.device_issue_pending = pd_issue_pending;
 	pd->dma.device_prep_slave_sg = pd_prep_slave_sg;
-	pd->dma.device_terminate_all = pd_device_terminate_all;
+	pd->dma.device_control = pd_device_control;
 
 	err = dma_async_device_register(&pd->dma);
 	if (err) {

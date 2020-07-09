@@ -134,38 +134,34 @@ static inline bool hctx_may_queue(struct blk_mq_hw_ctx *hctx,
 	return atomic_read(&hctx->nr_active) < depth;
 }
 
-static int __bt_get_word(struct blk_align_bitmap *bm, unsigned int last_tag,
-			 bool nowrap)
+static int __bt_get_word(struct blk_align_bitmap *bm, unsigned int last_tag)
 {
-	int tag, org_last_tag = last_tag;
+	int tag, org_last_tag, end;
+	bool wrap = last_tag != 0;
 
-	while (1) {
-		tag = find_next_zero_bit(&bm->word, bm->depth, last_tag);
-		if (unlikely(tag >= bm->depth)) {
+	org_last_tag = last_tag;
+	end = bm->depth;
+	do {
+restart:
+		tag = find_next_zero_bit(&bm->word, end, last_tag);
+		if (unlikely(tag >= end)) {
 			/*
-			 * We started with an offset, and we didn't reset the
-			 * offset to 0 in a failure case, so start from 0 to
+			 * We started with an offset, start from 0 to
 			 * exhaust the map.
 			 */
-			if (org_last_tag && last_tag && !nowrap) {
-				last_tag = org_last_tag = 0;
-				continue;
+			if (wrap) {
+				wrap = false;
+				end = org_last_tag;
+				last_tag = 0;
+				goto restart;
 			}
 			return -1;
 		}
-
-		if (!test_and_set_bit(tag, &bm->word))
-			break;
-
 		last_tag = tag + 1;
-		if (last_tag >= bm->depth - 1)
-			last_tag = 0;
-	}
+	} while (test_and_set_bit(tag, &bm->word));
 
 	return tag;
 }
-
-#define BT_ALLOC_RR(tags) (tags->alloc_policy == BLK_TAG_ALLOC_RR)
 
 /*
  * Straight forward bitmap tag implementation, where each bit is a tag
@@ -179,7 +175,7 @@ static int __bt_get_word(struct blk_align_bitmap *bm, unsigned int last_tag,
  * until the map is exhausted.
  */
 static int __bt_get(struct blk_mq_hw_ctx *hctx, struct blk_mq_bitmap_tags *bt,
-		    unsigned int *tag_cache, struct blk_mq_tags *tags)
+		    unsigned int *tag_cache)
 {
 	unsigned int last_tag, org_last_tag;
 	int index, i, tag;
@@ -191,24 +187,15 @@ static int __bt_get(struct blk_mq_hw_ctx *hctx, struct blk_mq_bitmap_tags *bt,
 	index = TAG_TO_INDEX(bt, last_tag);
 
 	for (i = 0; i < bt->map_nr; i++) {
-		tag = __bt_get_word(&bt->map[index], TAG_TO_BIT(bt, last_tag),
-				    BT_ALLOC_RR(tags));
+		tag = __bt_get_word(&bt->map[index], TAG_TO_BIT(bt, last_tag));
 		if (tag != -1) {
 			tag += (index << bt->bits_per_word);
 			goto done;
 		}
 
-		/*
-		 * Jump to next index, and reset the last tag to be the
-		 * first tag of that index
-		 */
-		index++;
-		last_tag = (index << bt->bits_per_word);
-
-		if (index >= bt->map_nr) {
+		last_tag = 0;
+		if (++index >= bt->map_nr)
 			index = 0;
-			last_tag = 0;
-		}
 	}
 
 	*tag_cache = 0;
@@ -219,7 +206,7 @@ static int __bt_get(struct blk_mq_hw_ctx *hctx, struct blk_mq_bitmap_tags *bt,
 	 * up using the specific cached tag.
 	 */
 done:
-	if (tag == org_last_tag || unlikely(BT_ALLOC_RR(tags))) {
+	if (tag == org_last_tag) {
 		last_tag = tag + 1;
 		if (last_tag >= bt->depth - 1)
 			last_tag = 0;
@@ -248,13 +235,13 @@ static struct bt_wait_state *bt_wait_ptr(struct blk_mq_bitmap_tags *bt,
 static int bt_get(struct blk_mq_alloc_data *data,
 		struct blk_mq_bitmap_tags *bt,
 		struct blk_mq_hw_ctx *hctx,
-		unsigned int *last_tag, struct blk_mq_tags *tags)
+		unsigned int *last_tag)
 {
 	struct bt_wait_state *bs;
 	DEFINE_WAIT(wait);
 	int tag;
 
-	tag = __bt_get(hctx, bt, last_tag, tags);
+	tag = __bt_get(hctx, bt, last_tag);
 	if (tag != -1)
 		return tag;
 
@@ -296,7 +283,7 @@ static unsigned int __blk_mq_get_tag(struct blk_mq_alloc_data *data)
 	int tag;
 
 	tag = bt_get(data, &data->hctx->tags->bitmap_tags, data->hctx,
-			&data->ctx->last_tag, data->hctx->tags);
+			&data->ctx->last_tag);
 	if (tag >= 0)
 		return tag + data->hctx->tags->nr_reserved_tags;
 
@@ -312,8 +299,7 @@ static unsigned int __blk_mq_get_reserved_tag(struct blk_mq_alloc_data *data)
 		return BLK_MQ_TAG_FAIL;
 	}
 
-	tag = bt_get(data, &data->hctx->tags->breserved_tags, NULL, &zero,
-		data->hctx->tags);
+	tag = bt_get(data, &data->hctx->tags->breserved_tags, NULL, &zero);
 	if (tag < 0)
 		return BLK_MQ_TAG_FAIL;
 
@@ -535,11 +521,9 @@ static void bt_free(struct blk_mq_bitmap_tags *bt)
 }
 
 static struct blk_mq_tags *blk_mq_init_bitmap_tags(struct blk_mq_tags *tags,
-						   int node, int alloc_policy)
+						   int node)
 {
 	unsigned int depth = tags->nr_tags - tags->nr_reserved_tags;
-
-	tags->alloc_policy = alloc_policy;
 
 	if (bt_alloc(&tags->bitmap_tags, depth, node, false))
 		goto enomem;
@@ -554,8 +538,7 @@ enomem:
 }
 
 struct blk_mq_tags *blk_mq_init_tags(unsigned int total_tags,
-				     unsigned int reserved_tags,
-				     int node, int alloc_policy)
+				     unsigned int reserved_tags, int node)
 {
 	struct blk_mq_tags *tags;
 
@@ -571,7 +554,7 @@ struct blk_mq_tags *blk_mq_init_tags(unsigned int total_tags,
 	tags->nr_tags = total_tags;
 	tags->nr_reserved_tags = reserved_tags;
 
-	return blk_mq_init_bitmap_tags(tags, node, alloc_policy);
+	return blk_mq_init_bitmap_tags(tags, node);
 }
 
 void blk_mq_free_tags(struct blk_mq_tags *tags)

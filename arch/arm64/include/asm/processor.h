@@ -44,8 +44,7 @@
 #define STACK_TOP		STACK_TOP_MAX
 #endif /* CONFIG_COMPAT */
 
-extern phys_addr_t arm64_dma_phys_limit;
-#define ARCH_LOW_ADDRESS_LIMIT	(arm64_dma_phys_limit - 1)
+#define ARCH_LOW_ADDRESS_LIMIT	PHYS_MASK
 #endif /* __KERNEL__ */
 
 struct debug_info {

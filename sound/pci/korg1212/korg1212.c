@@ -28,7 +28,6 @@
 #include <linux/module.h>
 #include <linux/mutex.h>
 #include <linux/firmware.h>
-#include <linux/io.h>
 
 #include <sound/core.h>
 #include <sound/info.h>
@@ -36,6 +35,8 @@
 #include <sound/pcm.h>
 #include <sound/pcm_params.h>
 #include <sound/initval.h>
+
+#include <asm/io.h>
 
 // ----------------------------------------------------------------------------
 // Debug Stuff
@@ -584,7 +585,8 @@ static void snd_korg1212_SendStop(struct snd_korg1212 *korg1212)
 		korg1212->sharedBufferPtr->cardCommand = 0xffffffff;
 		/* program the timer */
 		korg1212->stop_pending_cnt = HZ;
-		mod_timer(&korg1212->timer, jiffies + 1);
+		korg1212->timer.expires = jiffies + 1;
+		add_timer(&korg1212->timer);
 	}
 }
 
@@ -615,7 +617,8 @@ static void snd_korg1212_timer_func(unsigned long data)
 	} else {
 		if (--korg1212->stop_pending_cnt > 0) {
 			/* reprogram timer */
-			mod_timer(&korg1212->timer, jiffies + 1);
+			korg1212->timer.expires = jiffies + 1;
+			add_timer(&korg1212->timer);
 		} else {
 			snd_printd("korg1212_timer_func timeout\n");
 			korg1212->sharedBufferPtr->cardCommand = 0;
@@ -2181,8 +2184,9 @@ static int snd_korg1212_create(struct snd_card *card, struct pci_dev *pci,
         init_waitqueue_head(&korg1212->wait);
         spin_lock_init(&korg1212->lock);
 	mutex_init(&korg1212->open_mutex);
-	setup_timer(&korg1212->timer, snd_korg1212_timer_func,
-		    (unsigned long)korg1212);
+	init_timer(&korg1212->timer);
+	korg1212->timer.function = snd_korg1212_timer_func;
+	korg1212->timer.data = (unsigned long)korg1212;
 
         korg1212->irq = -1;
         korg1212->clkSource = K1212_CLKIDX_Local;

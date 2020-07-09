@@ -1534,7 +1534,7 @@ static bool iwl_mvm_query_wakeup_reasons(struct iwl_mvm *mvm,
 	if (IS_ERR_OR_NULL(ap_sta))
 		goto out_free_resp;
 
-	mvm_ap_sta = iwl_mvm_sta_from_mac80211(ap_sta);
+	mvm_ap_sta = (struct iwl_mvm_sta *)ap_sta->drv_priv;
 	for (i = 0; i < IWL_MAX_TID_COUNT; i++) {
 		u16 seq = status.qos_seq_ctr[i];
 		/* firmware stores last-used value, we store next value */

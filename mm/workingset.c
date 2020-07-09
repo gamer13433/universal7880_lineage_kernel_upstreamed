@@ -275,7 +275,7 @@ static unsigned long count_shadow_nodes(struct shrinker *shrinker,
 
 	/* list_lru lock nests inside IRQ-safe mapping->tree_lock */
 	local_irq_disable();
-	shadow_nodes = list_lru_shrink_count(&workingset_shadow_nodes, sc);
+	shadow_nodes = list_lru_count_node(&workingset_shadow_nodes, sc->nid);
 	local_irq_enable();
 
 	pages = node_present_pages(sc->nid);
@@ -302,7 +302,6 @@ static unsigned long count_shadow_nodes(struct shrinker *shrinker,
 }
 
 static enum lru_status shadow_lru_isolate(struct list_head *item,
-					  struct list_lru_one *lru,
 					  spinlock_t *lru_lock,
 					  void *arg)
 {
@@ -333,7 +332,7 @@ static enum lru_status shadow_lru_isolate(struct list_head *item,
 		goto out;
 	}
 
-	list_lru_isolate(lru, item);
+	list_del_init(item);
 	spin_unlock(lru_lock);
 
 	/*
@@ -377,8 +376,8 @@ static unsigned long scan_shadow_nodes(struct shrinker *shrinker,
 
 	/* list_lru lock nests inside IRQ-safe mapping->tree_lock */
 	local_irq_disable();
-	ret =  list_lru_shrink_walk(&workingset_shadow_nodes, sc,
-				    shadow_lru_isolate, NULL);
+	ret =  list_lru_walk_node(&workingset_shadow_nodes, sc->nid,
+				  shadow_lru_isolate, NULL, &sc->nr_to_scan);
 	local_irq_enable();
 	return ret;
 }

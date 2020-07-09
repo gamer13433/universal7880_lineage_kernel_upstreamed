@@ -97,8 +97,6 @@ static const struct idle_cpu *icpu;
 static struct cpuidle_device __percpu *intel_idle_cpuidle_devices;
 static int intel_idle(struct cpuidle_device *dev,
 			struct cpuidle_driver *drv, int index);
-static void intel_idle_freeze(struct cpuidle_device *dev,
-			      struct cpuidle_driver *drv, int index);
 static int intel_idle_cpu_init(int cpu);
 
 static struct cpuidle_state *cpuidle_state_table;
@@ -594,21 +592,6 @@ static int intel_idle(struct cpuidle_device *dev,
 	return index;
 }
 
-/**
- * intel_idle_freeze - simplified "enter" callback routine for suspend-to-idle
- * @dev: cpuidle_device
- * @drv: cpuidle driver
- * @index: state index
- */
-static void intel_idle_freeze(struct cpuidle_device *dev,
-			     struct cpuidle_driver *drv, int index)
-{
-	unsigned long ecx = 1; /* break on interrupt flag */
-	unsigned long eax = flg2MWAIT(drv->states[index].flags);
-
-	mwait_idle_with_hints(eax, ecx);
-}
-
 static void __setup_broadcast_timer(void *arg)
 {
 	unsigned long reason = (unsigned long)arg;
@@ -744,7 +727,6 @@ static const struct x86_cpu_id intel_idle_ids[] = {
 	ICPU(0x46, idle_cpu_hsw),
 	ICPU(0x4d, idle_cpu_avn),
 	ICPU(0x3d, idle_cpu_bdw),
-	ICPU(0x47, idle_cpu_bdw),
 	ICPU(0x4f, idle_cpu_bdw),
 	ICPU(0x56, idle_cpu_bdw),
 	{}

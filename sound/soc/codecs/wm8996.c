@@ -599,7 +599,7 @@ static void wm8996_bg_disable(struct snd_soc_codec *codec)
 static int bg_event(struct snd_soc_dapm_widget *w,
 		    struct snd_kcontrol *kcontrol, int event)
 {
-	struct snd_soc_codec *codec = snd_soc_dapm_to_codec(w->dapm);
+	struct snd_soc_codec *codec = w->codec;
 	int ret = 0;
 
 	switch (event) {
@@ -634,8 +634,7 @@ static int cp_event(struct snd_soc_dapm_widget *w,
 static int rmv_short_event(struct snd_soc_dapm_widget *w,
 			   struct snd_kcontrol *kcontrol, int event)
 {
-	struct snd_soc_codec *codec = snd_soc_dapm_to_codec(w->dapm);
-	struct wm8996_priv *wm8996 = snd_soc_codec_get_drvdata(codec);
+	struct wm8996_priv *wm8996 = snd_soc_codec_get_drvdata(w->codec);
 
 	/* Record which outputs we enabled */
 	switch (event) {
@@ -759,8 +758,7 @@ static void wm8996_seq_notifier(struct snd_soc_dapm_context *dapm,
 static int dcs_start(struct snd_soc_dapm_widget *w,
 		     struct snd_kcontrol *kcontrol, int event)
 {
-	struct snd_soc_codec *codec = snd_soc_dapm_to_codec(w->dapm);
-	struct wm8996_priv *wm8996 = snd_soc_codec_get_drvdata(codec);
+	struct wm8996_priv *wm8996 = snd_soc_codec_get_drvdata(w->codec);
 
 	switch (event) {
 	case SND_SOC_DAPM_POST_PMU:

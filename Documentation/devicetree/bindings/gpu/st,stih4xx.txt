@@ -183,19 +183,6 @@ Example:
 				clock-names	= "pix", "hddac";
 				clocks          = <&clockgen_c_vcc CLK_S_PIX_HD>, <&clockgen_c_vcc CLK_S_HDDAC>;
 			};
-
-			sti-dvo@8d00400 {
-				compatible	= "st,stih407-dvo";
-				reg		= <0x8d00400 0x200>;
-				reg-names	= "dvo-reg";
-				clock-names	= "dvo_pix", "dvo",
-						  "main_parent", "aux_parent";
-				clocks		= <&clk_s_d2_flexgen CLK_PIX_DVO>, <&clk_s_d2_flexgen CLK_DVO>,
-						  <&clk_s_d2_quadfs 0>, <&clk_s_d2_quadfs 1>;
-				pinctrl-names	= "default";
-				pinctrl-0	= <&pinctrl_dvo>;
-				sti,panel	= <&panel_dvo>;
-			};
 		};
 	};
 	...

@@ -282,8 +282,9 @@ static int mxs_spi_txrx_dma(struct mxs_spi *spi,
 	dmaengine_submit(desc);
 	dma_async_issue_pending(ssp->dmach);
 
-	if (!wait_for_completion_timeout(&spi->c,
-					 msecs_to_jiffies(SSP_TIMEOUT))) {
+	ret = wait_for_completion_timeout(&spi->c,
+				msecs_to_jiffies(SSP_TIMEOUT));
+	if (!ret) {
 		dev_err(ssp->dev, "DMA transfer timeout\n");
 		ret = -ETIMEDOUT;
 		dmaengine_terminate_all(ssp->dmach);

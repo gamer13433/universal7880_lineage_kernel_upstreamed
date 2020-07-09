@@ -46,7 +46,6 @@
 
 struct fib_nh;
 struct fib_info;
-struct uncached_list;
 struct rtable {
 	struct dst_entry	dst;
 
@@ -65,7 +64,6 @@ struct rtable {
 	u32			rt_pmtu;
 
 	struct list_head	rt_uncached;
-	struct uncached_list	*rt_uncached_list;
 };
 
 static inline bool rt_is_input_route(const struct rtable *rt)

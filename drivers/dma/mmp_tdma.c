@@ -19,6 +19,7 @@
 #include <linux/dmaengine.h>
 #include <linux/platform_device.h>
 #include <linux/device.h>
+#include <mach/regs-icu.h>
 #include <linux/platform_data/dma-mmp_tdma.h>
 #include <linux/of_device.h>
 #include <linux/of_dma.h>
@@ -110,7 +111,7 @@ struct mmp_tdma_chan {
 	struct tasklet_struct		tasklet;
 
 	struct mmp_tdma_desc		*desc_arr;
-	dma_addr_t			desc_arr_phys;
+	phys_addr_t			desc_arr_phys;
 	int				desc_num;
 	enum dma_transfer_direction	dir;
 	dma_addr_t			dev_addr;
@@ -163,49 +164,33 @@ static void mmp_tdma_enable_chan(struct mmp_tdma_chan *tdmac)
 	tdmac->status = DMA_IN_PROGRESS;
 }
 
-static int mmp_tdma_disable_chan(struct dma_chan *chan)
+static void mmp_tdma_disable_chan(struct mmp_tdma_chan *tdmac)
 {
-	struct mmp_tdma_chan *tdmac = to_mmp_tdma_chan(chan);
-	u32 tdcr;
-
-	tdcr = readl(tdmac->reg_base + TDCR);
-	tdcr |= TDCR_ABR;
-	tdcr &= ~TDCR_CHANEN;
-	writel(tdcr, tdmac->reg_base + TDCR);
+	writel(readl(tdmac->reg_base + TDCR) & ~TDCR_CHANEN,
+					tdmac->reg_base + TDCR);
 
 	tdmac->status = DMA_COMPLETE;
-
-	return 0;
 }
 
-static int mmp_tdma_resume_chan(struct dma_chan *chan)
+static void mmp_tdma_resume_chan(struct mmp_tdma_chan *tdmac)
 {
-	struct mmp_tdma_chan *tdmac = to_mmp_tdma_chan(chan);
-
 	writel(readl(tdmac->reg_base + TDCR) | TDCR_CHANEN,
 					tdmac->reg_base + TDCR);
 	tdmac->status = DMA_IN_PROGRESS;
-
-	return 0;
 }
 
-static int mmp_tdma_pause_chan(struct dma_chan *chan)
+static void mmp_tdma_pause_chan(struct mmp_tdma_chan *tdmac)
 {
-	struct mmp_tdma_chan *tdmac = to_mmp_tdma_chan(chan);
-
 	writel(readl(tdmac->reg_base + TDCR) & ~TDCR_CHANEN,
 					tdmac->reg_base + TDCR);
 	tdmac->status = DMA_PAUSED;
-
-	return 0;
 }
 
-static int mmp_tdma_config_chan(struct dma_chan *chan)
+static int mmp_tdma_config_chan(struct mmp_tdma_chan *tdmac)
 {
-	struct mmp_tdma_chan *tdmac = to_mmp_tdma_chan(chan);
 	unsigned int tdcr = 0;
 
-	mmp_tdma_disable_chan(chan);
+	mmp_tdma_disable_chan(tdmac);
 
 	if (tdmac->dir == DMA_MEM_TO_DEV)
 		tdcr = TDCR_DSTDIR_ADDR_HOLD | TDCR_SRCDIR_ADDR_INC;
@@ -299,27 +284,12 @@ static int mmp_tdma_clear_chan_irq(struct mmp_tdma_chan *tdmac)
 	return -EAGAIN;
 }
 
-static size_t mmp_tdma_get_pos(struct mmp_tdma_chan *tdmac)
-{
-	size_t reg;
-
-	if (tdmac->idx == 0) {
-		reg = __raw_readl(tdmac->reg_base + TDSAR);
-		reg -= tdmac->desc_arr[0].src_addr;
-	} else if (tdmac->idx == 1) {
-		reg = __raw_readl(tdmac->reg_base + TDDAR);
-		reg -= tdmac->desc_arr[0].dst_addr;
-	} else
-		return -EINVAL;
-
-	return reg;
-}
-
 static irqreturn_t mmp_tdma_chan_handler(int irq, void *dev_id)
 {
 	struct mmp_tdma_chan *tdmac = dev_id;
 
 	if (mmp_tdma_clear_chan_irq(tdmac) == 0) {
+		tdmac->pos = (tdmac->pos + tdmac->period_len) % tdmac->buf_len;
 		tasklet_schedule(&tdmac->tasklet);
 		return IRQ_HANDLED;
 	} else
@@ -361,7 +331,7 @@ static void mmp_tdma_free_descriptor(struct mmp_tdma_chan *tdmac)
 	int size = tdmac->desc_num * sizeof(struct mmp_tdma_desc);
 
 	gpool = tdmac->pool;
-	if (gpool && tdmac->desc_arr)
+	if (tdmac->desc_arr)
 		gen_pool_free(gpool, (unsigned long)tdmac->desc_arr,
 				size);
 	tdmac->desc_arr = NULL;
@@ -482,34 +452,42 @@ err_out:
 	return NULL;
 }
 
-static int mmp_tdma_terminate_all(struct dma_chan *chan)
+static int mmp_tdma_control(struct dma_chan *chan, enum dma_ctrl_cmd cmd,
+		unsigned long arg)
 {
 	struct mmp_tdma_chan *tdmac = to_mmp_tdma_chan(chan);
+	struct dma_slave_config *dmaengine_cfg = (void *)arg;
+	int ret = 0;
 
-	mmp_tdma_disable_chan(chan);
-	/* disable interrupt */
-	mmp_tdma_enable_irq(tdmac, false);
-
-	return 0;
-}
-
-static int mmp_tdma_config(struct dma_chan *chan,
-			   struct dma_slave_config *dmaengine_cfg)
-{
-	struct mmp_tdma_chan *tdmac = to_mmp_tdma_chan(chan);
-
-	if (dmaengine_cfg->direction == DMA_DEV_TO_MEM) {
-		tdmac->dev_addr = dmaengine_cfg->src_addr;
-		tdmac->burst_sz = dmaengine_cfg->src_maxburst;
-		tdmac->buswidth = dmaengine_cfg->src_addr_width;
-	} else {
-		tdmac->dev_addr = dmaengine_cfg->dst_addr;
-		tdmac->burst_sz = dmaengine_cfg->dst_maxburst;
-		tdmac->buswidth = dmaengine_cfg->dst_addr_width;
+	switch (cmd) {
+	case DMA_TERMINATE_ALL:
+		mmp_tdma_disable_chan(tdmac);
+		/* disable interrupt */
+		mmp_tdma_enable_irq(tdmac, false);
+		break;
+	case DMA_PAUSE:
+		mmp_tdma_pause_chan(tdmac);
+		break;
+	case DMA_RESUME:
+		mmp_tdma_resume_chan(tdmac);
+		break;
+	case DMA_SLAVE_CONFIG:
+		if (dmaengine_cfg->direction == DMA_DEV_TO_MEM) {
+			tdmac->dev_addr = dmaengine_cfg->src_addr;
+			tdmac->burst_sz = dmaengine_cfg->src_maxburst;
+			tdmac->buswidth = dmaengine_cfg->src_addr_width;
+		} else {
+			tdmac->dev_addr = dmaengine_cfg->dst_addr;
+			tdmac->burst_sz = dmaengine_cfg->dst_maxburst;
+			tdmac->buswidth = dmaengine_cfg->dst_addr_width;
+		}
+		tdmac->dir = dmaengine_cfg->direction;
+		return mmp_tdma_config_chan(tdmac);
+	default:
+		ret = -ENOSYS;
 	}
-	tdmac->dir = dmaengine_cfg->direction;
 
-	return mmp_tdma_config_chan(chan);
+	return ret;
 }
 
 static enum dma_status mmp_tdma_tx_status(struct dma_chan *chan,
@@ -517,7 +495,6 @@ static enum dma_status mmp_tdma_tx_status(struct dma_chan *chan,
 {
 	struct mmp_tdma_chan *tdmac = to_mmp_tdma_chan(chan);
 
-	tdmac->pos = mmp_tdma_get_pos(tdmac);
 	dma_set_tx_state(txstate, chan->completed_cookie, chan->cookie,
 			 tdmac->buf_len - tdmac->pos);
 
@@ -629,7 +606,7 @@ static int mmp_tdma_probe(struct platform_device *pdev)
 	int i, ret;
 	int irq = 0, irq_num = 0;
 	int chan_num = TDMA_CHANNEL_NUM;
-	struct gen_pool *pool = NULL;
+	struct gen_pool *pool;
 
 	of_id = of_match_device(mmp_tdma_dt_ids, &pdev->dev);
 	if (of_id)
@@ -691,10 +668,7 @@ static int mmp_tdma_probe(struct platform_device *pdev)
 	tdev->device.device_prep_dma_cyclic = mmp_tdma_prep_dma_cyclic;
 	tdev->device.device_tx_status = mmp_tdma_tx_status;
 	tdev->device.device_issue_pending = mmp_tdma_issue_pending;
-	tdev->device.device_config = mmp_tdma_config;
-	tdev->device.device_pause = mmp_tdma_pause_chan;
-	tdev->device.device_resume = mmp_tdma_resume_chan;
-	tdev->device.device_terminate_all = mmp_tdma_terminate_all;
+	tdev->device.device_control = mmp_tdma_control;
 	tdev->device.copy_align = TDMA_ALIGNMENT;
 
 	dma_set_mask(&pdev->dev, DMA_BIT_MASK(64));

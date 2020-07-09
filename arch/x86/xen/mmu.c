@@ -1520,7 +1520,7 @@ static void __init xen_set_pte_init(pte_t *ptep, pte_t pte)
 	native_set_pte(ptep, pte);
 }
 
-static void __init pin_pagetable_pfn(unsigned cmd, unsigned long pfn)
+static void pin_pagetable_pfn(unsigned cmd, unsigned long pfn)
 {
 	struct mmuext_op op;
 	op.cmd = cmd;
@@ -1688,7 +1688,7 @@ void __init xen_reserve_top(void)
  * Like __va(), but returns address in the kernel mapping (which is
  * all we have until the physical memory mapping has been set up.
  */
-static void * __init __ka(phys_addr_t paddr)
+static void *__ka(phys_addr_t paddr)
 {
 #ifdef CONFIG_X86_64
 	return (void *)(paddr + __START_KERNEL_map);
@@ -1698,7 +1698,7 @@ static void * __init __ka(phys_addr_t paddr)
 }
 
 /* Convert a machine address to physical address */
-static unsigned long __init m2p(phys_addr_t maddr)
+static unsigned long m2p(phys_addr_t maddr)
 {
 	phys_addr_t paddr;
 
@@ -1709,14 +1709,13 @@ static unsigned long __init m2p(phys_addr_t maddr)
 }
 
 /* Convert a machine address to kernel virtual */
-static void * __init m2v(phys_addr_t maddr)
+static void *m2v(phys_addr_t maddr)
 {
 	return __ka(m2p(maddr));
 }
 
 /* Set the page permissions on an identity-mapped pages */
-static void __init set_page_prot_flags(void *addr, pgprot_t prot,
-				       unsigned long flags)
+static void set_page_prot_flags(void *addr, pgprot_t prot, unsigned long flags)
 {
 	unsigned long pfn = __pa(addr) >> PAGE_SHIFT;
 	pte_t pte = pfn_pte(pfn, prot);
@@ -1728,7 +1727,7 @@ static void __init set_page_prot_flags(void *addr, pgprot_t prot,
 	if (HYPERVISOR_update_va_mapping((unsigned long)addr, pte, flags))
 		BUG();
 }
-static void __init set_page_prot(void *addr, pgprot_t prot)
+static void set_page_prot(void *addr, pgprot_t prot)
 {
 	return set_page_prot_flags(addr, prot, UVMF_NONE);
 }
@@ -1765,8 +1764,10 @@ static void __init xen_map_identity_early(pmd_t *pmd, unsigned long max_pfn)
 		for (pteidx = 0; pteidx < PTRS_PER_PTE; pteidx++, pfn++) {
 			pte_t pte;
 
+#ifdef CONFIG_X86_32
 			if (pfn > max_pfn_mapped)
 				max_pfn_mapped = pfn;
+#endif
 
 			if (!pte_none(pte_page[pteidx]))
 				continue;
@@ -1799,7 +1800,7 @@ void __init xen_setup_machphys_mapping(void)
 }
 
 #ifdef CONFIG_X86_64
-static void __init convert_pfn_mfn(void *v)
+static void convert_pfn_mfn(void *v)
 {
 	pte_t *pte = v;
 	int i;

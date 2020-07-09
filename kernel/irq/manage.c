@@ -242,9 +242,6 @@ int irq_set_affinity_hint(unsigned int irq, const struct cpumask *m)
 		return -EINVAL;
 	desc->affinity_hint = m;
 	irq_put_desc_unlock(desc, flags);
-	/* set the initial affinity to prevent every interrupt being on CPU0 */
-	if (m)
-		__irq_set_affinity(irq, m, false);
 	return 0;
 }
 EXPORT_SYMBOL_GPL(irq_set_affinity_hint);
@@ -1475,13 +1472,8 @@ int request_threaded_irq(unsigned int irq, irq_handler_t handler,
 	 * otherwise we'll have trouble later trying to figure out
 	 * which interrupt is which (messes up the interrupt freeing
 	 * logic etc).
-	 *
-	 * Also IRQF_COND_SUSPEND only makes sense for shared interrupts and
-	 * it cannot be set along with IRQF_NO_SUSPEND.
 	 */
-	if (((irqflags & IRQF_SHARED) && !dev_id) ||
-	    (!(irqflags & IRQF_SHARED) && (irqflags & IRQF_COND_SUSPEND)) ||
-	    ((irqflags & IRQF_NO_SUSPEND) && (irqflags & IRQF_COND_SUSPEND)))
+	if ((irqflags & IRQF_SHARED) && !dev_id)
 		return -EINVAL;
 
 	desc = irq_to_desc(irq);

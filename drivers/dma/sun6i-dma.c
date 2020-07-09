@@ -352,6 +352,38 @@ static void sun6i_dma_free_desc(struct virt_dma_desc *vd)
 	kfree(txd);
 }
 
+static int sun6i_dma_terminate_all(struct sun6i_vchan *vchan)
+{
+	struct sun6i_dma_dev *sdev = to_sun6i_dma_dev(vchan->vc.chan.device);
+	struct sun6i_pchan *pchan = vchan->phy;
+	unsigned long flags;
+	LIST_HEAD(head);
+
+	spin_lock(&sdev->lock);
+	list_del_init(&vchan->node);
+	spin_unlock(&sdev->lock);
+
+	spin_lock_irqsave(&vchan->vc.lock, flags);
+
+	vchan_get_all_descriptors(&vchan->vc, &head);
+
+	if (pchan) {
+		writel(DMA_CHAN_ENABLE_STOP, pchan->base + DMA_CHAN_ENABLE);
+		writel(DMA_CHAN_PAUSE_RESUME, pchan->base + DMA_CHAN_PAUSE);
+
+		vchan->phy = NULL;
+		pchan->vchan = NULL;
+		pchan->desc = NULL;
+		pchan->done = NULL;
+	}
+
+	spin_unlock_irqrestore(&vchan->vc.lock, flags);
+
+	vchan_dma_desc_free_list(&vchan->vc, &head);
+
+	return 0;
+}
+
 static int sun6i_dma_start_desc(struct sun6i_vchan *vchan)
 {
 	struct sun6i_dma_dev *sdev = to_sun6i_dma_dev(vchan->vc.chan.device);
@@ -639,92 +671,57 @@ err_lli_free:
 	return NULL;
 }
 
-static int sun6i_dma_config(struct dma_chan *chan,
-			    struct dma_slave_config *config)
-{
-	struct sun6i_vchan *vchan = to_sun6i_vchan(chan);
-
-	memcpy(&vchan->cfg, config, sizeof(*config));
-
-	return 0;
-}
-
-static int sun6i_dma_pause(struct dma_chan *chan)
-{
-	struct sun6i_dma_dev *sdev = to_sun6i_dma_dev(chan->device);
-	struct sun6i_vchan *vchan = to_sun6i_vchan(chan);
-	struct sun6i_pchan *pchan = vchan->phy;
-
-	dev_dbg(chan2dev(chan), "vchan %p: pause\n", &vchan->vc);
-
-	if (pchan) {
-		writel(DMA_CHAN_PAUSE_PAUSE,
-		       pchan->base + DMA_CHAN_PAUSE);
-	} else {
-		spin_lock(&sdev->lock);
-		list_del_init(&vchan->node);
-		spin_unlock(&sdev->lock);
-	}
-
-	return 0;
-}
-
-static int sun6i_dma_resume(struct dma_chan *chan)
+static int sun6i_dma_control(struct dma_chan *chan, enum dma_ctrl_cmd cmd,
+		       unsigned long arg)
 {
 	struct sun6i_dma_dev *sdev = to_sun6i_dma_dev(chan->device);
 	struct sun6i_vchan *vchan = to_sun6i_vchan(chan);
 	struct sun6i_pchan *pchan = vchan->phy;
 	unsigned long flags;
+	int ret = 0;
 
-	dev_dbg(chan2dev(chan), "vchan %p: resume\n", &vchan->vc);
+	switch (cmd) {
+	case DMA_RESUME:
+		dev_dbg(chan2dev(chan), "vchan %p: resume\n", &vchan->vc);
 
-	spin_lock_irqsave(&vchan->vc.lock, flags);
+		spin_lock_irqsave(&vchan->vc.lock, flags);
 
-	if (pchan) {
-		writel(DMA_CHAN_PAUSE_RESUME,
-		       pchan->base + DMA_CHAN_PAUSE);
-	} else if (!list_empty(&vchan->vc.desc_issued)) {
-		spin_lock(&sdev->lock);
-		list_add_tail(&vchan->node, &sdev->pending);
-		spin_unlock(&sdev->lock);
+		if (pchan) {
+			writel(DMA_CHAN_PAUSE_RESUME,
+			       pchan->base + DMA_CHAN_PAUSE);
+		} else if (!list_empty(&vchan->vc.desc_issued)) {
+			spin_lock(&sdev->lock);
+			list_add_tail(&vchan->node, &sdev->pending);
+			spin_unlock(&sdev->lock);
+		}
+
+		spin_unlock_irqrestore(&vchan->vc.lock, flags);
+		break;
+
+	case DMA_PAUSE:
+		dev_dbg(chan2dev(chan), "vchan %p: pause\n", &vchan->vc);
+
+		if (pchan) {
+			writel(DMA_CHAN_PAUSE_PAUSE,
+			       pchan->base + DMA_CHAN_PAUSE);
+		} else {
+			spin_lock(&sdev->lock);
+			list_del_init(&vchan->node);
+			spin_unlock(&sdev->lock);
+		}
+		break;
+
+	case DMA_TERMINATE_ALL:
+		ret = sun6i_dma_terminate_all(vchan);
+		break;
+	case DMA_SLAVE_CONFIG:
+		memcpy(&vchan->cfg, (void *)arg, sizeof(struct dma_slave_config));
+		break;
+	default:
+		ret = -ENXIO;
+		break;
 	}
-
-	spin_unlock_irqrestore(&vchan->vc.lock, flags);
-
-	return 0;
-}
-
-static int sun6i_dma_terminate_all(struct dma_chan *chan)
-{
-	struct sun6i_dma_dev *sdev = to_sun6i_dma_dev(chan->device);
-	struct sun6i_vchan *vchan = to_sun6i_vchan(chan);
-	struct sun6i_pchan *pchan = vchan->phy;
-	unsigned long flags;
-	LIST_HEAD(head);
-
-	spin_lock(&sdev->lock);
-	list_del_init(&vchan->node);
-	spin_unlock(&sdev->lock);
-
-	spin_lock_irqsave(&vchan->vc.lock, flags);
-
-	vchan_get_all_descriptors(&vchan->vc, &head);
-
-	if (pchan) {
-		writel(DMA_CHAN_ENABLE_STOP, pchan->base + DMA_CHAN_ENABLE);
-		writel(DMA_CHAN_PAUSE_RESUME, pchan->base + DMA_CHAN_PAUSE);
-
-		vchan->phy = NULL;
-		pchan->vchan = NULL;
-		pchan->desc = NULL;
-		pchan->done = NULL;
-	}
-
-	spin_unlock_irqrestore(&vchan->vc.lock, flags);
-
-	vchan_dma_desc_free_list(&vchan->vc, &head);
-
-	return 0;
+	return ret;
 }
 
 static enum dma_status sun6i_dma_tx_status(struct dma_chan *chan,

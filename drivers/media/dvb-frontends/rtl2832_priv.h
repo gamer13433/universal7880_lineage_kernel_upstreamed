@@ -2,7 +2,6 @@
  * Realtek RTL2832 DVB-T demodulator driver
  *
  * Copyright (C) 2012 Thomas Mair <thomas.mair86@gmail.com>
- * Copyright (C) 2012-2014 Antti Palosaari <crope@iki.fi>
  *
  *	This program is free software; you can redistribute it and/or modify
  *	it under the terms of the GNU General Public License as published by
@@ -22,34 +21,28 @@
 #ifndef RTL2832_PRIV_H
 #define RTL2832_PRIV_H
 
-#include <linux/regmap.h>
-#include <linux/math64.h>
-#include <linux/bitops.h>
-
 #include "dvb_frontend.h"
-#include "dvb_math.h"
 #include "rtl2832.h"
+#include <linux/i2c-mux.h>
 
-struct rtl2832_dev {
-	struct rtl2832_platform_data *pdata;
-	struct i2c_client *client;
-	struct mutex regmap_mutex;
-	struct regmap_config regmap_config;
-	struct regmap *regmap;
+struct rtl2832_priv {
+	struct i2c_adapter *i2c;
+	struct i2c_adapter *i2c_adapter;
 	struct i2c_adapter *i2c_adapter_tuner;
 	struct dvb_frontend fe;
-	struct delayed_work stat_work;
-	fe_status_t fe_status;
-	u64 post_bit_error_prev; /* for old DVBv3 read_ber() calculation */
-	u64 post_bit_error;
-	u64 post_bit_count;
+	struct rtl2832_config cfg;
+
+	bool i2c_gate_state;
 	bool sleeping;
+
+	u8 tuner;
+	u8 page; /* active register page */
 	struct delayed_work i2c_gate_work;
-	unsigned long filters; /* PID filter */
 };
 
 struct rtl2832_reg_entry {
-	u16 start_address;
+	u8 page;
+	u8 start_address;
 	u8 msb;
 	u8 lsb;
 };
@@ -58,6 +51,7 @@ struct rtl2832_reg_value {
 	int reg;
 	u32 value;
 };
+
 
 /* Demod register bit names */
 enum DVBT_REG_BIT_NAME {

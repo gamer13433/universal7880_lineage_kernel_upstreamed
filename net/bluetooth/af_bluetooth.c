@@ -745,10 +745,6 @@ static int __init bt_init(void)
 
 	BT_INFO("Core ver %s", VERSION);
 
-	err = bt_selftest();
-	if (err < 0)
-		return err;
-
 	bt_debugfs = debugfs_create_dir("bluetooth", NULL);
 
 	err = bt_sysfs_init();

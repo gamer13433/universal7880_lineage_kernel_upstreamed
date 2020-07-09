@@ -19,7 +19,6 @@
 #ifndef __LOCAL_ST21NFCB_H_
 #define __LOCAL_ST21NFCB_H_
 
-#include "st21nfcb_se.h"
 #include "ndlc.h"
 
 /* Define private flags: */
@@ -28,7 +27,6 @@
 struct st21nfcb_nci_info {
 	struct llt_ndlc *ndlc;
 	unsigned long flags;
-	struct st21nfcb_se_info se_info;
 };
 
 void st21nfcb_nci_remove(struct nci_dev *ndev);

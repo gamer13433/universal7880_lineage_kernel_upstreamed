@@ -20,7 +20,6 @@
 #include <linux/module.h>
 #include <linux/interrupt.h>
 #include <linux/input.h>
-#include <linux/io.h>
 #include <linux/device.h>
 #include <linux/platform_device.h>
 #include <linux/clk.h>
@@ -29,6 +28,10 @@
 #include <linux/slab.h>
 #include <linux/of.h>
 
+#include <asm/mach/arch.h>
+#include <asm/mach/map.h>
+
+#include <mach/hardware.h>
 #include <linux/platform_data/keypad-pxa27x.h>
 /*
  * Keypad Controller registers
@@ -345,11 +348,13 @@ static int pxa27x_keypad_build_keycode(struct pxa27x_keypad *keypad)
 {
 	const struct pxa27x_keypad_platform_data *pdata = keypad->pdata;
 	struct input_dev *input_dev = keypad->input_dev;
+	const struct matrix_keymap_data *keymap_data =
+				pdata ? pdata->matrix_keymap_data : NULL;
 	unsigned short keycode;
 	int i;
 	int error;
 
-	error = matrix_keypad_build_keymap(pdata->matrix_keymap_data, NULL,
+	error = matrix_keypad_build_keymap(keymap_data, NULL,
 					   pdata->matrix_key_rows,
 					   pdata->matrix_key_cols,
 					   keypad->keycodes, input_dev);

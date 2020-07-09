@@ -189,8 +189,6 @@ int hdmi_pll_enable(struct hdmi_pll_data *pll, struct hdmi_wp_data *wp)
 	if (r)
 		return r;
 
-	dss_ctrl_pll_enable(DSS_PLL_HDMI, true);
-
 	r = hdmi_wp_set_pll_pwr(wp, HDMI_PLLPWRCMD_BOTHON_ALLCLKS);
 	if (r)
 		return r;
@@ -209,8 +207,6 @@ int hdmi_pll_enable(struct hdmi_pll_data *pll, struct hdmi_wp_data *wp)
 void hdmi_pll_disable(struct hdmi_pll_data *pll, struct hdmi_wp_data *wp)
 {
 	hdmi_wp_set_pll_pwr(wp, HDMI_PLLPWRCMD_ALLOFF);
-
-	dss_ctrl_pll_enable(DSS_PLL_HDMI, false);
 }
 
 static const struct hdmi_pll_features omap44xx_pll_feats = {

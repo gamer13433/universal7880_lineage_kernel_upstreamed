@@ -45,18 +45,18 @@ struct VISORCHANNEL_Tag {
 	} safe_uis_queue;
 };
 
-/* Creates the struct visorchannel abstraction for a data area in memory,
- * but does NOT modify this data area.
+/* Creates the VISORCHANNEL abstraction for a data area in memory, but does
+ * NOT modify this data area.
  */
-static struct visorchannel *
-visorchannel_create_guts(HOSTADDRESS physaddr, ulong channel_bytes,
-			 struct visorchannel *parent, ulong off, uuid_le guid,
+static VISORCHANNEL *
+visorchannel_create_guts(HOSTADDRESS physaddr, ulong channelBytes,
+			 VISORCHANNEL *parent, ulong off, uuid_le guid,
 			 BOOL needs_lock)
 {
-	struct visorchannel *p = NULL;
+	VISORCHANNEL *p = NULL;
 	void *rc = NULL;
 
-	p = kmalloc(sizeof(*p), GFP_KERNEL|__GFP_NORETRY);
+	p = kmalloc(sizeof(VISORCHANNEL), GFP_KERNEL|__GFP_NORETRY);
 	if (p == NULL) {
 		ERRDRV("allocation failed: (status=0)\n");
 		rc = NULL;
@@ -113,45 +113,44 @@ Away:
 	return rc;
 }
 
-struct visorchannel *
-visorchannel_create(HOSTADDRESS physaddr, ulong channel_bytes, uuid_le guid)
+VISORCHANNEL *
+visorchannel_create(HOSTADDRESS physaddr, ulong channelBytes, uuid_le guid)
 {
-	return visorchannel_create_guts(physaddr, channel_bytes, NULL, 0, guid,
+	return visorchannel_create_guts(physaddr, channelBytes, NULL, 0, guid,
 					FALSE);
 }
 EXPORT_SYMBOL_GPL(visorchannel_create);
 
-struct visorchannel *
-visorchannel_create_with_lock(HOSTADDRESS physaddr, ulong channel_bytes,
+VISORCHANNEL *
+visorchannel_create_with_lock(HOSTADDRESS physaddr, ulong channelBytes,
 			      uuid_le guid)
 {
-	return visorchannel_create_guts(physaddr, channel_bytes, NULL, 0, guid,
+	return visorchannel_create_guts(physaddr, channelBytes, NULL, 0, guid,
 					TRUE);
 }
 EXPORT_SYMBOL_GPL(visorchannel_create_with_lock);
 
-struct visorchannel *
-visorchannel_create_overlapped(ulong channel_bytes,
-			       struct visorchannel *parent, ulong off,
-			       uuid_le guid)
+VISORCHANNEL *
+visorchannel_create_overlapped(ulong channelBytes,
+			       VISORCHANNEL *parent, ulong off, uuid_le guid)
 {
-	return visorchannel_create_guts(0, channel_bytes, parent, off, guid,
+	return visorchannel_create_guts(0, channelBytes, parent, off, guid,
 					FALSE);
 }
 EXPORT_SYMBOL_GPL(visorchannel_create_overlapped);
 
-struct visorchannel *
-visorchannel_create_overlapped_with_lock(ulong channel_bytes,
-					 struct visorchannel *parent, ulong off,
+VISORCHANNEL *
+visorchannel_create_overlapped_with_lock(ulong channelBytes,
+					 VISORCHANNEL *parent, ulong off,
 					 uuid_le guid)
 {
-	return visorchannel_create_guts(0, channel_bytes, parent, off, guid,
+	return visorchannel_create_guts(0, channelBytes, parent, off, guid,
 					TRUE);
 }
 EXPORT_SYMBOL_GPL(visorchannel_create_overlapped_with_lock);
 
 void
-visorchannel_destroy(struct visorchannel *channel)
+visorchannel_destroy(VISORCHANNEL *channel)
 {
 	if (channel == NULL)
 		return;
@@ -164,14 +163,14 @@ visorchannel_destroy(struct visorchannel *channel)
 EXPORT_SYMBOL_GPL(visorchannel_destroy);
 
 HOSTADDRESS
-visorchannel_get_physaddr(struct visorchannel *channel)
+visorchannel_get_physaddr(VISORCHANNEL *channel)
 {
 	return visor_memregion_get_physaddr(channel->memregion);
 }
 EXPORT_SYMBOL_GPL(visorchannel_get_physaddr);
 
 ulong
-visorchannel_get_nbytes(struct visorchannel *channel)
+visorchannel_get_nbytes(VISORCHANNEL *channel)
 {
 	return channel->size;
 }
@@ -233,7 +232,7 @@ visorchannel_read(VISORCHANNEL *channel, ulong offset,
 EXPORT_SYMBOL_GPL(visorchannel_read);
 
 int
-visorchannel_write(struct visorchannel *channel, ulong offset,
+visorchannel_write(VISORCHANNEL *channel, ulong offset,
 		   void *local, ulong nbytes)
 {
 	if (offset == 0 && nbytes >= sizeof(CHANNEL_HEADER))
@@ -243,8 +242,7 @@ visorchannel_write(struct visorchannel *channel, ulong offset,
 EXPORT_SYMBOL_GPL(visorchannel_write);
 
 int
-visorchannel_clear(struct visorchannel *channel, ulong offset, u8 ch,
-		   ulong nbytes)
+visorchannel_clear(VISORCHANNEL *channel, ulong offset, u8 ch, ulong nbytes)
 {
 	int rc = -1;
 	int bufsize = 65536;
@@ -283,7 +281,7 @@ Away:
 EXPORT_SYMBOL_GPL(visorchannel_clear);
 
 void __iomem  *
-visorchannel_get_header(struct visorchannel *channel)
+visorchannel_get_header(VISORCHANNEL *channel)
 {
 	return (void __iomem *) &(channel->chan_hdr);
 }
@@ -520,7 +518,7 @@ visorchannel_signalqueue_slots_avail(VISORCHANNEL *channel, u32 queue)
 EXPORT_SYMBOL_GPL(visorchannel_signalqueue_slots_avail);
 
 int
-visorchannel_signalqueue_max_slots(struct visorchannel *channel, u32 queue)
+visorchannel_signalqueue_max_slots(VISORCHANNEL *channel, u32 queue)
 {
 	SIGNAL_QUEUE_HEADER sig_hdr;
 
@@ -555,7 +553,7 @@ sigqueue_debug(SIGNAL_QUEUE_HEADER *q, int which, struct seq_file *seq)
 }
 
 void
-visorchannel_debug(struct visorchannel *channel, int num_queues,
+visorchannel_debug(VISORCHANNEL *channel, int nQueues,
 		   struct seq_file *seq, u32 off)
 {
 	HOSTADDRESS addr = 0;
@@ -635,7 +633,7 @@ visorchannel_debug(struct visorchannel *channel, int num_queues,
 EXPORT_SYMBOL_GPL(visorchannel_debug);
 
 void
-visorchannel_dump_section(struct visorchannel *chan, char *s,
+visorchannel_dump_section(VISORCHANNEL *chan, char *s,
 			  int off, int len, struct seq_file *seq)
 {
 	char *buf, *tbuf, *fmtbuf;

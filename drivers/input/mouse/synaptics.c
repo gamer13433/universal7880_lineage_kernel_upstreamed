@@ -181,7 +181,9 @@ static const char * const topbuttonpad_pnp_ids[] = {
 	"LEN0041",
 	"LEN0042", /* Yoga */
 	"LEN0045",
+	"LEN0046",
 	"LEN0047",
+	"LEN0048",
 	"LEN0049",
 	"LEN2000",
 	"LEN2001", /* Edge E431 */
@@ -189,7 +191,7 @@ static const char * const topbuttonpad_pnp_ids[] = {
 	"LEN2003",
 	"LEN2004", /* L440 */
 	"LEN2005",
-	"LEN2006", /* Edge E440/E540 */
+	"LEN2006",
 	"LEN2007",
 	"LEN2008",
 	"LEN2009",
@@ -560,22 +562,18 @@ static int synaptics_is_pt_packet(unsigned char *buf)
 	return (buf[0] & 0xFC) == 0x84 && (buf[3] & 0xCC) == 0xC4;
 }
 
-static void synaptics_pass_pt_packet(struct psmouse *psmouse,
-				     struct serio *ptport,
-				     unsigned char *packet)
+static void synaptics_pass_pt_packet(struct serio *ptport, unsigned char *packet)
 {
-	struct synaptics_data *priv = psmouse->private;
 	struct psmouse *child = serio_get_drvdata(ptport);
 
 	if (child && child->state == PSMOUSE_ACTIVATED) {
-		serio_interrupt(ptport, packet[1] | priv->pt_buttons, 0);
+		serio_interrupt(ptport, packet[1], 0);
 		serio_interrupt(ptport, packet[4], 0);
 		serio_interrupt(ptport, packet[5], 0);
 		if (child->pktsize == 4)
 			serio_interrupt(ptport, packet[2], 0);
-	} else {
+	} else
 		serio_interrupt(ptport, packet[1], 0);
-	}
 }
 
 static void synaptics_pt_activate(struct psmouse *psmouse)
@@ -626,6 +624,14 @@ static void synaptics_pt_create(struct psmouse *psmouse)
  *	Functions to interpret the absolute mode packets
  ****************************************************************************/
 
+static void synaptics_mt_state_set(struct synaptics_mt_state *state, int count,
+				   int sgm, int agm)
+{
+	state->count = count;
+	state->sgm = sgm;
+	state->agm = agm;
+}
+
 static void synaptics_parse_agm(const unsigned char buf[],
 				struct synaptics_data *priv,
 				struct synaptics_hw_state *hw)
@@ -644,25 +650,16 @@ static void synaptics_parse_agm(const unsigned char buf[],
 		break;
 
 	case 2:
-		/* AGM-CONTACT packet: we are only interested in the count */
-		priv->agm_count = buf[1];
+		/* AGM-CONTACT packet: (count, sgm, agm) */
+		synaptics_mt_state_set(&agm->mt_state, buf[1], buf[2], buf[4]);
 		break;
 
 	default:
 		break;
 	}
-}
 
-static void synaptics_parse_ext_buttons(const unsigned char buf[],
-					struct synaptics_data *priv,
-					struct synaptics_hw_state *hw)
-{
-	unsigned int ext_bits =
-		(SYN_CAP_MULTI_BUTTON_NO(priv->ext_cap) + 1) >> 1;
-	unsigned int ext_mask = GENMASK(ext_bits - 1, 0);
-
-	hw->ext_buttons = buf[4] & ext_mask;
-	hw->ext_buttons |= (buf[5] & ext_mask) << ext_bits;
+	/* Record that at least one AGM has been received since last SGM */
+	priv->agm_pending = true;
 }
 
 static void synaptics_parse_ext_buttons(const unsigned char buf[],
@@ -1272,7 +1269,7 @@ static void synaptics_profile_sensor_process(struct psmouse *psmouse,
 		pos[i].y = synaptics_invert_y(hw[i]->y);
 	}
 
-	input_mt_assign_slots(dev, slot, pos, nsemi, 0);
+	input_mt_assign_slots(dev, slot, pos, nsemi);
 
 	for (i = 0; i < nsemi; i++) {
 		input_mt_slot(dev, slot[i]);
@@ -1283,40 +1280,12 @@ static void synaptics_profile_sensor_process(struct psmouse *psmouse,
 	}
 
 	input_mt_drop_unused(dev);
-
-	/* Don't use active slot count to generate BTN_TOOL events. */
 	input_mt_report_pointer_emulation(dev, false);
-
-	/* Send the number of fingers reported by touchpad itself. */
 	input_mt_report_finger_count(dev, num_fingers);
 
 	synaptics_report_buttons(psmouse, sgm);
 
 	input_sync(dev);
-}
-
-static void synaptics_image_sensor_process(struct psmouse *psmouse,
-					   struct synaptics_hw_state *sgm)
-{
-	struct synaptics_data *priv = psmouse->private;
-	int num_fingers;
-
-	/*
-	 * Update mt_state using the new finger count and current mt_state.
-	 */
-	if (sgm->z == 0)
-		num_fingers = 0;
-	else if (sgm->w >= 4)
-		num_fingers = 1;
-	else if (sgm->w == 0)
-		num_fingers = 2;
-	else if (sgm->w == 1)
-		num_fingers = priv->agm_count ? priv->agm_count : 3;
-	else
-		num_fingers = 4;
-
-	/* Send resulting input events to user space */
-	synaptics_report_mt_data(psmouse, sgm, num_fingers);
 }
 
 /*
@@ -1383,7 +1352,7 @@ static void synaptics_process_packet(struct psmouse *psmouse)
 	}
 
 	if (cr48_profile_sensor) {
-		synaptics_report_mt_data(psmouse, &hw, num_fingers);
+		synaptics_profile_sensor_process(psmouse, &hw, num_fingers);
 		return;
 	}
 
@@ -1473,8 +1442,7 @@ static psmouse_ret_t synaptics_process_byte(struct psmouse *psmouse)
 		if (SYN_CAP_PASS_THROUGH(priv->capabilities) &&
 		    synaptics_is_pt_packet(psmouse->packet)) {
 			if (priv->pt_port)
-				synaptics_pass_pt_packet(psmouse, priv->pt_port,
-							 psmouse->packet);
+				synaptics_pass_pt_packet(priv->pt_port, psmouse->packet);
 		} else
 			synaptics_process_packet(psmouse);
 
@@ -1541,7 +1509,7 @@ static void set_input_params(struct psmouse *psmouse,
 					ABS_MT_POSITION_Y);
 		/* Image sensors can report per-contact pressure */
 		input_set_abs_params(dev, ABS_MT_PRESSURE, 0, 255, 0, 0);
-		input_mt_init_slots(dev, 2, INPUT_MT_POINTER | INPUT_MT_TRACK);
+		input_mt_init_slots(dev, 2, INPUT_MT_POINTER);
 
 		/* Image sensors can signal 4 and 5 finger clicks */
 		__set_bit(BTN_TOOL_QUADTAP, dev->keybit);
@@ -1576,9 +1544,8 @@ static void set_input_params(struct psmouse *psmouse,
 		__set_bit(BTN_BACK, dev->keybit);
 	}
 
-	if (!SYN_CAP_EXT_BUTTONS_STICK(priv->ext_cap_10))
-		for (i = 0; i < SYN_CAP_MULTI_BUTTON_NO(priv->ext_cap); i++)
-			__set_bit(BTN_0 + i, dev->keybit);
+	for (i = 0; i < SYN_CAP_MULTI_BUTTON_NO(priv->ext_cap); i++)
+		__set_bit(BTN_0 + i, dev->keybit);
 
 	__clear_bit(EV_REL, dev->evbit);
 	__clear_bit(REL_X, dev->relbit);
@@ -1586,8 +1553,7 @@ static void set_input_params(struct psmouse *psmouse,
 
 	if (SYN_CAP_CLICKPAD(priv->ext_cap_0c)) {
 		__set_bit(INPUT_PROP_BUTTONPAD, dev->propbit);
-		if (psmouse_matches_pnp_id(psmouse, topbuttonpad_pnp_ids) &&
-		    !SYN_CAP_EXT_BUTTONS_STICK(priv->ext_cap_10))
+		if (psmouse_matches_pnp_id(psmouse, topbuttonpad_pnp_ids))
 			__set_bit(INPUT_PROP_TOPBUTTONPAD, dev->propbit);
 		/* Clickpads report only left button */
 		__clear_bit(BTN_RIGHT, dev->keybit);
@@ -1916,6 +1882,11 @@ int synaptics_init_relative(struct psmouse *psmouse)
 	return __synaptics_init(psmouse, false);
 }
 
+bool synaptics_supported(void)
+{
+	return true;
+}
+
 #else /* CONFIG_MOUSE_PS2_SYNAPTICS */
 
 void __init synaptics_module_init(void)
@@ -1925,6 +1896,11 @@ void __init synaptics_module_init(void)
 int synaptics_init(struct psmouse *psmouse)
 {
 	return -ENOSYS;
+}
+
+bool synaptics_supported(void)
+{
+	return false;
 }
 
 #endif /* CONFIG_MOUSE_PS2_SYNAPTICS */

@@ -97,8 +97,7 @@ ENTRY(diag308_reset)
 	lg	%r4,0(%r4)		# Save PSW
 	sturg	%r4,%r3			# Use sturg, because of large pages
 	lghi	%r1,1
-	lghi	%r0,0
-	diag	%r0,%r1,0x308
+	diag	%r1,%r1,0x308
 .Lrestart_part2:
 	lhi	%r0,0			# Load r0 with zero
 	lhi	%r1,2			# Use mode 2 = ESAME (dump)

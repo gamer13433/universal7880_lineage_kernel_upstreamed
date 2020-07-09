@@ -2108,7 +2108,7 @@ static void hdmi_dpms(struct exynos_drm_display *display, int mode)
 
 	switch (mode) {
 	case DRM_MODE_DPMS_ON:
-		hdmi_poweron(hdata);
+		hdmi_poweron(display);
 		break;
 	case DRM_MODE_DPMS_STANDBY:
 	case DRM_MODE_DPMS_SUSPEND:
@@ -2127,7 +2127,7 @@ static void hdmi_dpms(struct exynos_drm_display *display, int mode)
 		if (funcs && funcs->dpms)
 			(*funcs->dpms)(crtc, mode);
 
-		hdmi_poweroff(hdata);
+		hdmi_poweroff(display);
 		break;
 	default:
 		DRM_DEBUG_KMS("unknown dpms mode: %d\n", mode);

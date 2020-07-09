@@ -130,30 +130,6 @@
 #define LCD_FLAG_N		0x0040	/* 2-rows mode */
 #define LCD_FLAG_L		0x0080	/* backlight enabled */
 
-/* LCD commands */
-#define LCD_CMD_DISPLAY_CLEAR	0x01	/* Clear entire display */
-
-#define LCD_CMD_ENTRY_MODE	0x04	/* Set entry mode */
-#define LCD_CMD_CURSOR_INC	0x02	/* Increment cursor */
-
-#define LCD_CMD_DISPLAY_CTRL	0x08	/* Display control */
-#define LCD_CMD_DISPLAY_ON	0x04	/* Set display on */
-#define LCD_CMD_CURSOR_ON	0x02	/* Set cursor on */
-#define LCD_CMD_BLINK_ON	0x01	/* Set blink on */
-
-#define LCD_CMD_SHIFT		0x10	/* Shift cursor/display */
-#define LCD_CMD_DISPLAY_SHIFT	0x08	/* Shift display instead of cursor */
-#define LCD_CMD_SHIFT_RIGHT	0x04	/* Shift display/cursor to the right */
-
-#define LCD_CMD_FUNCTION_SET	0x20	/* Set function */
-#define LCD_CMD_DATA_LEN_8BITS	0x10	/* Set data length to 8 bits */
-#define LCD_CMD_TWO_LINES	0x08	/* Set to two display lines */
-#define LCD_CMD_FONT_5X10_DOTS	0x04	/* Set char font to 5x10 dots */
-
-#define LCD_CMD_SET_CGRAM_ADDR	0x40	/* Set char generator RAM address */
-
-#define LCD_CMD_SET_DDRAM_ADDR	0x80	/* Set display data RAM address */
-
 #define LCD_ESCAPE_LEN		24	/* max chars for LCD escape command */
 #define LCD_ESCAPE_CHAR	27	/* use char 27 for escape command */
 
@@ -743,7 +719,7 @@ static void long_sleep(int ms)
 	if (in_interrupt()) {
 		mdelay(ms);
 	} else {
-		__set_current_state(TASK_INTERRUPTIBLE);
+		current->state = TASK_INTERRUPTIBLE;
 		schedule_timeout((ms * HZ + 999) / 1000);
 	}
 }
@@ -1019,7 +995,7 @@ static void lcd_init_display(void)
 	long_sleep(10);
 
 	/* entry mode set : increment, cursor shifting */
-	lcd_write_cmd(LCD_CMD_ENTRY_MODE | LCD_CMD_CURSOR_INC);
+	lcd_write_cmd(0x06);
 
 	lcd_clear_display();
 }
@@ -1194,7 +1170,7 @@ static inline int handle_lcd_special_code(void)
 			esc++;
 		}
 
-		lcd_write_cmd(LCD_CMD_SET_CGRAM_ADDR | (cgaddr * 8));
+		lcd_write_cmd(0x40 | (cgaddr * 8));
 		for (addr = 0; addr < cgoffset; addr++)
 			lcd_write_data(cgbytes[addr]);
 

@@ -103,11 +103,7 @@ static enum nvram_parser_state brcmf_nvram_handle_key(struct nvram_parser *nvp)
 
 	c = nvp->fwnv->data[nvp->pos];
 	if (c == '=') {
-		/* ignore RAW1 by treating as comment */
-		if (strncmp(&nvp->fwnv->data[nvp->entry], "RAW1", 4) == 0)
-			st = COMMENT;
-		else
-			st = VALUE;
+		st = VALUE;
 	} else if (!is_nvram_char(c)) {
 		brcmf_dbg(INFO, "warning: ln=%d:col=%d: '=' expected, skip invalid key entry\n",
 			  nvp->line, nvp->column);

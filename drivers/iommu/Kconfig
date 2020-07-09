@@ -4,7 +4,6 @@ config IOMMU_API
 
 menuconfig IOMMU_SUPPORT
 	bool "IOMMU Hardware Support"
-	depends on MMU
 	default y
 	---help---
 	  Say Y here if you want to compile device drivers for IO Memory
@@ -31,9 +30,7 @@ config FSL_PAMU
 # MSM IOMMU support
 config MSM_IOMMU
 	bool "MSM IOMMU Support"
-	depends on ARM
-	depends on ARCH_MSM8X60 || ARCH_MSM8960 || COMPILE_TEST
-	depends on BROKEN
+	depends on ARCH_MSM8X60 || ARCH_MSM8960
 	select IOMMU_API
 	help
 	  Support for the IOMMUs found on certain Qualcomm SOCs.
@@ -94,7 +91,6 @@ config INTEL_IOMMU
 	bool "Support for Intel IOMMU using DMA Remapping Devices"
 	depends on PCI_MSI && ACPI && (X86 || IA64_GENERIC)
 	select IOMMU_API
-	select IOMMU_IOVA
 	select DMAR_TABLE
 	help
 	  DMA remapping (DMAR) devices support enables independent address
@@ -144,8 +140,7 @@ config IRQ_REMAP
 # OMAP IOMMU support
 config OMAP_IOMMU
 	bool "OMAP IOMMU Support"
-	depends on ARM && MMU
-	depends on ARCH_OMAP2PLUS || COMPILE_TEST
+	depends on ARCH_OMAP2PLUS
 	select IOMMU_API
 
 config OMAP_IOMMU_DEBUG
@@ -223,7 +218,7 @@ config SHMOBILE_IPMMU_TLB
 config SHMOBILE_IOMMU
 	bool "IOMMU for Renesas IPMMU/IPMMUI"
 	default n
-	depends on ARM && MMU
+	depends on ARM
 	depends on ARCH_SHMOBILE || COMPILE_TEST
 	select IOMMU_API
 	select ARM_DMA_USE_IOMMU
@@ -294,7 +289,6 @@ config IPMMU_VMSA
 	depends on ARM_LPAE
 	depends on ARCH_SHMOBILE || COMPILE_TEST
 	select IOMMU_API
-	select IOMMU_IO_PGTABLE_LPAE
 	select ARM_DMA_USE_IOMMU
 	help
 	  Support for the Renesas VMSA-compatible IPMMU Renesas found in the
@@ -312,13 +306,13 @@ config SPAPR_TCE_IOMMU
 
 config ARM_SMMU
 	bool "ARM Ltd. System MMU (SMMU) Support"
-	depends on (ARM64 || ARM) && MMU
+	depends on ARM64 || (ARM_LPAE && OF)
 	select IOMMU_API
-	select IOMMU_IO_PGTABLE_LPAE
 	select ARM_DMA_USE_IOMMU if ARM
 	help
 	  Support for implementations of the ARM System MMU architecture
-	  versions 1 and 2.
+	  versions 1 and 2. The driver supports both v7l and v8l table
+	  formats with 4k and 64k page sizes.
 
 	  Say Y here if your SoC includes an IOMMU device implementing
 	  the ARM SMMU architecture.

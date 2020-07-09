@@ -20,7 +20,6 @@
 #include <linux/dma-mapping.h>
 #include <linux/fsl_devices.h>
 #include <linux/kernel.h>
-#include <linux/module.h>
 #include <linux/of_address.h>
 #include <linux/spi/spi.h>
 #include <linux/types.h>
@@ -66,7 +65,6 @@ void fsl_spi_cpm_reinit_txrx(struct mpc8xxx_spi *mspi)
 		}
 	}
 }
-EXPORT_SYMBOL_GPL(fsl_spi_cpm_reinit_txrx);
 
 static void fsl_spi_cpm_bufs_start(struct mpc8xxx_spi *mspi)
 {
@@ -161,7 +159,6 @@ err_rx_dma:
 		dma_unmap_single(dev, mspi->tx_dma, t->len, DMA_TO_DEVICE);
 	return -ENOMEM;
 }
-EXPORT_SYMBOL_GPL(fsl_spi_cpm_bufs);
 
 void fsl_spi_cpm_bufs_complete(struct mpc8xxx_spi *mspi)
 {
@@ -174,7 +171,6 @@ void fsl_spi_cpm_bufs_complete(struct mpc8xxx_spi *mspi)
 		dma_unmap_single(dev, mspi->rx_dma, t->len, DMA_FROM_DEVICE);
 	mspi->xfer_in_progress = NULL;
 }
-EXPORT_SYMBOL_GPL(fsl_spi_cpm_bufs_complete);
 
 void fsl_spi_cpm_irq(struct mpc8xxx_spi *mspi, u32 events)
 {
@@ -199,7 +195,6 @@ void fsl_spi_cpm_irq(struct mpc8xxx_spi *mspi, u32 events)
 	else
 		complete(&mspi->done);
 }
-EXPORT_SYMBOL_GPL(fsl_spi_cpm_irq);
 
 static void *fsl_spi_alloc_dummy_rx(void)
 {
@@ -377,7 +372,6 @@ err_pram:
 	fsl_spi_free_dummy_rx();
 	return -ENOMEM;
 }
-EXPORT_SYMBOL_GPL(fsl_spi_cpm_init);
 
 void fsl_spi_cpm_free(struct mpc8xxx_spi *mspi)
 {
@@ -392,6 +386,3 @@ void fsl_spi_cpm_free(struct mpc8xxx_spi *mspi)
 	cpm_muram_free(cpm_muram_offset(mspi->pram));
 	fsl_spi_free_dummy_rx();
 }
-EXPORT_SYMBOL_GPL(fsl_spi_cpm_free);
-
-MODULE_LICENSE("GPL");

@@ -245,6 +245,11 @@ exit:
 	return res;
 }
 
+void rtw_cmd_clr_isr23a(struct	cmd_priv *pcmdpriv)
+{
+	pcmdpriv->cmd_done_cnt++;
+}
+
 void rtw_free_cmd_obj23a(struct cmd_obj *pcmd)
 {
 

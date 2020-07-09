@@ -7287,19 +7287,63 @@ btdm_2AntTdmaDurationAdjust(struct rtw_adapter *padapter, u8 bScoHid,
 		RTPRINT(FBT, BT_TRACE, ("[BTCoex], first run TdmaDurationAdjust()!!\n"));
 		if (bScoHid) {
 			if (bTxPause) {
-				btdm_2AntPsTdma(padapter, true, 15);
-				pBtdm8723->psTdmaDuAdjType = 15;
+				if (maxInterval == 1) {
+					btdm_2AntPsTdma(padapter, true, 15);
+					pBtdm8723->psTdmaDuAdjType = 15;
+				} else if (maxInterval == 2) {
+					btdm_2AntPsTdma(padapter, true, 15);
+					pBtdm8723->psTdmaDuAdjType = 15;
+				} else if (maxInterval == 3) {
+					btdm_2AntPsTdma(padapter, true, 15);
+					pBtdm8723->psTdmaDuAdjType = 15;
+				} else {
+					btdm_2AntPsTdma(padapter, true, 15);
+					pBtdm8723->psTdmaDuAdjType = 15;
+				}
 			} else {
-				btdm_2AntPsTdma(padapter, true, 11);
-				pBtdm8723->psTdmaDuAdjType = 11;
+				if (maxInterval == 1) {
+					btdm_2AntPsTdma(padapter, true, 11);
+					pBtdm8723->psTdmaDuAdjType = 11;
+				} else if (maxInterval == 2) {
+					btdm_2AntPsTdma(padapter, true, 11);
+					pBtdm8723->psTdmaDuAdjType = 11;
+				} else if (maxInterval == 3) {
+					btdm_2AntPsTdma(padapter, true, 11);
+					pBtdm8723->psTdmaDuAdjType = 11;
+				} else {
+					btdm_2AntPsTdma(padapter, true, 11);
+					pBtdm8723->psTdmaDuAdjType = 11;
+				}
 			}
 		} else {
 			if (bTxPause) {
-				btdm_2AntPsTdma(padapter, true, 7);
-				pBtdm8723->psTdmaDuAdjType = 7;
+				if (maxInterval == 1) {
+					btdm_2AntPsTdma(padapter, true, 7);
+					pBtdm8723->psTdmaDuAdjType = 7;
+				} else if (maxInterval == 2) {
+					btdm_2AntPsTdma(padapter, true, 7);
+					pBtdm8723->psTdmaDuAdjType = 7;
+				} else if (maxInterval == 3) {
+					btdm_2AntPsTdma(padapter, true, 7);
+					pBtdm8723->psTdmaDuAdjType = 7;
+				} else {
+					btdm_2AntPsTdma(padapter, true, 7);
+					pBtdm8723->psTdmaDuAdjType = 7;
+				}
 			} else {
-				btdm_2AntPsTdma(padapter, true, 3);
-				pBtdm8723->psTdmaDuAdjType = 3;
+				if (maxInterval == 1) {
+					btdm_2AntPsTdma(padapter, true, 3);
+					pBtdm8723->psTdmaDuAdjType = 3;
+				} else if (maxInterval == 2) {
+					btdm_2AntPsTdma(padapter, true, 3);
+					pBtdm8723->psTdmaDuAdjType = 3;
+				} else if (maxInterval == 3) {
+					btdm_2AntPsTdma(padapter, true, 3);
+					pBtdm8723->psTdmaDuAdjType = 3;
+				} else {
+					btdm_2AntPsTdma(padapter, true, 3);
+					pBtdm8723->psTdmaDuAdjType = 3;
+				}
 			}
 		}
 		up = 0;
@@ -9133,7 +9177,7 @@ u32 BTDM_BtTxRxCounterL(struct rtw_adapter *padapter)
 	u32	counters = 0;
 
 	counters = pHalData->bt_coexist.halCoex8723.lowPriorityTx+
-		pHalData->bt_coexist.halCoex8723.lowPriorityRx;
+		pHalData->bt_coexist.halCoex8723.lowPriorityRx ;
 	return counters;
 }
 

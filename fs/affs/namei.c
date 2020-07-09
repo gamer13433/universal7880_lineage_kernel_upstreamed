@@ -64,16 +64,15 @@ __affs_hash_dentry(struct qstr *qstr, toupper_t toupper, bool notruncate)
 {
 	const u8 *name = qstr->name;
 	unsigned long hash;
-	int retval;
-	u32 len;
+	int i;
 
-	retval = affs_check_name(qstr->name, qstr->len, notruncate);
-	if (retval)
-		return retval;
+	i = affs_check_name(qstr->name, qstr->len, notruncate);
+	if (i)
+		return i;
 
 	hash = init_name_hash();
-	len = min(qstr->len, AFFSNAMEMAX);
-	for (; len > 0; name++, len--)
+	i = min(qstr->len, 30u);
+	for (; i > 0; name++, i--)
 		hash = partial_name_hash(toupper(*name), hash);
 	qstr->hash = end_name_hash(hash);
 
@@ -115,10 +114,10 @@ static inline int __affs_compare_dentry(unsigned int len,
 	 * If the names are longer than the allowed 30 chars,
 	 * the excess is ignored, so their length may differ.
 	 */
-	if (len >= AFFSNAMEMAX) {
-		if (name->len < AFFSNAMEMAX)
+	if (len >= 30) {
+		if (name->len < 30)
 			return 1;
-		len = AFFSNAMEMAX;
+		len = 30;
 	} else if (len != name->len)
 		return 1;
 
@@ -157,10 +156,10 @@ affs_match(struct dentry *dentry, const u8 *name2, toupper_t toupper)
 	const u8 *name = dentry->d_name.name;
 	int len = dentry->d_name.len;
 
-	if (len >= AFFSNAMEMAX) {
-		if (*name2 < AFFSNAMEMAX)
+	if (len >= 30) {
+		if (*name2 < 30)
 			return 0;
-		len = AFFSNAMEMAX;
+		len = 30;
 	} else if (len != *name2)
 		return 0;
 
@@ -174,9 +173,9 @@ int
 affs_hash_name(struct super_block *sb, const u8 *name, unsigned int len)
 {
 	toupper_t toupper = affs_get_toupper(sb);
-	u32 hash;
+	int hash;
 
-	hash = len = min(len, AFFSNAMEMAX);
+	hash = len = min(len, 30u);
 	for (; len > 0; len--)
 		hash = (hash * 13 + toupper(*name++)) & 0x7ff;
 

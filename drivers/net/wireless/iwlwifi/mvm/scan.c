@@ -114,7 +114,7 @@ iwl_mvm_scan_rate_n_flags(struct iwl_mvm *mvm, enum ieee80211_band band,
 	u32 tx_ant;
 
 	mvm->scan_last_antenna_idx =
-		iwl_mvm_next_antenna(mvm, iwl_mvm_get_valid_tx_ant(mvm),
+		iwl_mvm_next_antenna(mvm, mvm->fw->valid_tx_ant,
 				     mvm->scan_last_antenna_idx);
 	tx_ant = BIT(mvm->scan_last_antenna_idx) << RATE_MCS_ANT_POS;
 
@@ -279,31 +279,27 @@ static void iwl_mvm_scan_calc_params(struct iwl_mvm *mvm,
 				     int n_ssids, u32 flags,
 				     struct iwl_mvm_scan_params *params)
 {
-	int global_cnt = 0;
+	bool global_bound = false;
 	enum ieee80211_band band;
 	u8 frag_passive_dwell = 0;
 
 	ieee80211_iterate_active_interfaces_atomic(mvm->hw,
 					    IEEE80211_IFACE_ITER_NORMAL,
 					    iwl_mvm_scan_condition_iterator,
-					    &global_cnt);
+					    &global_bound);
 
-	if (!global_cnt)
+	if (!global_bound)
 		goto not_bound;
 
 	params->suspend_time = 30;
-	params->max_out_time = 120;
+	params->max_out_time = 170;
 
 	if (iwl_mvm_low_latency(mvm)) {
 		if (mvm->fw->ucode_capa.api[0] &
 		    IWL_UCODE_TLV_API_FRAGMENTED_SCAN) {
 			params->suspend_time = 105;
-			/*
-			 * If there is more than one active interface make
-			 * passive scan more fragmented.
-			 */
-			frag_passive_dwell = (global_cnt < 2) ? 40 : 20;
-			params->max_out_time = frag_passive_dwell;
+			params->max_out_time = 70;
+			frag_passive_dwell = 20;
 		} else {
 			params->suspend_time = 120;
 			params->max_out_time = 120;
@@ -515,19 +511,6 @@ int iwl_mvm_rx_scan_response(struct iwl_mvm *mvm, struct iwl_rx_cmd_buffer *rxb,
 	return 0;
 }
 
-int iwl_mvm_rx_scan_offload_iter_complete_notif(struct iwl_mvm *mvm,
-						struct iwl_rx_cmd_buffer *rxb,
-						struct iwl_device_cmd *cmd)
-{
-	struct iwl_rx_packet *pkt = rxb_addr(rxb);
-	struct iwl_scan_complete_notif *notif = (void *)pkt->data;
-
-	IWL_DEBUG_SCAN(mvm,
-		       "Scan offload iteration complete: status=0x%x scanned channels=%d\n",
-		       notif->status, notif->scanned_channels);
-	return 0;
-}
-
 int iwl_mvm_rx_scan_complete(struct iwl_mvm *mvm, struct iwl_rx_cmd_buffer *rxb,
 			  struct iwl_device_cmd *cmd)
 {
@@ -681,8 +664,7 @@ int iwl_mvm_rx_scan_offload_complete_notif(struct iwl_mvm *mvm,
 					 status == IWL_SCAN_OFFLOAD_ABORTED);
 	}
 
-	if (ebs_status)
-		mvm->last_ebs_successful = false;
+	mvm->last_ebs_successful = !ebs_status;
 
 	return 0;
 }
@@ -1076,14 +1058,16 @@ int iwl_mvm_scan_offload_stop(struct iwl_mvm *mvm, bool notify)
 		IWL_DEBUG_SCAN(mvm, "Send stop %sscan failed %d\n",
 			       sched ? "offloaded " : "", ret);
 		iwl_remove_notification(&mvm->notif_wait, &wait_scan_done);
-		goto out;
+		return ret;
 	}
 
 	IWL_DEBUG_SCAN(mvm, "Successfully sent stop %sscan\n",
 		       sched ? "offloaded " : "");
 
 	ret = iwl_wait_notification(&mvm->notif_wait, &wait_scan_done, 1 * HZ);
-out:
+	if (ret)
+		return ret;
+
 	/*
 	 * Clear the scan status so the next scan requests will succeed. This
 	 * also ensures the Rx handler doesn't do anything, as the scan was
@@ -1098,7 +1082,7 @@ out:
 			ieee80211_scan_completed(mvm->hw, true);
 	}
 
-	return ret;
+	return 0;
 }
 
 static void iwl_mvm_unified_scan_fill_tx_cmd(struct iwl_mvm *mvm,
@@ -1365,11 +1349,6 @@ int iwl_mvm_unified_sched_scan_lmac(struct iwl_mvm *mvm,
 
 	if (req->n_ssids == 0)
 		flags |= IWL_MVM_LMAC_SCAN_FLAG_PASSIVE;
-
-#ifdef CONFIG_IWLWIFI_DEBUGFS
-	if (mvm->scan_iter_notif_enabled)
-		flags |= IWL_MVM_LMAC_SCAN_FLAG_ITER_COMPLETE;
-#endif
 
 	cmd->scan_flags |= cpu_to_le32(flags);
 

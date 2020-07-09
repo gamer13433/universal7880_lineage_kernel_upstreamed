@@ -494,12 +494,18 @@ static netdev_tx_t irda_usb_hard_xmit(struct sk_buff *skb,
 		mtt = irda_get_mtt(skb);
 		if (mtt) {
 			int diff;
-			diff = ktime_us_delta(ktime_get(), self->stamp);
+			do_gettimeofday(&self->now);
+			diff = self->now.tv_usec - self->stamp.tv_usec;
 #ifdef IU_USB_MIN_RTT
 			/* Factor in USB delays -> Get rid of udelay() that
 			 * would be lost in the noise - Jean II */
 			diff += IU_USB_MIN_RTT;
 #endif /* IU_USB_MIN_RTT */
+			/* If the usec counter did wraparound, the diff will
+			 * go negative (tv_usec is a long), so we need to
+			 * correct it by one second. Jean II */
+			if (diff < 0)
+				diff += 1000000;
 
 		        /* Check if the mtt is larger than the time we have
 			 * already used by all the protocol processing
@@ -862,7 +868,7 @@ static void irda_usb_receive(struct urb *urb)
 	 * reduce the min turn time a bit since we will know
 	 * how much time we have used for protocol processing
 	 */
-	self->stamp = ktime_get();
+        do_gettimeofday(&self->stamp);
 
 	/* Check if we need to copy the data to a new skb or not.
 	 * For most frames, we use ZeroCopy and pass the already

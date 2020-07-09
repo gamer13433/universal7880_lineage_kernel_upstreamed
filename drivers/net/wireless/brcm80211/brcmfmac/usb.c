@@ -355,7 +355,7 @@ fail:
 	brcmf_err("fail!\n");
 	while (!list_empty(q)) {
 		req = list_entry(q->next, struct brcmf_usbreq, list);
-		if (req)
+		if (req && req->urb)
 			usb_free_urb(req->urb);
 		list_del(q->next);
 	}
@@ -510,7 +510,7 @@ brcmf_usb_state_change(struct brcmf_usbdev_info *devinfo, int state)
 		brcmf_bus_change_state(bcmf_bus, BRCMF_BUS_DOWN);
 	} else if (state == BRCMFMAC_USB_STATE_UP) {
 		brcmf_dbg(USB, "DBUS is up\n");
-		brcmf_bus_change_state(bcmf_bus, BRCMF_BUS_UP);
+		brcmf_bus_change_state(bcmf_bus, BRCMF_BUS_DATA);
 	} else {
 		brcmf_dbg(USB, "DBUS current state=%d\n", state);
 	}
@@ -1193,8 +1193,6 @@ static int brcmf_usb_probe_cb(struct brcmf_usbdev_info *devinfo)
 		ret = brcmf_usb_bus_setup(devinfo);
 		if (ret)
 			goto fail;
-		/* we are done */
-		return 0;
 	}
 	bus->chip = bus_pub->devid;
 	bus->chiprev = bus_pub->chiprev;

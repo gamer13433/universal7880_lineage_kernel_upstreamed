@@ -216,7 +216,7 @@ static int netvsc_destroy_buf(struct netvsc_device *net_device)
 static int netvsc_init_buf(struct hv_device *device)
 {
 	int ret = 0;
-	unsigned long t;
+	int t;
 	struct netvsc_device *net_device;
 	struct nvsp_message *init_packet;
 	struct net_device *ndev;
@@ -408,8 +408,7 @@ static int negotiate_nvsp_ver(struct hv_device *device,
 			      struct nvsp_message *init_packet,
 			      u32 nvsp_ver)
 {
-	int ret;
-	unsigned long t;
+	int ret, t;
 
 	memset(init_packet, 0, sizeof(struct nvsp_message));
 	init_packet->hdr.msg_type = NVSP_MSG_TYPE_INIT;
@@ -685,9 +684,9 @@ static u32 netvsc_get_next_send_section(struct netvsc_device *net_device)
 	return ret_val;
 }
 
-static u32 netvsc_copy_to_send_buf(struct netvsc_device *net_device,
-				   unsigned int section_index,
-				   struct hv_netvsc_packet *packet)
+u32 netvsc_copy_to_send_buf(struct netvsc_device *net_device,
+			    unsigned int section_index,
+			    struct hv_netvsc_packet *packet)
 {
 	char *start = net_device->send_buf;
 	char *dest = (start + (section_index * net_device->send_section_size));

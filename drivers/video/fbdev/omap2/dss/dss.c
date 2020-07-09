@@ -34,10 +34,7 @@
 #include <linux/pm_runtime.h>
 #include <linux/gfp.h>
 #include <linux/sizes.h>
-#include <linux/mfd/syscon.h>
-#include <linux/regmap.h>
 #include <linux/of.h>
-#include <linux/regulator/consumer.h>
 
 #include <video/omapdss.h>
 
@@ -79,8 +76,6 @@ struct dss_features {
 static struct {
 	struct platform_device *pdev;
 	void __iomem    *base;
-	struct regmap	*syscon_pll_ctrl;
-	u32		syscon_pll_ctrl_offset;
 
 	struct clk	*parent_clk;
 	struct clk	*dss_clk;
@@ -98,9 +93,6 @@ static struct {
 	u32		ctx[DSS_SZ_REGS / sizeof(u32)];
 
 	const struct dss_features *feat;
-
-	struct dss_pll	*video1_pll;
-	struct dss_pll	*video2_pll;
 } dss;
 
 static const char * const dss_generic_clk_source_names[] = {
@@ -163,99 +155,6 @@ static void dss_restore_context(void)
 
 #undef SR
 #undef RR
-
-void dss_ctrl_pll_enable(enum dss_pll_id pll_id, bool enable)
-{
-	unsigned shift;
-	unsigned val;
-
-	if (!dss.syscon_pll_ctrl)
-		return;
-
-	val = !enable;
-
-	switch (pll_id) {
-	case DSS_PLL_VIDEO1:
-		shift = 0;
-		break;
-	case DSS_PLL_VIDEO2:
-		shift = 1;
-		break;
-	case DSS_PLL_HDMI:
-		shift = 2;
-		break;
-	default:
-		DSSERR("illegal DSS PLL ID %d\n", pll_id);
-		return;
-	}
-
-	regmap_update_bits(dss.syscon_pll_ctrl, dss.syscon_pll_ctrl_offset,
-		1 << shift, val << shift);
-}
-
-void dss_ctrl_pll_set_control_mux(enum dss_pll_id pll_id,
-	enum omap_channel channel)
-{
-	unsigned shift, val;
-
-	if (!dss.syscon_pll_ctrl)
-		return;
-
-	switch (channel) {
-	case OMAP_DSS_CHANNEL_LCD:
-		shift = 3;
-
-		switch (pll_id) {
-		case DSS_PLL_VIDEO1:
-			val = 0; break;
-		case DSS_PLL_HDMI:
-			val = 1; break;
-		default:
-			DSSERR("error in PLL mux config for LCD\n");
-			return;
-		}
-
-		break;
-	case OMAP_DSS_CHANNEL_LCD2:
-		shift = 5;
-
-		switch (pll_id) {
-		case DSS_PLL_VIDEO1:
-			val = 0; break;
-		case DSS_PLL_VIDEO2:
-			val = 1; break;
-		case DSS_PLL_HDMI:
-			val = 2; break;
-		default:
-			DSSERR("error in PLL mux config for LCD2\n");
-			return;
-		}
-
-		break;
-	case OMAP_DSS_CHANNEL_LCD3:
-		shift = 7;
-
-		switch (pll_id) {
-		case DSS_PLL_VIDEO1:
-			val = 1; break;
-		case DSS_PLL_VIDEO2:
-			val = 0; break;
-		case DSS_PLL_HDMI:
-			val = 2; break;
-		default:
-			DSSERR("error in PLL mux config for LCD3\n");
-			return;
-		}
-
-		break;
-	default:
-		DSSERR("error in PLL mux config\n");
-		return;
-	}
-
-	regmap_update_bits(dss.syscon_pll_ctrl, dss.syscon_pll_ctrl_offset,
-		0x3 << shift, val << shift);
-}
 
 void dss_sdi_init(int datapairs)
 {
@@ -757,7 +656,7 @@ static void dss_put_clocks(void)
 		clk_put(dss.parent_clk);
 }
 
-int dss_runtime_get(void)
+static int dss_runtime_get(void)
 {
 	int r;
 
@@ -768,7 +667,7 @@ int dss_runtime_get(void)
 	return r < 0 ? r : 0;
 }
 
-void dss_runtime_put(void)
+static void dss_runtime_put(void)
 {
 	int r;
 
@@ -836,15 +735,6 @@ static const struct dss_features am43xx_dss_feats __initconst = {
 	.dpi_select_source	=	&dss_dpi_select_source_omap2_omap3,
 };
 
-static const struct dss_features dra7xx_dss_feats __initconst = {
-	.fck_div_max		=	64,
-	.dss_fck_multiplier	=	1,
-	.parent_clk_name	=	"dpll_per_x2_ck",
-	.dpi_select_source	=	&dss_dpi_select_source_dra7xx,
-	.ports			=	dra7xx_ports,
-	.num_ports		=	ARRAY_SIZE(dra7xx_ports),
-};
-
 static int __init dss_init_features(struct platform_device *pdev)
 {
 	const struct dss_features *src;
@@ -883,10 +773,6 @@ static int __init dss_init_features(struct platform_device *pdev)
 
 	case OMAPDSS_VER_AM43xx:
 		src = &am43xx_dss_feats;
-		break;
-
-	case OMAPDSS_VER_DRA7xx:
-		src = &dra7xx_dss_feats;
 		break;
 
 	default:
@@ -949,10 +835,8 @@ static void __exit dss_uninit_ports(void)
 static int __init omap_dsshw_probe(struct platform_device *pdev)
 {
 	struct resource *dss_mem;
-	struct device_node *np = pdev->dev.of_node;
 	u32 rev;
 	int r;
-	struct regulator *pll_regulator;
 
 	dss.pdev = pdev;
 
@@ -1007,57 +891,6 @@ static int __init omap_dsshw_probe(struct platform_device *pdev)
 
 	dss_init_ports(pdev);
 
-	if (np && of_property_read_bool(np, "syscon-pll-ctrl")) {
-		dss.syscon_pll_ctrl = syscon_regmap_lookup_by_phandle(np,
-			"syscon-pll-ctrl");
-		if (IS_ERR(dss.syscon_pll_ctrl)) {
-			dev_err(&pdev->dev,
-				"failed to get syscon-pll-ctrl regmap\n");
-			return PTR_ERR(dss.syscon_pll_ctrl);
-		}
-
-		if (of_property_read_u32_index(np, "syscon-pll-ctrl", 1,
-				&dss.syscon_pll_ctrl_offset)) {
-			dev_err(&pdev->dev,
-				"failed to get syscon-pll-ctrl offset\n");
-			return -EINVAL;
-		}
-	}
-
-	pll_regulator = devm_regulator_get(&pdev->dev, "vdda_video");
-	if (IS_ERR(pll_regulator)) {
-		r = PTR_ERR(pll_regulator);
-
-		switch (r) {
-		case -ENOENT:
-			pll_regulator = NULL;
-			break;
-
-		case -EPROBE_DEFER:
-			return -EPROBE_DEFER;
-
-		default:
-			DSSERR("can't get DPLL VDDA regulator\n");
-			return r;
-		}
-	}
-
-	if (of_property_match_string(np, "reg-names", "pll1") >= 0) {
-		dss.video1_pll = dss_video_pll_init(pdev, 0, pll_regulator);
-		if (IS_ERR(dss.video1_pll)) {
-			r = PTR_ERR(dss.video1_pll);
-			goto err_pll_init;
-		}
-	}
-
-	if (of_property_match_string(np, "reg-names", "pll2") >= 0) {
-		dss.video2_pll = dss_video_pll_init(pdev, 1, pll_regulator);
-		if (IS_ERR(dss.video2_pll)) {
-			r = PTR_ERR(dss.video2_pll);
-			goto err_pll_init;
-		}
-	}
-
 	rev = dss_read_reg(DSS_REVISION);
 	printk(KERN_INFO "OMAP DSS rev %d.%d\n",
 			FLD_GET(rev, 7, 4), FLD_GET(rev, 3, 0));
@@ -1068,12 +901,6 @@ static int __init omap_dsshw_probe(struct platform_device *pdev)
 
 	return 0;
 
-err_pll_init:
-	if (dss.video1_pll)
-		dss_video_pll_uninit(dss.video1_pll);
-
-	if (dss.video2_pll)
-		dss_video_pll_uninit(dss.video2_pll);
 err_runtime_get:
 	pm_runtime_disable(&pdev->dev);
 err_setup_clocks:
@@ -1127,7 +954,6 @@ static const struct of_device_id dss_of_match[] = {
 	{ .compatible = "ti,omap3-dss", },
 	{ .compatible = "ti,omap4-dss", },
 	{ .compatible = "ti,omap5-dss", },
-	{ .compatible = "ti,dra7-dss", },
 	{},
 };
 

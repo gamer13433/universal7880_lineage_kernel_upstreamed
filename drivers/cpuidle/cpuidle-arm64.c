@@ -19,6 +19,7 @@
 #include <linux/of.h>
 
 #include <asm/cpuidle.h>
+#include <asm/suspend.h>
 
 #include "dt_idle_states.h"
 

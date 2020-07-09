@@ -281,8 +281,7 @@ static int gdm_lte_emulate_ndp(struct sk_buff *skb_in, u32 nic_type)
 		icmp6_out.icmp6_type = NDISC_NEIGHBOUR_ADVERTISEMENT;
 		icmp6_out.icmp6_code = 0;
 		icmp6_out.icmp6_cksum = 0;
-		/* R=0, S=1, O=1 */
-		icmp6_out.icmp6_dataun.un_data32[0] = htonl(0x60000000);
+		icmp6_out.icmp6_dataun.un_data32[0] = htonl(0x60000000); /* R=0, S=1, O=1 */
 
 		ns = (struct neighbour_solicitation *)
 			(skb_in->data + mac_header_len +

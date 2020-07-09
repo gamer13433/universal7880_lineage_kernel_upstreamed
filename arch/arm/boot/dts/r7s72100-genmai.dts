@@ -44,7 +44,7 @@
 };
 
 &mtu2 {
-	status = "okay";
+	status = "ok";
 };
 
 &i2c2 {

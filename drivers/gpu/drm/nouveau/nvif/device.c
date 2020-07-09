@@ -22,7 +22,7 @@
  * Authors: Ben Skeggs <bskeggs@redhat.com>
  */
 
-#include <nvif/device.h>
+#include "device.h"
 
 void
 nvif_device_fini(struct nvif_device *device)

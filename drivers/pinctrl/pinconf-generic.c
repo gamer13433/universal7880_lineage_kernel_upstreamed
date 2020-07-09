@@ -58,25 +58,22 @@ static struct pin_config_item conf_items[] = {
 	PCONFDUMP(PIN_CONFIG_OUTPUT, "pin output", "level"),
 };
 
-static void pinconf_generic_dump_one(struct pinctrl_dev *pctldev,
-				     struct seq_file *s, const char *gname,
-				     unsigned pin,
-				     const struct pin_config_item *items,
-				     int nitems)
+void pinconf_generic_dump_pin(struct pinctrl_dev *pctldev,
+			      struct seq_file *s, unsigned pin)
 {
+	const struct pinconf_ops *ops = pctldev->desc->confops;
 	int i;
 
-	for (i = 0; i < nitems; i++) {
+	if (!ops->is_generic)
+		return;
+
+	for (i = 0; i < ARRAY_SIZE(conf_items); i++) {
 		unsigned long config;
 		int ret;
 
 		/* We want to check out this parameter */
-		config = pinconf_to_config_packed(items[i].param, 0);
-		if (gname)
-			ret = pin_config_group_get(dev_name(pctldev->dev),
-						   gname, &config);
-		else
-			ret = pin_config_get_for_pin(pctldev, pin, &config);
+		config = pinconf_to_config_packed(conf_items[i].param, 0);
+		ret = pin_config_get_for_pin(pctldev, pin, &config);
 		/* These are legal errors */
 		if (ret == -EINVAL || ret == -ENOTSUPP)
 			continue;
@@ -178,47 +175,6 @@ static struct pinconf_generic_dt_params dt_params[] = {
 };
 
 /**
- * parse_dt_cfg() - Parse DT pinconf parameters
- * @np:	DT node
- * @params:	Array of describing generic parameters
- * @count:	Number of entries in @params
- * @cfg:	Array of parsed config options
- * @ncfg:	Number of entries in @cfg
- *
- * Parse the config options described in @params from @np and puts the result
- * in @cfg. @cfg does not need to be empty, entries are added beggining at
- * @ncfg. @ncfg is updated to reflect the number of entries after parsing. @cfg
- * needs to have enough memory allocated to hold all possible entries.
- */
-static void parse_dt_cfg(struct device_node *np,
-			 const struct pinconf_generic_params *params,
-			 unsigned int count, unsigned long *cfg,
-			 unsigned int *ncfg)
-{
-	int i;
-
-	for (i = 0; i < count; i++) {
-		u32 val;
-		int ret;
-		const struct pinconf_generic_params *par = &params[i];
-
-		ret = of_property_read_u32(np, par->property, &val);
-
-		/* property not found */
-		if (ret == -EINVAL)
-			continue;
-
-		/* use default value, when no value is specified */
-		if (ret)
-			val = par->default_value;
-
-		pr_debug("found %s with value %u\n", par->property, val);
-		cfg[*ncfg] = pinconf_to_config_packed(par->param, val);
-		(*ncfg)++;
-	}
-}
-
-/**
  * pinconf_generic_parse_dt_config()
  * parse the config properties into generic pinconfig values.
  * @np: node containing the pinconfig properties
@@ -299,7 +255,6 @@ int pinconf_generic_dt_subnode_to_map(struct pinctrl_dev *pctldev,
 	unsigned reserve;
 	struct property *prop;
 	const char *group;
-	const char *subnode_target_type = "pins";
 
 	ret = of_property_read_string(np, "function", &function);
 	if (ret < 0) {
@@ -309,8 +264,7 @@ int pinconf_generic_dt_subnode_to_map(struct pinctrl_dev *pctldev,
 		function = NULL;
 	}
 
-	ret = pinconf_generic_parse_dt_config(np, pctldev, &configs,
-					      &num_configs);
+	ret = pinconf_generic_parse_dt_config(np, &configs, &num_configs);
 	if (ret < 0) {
 		dev_err(dev, "could not parse node property\n");
 		return ret;
@@ -321,20 +275,10 @@ int pinconf_generic_dt_subnode_to_map(struct pinctrl_dev *pctldev,
 		reserve++;
 	if (num_configs)
 		reserve++;
-
 	ret = of_property_count_strings(np, "pins");
 	if (ret < 0) {
-		ret = of_property_count_strings(np, "groups");
-		if (ret < 0) {
-			dev_err(dev, "could not parse property pins/groups\n");
-			goto exit;
-		}
-		if (type == PIN_MAP_TYPE_INVALID)
-			type = PIN_MAP_TYPE_CONFIGS_GROUP;
-		subnode_target_type = "groups";
-	} else {
-		if (type == PIN_MAP_TYPE_INVALID)
-			type = PIN_MAP_TYPE_CONFIGS_PIN;
+		dev_err(dev, "could not parse property pins\n");
+		goto exit;
 	}
 	reserve *= ret;
 
@@ -343,7 +287,7 @@ int pinconf_generic_dt_subnode_to_map(struct pinctrl_dev *pctldev,
 	if (ret < 0)
 		goto exit;
 
-	of_property_for_each_string(np, subnode_target_type, prop, group) {
+	of_property_for_each_string(np, "pins", prop, group) {
 		if (function) {
 			ret = pinctrl_utils_add_map_mux(pctldev, map,
 					reserved_maps, num_maps, group,

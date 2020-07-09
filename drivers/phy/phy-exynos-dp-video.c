@@ -59,8 +59,9 @@ static int exynos_dp_video_phy_power_off(struct phy *phy)
 	struct exynos_dp_video_phy *state = phy_get_drvdata(phy);
 
 	/* Enable power isolation on DP-PHY */
-	return regmap_update_bits(state->regs, state->drvdata->phy_ctrl_offset,
-				  EXYNOS5_PHY_ENABLE, 0);
+	exynos_dp_video_phy_pwr_isol(state, 1);
+
+	return 0;
 }
 
 static struct phy_ops exynos_dp_video_phy_ops = {

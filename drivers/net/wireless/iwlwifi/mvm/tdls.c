@@ -63,8 +63,6 @@
 
 #include "mvm.h"
 #include "time-event.h"
-#include "iwl-io.h"
-#include "iwl-prph.h"
 
 void iwl_mvm_teardown_tdls_peers(struct iwl_mvm *mvm)
 {

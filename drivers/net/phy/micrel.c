@@ -178,26 +178,6 @@ static int kszphy_setup_led(struct phy_device *phydev,
 	return rc < 0 ? rc : 0;
 }
 
-static int kszphy_nand_tree_disable(struct phy_device *phydev)
-{
-	int ret;
-
-	ret = phy_read(phydev, MII_KSZPHY_OMSO);
-	if (ret < 0)
-		goto out;
-
-	if (!(ret & KSZPHY_OMSO_NAND_TREE_ON))
-		return 0;
-
-	ret = phy_write(phydev, MII_KSZPHY_OMSO,
-			ret & ~KSZPHY_OMSO_NAND_TREE_ON);
-out:
-	if (ret)
-		dev_err(&phydev->dev, "failed to disable NAND tree mode\n");
-
-	return ret;
-}
-
 static int kszphy_config_init(struct phy_device *phydev)
 {
 	return 0;

@@ -1116,8 +1116,10 @@ static int iucv_sock_sendmsg(struct kiocb *iocb, struct socket *sock,
 			noblock, &err);
 	else
 		skb = sock_alloc_send_skb(sk, len, noblock, &err);
-	if (!skb)
+	if (!skb) {
+		err = -ENOMEM;
 		goto out;
+	}
 	if (iucv->transport == AF_IUCV_TRANS_HIPER)
 		skb_reserve(skb, sizeof(struct af_iucv_trans_hdr) + ETH_HLEN);
 	if (memcpy_fromiovec(skb_put(skb, len), msg->msg_iov, len)) {

@@ -162,6 +162,7 @@ void __init nlm_smp_setup(void)
 	unsigned int boot_cpu;
 	int num_cpus, i, ncore, node;
 	volatile u32 *cpu_ready = nlm_get_boot_data(BOOT_CPU_READY);
+	char buf[64];
 
 	boot_cpu = hard_smp_processor_id();
 	cpumask_clear(&phys_cpu_present_mask);
@@ -188,10 +189,10 @@ void __init nlm_smp_setup(void)
 		}
 	}
 
-	pr_info("Physical CPU mask: %*pb\n",
-		cpumask_pr_args(&phys_cpu_present_mask));
-	pr_info("Possible CPU mask: %*pb\n",
-		cpumask_pr_args(cpu_possible_mask));
+	cpumask_scnprintf(buf, ARRAY_SIZE(buf), &phys_cpu_present_mask);
+	pr_info("Physical CPU mask: %s\n", buf);
+	cpumask_scnprintf(buf, ARRAY_SIZE(buf), cpu_possible_mask);
+	pr_info("Possible CPU mask: %s\n", buf);
 
 	/* check with the cores we have woken up */
 	for (ncore = 0, i = 0; i < NLM_NR_NODES; i++)
@@ -208,6 +209,7 @@ static int nlm_parse_cpumask(cpumask_t *wakeup_mask)
 {
 	uint32_t core0_thr_mask, core_thr_mask;
 	int threadmode, i, j;
+	char buf[64];
 
 	core0_thr_mask = 0;
 	for (i = 0; i < NLM_THREADS_PER_CORE; i++)
@@ -242,7 +244,8 @@ static int nlm_parse_cpumask(cpumask_t *wakeup_mask)
 	return threadmode;
 
 unsupp:
-	panic("Unsupported CPU mask %*pb", cpumask_pr_args(wakeup_mask));
+	cpumask_scnprintf(buf, ARRAY_SIZE(buf), wakeup_mask);
+	panic("Unsupported CPU mask %s", buf);
 	return 0;
 }
 

@@ -152,8 +152,7 @@ void kvm_timer_sync_hwstate(struct kvm_vcpu *vcpu)
 		return;
 	}
 
-	ns = cyclecounter_cyc2ns(timecounter->cc, cval - now, timecounter->mask,
-				 &timecounter->frac);
+	ns = cyclecounter_cyc2ns(timecounter->cc, cval - now);
 	timer_arm(timer, ns);
 }
 

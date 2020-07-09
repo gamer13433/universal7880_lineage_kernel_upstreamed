@@ -77,11 +77,6 @@ while true; do
 	esac
 done
 
-if [ "$#" -lt 2 ] ; then
-	usage
-	exit
-fi
-
 INITFILE=$1
 shift;
 

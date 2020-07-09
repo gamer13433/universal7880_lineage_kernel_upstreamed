@@ -698,6 +698,8 @@ static int __maybe_unused NCR5380_write_info(struct Scsi_Host *instance,
 	return (-ENOSYS);	/* Currently this is a no-op */
 }
 
+#undef SPRINTF
+#define SPRINTF(args...) seq_printf(m, ## args)
 static
 void lprint_Scsi_Cmnd(Scsi_Cmnd * cmd, struct seq_file *m);
 static
@@ -760,8 +762,8 @@ static int __maybe_unused NCR5380_show_info(struct seq_file *m,
 
 static void lprint_Scsi_Cmnd(Scsi_Cmnd * cmd, struct seq_file *m)
 {
-	seq_printf(m, "scsi%d : destination target %d, lun %llu\n", cmd->device->host->host_no, cmd->device->id, cmd->device->lun);
-	seq_puts(m, "        command = ");
+	SPRINTF("scsi%d : destination target %d, lun %llu\n", cmd->device->host->host_no, cmd->device->id, cmd->device->lun);
+	SPRINTF("        command = ");
 	lprint_command(cmd->cmnd, m);
 }
 
@@ -770,13 +772,13 @@ static void lprint_command(unsigned char *command, struct seq_file *m)
 	int i, s;
 	lprint_opcode(command[0], m);
 	for (i = 1, s = COMMAND_SIZE(command[0]); i < s; ++i)
-		seq_printf(m, "%02x ", command[i]);
-	seq_putc(m, '\n');
+		SPRINTF("%02x ", command[i]);
+	SPRINTF("\n");
 }
 
 static void lprint_opcode(int opcode, struct seq_file *m)
 {
-	seq_printf(m, "%2d (0x%02x)", opcode, opcode);
+	SPRINTF("%2d (0x%02x)", opcode, opcode);
 }
 
 

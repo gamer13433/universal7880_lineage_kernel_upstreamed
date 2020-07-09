@@ -247,7 +247,7 @@
 
 	phy-handle = <&phy1>;
 	renesas,ether-link-active-low;
-	status = "okay";
+	status = "ok";
 
 	phy1: ethernet-phy@1 {
 		reg = <1>;
@@ -258,7 +258,7 @@
 };
 
 &cmt0 {
-	status = "okay";
+	status = "ok";
 };
 
 &mmcif1 {
@@ -289,8 +289,6 @@
 		spi-max-frequency = <30000000>;
 		spi-tx-bus-width = <4>;
 		spi-rx-bus-width = <4>;
-		spi-cpha;
-		spi-cpol;
 		m25p,fast-read;
 
 		partition@0 {
@@ -364,17 +362,17 @@
 };
 
 &iic0	{
-	status = "okay";
+	status = "ok";
 };
 
 &iic1	{
-	status = "okay";
+	status = "ok";
 	pinctrl-0 = <&iic1_pins>;
 	pinctrl-names = "default";
 };
 
 &iic2	{
-	status = "okay";
+	status = "ok";
 	pinctrl-0 = <&iic2_pins>;
 	pinctrl-names = "default";
 
@@ -431,7 +429,7 @@
 	pinctrl-0 = <&vin1_pins>;
 	pinctrl-names = "default";
 
-	status = "okay";
+	status = "ok";
 
 	port {
 		#address-cells = <1>;

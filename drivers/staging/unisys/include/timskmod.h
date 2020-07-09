@@ -142,7 +142,7 @@
  *  @param x the number of seconds to sleep.
  */
 #define SLEEP(x)					     \
-	do { __set_current_state(TASK_INTERRUPTIBLE);        \
+	do { current->state = TASK_INTERRUPTIBLE;	     \
 		schedule_timeout((x)*HZ);		     \
 	} while (0)
 
@@ -150,7 +150,7 @@
  *  @param x the number of jiffies to sleep.
  */
 #define SLEEPJIFFIES(x)						    \
-	do { __set_current_state(TASK_INTERRUPTIBLE);		    \
+	do { current->state = TASK_INTERRUPTIBLE;		    \
 		schedule_timeout(x);				    \
 	} while (0)
 

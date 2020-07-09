@@ -66,10 +66,19 @@ xfs_fs_get_xstatev(
 	return xfs_qm_scall_getqstatv(mp, fqs);
 }
 
-static unsigned int
-xfs_quota_flags(unsigned int uflags)
+STATIC int
+xfs_fs_set_xstate(
+	struct super_block	*sb,
+	unsigned int		uflags,
+	int			op)
 {
-	unsigned int flags = 0;
+	struct xfs_mount	*mp = XFS_M(sb);
+	unsigned int		flags = 0;
+
+	if (sb->s_flags & MS_RDONLY)
+		return -EROFS;
+	if (op != Q_XQUOTARM && !XFS_IS_QUOTA_RUNNING(mp))
+		return -ENOSYS;
 
 	if (uflags & FS_QUOTA_UDQ_ACCT)
 		flags |= XFS_UQUOTA_ACCT;
@@ -84,39 +93,16 @@ xfs_quota_flags(unsigned int uflags)
 	if (uflags & FS_QUOTA_PDQ_ENFD)
 		flags |= XFS_PQUOTA_ENFD;
 
-	return flags;
-}
+	switch (op) {
+	case Q_XQUOTAON:
+		return xfs_qm_scall_quotaon(mp, flags);
+	case Q_XQUOTAOFF:
+		if (!XFS_IS_QUOTA_ON(mp))
+			return -EINVAL;
+		return xfs_qm_scall_quotaoff(mp, flags);
+	}
 
-STATIC int
-xfs_quota_enable(
-	struct super_block	*sb,
-	unsigned int		uflags)
-{
-	struct xfs_mount	*mp = XFS_M(sb);
-
-	if (sb->s_flags & MS_RDONLY)
-		return -EROFS;
-	if (!XFS_IS_QUOTA_RUNNING(mp))
-		return -ENOSYS;
-
-	return xfs_qm_scall_quotaon(mp, xfs_quota_flags(uflags));
-}
-
-STATIC int
-xfs_quota_disable(
-	struct super_block	*sb,
-	unsigned int		uflags)
-{
-	struct xfs_mount	*mp = XFS_M(sb);
-
-	if (sb->s_flags & MS_RDONLY)
-		return -EROFS;
-	if (!XFS_IS_QUOTA_RUNNING(mp))
-		return -ENOSYS;
-	if (!XFS_IS_QUOTA_ON(mp))
-		return -EINVAL;
-
-	return xfs_qm_scall_quotaoff(mp, xfs_quota_flags(uflags));
+	return -EINVAL;
 }
 
 STATIC int
@@ -182,8 +168,7 @@ xfs_fs_set_dqblk(
 const struct quotactl_ops xfs_quotactl_operations = {
 	.get_xstatev		= xfs_fs_get_xstatev,
 	.get_xstate		= xfs_fs_get_xstate,
-	.quota_enable		= xfs_quota_enable,
-	.quota_disable		= xfs_quota_disable,
+	.set_xstate		= xfs_fs_set_xstate,
 	.rm_xquota		= xfs_fs_rm_xquota,
 	.get_dqblk		= xfs_fs_get_dqblk,
 	.set_dqblk		= xfs_fs_set_dqblk,

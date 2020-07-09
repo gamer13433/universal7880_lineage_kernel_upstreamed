@@ -2237,9 +2237,7 @@ int bnx2x_vf_close(struct bnx2x *bp, struct bnx2x_virtf *vf)
 
 		cookie.vf = vf;
 		cookie.state = VF_ACQUIRED;
-		rc = bnx2x_stats_safe_exec(bp, bnx2x_set_vf_state, &cookie);
-		if (rc)
-			goto op_err;
+		bnx2x_stats_safe_exec(bp, bnx2x_set_vf_state, &cookie);
 	}
 
 	DP(BNX2X_MSG_IOV, "set state to acquired\n");

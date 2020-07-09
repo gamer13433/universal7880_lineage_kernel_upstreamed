@@ -18,8 +18,6 @@
 #include "mdp5_kms.h"
 
 
-#define MAX_PLANE	4
-
 struct mdp5_plane {
 	struct drm_plane base;
 	const char *name;
@@ -292,8 +290,6 @@ int mdp5_plane_mode_set(struct drm_plane *plane,
 			MDP5_PIPE_OUT_XY_Y(crtc_y));
 
 	mdp5_plane_set_scanout(plane, fb);
-
-	format = to_mdp_format(msm_framebuffer_format(fb));
 
 	format = to_mdp_format(msm_framebuffer_format(fb));
 

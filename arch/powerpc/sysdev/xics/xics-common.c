@@ -148,7 +148,7 @@ int __init xics_smp_probe(void)
 	/* Register all the IPIs */
 	xics_request_ipi();
 
-	return num_possible_cpus();
+	return cpumask_weight(cpu_possible_mask);
 }
 
 #endif /* CONFIG_SMP */

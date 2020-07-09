@@ -236,9 +236,7 @@ static int gic_set_type(struct irq_data *d, unsigned int type)
 	if (irq < 16)
 		return -EINVAL;
 
-	/* SPIs have restrictions on the supported types */
-	if (irq >= 32 && type != IRQ_TYPE_LEVEL_HIGH &&
-			 type != IRQ_TYPE_EDGE_RISING)
+	if (type != IRQ_TYPE_LEVEL_HIGH && type != IRQ_TYPE_EDGE_RISING)
 		return -EINVAL;
 
 	if (gic_irq_in_rdist(d)) {
@@ -249,7 +247,9 @@ static int gic_set_type(struct irq_data *d, unsigned int type)
 		rwp_wait = gic_dist_wait_for_rwp;
 	}
 
-	return gic_configure_irq(irq, type, base, rwp_wait);
+	gic_configure_irq(irq, type, base, rwp_wait);
+
+	return 0;
 }
 
 static u64 gic_mpidr_to_affinity(u64 mpidr)
@@ -452,7 +452,7 @@ static u16 gic_compute_target_list(int *base_cpu, const struct cpumask *mask,
 		tlist |= 1 << (mpidr & 0xf);
 
 		cpu = cpumask_next(cpu, mask);
-		if (cpu >= nr_cpu_ids)
+		if (cpu == nr_cpu_ids)
 			goto out;
 
 		mpidr = cpu_logical_map(cpu);
@@ -467,19 +467,15 @@ out:
 	return tlist;
 }
 
-#define MPIDR_TO_SGI_AFFINITY(cluster_id, level) \
-	(MPIDR_AFFINITY_LEVEL(cluster_id, level) \
-		<< ICC_SGI1R_AFFINITY_## level ##_SHIFT)
-
 static void gic_send_sgi(u64 cluster_id, u16 tlist, unsigned int irq)
 {
 	u64 val;
 
-	val = (MPIDR_TO_SGI_AFFINITY(cluster_id, 3)	|
-	       MPIDR_TO_SGI_AFFINITY(cluster_id, 2)	|
-	       irq << ICC_SGI1R_SGI_ID_SHIFT		|
-	       MPIDR_TO_SGI_AFFINITY(cluster_id, 1)	|
-	       tlist << ICC_SGI1R_TARGET_LIST_SHIFT);
+	val = (MPIDR_AFFINITY_LEVEL(cluster_id, 3) << 48	|
+	       MPIDR_AFFINITY_LEVEL(cluster_id, 2) << 32	|
+	       irq << 24			    		|
+	       MPIDR_AFFINITY_LEVEL(cluster_id, 1) << 16	|
+	       tlist);
 
 	pr_debug("CPU%d: ICC_SGI1R_EL1 %llx\n", smp_processor_id(), val);
 	gic_write_sgi1r(val);

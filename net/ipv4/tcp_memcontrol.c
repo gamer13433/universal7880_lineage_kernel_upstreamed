@@ -47,10 +47,6 @@ void tcp_destroy_cgroup(struct mem_cgroup *memcg)
 		return;
 
 	percpu_counter_destroy(&cg_proto->sockets_allocated);
-
-	if (test_bit(MEMCG_SOCK_ACTIVATED, &cg_proto->flags))
-		static_key_slow_dec(&memcg_socket_limit_enabled);
-
 }
 EXPORT_SYMBOL(tcp_destroy_cgroup);
 

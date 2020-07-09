@@ -82,8 +82,8 @@ struct inode *ceph_get_snapdir(struct inode *parent)
 	inode->i_mode = parent->i_mode;
 	inode->i_uid = parent->i_uid;
 	inode->i_gid = parent->i_gid;
-	inode->i_op = &ceph_snapdir_iops;
-	inode->i_fop = &ceph_snapdir_fops;
+	inode->i_op = &ceph_dir_iops;
+	inode->i_fop = &ceph_dir_fops;
 	ci->i_snap_caps = CEPH_CAP_PIN; /* so we can open */
 	ci->i_rbytes = 0;
 	return inode;
@@ -780,6 +780,8 @@ static int fill_inode(struct inode *inode,
 	}
 
 	inode->i_mapping->a_ops = &ceph_aops;
+	inode->i_mapping->backing_dev_info =
+		&ceph_sb_to_client(inode->i_sb)->backing_dev_info;
 
 	switch (inode->i_mode & S_IFMT) {
 	case S_IFIFO:
@@ -1427,14 +1429,12 @@ retry_lookup:
 		}
 
 		if (!dn->d_inode) {
-			struct dentry *realdn = splice_dentry(dn, in, NULL);
-			if (IS_ERR(realdn)) {
-				err = PTR_ERR(realdn);
-				d_drop(dn);
+			dn = splice_dentry(dn, in, NULL);
+			if (IS_ERR(dn)) {
+				err = PTR_ERR(dn);
 				dn = NULL;
 				goto next_item;
 			}
-			dn = realdn;
 		}
 
 		di = dn->d_fsdata;

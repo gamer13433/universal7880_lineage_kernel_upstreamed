@@ -27,7 +27,6 @@
 #include "drmP.h"
 #include "radeon.h"
 #include "radeon_asic.h"
-#include "radeon_audio.h"
 #include "cikd.h"
 #include "atom.h"
 #include "cik_blit_shaders.h"
@@ -3596,8 +3595,6 @@ static void cik_gpu_init(struct radeon_device *rdev)
 	}
 
 	WREG32(GRBM_CNTL, GRBM_READ_TIMEOUT(0xff));
-	WREG32(SRBM_INT_CNTL, 0x1);
-	WREG32(SRBM_INT_ACK, 0x1);
 
 	WREG32(BIF_FB_EN, FB_READ_EN | FB_WRITE_EN);
 
@@ -5709,28 +5706,6 @@ void cik_pcie_gart_tlb_flush(struct radeon_device *rdev)
 	WREG32(VM_INVALIDATE_REQUEST, 0x1);
 }
 
-static void cik_pcie_init_compute_vmid(struct radeon_device *rdev)
-{
-	int i;
-	uint32_t sh_mem_bases, sh_mem_config;
-
-	sh_mem_bases = 0x6000 | 0x6000 << 16;
-	sh_mem_config = ALIGNMENT_MODE(SH_MEM_ALIGNMENT_MODE_UNALIGNED);
-	sh_mem_config |= DEFAULT_MTYPE(MTYPE_NONCACHED);
-
-	mutex_lock(&rdev->srbm_mutex);
-	for (i = 8; i < 16; i++) {
-		cik_srbm_select(rdev, 0, 0, 0, i);
-		/* CP and shaders */
-		WREG32(SH_MEM_CONFIG, sh_mem_config);
-		WREG32(SH_MEM_APE1_BASE, 1);
-		WREG32(SH_MEM_APE1_LIMIT, 0);
-		WREG32(SH_MEM_BASES, sh_mem_bases);
-	}
-	cik_srbm_select(rdev, 0, 0, 0, 0);
-	mutex_unlock(&rdev->srbm_mutex);
-}
-
 /**
  * cik_pcie_gart_enable - gart enable
  *
@@ -5843,8 +5818,6 @@ static int cik_pcie_gart_enable(struct radeon_device *rdev)
 	}
 	cik_srbm_select(rdev, 0, 0, 0, 0);
 	mutex_unlock(&rdev->srbm_mutex);
-
-	cik_pcie_init_compute_vmid(rdev);
 
 	cik_pcie_gart_tlb_flush(rdev);
 	DRM_INFO("PCIE GART of %uM enabled (table at 0x%016llX).\n",
@@ -7192,8 +7165,6 @@ static void cik_disable_interrupt_state(struct radeon_device *rdev)
 	WREG32(CP_ME2_PIPE3_INT_CNTL, 0);
 	/* grbm */
 	WREG32(GRBM_INT_CNTL, 0);
-	/* SRBM */
-	WREG32(SRBM_INT_CNTL, 0);
 	/* vline/vblank, etc. */
 	WREG32(LB_INTERRUPT_MASK + EVERGREEN_CRTC0_REGISTER_OFFSET, 0);
 	WREG32(LB_INTERRUPT_MASK + EVERGREEN_CRTC1_REGISTER_OFFSET, 0);
@@ -8078,10 +8049,6 @@ restart_ih:
 				break;
 			}
 			break;
-		case 96:
-			DRM_ERROR("SRBM_READ_ERROR: 0x%x\n", RREG32(SRBM_READ_ERROR));
-			WREG32(SRBM_INT_ACK, 0x1);
-			break;
 		case 124: /* UVD */
 			DRM_DEBUG("IH: UVD int: 0x%08x\n", src_data);
 			radeon_fence_process(rdev, R600_RING_TYPE_UVD_INDEX);
@@ -8547,7 +8514,7 @@ static int cik_startup(struct radeon_device *rdev)
 		return r;
 	}
 
-	r = radeon_audio_init(rdev);
+	r = dce6_audio_init(rdev);
 	if (r)
 		return r;
 
@@ -8600,7 +8567,7 @@ int cik_resume(struct radeon_device *rdev)
 int cik_suspend(struct radeon_device *rdev)
 {
 	radeon_pm_suspend(rdev);
-	radeon_audio_fini(rdev);
+	dce6_audio_fini(rdev);
 	radeon_vm_manager_fini(rdev);
 	cik_cp_enable(rdev, false);
 	cik_sdma_enable(rdev, false);

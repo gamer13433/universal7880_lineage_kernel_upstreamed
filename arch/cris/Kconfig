@@ -57,10 +57,6 @@ config HZ
 	int
 	default 100
 
-config NR_CPUS
-	int
-	default "1"
-
 source "init/Kconfig"
 
 source "kernel/Kconfig.freezer"

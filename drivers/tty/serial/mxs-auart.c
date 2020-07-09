@@ -142,6 +142,8 @@ struct mxs_auart_port {
 	unsigned int ctrl;
 	enum mxs_auart_type devtype;
 
+	unsigned int irq;
+
 	struct clk *clk;
 	struct device *dev;
 
@@ -1024,32 +1026,37 @@ static int mxs_auart_probe(struct platform_device *pdev)
 			of_match_device(mxs_auart_dt_ids, &pdev->dev);
 	struct mxs_auart_port *s;
 	u32 version;
-	int ret, irq;
+	int ret = 0;
 	struct resource *r;
 
-	s = devm_kzalloc(&pdev->dev, sizeof(*s), GFP_KERNEL);
-	if (!s)
-		return -ENOMEM;
+	s = kzalloc(sizeof(struct mxs_auart_port), GFP_KERNEL);
+	if (!s) {
+		ret = -ENOMEM;
+		goto out;
+	}
 
 	ret = serial_mxs_probe_dt(s, pdev);
 	if (ret > 0)
 		s->port.line = pdev->id < 0 ? 0 : pdev->id;
 	else if (ret < 0)
-		return ret;
+		goto out_free;
 
 	if (of_id) {
 		pdev->id_entry = of_id->data;
 		s->devtype = pdev->id_entry->driver_data;
 	}
 
-	s->clk = devm_clk_get(&pdev->dev, NULL);
-	if (IS_ERR(s->clk))
-		return PTR_ERR(s->clk);
+	s->clk = clk_get(&pdev->dev, NULL);
+	if (IS_ERR(s->clk)) {
+		ret = PTR_ERR(s->clk);
+		goto out_free;
+	}
 
 	r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (!r)
-		return -ENXIO;
-
+	if (!r) {
+		ret = -ENXIO;
+		goto out_free_clk;
+	}
 
 	s->port.mapbase = r->start;
 	s->port.membase = ioremap(r->start, resource_size(r));
@@ -1062,15 +1069,11 @@ static int mxs_auart_probe(struct platform_device *pdev)
 
 	s->ctrl = 0;
 
-	irq = platform_get_irq(pdev, 0);
-	if (irq < 0)
-		return irq;
-
-	s->port.irq = irq;
-	ret = devm_request_irq(&pdev->dev, irq, mxs_auart_irq_handle, 0,
-			       dev_name(&pdev->dev), s);
+	s->irq = platform_get_irq(pdev, 0);
+	s->port.irq = s->irq;
+	ret = request_irq(s->irq, mxs_auart_irq_handle, 0, dev_name(&pdev->dev), s);
 	if (ret)
-		return ret;
+		goto out_free_clk;
 
 	platform_set_drvdata(pdev, s);
 
@@ -1080,7 +1083,7 @@ static int mxs_auart_probe(struct platform_device *pdev)
 
 	ret = uart_add_one_port(&auart_driver, &s->port);
 	if (ret)
-		return ret;
+		goto out_free_irq;
 
 	version = readl(s->port.membase + AUART_VERSION);
 	dev_info(&pdev->dev, "Found APPUART %d.%d.%d\n",

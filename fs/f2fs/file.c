@@ -26,7 +26,6 @@
 #include "segment.h"
 #include "xattr.h"
 #include "acl.h"
-#include "trace.h"
 #include <trace/events/f2fs.h>
 
 static int f2fs_vm_page_mkwrite(struct vm_area_struct *vma,
@@ -93,6 +92,7 @@ static const struct vm_operations_struct f2fs_file_vm_ops = {
 	.fault		= filemap_fault,
 	.map_pages	= filemap_map_pages,
 	.page_mkwrite	= f2fs_vm_page_mkwrite,
+	.remap_pages	= generic_file_remap_pages,
 };
 
 static int get_parent_ino(struct inode *inode, nid_t *pino)
@@ -241,7 +241,6 @@ flush_out:
 	}
 out:
 	trace_f2fs_sync_file_exit(inode, need_cp, datasync, ret);
-	f2fs_trace_ios(NULL, NULL, 1);
 	return ret;
 }
 
@@ -328,7 +327,7 @@ static loff_t f2fs_seek_block(struct file *file, loff_t offset, int whence)
 		/* find data/hole in dnode block */
 		for (; dn.ofs_in_node < end_offset;
 				dn.ofs_in_node++, pgofs++,
-				data_ofs = (loff_t)pgofs << PAGE_CACHE_SHIFT) {
+				data_ofs = pgofs << PAGE_CACHE_SHIFT) {
 			block_t blkaddr;
 			blkaddr = datablock_addr(dn.node_page, dn.ofs_in_node);
 
@@ -395,8 +394,7 @@ int truncate_data_blocks_range(struct dnode_of_data *dn, int count)
 		if (blkaddr == NULL_ADDR)
 			continue;
 
-		dn->data_blkaddr = NULL_ADDR;
-		update_extent_cache(dn);
+		update_extent_cache(NULL_ADDR, dn);
 		invalidate_blocks(sbi, blkaddr);
 		nr_free++;
 	}
@@ -794,19 +792,6 @@ static long f2fs_fallocate(struct file *file, int mode,
 	return ret;
 }
 
-static int f2fs_release_file(struct inode *inode, struct file *filp)
-{
-	/* some remained atomic pages should discarded */
-	if (f2fs_is_atomic_file(inode))
-		commit_inmem_pages(inode, true);
-	if (f2fs_is_volatile_file(inode)) {
-		set_inode_flag(F2FS_I(inode), FI_DROP_CACHE);
-		filemap_fdatawrite(inode->i_mapping);
-		clear_inode_flag(F2FS_I(inode), FI_DROP_CACHE);
-	}
-	return 0;
-}
-
 #define F2FS_REG_FLMASK		(~(FS_DIRSYNC_FL | FS_TOPDIR_FL))
 #define F2FS_OTHER_FLMASK	(FS_NODUMP_FL | FS_NOATIME_FL)
 
@@ -912,7 +897,6 @@ static int f2fs_ioc_commit_atomic_write(struct file *filp)
 
 	ret = f2fs_sync_file(filp, 0, LONG_MAX, 0);
 	mnt_drop_write_file(filp);
-	clear_inode_flag(F2FS_I(inode), FI_ATOMIC_FILE);
 	return ret;
 }
 
@@ -964,18 +948,12 @@ long f2fs_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 		return f2fs_ioc_getflags(filp, arg);
 	case F2FS_IOC_SETFLAGS:
 		return f2fs_ioc_setflags(filp, arg);
-	case F2FS_IOC_GETVERSION:
-		return f2fs_ioc_getversion(filp, arg);
 	case F2FS_IOC_START_ATOMIC_WRITE:
 		return f2fs_ioc_start_atomic_write(filp);
 	case F2FS_IOC_COMMIT_ATOMIC_WRITE:
 		return f2fs_ioc_commit_atomic_write(filp);
 	case F2FS_IOC_START_VOLATILE_WRITE:
 		return f2fs_ioc_start_volatile_write(filp);
-	case F2FS_IOC_RELEASE_VOLATILE_WRITE:
-		return f2fs_ioc_release_volatile_write(filp);
-	case F2FS_IOC_ABORT_VOLATILE_WRITE:
-		return f2fs_ioc_abort_volatile_write(filp);
 	case FITRIM:
 		return f2fs_ioc_fitrim(filp, arg);
 	default:

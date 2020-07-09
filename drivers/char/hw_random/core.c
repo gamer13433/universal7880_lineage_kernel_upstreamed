@@ -71,8 +71,6 @@ module_param(default_quality, ushort, 0644);
 MODULE_PARM_DESC(default_quality,
 		 "default entropy content of hwrng per mill");
 
-static void drop_current_rng(void);
-static int hwrng_init(struct hwrng *rng);
 static void start_khwrngd(void);
 
 static inline int rng_get_data(struct hwrng *rng, u8 *buffer, size_t size,
@@ -158,11 +156,6 @@ static inline int hwrng_init(struct hwrng *rng)
 		if (ret)
 			return ret;
 	}
-
-	kref_init(&rng->ref);
-	reinit_completion(&rng->cleanup_done);
-
-skip_init:
 	add_early_randomness(rng);
 
 	current_quality = rng->quality ? : default_quality;
@@ -375,14 +368,14 @@ static DEVICE_ATTR(rng_available, S_IRUGO,
 		   NULL);
 
 
-static void __exit unregister_miscdev(void)
+static void unregister_miscdev(void)
 {
 	device_remove_file(rng_miscdev.this_device, &dev_attr_rng_available);
 	device_remove_file(rng_miscdev.this_device, &dev_attr_rng_current);
 	misc_deregister(&rng_miscdev);
 }
 
-static int __init register_miscdev(void)
+static int register_miscdev(void)
 {
 	int err;
 

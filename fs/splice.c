@@ -961,6 +961,7 @@ iter_file_splice_write(struct pipe_inode_info *pipe, struct file *out,
 	splice_from_pipe_begin(&sd);
 	while (sd.total_len) {
 		struct iov_iter from;
+		struct kiocb kiocb;
 		size_t left;
 		int n, idx;
 
@@ -1004,15 +1005,29 @@ iter_file_splice_write(struct pipe_inode_info *pipe, struct file *out,
 			left -= this_len;
 		}
 
-		iov_iter_bvec(&from, ITER_BVEC | WRITE, array, n,
-			      sd.total_len - left);
-		ret = vfs_iter_write(out, &from, &sd.pos);
+		/* ... iov_iter */
+		from.type = ITER_BVEC | WRITE;
+		from.bvec = array;
+		from.nr_segs = n;
+		from.count = sd.total_len - left;
+		from.iov_offset = 0;
+
+		/* ... and iocb */
+		init_sync_kiocb(&kiocb, out);
+		kiocb.ki_pos = sd.pos;
+		kiocb.ki_nbytes = sd.total_len - left;
+
+		/* now, send it */
+		ret = out->f_op->write_iter(&kiocb, &from);
+		if (-EIOCBQUEUED == ret)
+			ret = wait_on_sync_kiocb(&kiocb);
+
 		if (ret <= 0)
 			break;
 
 		sd.num_spliced += ret;
 		sd.total_len -= ret;
-		*ppos = sd.pos;
+		*ppos = sd.pos = kiocb.ki_pos;
 
 		/* dismiss the fully eaten buffers, adjust the partial one */
 		while (ret) {

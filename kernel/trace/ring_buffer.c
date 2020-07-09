@@ -9,6 +9,7 @@
 #include <linux/trace_seq.h>
 #include <linux/spinlock.h>
 #include <linux/irq_work.h>
+#include <linux/debugfs.h>
 #include <linux/uaccess.h>
 #include <linux/hardirq.h>
 #include <linux/kthread.h>	/* for self test */
@@ -22,6 +23,7 @@
 #include <linux/hash.h>
 #include <linux/list.h>
 #include <linux/cpu.h>
+#include <linux/fs.h>
 
 #include <asm/local.h>
 
@@ -2829,15 +2831,6 @@ rb_wakeups(struct ring_buffer *buffer, struct ring_buffer_per_cpu *cpu_buffer)
 
 	if (cpu_buffer->irq_work.waiters_pending) {
 		cpu_buffer->irq_work.waiters_pending = false;
-		/* irq_work_queue() supplies it's own memory barriers */
-		irq_work_queue(&cpu_buffer->irq_work.work);
-	}
-
-	pagebusy = cpu_buffer->reader_page == cpu_buffer->commit_page;
-
-	if (!pagebusy && cpu_buffer->irq_work.full_waiters_pending) {
-		cpu_buffer->irq_work.wakeup_full = true;
-		cpu_buffer->irq_work.full_waiters_pending = false;
 		/* irq_work_queue() supplies it's own memory barriers */
 		irq_work_queue(&cpu_buffer->irq_work.work);
 	}

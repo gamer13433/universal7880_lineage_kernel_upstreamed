@@ -868,7 +868,6 @@ int dvb_usbv2_probe(struct usb_interface *intf,
 		goto err;
 	}
 
-	d->intf = intf;
 	d->name = driver_info->name;
 	d->rc_map = driver_info->rc_map;
 	d->udev = udev;

@@ -54,6 +54,7 @@ static void __dma_rx_complete(void *param)
 				dma->rx_size, DMA_FROM_DEVICE);
 
 	dmaengine_tx_status(dma->rxchan, dma->rx_cookie, &state);
+	dmaengine_terminate_all(dma->rxchan);
 
 	count = dma->rx_size - state.residue;
 
@@ -74,10 +75,6 @@ int serial8250_tx_dma(struct uart_8250_port *p)
 		return 0;
 
 	dma->tx_size = CIRC_CNT_TO_END(xmit->head, xmit->tail, UART_XMIT_SIZE);
-	if (dma->tx_size < p->port.fifosize) {
-		ret = -EINVAL;
-		goto err;
-	}
 
 	desc = dmaengine_prep_slave_single(dma->txchan,
 					   dma->tx_addr + xmit->tail,
@@ -123,7 +120,6 @@ int serial8250_rx_dma(struct uart_8250_port *p, unsigned int iir)
 		if (dma_status == DMA_IN_PROGRESS) {
 			dmaengine_pause(dma->rxchan);
 			__dma_rx_complete(p);
-			dmaengine_terminate_all(dma->rxchan);
 		}
 		return -ETIMEDOUT;
 	default:

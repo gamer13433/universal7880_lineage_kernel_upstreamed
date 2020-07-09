@@ -487,26 +487,19 @@ static __u32 fanotify_mark_remove_from_mask(struct fsnotify_mark *fsn_mark,
 					    unsigned int flags,
 					    int *destroy)
 {
-	__u32 oldmask = 0;
+	__u32 oldmask;
 
 	spin_lock(&fsn_mark->lock);
 	if (!(flags & FAN_MARK_IGNORED_MASK)) {
-		__u32 tmask = fsn_mark->mask & ~mask;
-
-		if (flags & FAN_MARK_ONDIR)
-			tmask &= ~FAN_ONDIR;
-
 		oldmask = fsn_mark->mask;
-		fsnotify_set_mark_mask_locked(fsn_mark, tmask);
+		fsnotify_set_mark_mask_locked(fsn_mark, (oldmask & ~mask));
 	} else {
-		__u32 tmask = fsn_mark->ignored_mask & ~mask;
-		if (flags & FAN_MARK_ONDIR)
-			tmask &= ~FAN_ONDIR;
-
-		fsnotify_set_mark_ignored_mask_locked(fsn_mark, tmask);
+		oldmask = fsn_mark->ignored_mask;
+		fsnotify_set_mark_ignored_mask_locked(fsn_mark, (oldmask & ~mask));
 	}
-	*destroy = !(fsn_mark->mask | fsn_mark->ignored_mask);
 	spin_unlock(&fsn_mark->lock);
+
+	*destroy = !(oldmask & ~mask);
 
 	return mask & oldmask;
 }
@@ -576,22 +569,20 @@ static __u32 fanotify_mark_add_to_mask(struct fsnotify_mark *fsn_mark,
 
 	spin_lock(&fsn_mark->lock);
 	if (!(flags & FAN_MARK_IGNORED_MASK)) {
-		__u32 tmask = fsn_mark->mask | mask;
-
-		if (flags & FAN_MARK_ONDIR)
-			tmask |= FAN_ONDIR;
-
 		oldmask = fsn_mark->mask;
-		fsnotify_set_mark_mask_locked(fsn_mark, tmask);
+		fsnotify_set_mark_mask_locked(fsn_mark, (oldmask | mask));
 	} else {
 		__u32 tmask = fsn_mark->ignored_mask | mask;
-		if (flags & FAN_MARK_ONDIR)
-			tmask |= FAN_ONDIR;
-
 		fsnotify_set_mark_ignored_mask_locked(fsn_mark, tmask);
 		if (flags & FAN_MARK_IGNORED_SURV_MODIFY)
 			fsn_mark->flags |= FSNOTIFY_MARK_FLAG_IGNORED_SURV_MODIFY;
 	}
+
+	if (!(flags & FAN_MARK_ONDIR)) {
+		__u32 tmask = fsn_mark->ignored_mask | FAN_ONDIR;
+		fsnotify_set_mark_ignored_mask_locked(fsn_mark, tmask);
+	}
+
 	spin_unlock(&fsn_mark->lock);
 
 	return mask & ~oldmask;

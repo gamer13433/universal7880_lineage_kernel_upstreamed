@@ -66,14 +66,6 @@
 #define SDHCI_WINDOW_BASE(i)	(0x84 + ((i) << 3))
 #define SDHCI_MAX_WIN_NUM	8
 
-/*
- * Fields below belong to SDIO3 Configuration Register (third register
- * region for the Armada 38x flavor)
- */
-
-#define SDIO3_CONF_CLK_INV	BIT(0)
-#define SDIO3_CONF_SD_FB_CLK	BIT(2)
-
 static int mv_conf_mbus_windows(struct platform_device *pdev,
 				const struct mbus_dram_target_info *dram)
 {
@@ -216,51 +208,6 @@ static int armada_38x_quirks(struct platform_device *pdev,
 	return 0;
 }
 
-static int armada_38x_quirks(struct platform_device *pdev,
-			     struct sdhci_host *host)
-{
-	struct device_node *np = pdev->dev.of_node;
-	struct sdhci_pltfm_host *pltfm_host = sdhci_priv(host);
-	struct sdhci_pxa *pxa = pltfm_host->priv;
-	struct resource *res;
-
-	host->quirks |= SDHCI_QUIRK_MISSING_CAPS;
-	res = platform_get_resource_byname(pdev, IORESOURCE_MEM,
-					   "conf-sdio3");
-	if (res) {
-		pxa->sdio3_conf_reg = devm_ioremap_resource(&pdev->dev, res);
-		if (IS_ERR(pxa->sdio3_conf_reg))
-			return PTR_ERR(pxa->sdio3_conf_reg);
-	} else {
-		/*
-		 * According to erratum 'FE-2946959' both SDR50 and DDR50
-		 * modes require specific clock adjustments in SDIO3
-		 * Configuration register, if the adjustment is not done,
-		 * remove them from the capabilities.
-		 */
-		host->caps1 = sdhci_readl(host, SDHCI_CAPABILITIES_1);
-		host->caps1 &= ~(SDHCI_SUPPORT_SDR50 | SDHCI_SUPPORT_DDR50);
-
-		dev_warn(&pdev->dev, "conf-sdio3 register not found: disabling SDR50 and DDR50 modes.\nConsider updating your dtb\n");
-	}
-
-	/*
-	 * According to erratum 'ERR-7878951' Armada 38x SDHCI
-	 * controller has different capabilities than the ones shown
-	 * in its registers
-	 */
-	host->caps = sdhci_readl(host, SDHCI_CAPABILITIES);
-	if (of_property_read_bool(np, "no-1-8-v")) {
-		host->caps &= ~SDHCI_CAN_VDD_180;
-		host->mmc->caps &= ~MMC_CAP_1_8V_DDR;
-	} else {
-		host->caps &= ~SDHCI_CAN_VDD_330;
-	}
-	host->caps1 &= ~(SDHCI_SUPPORT_SDR104 | SDHCI_USE_SDR50_TUNING);
-
-	return 0;
-}
-
 static void pxav3_reset(struct sdhci_host *host, u8 mask)
 {
 	struct platform_device *pdev = to_platform_device(mmc_dev(host->mmc));
@@ -337,8 +284,6 @@ static void pxav3_gen_init_74_clocks(struct sdhci_host *host, u8 power_mode)
 
 static void pxav3_set_uhs_signaling(struct sdhci_host *host, unsigned int uhs)
 {
-	struct sdhci_pltfm_host *pltfm_host = sdhci_priv(host);
-	struct sdhci_pxa *pxa = pltfm_host->priv;
 	u16 ctrl_2;
 
 	/*
@@ -365,24 +310,6 @@ static void pxav3_set_uhs_signaling(struct sdhci_host *host, unsigned int uhs)
 	case MMC_TIMING_UHS_DDR50:
 		ctrl_2 |= SDHCI_CTRL_UHS_DDR50 | SDHCI_CTRL_VDD_180;
 		break;
-	}
-
-	/*
-	 * Update SDIO3 Configuration register according to erratum
-	 * FE-2946959
-	 */
-	if (pxa->sdio3_conf_reg) {
-		u8 reg_val  = readb(pxa->sdio3_conf_reg);
-
-		if (uhs == MMC_TIMING_UHS_SDR50 ||
-		    uhs == MMC_TIMING_UHS_DDR50) {
-			reg_val &= ~SDIO3_CONF_CLK_INV;
-			reg_val |= SDIO3_CONF_SD_FB_CLK;
-		} else {
-			reg_val |= SDIO3_CONF_CLK_INV;
-			reg_val &= ~SDIO3_CONF_SD_FB_CLK;
-		}
-		writeb(reg_val, pxa->sdio3_conf_reg);
 	}
 
 	sdhci_writew(host, ctrl_2, SDHCI_HOST_CONTROL2);

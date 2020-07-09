@@ -198,7 +198,6 @@ CORE_FEATURE_TESTS =			\
 	libpython-version		\
 	libslang			\
 	libunwind			\
-	pthread-attr-setaffinity-np	\
 	stackprotector-all		\
 	timerfd				\
 	libdw-dwarf-unwind
@@ -225,7 +224,6 @@ VF_FEATURE_TESTS =			\
 	libelf-getphdrnum		\
 	libelf-mmap			\
 	libpython-version		\
-	pthread-attr-setaffinity-np	\
 	stackprotector-all		\
 	timerfd				\
 	libunwind-debug-frame		\
@@ -297,10 +295,6 @@ CFLAGS += -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE
 
 ifeq ($(feature-sync-compare-and-swap), 1)
   CFLAGS += -DHAVE_SYNC_COMPARE_AND_SWAP_SUPPORT
-endif
-
-ifeq ($(feature-pthread-attr-setaffinity-np), 1)
-  CFLAGS += -DHAVE_PTHREAD_ATTR_SETAFFINITY_NP
 endif
 
 ifndef NO_BIONIC

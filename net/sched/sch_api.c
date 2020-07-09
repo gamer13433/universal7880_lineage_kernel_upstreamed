@@ -1836,7 +1836,7 @@ done:
 int tc_classify_compat(struct sk_buff *skb, const struct tcf_proto *tp,
 		       struct tcf_result *res)
 {
-	__be16 protocol = tc_skb_protocol(skb);
+	__be16 protocol = skb->protocol;
 	int err;
 
 	for (; tp; tp = rcu_dereference_bh(tp->next)) {

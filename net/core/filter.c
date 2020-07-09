@@ -530,7 +530,7 @@ do_pass:
 			*insn = BPF_LDX_MEM(BPF_W, BPF_REG_A, BPF_REG_CTX, fp->k);
 			break;
 
-		/* Unknown instruction. */
+		/* Unkown instruction. */
 		default:
 			goto err;
 		}

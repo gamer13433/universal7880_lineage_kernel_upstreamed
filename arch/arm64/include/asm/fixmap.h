@@ -48,7 +48,6 @@ enum fixed_addresses {
 
 	FIX_BTMAP_END = __end_of_permanent_fixed_addresses,
 	FIX_BTMAP_BEGIN = FIX_BTMAP_END + TOTAL_FIX_BTMAPS - 1,
-	FIX_TEXT_POKE0,
 	__end_of_fixed_addresses
 };
 

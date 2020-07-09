@@ -416,14 +416,6 @@ uart_get_baud_rate(struct uart_port *port, struct ktermios *termios,
 				tty_termios_encode_baud_rate(termios,
 							max - 1, max - 1);
 		}
-
-		spin_lock_irq(&uport->lock);
-		if (uart_cts_enabled(uport) &&
-		    !(uport->ops->get_mctrl(uport) & TIOCM_CTS))
-			uport->hw_stopped = 1;
-		else
-			uport->hw_stopped = 0;
-		spin_unlock_irq(&uport->lock);
 	}
 	/* Should never happen */
 	WARN_ON(1);
@@ -1480,30 +1472,6 @@ static void uart_wait_until_sent(struct tty_struct *tty, int timeout)
 			break;
 		if (time_after(jiffies, expire))
 			break;
-	}
-
-	/*
-	 * If the port is doing h/w assisted flow control, do nothing.
-	 * We assume that port->hw_stopped has never been set.
-	 */
-	if (uport->flags & UPF_HARD_FLOW)
-		return;
-
-	/* Handle turning off CRTSCTS */
-	if ((old_termios->c_cflag & CRTSCTS) && !(cflag & CRTSCTS)) {
-		spin_lock_irq(&uport->lock);
-		uport->hw_stopped = 0;
-		__uart_start(tty);
-		spin_unlock_irq(&uport->lock);
-	}
-	/* Handle turning on CRTSCTS */
-	else if (!(old_termios->c_cflag & CRTSCTS) && (cflag & CRTSCTS)) {
-		spin_lock_irq(&uport->lock);
-		if (!(uport->ops->get_mctrl(uport) & TIOCM_CTS)) {
-			uport->hw_stopped = 1;
-			uport->ops->stop_tx(uport);
-		}
-		spin_unlock_irq(&uport->lock);
 	}
 }
 

@@ -111,10 +111,10 @@ get_root_bridge_busnr_callback(struct acpi_resource *resource, void *data)
 	if (ACPI_FAILURE(status))
 		return AE_OK;
 
-	if ((address.address.address_length > 0) &&
+	if ((address.address_length > 0) &&
 	    (address.resource_type == ACPI_BUS_NUMBER_RANGE)) {
-		res->start = address.address.minimum;
-		res->end = address.address.minimum + address.address.address_length - 1;
+		res->start = address.minimum;
+		res->end = address.minimum + address.address_length - 1;
 	}
 
 	return AE_OK;
@@ -614,7 +614,6 @@ static int acpi_pci_root_add(struct acpi_device *device,
 	if (system_state != SYSTEM_BOOTING) {
 		pcibios_resource_survey_bus(root->bus);
 		pci_assign_unassigned_root_bus_resources(root->bus);
-		acpi_ioapic_add(root);
 	}
 
 	pci_lock_rescan_remove();
@@ -634,8 +633,6 @@ static void acpi_pci_root_remove(struct acpi_device *device)
 	pci_lock_rescan_remove();
 
 	pci_stop_root_bus(root->bus);
-
-	WARN_ON(acpi_ioapic_remove(root));
 
 	device_set_run_wake(root->bus->bridge, false);
 	pci_acpi_remove_bus_pm_notifier(device);

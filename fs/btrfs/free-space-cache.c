@@ -644,12 +644,14 @@ static int __load_free_space_cache(struct btrfs_root *root, struct inode *inode,
 	struct io_ctl io_ctl;
 	struct btrfs_key key;
 	struct btrfs_free_space *e, *n;
-	LIST_HEAD(bitmaps);
+	struct list_head bitmaps;
 	u64 num_entries;
 	u64 num_bitmaps;
 	u64 generation;
 	u8 type;
 	int ret = 0;
+
+	INIT_LIST_HEAD(&bitmaps);
 
 	/* Nothing in the space cache, goodbye */
 	if (!i_size_read(inode))
@@ -1208,7 +1210,6 @@ int btrfs_write_out_cache(struct btrfs_root *root,
 	struct btrfs_free_space_ctl *ctl = block_group->free_space_ctl;
 	struct inode *inode;
 	int ret = 0;
-	enum btrfs_disk_cache_state dcs = BTRFS_DC_WRITTEN;
 
 	root = root->fs_info->tree_root;
 
@@ -1232,7 +1233,9 @@ int btrfs_write_out_cache(struct btrfs_root *root,
 	ret = __btrfs_write_out_cache(root, inode, ctl, block_group, trans,
 				      path, block_group->key.objectid);
 	if (ret) {
-		dcs = BTRFS_DC_ERROR;
+		spin_lock(&block_group->lock);
+		block_group->disk_cache_state = BTRFS_DC_ERROR;
+		spin_unlock(&block_group->lock);
 		ret = 0;
 #ifdef DEBUG
 		btrfs_err(root->fs_info,
@@ -1241,9 +1244,6 @@ int btrfs_write_out_cache(struct btrfs_root *root,
 #endif
 	}
 
-	spin_lock(&block_group->lock);
-	block_group->disk_cache_state = dcs;
-	spin_unlock(&block_group->lock);
 	iput(inode);
 	return ret;
 }
@@ -2868,6 +2868,7 @@ int btrfs_find_space_cluster(struct btrfs_root *root,
 	trace_btrfs_find_cluster(block_group, offset, bytes, empty_size,
 				 min_bytes);
 
+	INIT_LIST_HEAD(&bitmaps);
 	ret = setup_cluster_no_bitmap(block_group, cluster, &bitmaps, offset,
 				      bytes + empty_size,
 				      cont1_bytes, min_bytes);

@@ -24,7 +24,6 @@
 #include <linux/clk.h>
 #include <linux/slab.h>
 #include <linux/err.h>
-#include <linux/of.h>
 
 #include <asm/mach-jz4740/timer.h>
 
@@ -142,14 +141,6 @@ static const struct watchdog_ops jz4740_wdt_ops = {
 	.ping = jz4740_wdt_ping,
 	.set_timeout = jz4740_wdt_set_timeout,
 };
-
-#ifdef CONFIG_OF
-static const struct of_device_id jz4740_wdt_of_matches[] = {
-	{ .compatible = "ingenic,jz4740-watchdog", },
-	{ /* sentinel */ }
-};
-MODULE_DEVICE_TABLE(of, jz4740_wdt_of_matches)
-#endif
 
 static int jz4740_wdt_probe(struct platform_device *pdev)
 {

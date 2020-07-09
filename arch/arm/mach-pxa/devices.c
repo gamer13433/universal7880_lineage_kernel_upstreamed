@@ -40,7 +40,7 @@ static struct resource pxa_resource_pmu = {
 };
 
 struct platform_device pxa_device_pmu = {
-	.name		= "xscale-pmu",
+	.name		= "arm-pmu",
 	.id		= -1,
 	.resource	= &pxa_resource_pmu,
 	.num_resources	= 1,

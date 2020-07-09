@@ -871,6 +871,18 @@ static inline void sock_rps_record_flow_hash(__u32 hash)
 #endif
 }
 
+static inline void sock_rps_reset_flow_hash(__u32 hash)
+{
+#ifdef CONFIG_RPS
+	struct rps_sock_flow_table *sock_flow_table;
+
+	rcu_read_lock();
+	sock_flow_table = rcu_dereference(rps_sock_flow_table);
+	rps_reset_sock_flow(sock_flow_table, hash);
+	rcu_read_unlock();
+#endif
+}
+
 static inline void sock_rps_record_flow(const struct sock *sk)
 {
 #ifdef CONFIG_RPS
@@ -878,18 +890,28 @@ static inline void sock_rps_record_flow(const struct sock *sk)
 #endif
 }
 
+static inline void sock_rps_reset_flow(const struct sock *sk)
+{
+#ifdef CONFIG_RPS
+	sock_rps_reset_flow_hash(sk->sk_rxhash);
+#endif
+}
+
 static inline void sock_rps_save_rxhash(struct sock *sk,
 					const struct sk_buff *skb)
 {
 #ifdef CONFIG_RPS
-	if (unlikely(sk->sk_rxhash != skb->hash))
+	if (unlikely(sk->sk_rxhash != skb->hash)) {
+		sock_rps_reset_flow(sk);
 		sk->sk_rxhash = skb->hash;
+	}
 #endif
 }
 
 static inline void sock_rps_reset_rxhash(struct sock *sk)
 {
 #ifdef CONFIG_RPS
+	sock_rps_reset_flow(sk);
 	sk->sk_rxhash = 0;
 #endif
 }
@@ -1101,6 +1123,11 @@ void proto_unregister(struct proto *prot);
 static inline bool memcg_proto_active(struct cg_proto *cg_proto)
 {
 	return test_bit(MEMCG_SOCK_ACTIVE, &cg_proto->flags);
+}
+
+static inline bool memcg_proto_activated(struct cg_proto *cg_proto)
+{
+	return test_bit(MEMCG_SOCK_ACTIVATED, &cg_proto->flags);
 }
 
 #ifdef SOCK_REFCNT_DEBUG
@@ -1380,6 +1407,29 @@ void sk_prot_clear_portaddr_nulls(struct sock *sk, int size);
 #define SOCK_RCVBUF_LOCK	2
 #define SOCK_BINDADDR_LOCK	4
 #define SOCK_BINDPORT_LOCK	8
+
+/* sock_iocb: used to kick off async processing of socket ios */
+struct sock_iocb {
+	struct list_head	list;
+
+	int			flags;
+	int			size;
+	struct socket		*sock;
+	struct sock		*sk;
+	struct scm_cookie	*scm;
+	struct msghdr		*msg, async_msg;
+	struct kiocb		*kiocb;
+};
+
+static inline struct sock_iocb *kiocb_to_siocb(struct kiocb *iocb)
+{
+	return (struct sock_iocb *)iocb->private;
+}
+
+static inline struct kiocb *siocb_to_kiocb(struct sock_iocb *si)
+{
+	return si->kiocb;
+}
 
 struct socket_alloc {
 	struct socket socket;
@@ -1803,8 +1853,6 @@ struct dst_entry *sk_dst_check(struct sock *sk, u32 cookie);
 
 bool sk_mc_loop(struct sock *sk);
 
-bool sk_mc_loop(struct sock *sk);
-
 static inline bool sk_can_gso(const struct sock *sk)
 {
 	return net_gso_ok(sk->sk_route_caps, sk->sk_gso_type);
@@ -1819,25 +1867,27 @@ static inline void sk_nocaps_add(struct sock *sk, netdev_features_t flags)
 }
 
 static inline int skb_do_copy_data_nocache(struct sock *sk, struct sk_buff *skb,
-					   struct iov_iter *from, char *to,
+					   char __user *from, char *to,
 					   int copy, int offset)
 {
 	if (skb->ip_summed == CHECKSUM_NONE) {
-		__wsum csum = 0;
-		if (csum_and_copy_from_iter(to, copy, &csum, from) != copy)
-			return -EFAULT;
+		int err = 0;
+		__wsum csum = csum_and_copy_from_user(from, to, copy, 0, &err);
+		if (err)
+			return err;
 		skb->csum = csum_block_add(skb->csum, csum, offset);
 	} else if (sk->sk_route_caps & NETIF_F_NOCACHE_COPY) {
-		if (copy_from_iter_nocache(to, copy, from) != copy)
+		if (!access_ok(VERIFY_READ, from, copy) ||
+		    __copy_from_user_nocache(to, from, copy))
 			return -EFAULT;
-	} else if (copy_from_iter(to, copy, from) != copy)
+	} else if (copy_from_user(to, from, copy))
 		return -EFAULT;
 
 	return 0;
 }
 
 static inline int skb_add_data_nocache(struct sock *sk, struct sk_buff *skb,
-				       struct iov_iter *from, int copy)
+				       char __user *from, int copy)
 {
 	int err, offset = skb->len;
 
@@ -1849,7 +1899,7 @@ static inline int skb_add_data_nocache(struct sock *sk, struct sk_buff *skb,
 	return err;
 }
 
-static inline int skb_copy_to_page_nocache(struct sock *sk, struct iov_iter *from,
+static inline int skb_copy_to_page_nocache(struct sock *sk, char __user *from,
 					   struct sk_buff *skb,
 					   struct page *page,
 					   int off, int copy)
@@ -2295,7 +2345,6 @@ extern int net_msg_warn;
 extern __u32 sysctl_wmem_max;
 extern __u32 sysctl_rmem_max;
 
-extern int sysctl_tstamp_allow_data;
 extern int sysctl_optmem_max;
 
 extern __u32 sysctl_wmem_default;

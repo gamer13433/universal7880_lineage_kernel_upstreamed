@@ -31,7 +31,6 @@
 #include <linux/delay.h>
 #include <linux/hdmi.h>
 #include <drm/drmP.h>
-#include <drm/drm_atomic_helper.h>
 #include <drm/drm_crtc.h>
 #include <drm/drm_edid.h>
 #include "intel_drv.h"
@@ -292,13 +291,13 @@ static void hsw_write_infoframe(struct drm_encoder *encoder,
 	struct drm_device *dev = encoder->dev;
 	struct drm_i915_private *dev_priv = dev->dev_private;
 	struct intel_crtc *intel_crtc = to_intel_crtc(encoder->crtc);
-	u32 ctl_reg = HSW_TVIDEO_DIP_CTL(intel_crtc->config->cpu_transcoder);
+	u32 ctl_reg = HSW_TVIDEO_DIP_CTL(intel_crtc->config.cpu_transcoder);
 	u32 data_reg;
 	int i;
 	u32 val = I915_READ(ctl_reg);
 
 	data_reg = hsw_infoframe_data_reg(type,
-					  intel_crtc->config->cpu_transcoder,
+					  intel_crtc->config.cpu_transcoder,
 					  dev_priv);
 	if (data_reg == 0)
 		return;
@@ -379,7 +378,7 @@ static void intel_hdmi_set_avi_infoframe(struct drm_encoder *encoder,
 	}
 
 	if (intel_hdmi->rgb_quant_range_selectable) {
-		if (intel_crtc->config->limited_color_range)
+		if (intel_crtc->config.limited_color_range)
 			frame.avi.quantization_range =
 				HDMI_QUANTIZATION_RANGE_LIMITED;
 		else
@@ -615,7 +614,7 @@ static void hsw_set_infoframes(struct drm_encoder *encoder,
 	struct drm_i915_private *dev_priv = encoder->dev->dev_private;
 	struct intel_crtc *intel_crtc = to_intel_crtc(encoder->crtc);
 	struct intel_hdmi *intel_hdmi = enc_to_intel_hdmi(encoder);
-	u32 reg = HSW_TVIDEO_DIP_CTL(intel_crtc->config->cpu_transcoder);
+	u32 reg = HSW_TVIDEO_DIP_CTL(intel_crtc->config.cpu_transcoder);
 	u32 val = I915_READ(reg);
 
 	assert_hdmi_port_disabled(intel_hdmi);
@@ -643,7 +642,7 @@ static void intel_hdmi_prepare(struct intel_encoder *encoder)
 	struct drm_i915_private *dev_priv = dev->dev_private;
 	struct intel_crtc *crtc = to_intel_crtc(encoder->base.crtc);
 	struct intel_hdmi *intel_hdmi = enc_to_intel_hdmi(&encoder->base);
-	struct drm_display_mode *adjusted_mode = &crtc->config->base.adjusted_mode;
+	struct drm_display_mode *adjusted_mode = &crtc->config.adjusted_mode;
 	u32 hdmi_val;
 
 	hdmi_val = SDVO_ENCODING_HDMI;
@@ -654,12 +653,12 @@ static void intel_hdmi_prepare(struct intel_encoder *encoder)
 	if (adjusted_mode->flags & DRM_MODE_FLAG_PHSYNC)
 		hdmi_val |= SDVO_HSYNC_ACTIVE_HIGH;
 
-	if (crtc->config->pipe_bpp > 24)
+	if (crtc->config.pipe_bpp > 24)
 		hdmi_val |= HDMI_COLOR_FORMAT_12bpc;
 	else
 		hdmi_val |= SDVO_COLOR_FORMAT_8bpc;
 
-	if (crtc->config->has_hdmi_sink)
+	if (crtc->config.has_hdmi_sink)
 		hdmi_val |= HDMI_MODE_SELECT_HDMI;
 
 	if (crtc->config.has_audio) {
@@ -710,7 +709,7 @@ static bool intel_hdmi_get_hw_state(struct intel_encoder *encoder,
 }
 
 static void intel_hdmi_get_config(struct intel_encoder *encoder,
-				  struct intel_crtc_state *pipe_config)
+				  struct intel_crtc_config *pipe_config)
 {
 	struct intel_hdmi *intel_hdmi = enc_to_intel_hdmi(&encoder->base);
 	struct drm_device *dev = encoder->base.dev;
@@ -740,7 +739,7 @@ static void intel_hdmi_get_config(struct intel_encoder *encoder,
 	    tmp & HDMI_COLOR_RANGE_16_235)
 		pipe_config->limited_color_range = true;
 
-	pipe_config->base.adjusted_mode.flags |= flags;
+	pipe_config->adjusted_mode.flags |= flags;
 
 	if ((tmp & SDVO_COLOR_FORMAT_MASK) == HDMI_COLOR_FORMAT_12bpc)
 		dotclock = pipe_config->port_clock * 2 / 3;
@@ -750,7 +749,7 @@ static void intel_hdmi_get_config(struct intel_encoder *encoder,
 	if (HAS_PCH_SPLIT(dev_priv->dev))
 		ironlake_check_encoder_dotclock(pipe_config, dotclock);
 
-	pipe_config->base.adjusted_mode.crtc_clock = dotclock;
+	pipe_config->adjusted_mode.crtc_clock = dotclock;
 }
 
 static void intel_enable_hdmi(struct intel_encoder *encoder)
@@ -762,7 +761,7 @@ static void intel_enable_hdmi(struct intel_encoder *encoder)
 	u32 temp;
 	u32 enable_bits = SDVO_ENABLE;
 
-	if (intel_crtc->config->has_audio)
+	if (intel_crtc->config.has_audio)
 		enable_bits |= SDVO_AUDIO_ENABLE;
 
 	temp = I915_READ(intel_hdmi->hdmi_reg);
@@ -912,12 +911,12 @@ static bool hdmi_12bpc_possible(struct intel_crtc *crtc)
 }
 
 bool intel_hdmi_compute_config(struct intel_encoder *encoder,
-			       struct intel_crtc_state *pipe_config)
+			       struct intel_crtc_config *pipe_config)
 {
 	struct intel_hdmi *intel_hdmi = enc_to_intel_hdmi(&encoder->base);
 	struct drm_device *dev = encoder->base.dev;
-	struct drm_display_mode *adjusted_mode = &pipe_config->base.adjusted_mode;
-	int clock_12bpc = pipe_config->base.adjusted_mode.crtc_clock * 3 / 2;
+	struct drm_display_mode *adjusted_mode = &pipe_config->adjusted_mode;
+	int clock_12bpc = pipe_config->adjusted_mode.crtc_clock * 3 / 2;
 	int portclock_limit = hdmi_portclock_limit(intel_hdmi, false);
 	int desired_bpp;
 
@@ -1186,12 +1185,12 @@ static void intel_hdmi_pre_enable(struct intel_encoder *encoder)
 	struct intel_hdmi *intel_hdmi = enc_to_intel_hdmi(&encoder->base);
 	struct intel_crtc *intel_crtc = to_intel_crtc(encoder->base.crtc);
 	struct drm_display_mode *adjusted_mode =
-		&intel_crtc->config->base.adjusted_mode;
+		&intel_crtc->config.adjusted_mode;
 
 	intel_hdmi_prepare(encoder);
 
 	intel_hdmi->set_infoframes(&encoder->base,
-				   intel_crtc->config->has_hdmi_sink,
+				   intel_crtc->config.has_hdmi_sink,
 				   adjusted_mode);
 }
 
@@ -1204,7 +1203,7 @@ static void vlv_hdmi_pre_enable(struct intel_encoder *encoder)
 	struct intel_crtc *intel_crtc =
 		to_intel_crtc(encoder->base.crtc);
 	struct drm_display_mode *adjusted_mode =
-		&intel_crtc->config->base.adjusted_mode;
+		&intel_crtc->config.adjusted_mode;
 	enum dpio_channel port = vlv_dport_to_channel(dport);
 	int pipe = intel_crtc->pipe;
 	u32 val;
@@ -1236,7 +1235,7 @@ static void vlv_hdmi_pre_enable(struct intel_encoder *encoder)
 	mutex_unlock(&dev_priv->dpio_lock);
 
 	intel_hdmi->set_infoframes(&encoder->base,
-				   intel_crtc->config->has_hdmi_sink,
+				   intel_crtc->config.has_hdmi_sink,
 				   adjusted_mode);
 
 	intel_enable_hdmi(encoder);
@@ -1518,9 +1517,7 @@ static const struct drm_connector_funcs intel_hdmi_connector_funcs = {
 	.force = intel_hdmi_force,
 	.fill_modes = drm_helper_probe_single_connector_modes,
 	.set_property = intel_hdmi_set_property,
-	.atomic_get_property = intel_connector_atomic_get_property,
 	.destroy = intel_hdmi_destroy,
-	.atomic_destroy_state = drm_atomic_helper_connector_destroy_state,
 };
 
 static const struct drm_connector_helper_funcs intel_hdmi_connector_helper_funcs = {

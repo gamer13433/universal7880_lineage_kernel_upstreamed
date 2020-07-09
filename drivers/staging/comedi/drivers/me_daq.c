@@ -19,7 +19,8 @@
 /*
  * Driver: me_daq
  * Description: Meilhaus PCI data acquisition cards
- * Devices: [Meilhaus] ME-2600i (me-2600i), ME-2000i (me-2000i)
+ * Devices: (Meilhaus) ME-2600i [me-2600i]
+ *          (Meilhaus) ME-2000i [me-2000i]
  * Author: Michael Hillmann <hillmann@syscongroup.de>
  * Status: experimental
  *
@@ -174,7 +175,7 @@ struct me_private_data {
 
 static inline void sleep(unsigned sec)
 {
-	__set_current_state(TASK_INTERRUPTIBLE);
+	current->state = TASK_INTERRUPTIBLE;
 	schedule_timeout(sec * HZ);
 }
 

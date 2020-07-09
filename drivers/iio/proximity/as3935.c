@@ -273,9 +273,9 @@ static void calibrate_as3935(struct as3935_state *st)
 }
 
 #ifdef CONFIG_PM_SLEEP
-static int as3935_suspend(struct device *dev)
+static int as3935_suspend(struct spi_device *spi, pm_message_t msg)
 {
-	struct iio_dev *indio_dev = dev_get_drvdata(dev);
+	struct iio_dev *indio_dev = spi_get_drvdata(spi);
 	struct as3935_state *st = iio_priv(indio_dev);
 	int val, ret;
 
@@ -293,9 +293,9 @@ err_suspend:
 	return ret;
 }
 
-static int as3935_resume(struct device *dev)
+static int as3935_resume(struct spi_device *spi)
 {
-	struct iio_dev *indio_dev = dev_get_drvdata(dev);
+	struct iio_dev *indio_dev = spi_get_drvdata(spi);
 	struct as3935_state *st = iio_priv(indio_dev);
 	int val, ret;
 
@@ -311,12 +311,9 @@ err_resume:
 
 	return ret;
 }
-
-static SIMPLE_DEV_PM_OPS(as3935_pm_ops, as3935_suspend, as3935_resume);
-#define AS3935_PM_OPS (&as3935_pm_ops)
-
 #else
-#define AS3935_PM_OPS NULL
+#define as3935_suspend	NULL
+#define as3935_resume	NULL
 #endif
 
 static int as3935_probe(struct spi_device *spi)
@@ -444,11 +441,12 @@ static struct spi_driver as3935_driver = {
 	.driver = {
 		.name	= "as3935",
 		.owner	= THIS_MODULE,
-		.pm	= AS3935_PM_OPS,
 	},
 	.probe		= as3935_probe,
 	.remove		= as3935_remove,
 	.id_table	= as3935_id,
+	.suspend	= as3935_suspend,
+	.resume		= as3935_resume,
 };
 module_spi_driver(as3935_driver);
 

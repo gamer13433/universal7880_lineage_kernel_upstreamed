@@ -184,9 +184,6 @@ static int ci_set_overdrive_target_tdp(struct radeon_device *rdev,
 				       u32 target_tdp);
 static int ci_update_uvd_dpm(struct radeon_device *rdev, bool gate);
 
-static void ci_thermal_start_smc_fan_control(struct radeon_device *rdev);
-static void ci_fan_ctrl_set_default_mode(struct radeon_device *rdev);
-
 static struct ci_power_info *ci_get_pi(struct radeon_device *rdev)
 {
         struct ci_power_info *pi = rdev->pm.dpm.priv;
@@ -1316,12 +1313,10 @@ static int ci_set_overdrive_target_tdp(struct radeon_device *rdev,
 	return 0;
 }
 
-#if 0
 static int ci_set_boot_state(struct radeon_device *rdev)
 {
 	return ci_enable_sclk_mclk_dpm(rdev, false);
 }
-#endif
 
 static u32 ci_get_average_sclk_freq(struct radeon_device *rdev)
 {
@@ -4814,12 +4809,10 @@ int ci_dpm_power_control_set_level(struct radeon_device *rdev)
 	return ci_power_control_set_level(rdev);
 }
 
-#if 0
 void ci_dpm_reset_asic(struct radeon_device *rdev)
 {
 	ci_set_boot_state(rdev);
 }
-#endif
 
 void ci_dpm_display_configuration_changed(struct radeon_device *rdev)
 {

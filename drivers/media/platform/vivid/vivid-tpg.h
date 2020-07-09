@@ -20,6 +20,7 @@
 #ifndef _VIVID_TPG_H_
 #define _VIVID_TPG_H_
 
+#include <linux/version.h>
 #include <linux/types.h>
 #include <linux/errno.h>
 #include <linux/random.h>

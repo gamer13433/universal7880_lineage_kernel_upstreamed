@@ -2573,7 +2573,6 @@ static int check_magic_endian(u64 magic, uint64_t hdr_sz,
 	 * - unique number to identify actual perf.data files
 	 * - encode endianness of file
 	 */
-	ph->version = PERF_HEADER_VERSION_2;
 
 	/* check magic number with one endianness */
 	if (magic == __perf_magic2)
@@ -2584,6 +2583,7 @@ static int check_magic_endian(u64 magic, uint64_t hdr_sz,
 		return -1;
 
 	ph->needs_swap = true;
+	ph->version = PERF_HEADER_VERSION_2;
 
 	return 0;
 }

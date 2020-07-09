@@ -37,6 +37,8 @@
 #ifndef _TIPC_CORE_H
 #define _TIPC_CORE_H
 
+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+
 #include <linux/tipc.h>
 #include <linux/tipc_config.h>
 #include <linux/types.h>
@@ -56,54 +58,47 @@
 #include <linux/vmalloc.h>
 #include <linux/rtnetlink.h>
 #include <linux/etherdevice.h>
-#include <net/netns/generic.h>
-#include <linux/rhashtable.h>
-
-#include "node.h"
-#include "bearer.h"
-#include "bcast.h"
-#include "netlink.h"
-#include "link.h"
-#include "node.h"
-#include "msg.h"
 
 #define TIPC_MOD_VER "2.0.0"
 
+#define ULTRA_STRING_MAX_LEN	32768
+#define TIPC_MAX_SUBSCRIPTIONS	65535
+#define TIPC_MAX_PUBLICATIONS	65535
+
+struct tipc_msg;	/* msg.h */
+
+int tipc_snprintf(char *buf, int len, const char *fmt, ...);
+
+/*
+ * TIPC-specific error codes
+ */
+#define ELINKCONG EAGAIN	/* link congestion <=> resource unavailable */
+
+/*
+ * Global configuration variables
+ */
+extern u32 tipc_own_addr __read_mostly;
+extern int tipc_max_ports __read_mostly;
 extern int tipc_net_id __read_mostly;
 extern int sysctl_tipc_rmem[3] __read_mostly;
 extern int sysctl_tipc_named_timeout __read_mostly;
 
-struct tipc_net {
-	u32 own_addr;
-	int net_id;
-	int random;
+/*
+ * Other global variables
+ */
+extern int tipc_random __read_mostly;
 
-	/* Node table and node list */
-	spinlock_t node_list_lock;
-	struct hlist_head node_htable[NODE_HTABLE_SIZE];
-	struct list_head node_list;
-	u32 num_nodes;
-	u32 num_links;
-
-	/* Bearer list */
-	struct tipc_bearer __rcu *bearer_list[MAX_BEARERS + 1];
-
-	/* Broadcast link */
-	struct tipc_bcbearer *bcbearer;
-	struct tipc_bclink *bclink;
-	struct tipc_link *bcl;
-
-	/* Socket hash table */
-	struct rhashtable sk_rht;
-
-	/* Name table */
-	spinlock_t nametbl_lock;
-	struct name_table *nametbl;
-
-	/* Topology subscription server */
-	struct tipc_server *topsrv;
-	atomic_t subscription_count;
-};
+/*
+ * Routines available to privileged subsystems
+ */
+int tipc_netlink_start(void);
+void tipc_netlink_stop(void);
+int tipc_socket_init(void);
+void tipc_socket_stop(void);
+int tipc_sock_create_local(int type, struct socket **res);
+void tipc_sock_release_local(struct socket *sock);
+int tipc_sock_accept_local(struct socket *sock, struct socket **newsock,
+			   int flags);
 
 #ifdef CONFIG_SYSCTL
 int tipc_register_sysctl(void);

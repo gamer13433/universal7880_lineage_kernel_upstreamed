@@ -308,7 +308,9 @@ static const struct snd_soc_dapm_route wm8770_intercon[] = {
 static int vout12supply_event(struct snd_soc_dapm_widget *w,
 	struct snd_kcontrol *kcontrol, int event)
 {
-	struct snd_soc_codec *codec = snd_soc_dapm_to_codec(w->dapm);
+	struct snd_soc_codec *codec;
+
+	codec = w->codec;
 
 	switch (event) {
 	case SND_SOC_DAPM_PRE_PMU:
@@ -325,7 +327,9 @@ static int vout12supply_event(struct snd_soc_dapm_widget *w,
 static int vout34supply_event(struct snd_soc_dapm_widget *w,
 	struct snd_kcontrol *kcontrol, int event)
 {
-	struct snd_soc_codec *codec = snd_soc_dapm_to_codec(w->dapm);
+	struct snd_soc_codec *codec;
+
+	codec = w->codec;
 
 	switch (event) {
 	case SND_SOC_DAPM_PRE_PMU:

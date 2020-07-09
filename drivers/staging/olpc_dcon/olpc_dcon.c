@@ -781,7 +781,7 @@ static const struct i2c_device_id dcon_idtable[] = {
 };
 MODULE_DEVICE_TABLE(i2c, dcon_idtable);
 
-static struct i2c_driver dcon_driver = {
+struct i2c_driver dcon_driver = {
 	.driver = {
 		.name	= "olpc_dcon",
 		.pm = &dcon_pm_ops,

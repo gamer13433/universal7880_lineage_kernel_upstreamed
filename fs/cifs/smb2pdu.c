@@ -1219,7 +1219,7 @@ SMB2_ioctl(const unsigned int xid, struct cifs_tcon *tcon, u64 persistent_fid,
 	struct smb2_ioctl_req *req;
 	struct smb2_ioctl_rsp *rsp;
 	struct TCP_Server_Info *server;
-	struct cifs_ses *ses;
+	struct cifs_ses *ses = tcon->ses;
 	struct kvec iov[2];
 	int resp_buftype;
 	int num_iovecs;
@@ -1233,11 +1233,6 @@ SMB2_ioctl(const unsigned int xid, struct cifs_tcon *tcon, u64 persistent_fid,
 	/* zero out returned data len, in case of error */
 	if (plen)
 		*plen = 0;
-
-	if (tcon)
-		ses = tcon->ses;
-	else
-		return -EIO;
 
 	if (ses && (ses->server))
 		server = ses->server;
@@ -1302,12 +1297,14 @@ SMB2_ioctl(const unsigned int xid, struct cifs_tcon *tcon, u64 persistent_fid,
 	rsp = (struct smb2_ioctl_rsp *)iov[0].iov_base;
 
 	if ((rc != 0) && (rc != -EINVAL)) {
-		cifs_stats_fail_inc(tcon, SMB2_IOCTL_HE);
+		if (tcon)
+			cifs_stats_fail_inc(tcon, SMB2_IOCTL_HE);
 		goto ioctl_exit;
 	} else if (rc == -EINVAL) {
 		if ((opcode != FSCTL_SRV_COPYCHUNK_WRITE) &&
 		    (opcode != FSCTL_SRV_COPYCHUNK)) {
-			cifs_stats_fail_inc(tcon, SMB2_IOCTL_HE);
+			if (tcon)
+				cifs_stats_fail_inc(tcon, SMB2_IOCTL_HE);
 			goto ioctl_exit;
 		}
 	}
@@ -1633,7 +1630,7 @@ SMB2_flush(const unsigned int xid, struct cifs_tcon *tcon, u64 persistent_fid,
 
 	rc = SendReceive2(xid, ses, iov, 1, &resp_buftype, 0);
 
-	if (rc != 0)
+	if ((rc != 0) && tcon)
 		cifs_stats_fail_inc(tcon, SMB2_FLUSH_HE);
 
 	free_rsp_buf(resp_buftype, iov[0].iov_base);
@@ -2118,7 +2115,7 @@ SMB2_query_directory(const unsigned int xid, struct cifs_tcon *tcon,
 	struct kvec iov[2];
 	int rc = 0;
 	int len;
-	int resp_buftype = CIFS_NO_BUFFER;
+	int resp_buftype;
 	unsigned char *bufptr;
 	struct TCP_Server_Info *server;
 	struct cifs_ses *ses = tcon->ses;

@@ -99,7 +99,6 @@
 
 #define APMG_PCIDEV_STT_VAL_PERSIST_DIS	(0x00000200)
 #define APMG_PCIDEV_STT_VAL_L1_ACT_DIS	(0x00000800)
-#define APMG_PCIDEV_STT_VAL_WAKE_ME	(0x00004000)
 
 #define APMG_RTC_INT_STT_RFKILL		(0x10000000)
 
@@ -108,8 +107,7 @@
 
 /* Device NMI register */
 #define DEVICE_SET_NMI_REG 0x00a01c30
-#define DEVICE_SET_NMI_VAL_HW BIT(0)
-#define DEVICE_SET_NMI_VAL_DRV BIT(7)
+#define DEVICE_SET_NMI_VAL 0x1
 #define DEVICE_SET_NMI_8000B_REG 0x00a01c24
 #define DEVICE_SET_NMI_8000B_VAL 0x1000000
 
@@ -252,7 +250,6 @@
 #define SCD_QUEUE_CTX_REG2_WIN_SIZE_MSK		(0x0000007F)
 #define SCD_QUEUE_CTX_REG2_FRAME_LIMIT_POS	(16)
 #define SCD_QUEUE_CTX_REG2_FRAME_LIMIT_MSK	(0x007F0000)
-#define SCD_GP_CTRL_ENABLE_31_QUEUES		BIT(0)
 
 /* Context Data */
 #define SCD_CONTEXT_MEM_LOWER_BOUND	(SCD_MEM_LOWER_BOUND + 0x600)
@@ -286,8 +283,31 @@
 #define SCD_CHAINEXT_EN		(SCD_BASE + 0x244)
 #define SCD_AGGR_SEL		(SCD_BASE + 0x248)
 #define SCD_INTERRUPT_MASK	(SCD_BASE + 0x108)
-#define SCD_GP_CTRL		(SCD_BASE + 0x1a8)
 #define SCD_EN_CTRL		(SCD_BASE + 0x254)
+
+static inline unsigned int SCD_QUEUE_WRPTR(unsigned int chnl)
+{
+	if (chnl < 20)
+		return SCD_BASE + 0x18 + chnl * 4;
+	WARN_ON_ONCE(chnl >= 32);
+	return SCD_BASE + 0x284 + (chnl - 20) * 4;
+}
+
+static inline unsigned int SCD_QUEUE_RDPTR(unsigned int chnl)
+{
+	if (chnl < 20)
+		return SCD_BASE + 0x68 + chnl * 4;
+	WARN_ON_ONCE(chnl >= 32);
+	return SCD_BASE + 0x2B4 + (chnl - 20) * 4;
+}
+
+static inline unsigned int SCD_QUEUE_STATUS_BITS(unsigned int chnl)
+{
+	if (chnl < 20)
+		return SCD_BASE + 0x10c + chnl * 4;
+	WARN_ON_ONCE(chnl >= 32);
+	return SCD_BASE + 0x384 + (chnl - 20) * 4;
+}
 
 /*********************** END TX SCHEDULER *************************************/
 

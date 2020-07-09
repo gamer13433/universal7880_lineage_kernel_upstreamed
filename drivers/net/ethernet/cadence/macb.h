@@ -278,7 +278,7 @@
 /* Bitfields in USRIO (AT91) */
 #define MACB_RMII_OFFSET			0
 #define MACB_RMII_SIZE				1
-#define GEM_RGMII_OFFSET			0 /* GEM gigabit mode */
+#define GEM_RGMII_OFFSET			0	/* GEM gigabit mode */
 #define GEM_RGMII_SIZE				1
 #define MACB_CLKEN_OFFSET			1
 #define MACB_CLKEN_SIZE				1
@@ -297,7 +297,7 @@
 
 /* Bitfields in MID */
 #define MACB_IDNUM_OFFSET			16
-#define MACB_IDNUM_SIZE				12
+#define MACB_IDNUM_SIZE				16
 #define MACB_REV_OFFSET				0
 #define MACB_REV_SIZE				16
 
@@ -377,7 +377,8 @@
 #define gem_writel(port, reg, value)			\
 	__raw_writel((value), (port)->regs + GEM_##reg)
 
-/* Conditional GEM/MACB macros.  These perform the operation to the correct
+/*
+ * Conditional GEM/MACB macros.  These perform the operation to the correct
  * register dependent on whether the device is a GEM or a MACB.  For registers
  * and bitfields that are common across both devices, use macb_{read,write}l
  * to avoid the cost of the conditional.
@@ -400,7 +401,8 @@
 		__v; \
 	})
 
-/* struct macb_dma_desc - Hardware DMA descriptor
+/**
+ * struct macb_dma_desc - Hardware DMA descriptor
  * @addr: DMA address of data buffer
  * @ctrl: Control and status bits
  */
@@ -489,7 +491,8 @@ struct macb_dma_desc {
 /* limit RX checksum offload to TCP and UDP packets */
 #define GEM_RX_CSUM_CHECKED_MASK		2
 
-/* struct macb_tx_skb - data about an skb which is being transmitted
+/**
+ * struct macb_tx_skb - data about an skb which is being transmitted
  * @skb: skb currently being transmitted, only set for the last buffer
  *       of the frame
  * @mapping: DMA address of the skb's fragment buffer
@@ -504,7 +507,8 @@ struct macb_tx_skb {
 	bool			mapped_as_page;
 };
 
-/* Hardware-collected statistics. Used when updating the network
+/*
+ * Hardware-collected statistics. Used when updating the network
  * device stats by a periodic timer.
  */
 struct macb_stats {
@@ -579,107 +583,6 @@ struct gem_stats {
 	u32	rx_udp_checksum_errors;
 };
 
-/* Describes the name and offset of an individual statistic register, as
- * returned by `ethtool -S`. Also describes which net_device_stats statistics
- * this register should contribute to.
- */
-struct gem_statistic {
-	char stat_string[ETH_GSTRING_LEN];
-	int offset;
-	u32 stat_bits;
-};
-
-/* Bitfield defs for net_device_stat statistics */
-#define GEM_NDS_RXERR_OFFSET		0
-#define GEM_NDS_RXLENERR_OFFSET		1
-#define GEM_NDS_RXOVERERR_OFFSET	2
-#define GEM_NDS_RXCRCERR_OFFSET		3
-#define GEM_NDS_RXFRAMEERR_OFFSET	4
-#define GEM_NDS_RXFIFOERR_OFFSET	5
-#define GEM_NDS_TXERR_OFFSET		6
-#define GEM_NDS_TXABORTEDERR_OFFSET	7
-#define GEM_NDS_TXCARRIERERR_OFFSET	8
-#define GEM_NDS_TXFIFOERR_OFFSET	9
-#define GEM_NDS_COLLISIONS_OFFSET	10
-
-#define GEM_STAT_TITLE(name, title) GEM_STAT_TITLE_BITS(name, title, 0)
-#define GEM_STAT_TITLE_BITS(name, title, bits) {	\
-	.stat_string = title,				\
-	.offset = GEM_##name,				\
-	.stat_bits = bits				\
-}
-
-/* list of gem statistic registers. The names MUST match the
- * corresponding GEM_* definitions.
- */
-static const struct gem_statistic gem_statistics[] = {
-	GEM_STAT_TITLE(OCTTXL, "tx_octets"), /* OCTTXH combined with OCTTXL */
-	GEM_STAT_TITLE(TXCNT, "tx_frames"),
-	GEM_STAT_TITLE(TXBCCNT, "tx_broadcast_frames"),
-	GEM_STAT_TITLE(TXMCCNT, "tx_multicast_frames"),
-	GEM_STAT_TITLE(TXPAUSECNT, "tx_pause_frames"),
-	GEM_STAT_TITLE(TX64CNT, "tx_64_byte_frames"),
-	GEM_STAT_TITLE(TX65CNT, "tx_65_127_byte_frames"),
-	GEM_STAT_TITLE(TX128CNT, "tx_128_255_byte_frames"),
-	GEM_STAT_TITLE(TX256CNT, "tx_256_511_byte_frames"),
-	GEM_STAT_TITLE(TX512CNT, "tx_512_1023_byte_frames"),
-	GEM_STAT_TITLE(TX1024CNT, "tx_1024_1518_byte_frames"),
-	GEM_STAT_TITLE(TX1519CNT, "tx_greater_than_1518_byte_frames"),
-	GEM_STAT_TITLE_BITS(TXURUNCNT, "tx_underrun",
-			    GEM_BIT(NDS_TXERR)|GEM_BIT(NDS_TXFIFOERR)),
-	GEM_STAT_TITLE_BITS(SNGLCOLLCNT, "tx_single_collision_frames",
-			    GEM_BIT(NDS_TXERR)|GEM_BIT(NDS_COLLISIONS)),
-	GEM_STAT_TITLE_BITS(MULTICOLLCNT, "tx_multiple_collision_frames",
-			    GEM_BIT(NDS_TXERR)|GEM_BIT(NDS_COLLISIONS)),
-	GEM_STAT_TITLE_BITS(EXCESSCOLLCNT, "tx_excessive_collisions",
-			    GEM_BIT(NDS_TXERR)|
-			    GEM_BIT(NDS_TXABORTEDERR)|
-			    GEM_BIT(NDS_COLLISIONS)),
-	GEM_STAT_TITLE_BITS(LATECOLLCNT, "tx_late_collisions",
-			    GEM_BIT(NDS_TXERR)|GEM_BIT(NDS_COLLISIONS)),
-	GEM_STAT_TITLE(TXDEFERCNT, "tx_deferred_frames"),
-	GEM_STAT_TITLE_BITS(TXCSENSECNT, "tx_carrier_sense_errors",
-			    GEM_BIT(NDS_TXERR)|GEM_BIT(NDS_COLLISIONS)),
-	GEM_STAT_TITLE(OCTRXL, "rx_octets"), /* OCTRXH combined with OCTRXL */
-	GEM_STAT_TITLE(RXCNT, "rx_frames"),
-	GEM_STAT_TITLE(RXBROADCNT, "rx_broadcast_frames"),
-	GEM_STAT_TITLE(RXMULTICNT, "rx_multicast_frames"),
-	GEM_STAT_TITLE(RXPAUSECNT, "rx_pause_frames"),
-	GEM_STAT_TITLE(RX64CNT, "rx_64_byte_frames"),
-	GEM_STAT_TITLE(RX65CNT, "rx_65_127_byte_frames"),
-	GEM_STAT_TITLE(RX128CNT, "rx_128_255_byte_frames"),
-	GEM_STAT_TITLE(RX256CNT, "rx_256_511_byte_frames"),
-	GEM_STAT_TITLE(RX512CNT, "rx_512_1023_byte_frames"),
-	GEM_STAT_TITLE(RX1024CNT, "rx_1024_1518_byte_frames"),
-	GEM_STAT_TITLE(RX1519CNT, "rx_greater_than_1518_byte_frames"),
-	GEM_STAT_TITLE_BITS(RXUNDRCNT, "rx_undersized_frames",
-			    GEM_BIT(NDS_RXERR)|GEM_BIT(NDS_RXLENERR)),
-	GEM_STAT_TITLE_BITS(RXOVRCNT, "rx_oversize_frames",
-			    GEM_BIT(NDS_RXERR)|GEM_BIT(NDS_RXLENERR)),
-	GEM_STAT_TITLE_BITS(RXJABCNT, "rx_jabbers",
-			    GEM_BIT(NDS_RXERR)|GEM_BIT(NDS_RXLENERR)),
-	GEM_STAT_TITLE_BITS(RXFCSCNT, "rx_frame_check_sequence_errors",
-			    GEM_BIT(NDS_RXERR)|GEM_BIT(NDS_RXCRCERR)),
-	GEM_STAT_TITLE_BITS(RXLENGTHCNT, "rx_length_field_frame_errors",
-			    GEM_BIT(NDS_RXERR)),
-	GEM_STAT_TITLE_BITS(RXSYMBCNT, "rx_symbol_errors",
-			    GEM_BIT(NDS_RXERR)|GEM_BIT(NDS_RXFRAMEERR)),
-	GEM_STAT_TITLE_BITS(RXALIGNCNT, "rx_alignment_errors",
-			    GEM_BIT(NDS_RXERR)|GEM_BIT(NDS_RXOVERERR)),
-	GEM_STAT_TITLE_BITS(RXRESERRCNT, "rx_resource_errors",
-			    GEM_BIT(NDS_RXERR)|GEM_BIT(NDS_RXOVERERR)),
-	GEM_STAT_TITLE_BITS(RXORCNT, "rx_overruns",
-			    GEM_BIT(NDS_RXERR)|GEM_BIT(NDS_RXFIFOERR)),
-	GEM_STAT_TITLE_BITS(RXIPCCNT, "rx_ip_header_checksum_errors",
-			    GEM_BIT(NDS_RXERR)),
-	GEM_STAT_TITLE_BITS(RXTCPCCNT, "rx_tcp_checksum_errors",
-			    GEM_BIT(NDS_RXERR)),
-	GEM_STAT_TITLE_BITS(RXUDPCCNT, "rx_udp_checksum_errors",
-			    GEM_BIT(NDS_RXERR)),
-};
-
-#define GEM_STATS_LEN ARRAY_SIZE(gem_statistics)
-
 struct macb;
 
 struct macb_or_gem_ops {
@@ -744,8 +647,6 @@ struct macb {
 	dma_addr_t skb_physaddr;		/* phys addr from pci_map_single */
 	int skb_length;				/* saved skb length for pci_unmap_single */
 	unsigned int		max_tx_length;
-
-	u64			ethtool_stats[GEM_STATS_LEN];
 };
 
 extern const struct ethtool_ops macb_ethtool_ops;

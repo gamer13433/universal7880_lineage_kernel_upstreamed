@@ -25,43 +25,7 @@
 
 #include "dw_mmc.h"
 #include "dw_mmc-pltfm.h"
-
-#define NUM_PINS(x)			(x + 2)
-
-#define SDMMC_CLKSEL			0x09C
-#define SDMMC_CLKSEL64			0x0A8
-#define SDMMC_CLKSEL_CCLK_SAMPLE(x)	(((x) & 7) << 0)
-#define SDMMC_CLKSEL_CCLK_DRIVE(x)	(((x) & 7) << 16)
-#define SDMMC_CLKSEL_CCLK_DIVIDER(x)	(((x) & 7) << 24)
-#define SDMMC_CLKSEL_GET_DRV_WD3(x)	(((x) >> 16) & 0x7)
-#define SDMMC_CLKSEL_TIMING(x, y, z)	(SDMMC_CLKSEL_CCLK_SAMPLE(x) |	\
-					SDMMC_CLKSEL_CCLK_DRIVE(y) |	\
-					SDMMC_CLKSEL_CCLK_DIVIDER(z))
-#define SDMMC_CLKSEL_WAKEUP_INT		BIT(11)
-
-#define EXYNOS4210_FIXED_CIU_CLK_DIV	2
-#define EXYNOS4412_FIXED_CIU_CLK_DIV	4
-
-/* Block number in eMMC */
-#define DWMCI_BLOCK_NUM		0xFFFFFFFF
-
-#define SDMMC_EMMCP_BASE	0x1000
-#define SDMMC_MPSECURITY	(SDMMC_EMMCP_BASE + 0x0010)
-#define SDMMC_MPSBEGIN0		(SDMMC_EMMCP_BASE + 0x0200)
-#define SDMMC_MPSEND0		(SDMMC_EMMCP_BASE + 0x0204)
-#define SDMMC_MPSCTRL0		(SDMMC_EMMCP_BASE + 0x020C)
-
-/* SMU control bits */
-#define DWMCI_MPSCTRL_SECURE_READ_BIT		BIT(7)
-#define DWMCI_MPSCTRL_SECURE_WRITE_BIT		BIT(6)
-#define DWMCI_MPSCTRL_NON_SECURE_READ_BIT	BIT(5)
-#define DWMCI_MPSCTRL_NON_SECURE_WRITE_BIT	BIT(4)
-#define DWMCI_MPSCTRL_USE_FUSE_KEY		BIT(3)
-#define DWMCI_MPSCTRL_ECB_MODE			BIT(2)
-#define DWMCI_MPSCTRL_ENCRYPTION		BIT(1)
-#define DWMCI_MPSCTRL_VALID			BIT(0)
-
-#define EXYNOS_CCLKIN_MIN	50000000	/* unit: HZ */
+#include "dw_mmc-exynos.h"
 
 static void dw_mci_exynos_register_dump(struct dw_mci *host)
 {
@@ -1511,7 +1475,6 @@ static int dw_mci_exynos_check_cd(struct dw_mci *host)
 	if (priv->sec_sd_slot_type == SEC_NO_DET_SD_SLOT)
 		ret = 1;
 
-	kfree(blk_test);
 	return ret;
 }
 

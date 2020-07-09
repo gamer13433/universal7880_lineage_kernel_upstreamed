@@ -43,10 +43,6 @@ static void seed_unwind_frame_info(struct task_struct *tsk,
 				   struct pt_regs *regs,
 				   struct unwind_frame_info *frame_info)
 {
-	/*
-	 * synchronous unwinding (e.g. dump_stack)
-	 *  - uses current values of SP and friends
-	 */
 	if (tsk == NULL && regs == NULL) {
 		unsigned long fp, sp, blink, ret;
 		frame_info->task = current;
@@ -87,10 +83,6 @@ static void seed_unwind_frame_info(struct task_struct *tsk,
 		frame_info->call_frame = 0;
 
 	} else {
-		/*
-		 * Asynchronous unwinding of intr/exception
-		 *  - Just uses the pt_regs passed
-		 */
 		frame_info->task = tsk;
 
 		frame_info->regs.r27 = regs->fp;
@@ -103,7 +95,7 @@ static void seed_unwind_frame_info(struct task_struct *tsk,
 
 #endif
 
-notrace noinline unsigned int
+static noinline unsigned int
 arc_unwind_core(struct task_struct *tsk, struct pt_regs *regs,
 		int (*consumer_fn) (unsigned int, void *), void *arg)
 {

@@ -175,9 +175,9 @@ static int setup_chip(struct device *dev, struct tpm_private *priv)
 {
 	struct tpm_chip *chip;
 
-	chip = tpmm_chip_alloc(dev, &tpm_vtpm);
-	if (IS_ERR(chip))
-		return PTR_ERR(chip);
+	chip = tpm_register_hardware(dev, &tpm_vtpm);
+	if (!chip)
+		return -ENODEV;
 
 	init_waitqueue_head(&chip->vendor.read_queue);
 
@@ -286,7 +286,6 @@ static int tpmfront_probe(struct xenbus_device *dev,
 		const struct xenbus_device_id *id)
 {
 	struct tpm_private *priv;
-	struct tpm_chip *chip;
 	int rv;
 
 	priv = kzalloc(sizeof(*priv), GFP_KERNEL);
@@ -303,22 +302,21 @@ static int tpmfront_probe(struct xenbus_device *dev,
 
 	rv = setup_ring(dev, priv);
 	if (rv) {
-		chip = dev_get_drvdata(&dev->dev);
-		tpm_chip_unregister(chip);
+		tpm_remove_hardware(&dev->dev);
 		ring_free(priv);
 		return rv;
 	}
 
 	tpm_get_timeouts(priv->chip);
 
-	return tpm_chip_register(priv->chip);
+	return rv;
 }
 
 static int tpmfront_remove(struct xenbus_device *dev)
 {
 	struct tpm_chip *chip = dev_get_drvdata(&dev->dev);
 	struct tpm_private *priv = TPM_VPRIV(chip);
-	tpm_chip_unregister(chip);
+	tpm_remove_hardware(&dev->dev);
 	ring_free(priv);
 	TPM_VPRIV(chip) = NULL;
 	return 0;

@@ -695,14 +695,6 @@ kgdb_handle_exception(int evector, int signo, int ecode, struct pt_regs *regs)
 
 	if (arch_kgdb_ops.enable_nmi)
 		arch_kgdb_ops.enable_nmi(0);
-	/*
-	 * Avoid entering the debugger if we were triggered due to an oops
-	 * but panic_timeout indicates the system should automatically
-	 * reboot on panic. We don't want to get stuck waiting for input
-	 * on such systems, especially if its "just" an oops.
-	 */
-	if (signo != SIGTRAP && panic_timeout)
-		return 1;
 
 	if (unlikely(signo != SIGTRAP && !break_on_exception))
 		return 1;

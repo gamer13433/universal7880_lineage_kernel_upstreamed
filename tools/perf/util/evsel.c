@@ -696,7 +696,6 @@ void perf_evsel__config(struct perf_evsel *evsel, struct record_opts *opts)
 	if (opts->sample_weight)
 		perf_evsel__set_sample_bit(evsel, WEIGHT);
 
-	attr->task  = track;
 	attr->mmap  = track;
 	attr->mmap2 = track && !perf_missing_features.mmap2;
 	attr->comm  = track;
@@ -785,9 +784,6 @@ int perf_evsel__enable(struct perf_evsel *evsel, int ncpus, int nthreads)
 
 int perf_evsel__alloc_id(struct perf_evsel *evsel, int ncpus, int nthreads)
 {
-	if (ncpus == 0 || nthreads == 0)
-		return 0;
-
 	if (evsel->system_wide)
 		nthreads = 1;
 

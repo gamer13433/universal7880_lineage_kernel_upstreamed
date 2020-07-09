@@ -20,33 +20,12 @@
 
 #define GPC_IMR1		0x008
 #define GPC_PGC_CPU_PDN		0x2a0
-#define GPC_PGC_CPU_PUPSCR	0x2a4
-#define GPC_PGC_CPU_PDNSCR	0x2a8
-#define GPC_PGC_SW2ISO_SHIFT	0x8
-#define GPC_PGC_SW_SHIFT	0x0
 
 #define IMR_NUM			4
 
 static void __iomem *gpc_base;
 static u32 gpc_wake_irqs[IMR_NUM];
 static u32 gpc_saved_imrs[IMR_NUM];
-
-void imx_gpc_set_arm_power_up_timing(u32 sw2iso, u32 sw)
-{
-	writel_relaxed((sw2iso << GPC_PGC_SW2ISO_SHIFT) |
-		(sw << GPC_PGC_SW_SHIFT), gpc_base + GPC_PGC_CPU_PUPSCR);
-}
-
-void imx_gpc_set_arm_power_down_timing(u32 sw2iso, u32 sw)
-{
-	writel_relaxed((sw2iso << GPC_PGC_SW2ISO_SHIFT) |
-		(sw << GPC_PGC_SW_SHIFT), gpc_base + GPC_PGC_CPU_PDNSCR);
-}
-
-void imx_gpc_set_arm_power_in_lpm(bool power_off)
-{
-	writel_relaxed(power_off, gpc_base + GPC_PGC_CPU_PDN);
-}
 
 void imx_gpc_pre_suspend(bool arm_power_off)
 {
@@ -55,7 +34,7 @@ void imx_gpc_pre_suspend(bool arm_power_off)
 
 	/* Tell GPC to power off ARM core when suspend */
 	if (arm_power_off)
-		imx_gpc_set_arm_power_in_lpm(arm_power_off);
+		writel_relaxed(0x1, gpc_base + GPC_PGC_CPU_PDN);
 
 	for (i = 0; i < IMR_NUM; i++) {
 		gpc_saved_imrs[i] = readl_relaxed(reg_imr1 + i * 4);
@@ -69,7 +48,7 @@ void imx_gpc_post_resume(void)
 	int i;
 
 	/* Keep ARM core powered on for other low-power modes */
-	imx_gpc_set_arm_power_in_lpm(false);
+	writel_relaxed(0x0, gpc_base + GPC_PGC_CPU_PDN);
 
 	for (i = 0; i < IMR_NUM; i++)
 		writel_relaxed(gpc_saved_imrs[i], reg_imr1 + i * 4);

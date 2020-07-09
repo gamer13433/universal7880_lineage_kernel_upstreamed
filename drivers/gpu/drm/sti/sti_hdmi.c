@@ -42,17 +42,8 @@
 #define HDMI_SW_DI_1_PKT_WORD5          0x0228
 #define HDMI_SW_DI_1_PKT_WORD6          0x022C
 #define HDMI_SW_DI_CFG                  0x0230
-#define HDMI_SW_DI_2_HEAD_WORD          0x0600
-#define HDMI_SW_DI_2_PKT_WORD0          0x0604
-#define HDMI_SW_DI_2_PKT_WORD1          0x0608
-#define HDMI_SW_DI_2_PKT_WORD2          0x060C
-#define HDMI_SW_DI_2_PKT_WORD3          0x0610
-#define HDMI_SW_DI_2_PKT_WORD4          0x0614
-#define HDMI_SW_DI_2_PKT_WORD5          0x0618
-#define HDMI_SW_DI_2_PKT_WORD6          0x061C
 
 #define HDMI_IFRAME_SLOT_AVI            1
-#define HDMI_IFRAME_SLOT_AUDIO          2
 
 #define  XCAT(prefix, x, suffix)        prefix ## x ## suffix
 #define  HDMI_SW_DI_N_HEAD_WORD(x)      XCAT(HDMI_SW_DI_, x, _HEAD_WORD)
@@ -107,10 +98,6 @@
 			| HDMI_INT_GLOBAL)
 
 #define HDMI_STA_SW_RST                 BIT(1)
-
-#define HDMI_INFOFRAME_HEADER_TYPE(x)    (((x) & 0xff) <<  0)
-#define HDMI_INFOFRAME_HEADER_VERSION(x) (((x) & 0xff) <<  8)
-#define HDMI_INFOFRAME_HEADER_LEN(x)     (((x) & 0x0f) << 16)
 
 struct sti_hdmi_connector {
 	struct drm_connector drm_connector;
@@ -242,90 +229,6 @@ static void hdmi_config(struct sti_hdmi *hdmi)
 }
 
 /**
- * Helper to concatenate infoframe in 32 bits word
- *
- * @ptr: pointer on the hdmi internal structure
- * @data: infoframe to write
- * @size: size to write
- */
-static inline unsigned int hdmi_infoframe_subpack(const u8 *ptr, size_t size)
-{
-	unsigned long value = 0;
-	size_t i;
-
-	for (i = size; i > 0; i--)
-		value = (value << 8) | ptr[i - 1];
-
-	return value;
-}
-
-/**
- * Helper to write info frame
- *
- * @hdmi: pointer on the hdmi internal structure
- * @data: infoframe to write
- * @size: size to write
- */
-static void hdmi_infoframe_write_infopack(struct sti_hdmi *hdmi, const u8 *data)
-{
-	const u8 *ptr = data;
-	u32 val, slot, mode, i;
-	u32 head_offset, pack_offset;
-	size_t size;
-
-	switch (*ptr) {
-	case HDMI_INFOFRAME_TYPE_AVI:
-		slot = HDMI_IFRAME_SLOT_AVI;
-		mode = HDMI_IFRAME_FIELD;
-		head_offset = HDMI_SW_DI_N_HEAD_WORD(HDMI_IFRAME_SLOT_AVI);
-		pack_offset = HDMI_SW_DI_N_PKT_WORD0(HDMI_IFRAME_SLOT_AVI);
-		size = HDMI_AVI_INFOFRAME_SIZE;
-		break;
-
-	case HDMI_INFOFRAME_TYPE_AUDIO:
-		slot = HDMI_IFRAME_SLOT_AUDIO;
-		mode = HDMI_IFRAME_FRAME;
-		head_offset = HDMI_SW_DI_N_HEAD_WORD(HDMI_IFRAME_SLOT_AUDIO);
-		pack_offset = HDMI_SW_DI_N_PKT_WORD0(HDMI_IFRAME_SLOT_AUDIO);
-		size = HDMI_AUDIO_INFOFRAME_SIZE;
-		break;
-
-	default:
-		DRM_ERROR("unsupported infoframe type: %#x\n", *ptr);
-		return;
-	}
-
-	/* Disable transmission slot for updated infoframe */
-	val = hdmi_read(hdmi, HDMI_SW_DI_CFG);
-	val &= ~HDMI_IFRAME_CFG_DI_N(HDMI_IFRAME_MASK, slot);
-	hdmi_write(hdmi, val, HDMI_SW_DI_CFG);
-
-	val = HDMI_INFOFRAME_HEADER_TYPE(*ptr++);
-	val |= HDMI_INFOFRAME_HEADER_VERSION(*ptr++);
-	val |= HDMI_INFOFRAME_HEADER_LEN(*ptr++);
-	writel(val, hdmi->regs + head_offset);
-
-	/*
-	 * Each subpack contains 4 bytes
-	 * The First Bytes of the first subpacket must contain the checksum
-	 * Packet size in increase by one.
-	 */
-	for (i = 0; i < size; i += sizeof(u32)) {
-		size_t num;
-
-		num = min_t(size_t, size - i, sizeof(u32));
-		val = hdmi_infoframe_subpack(ptr, num);
-		ptr += sizeof(u32);
-		writel(val, hdmi->regs + pack_offset + i);
-	}
-
-	/* Enable transmission slot for updated infoframe */
-	val = hdmi_read(hdmi, HDMI_SW_DI_CFG);
-	val |= HDMI_IFRAME_CFG_DI_N(HDMI_IFRAME_FIELD, slot);
-	hdmi_write(hdmi, val, HDMI_SW_DI_CFG);
-}
-
-/**
  * Prepare and configure the AVI infoframe
  *
  * AVI infoframe are transmitted at least once per two video field and
@@ -341,6 +244,8 @@ static int hdmi_avi_infoframe_config(struct sti_hdmi *hdmi)
 	struct drm_display_mode *mode = &hdmi->mode;
 	struct hdmi_avi_infoframe infoframe;
 	u8 buffer[HDMI_INFOFRAME_SIZE(AVI)];
+	u8 *frame = buffer + HDMI_INFOFRAME_HEADER_SIZE;
+	u32 val;
 	int ret;
 
 	DRM_DEBUG_DRIVER("\n");
@@ -522,10 +427,6 @@ static void sti_hdmi_pre_enable(struct drm_bridge *bridge)
 	if (hdmi_avi_infoframe_config(hdmi))
 		DRM_ERROR("Unable to configure AVI infoframe\n");
 
-	/* Program AUDIO infoframe */
-	if (hdmi_audio_infoframe_config(hdmi))
-		DRM_ERROR("Unable to configure AUDIO infoframe\n");
-
 	/* Sw reset */
 	hdmi_swreset(hdmi);
 }
@@ -562,12 +463,19 @@ static void sti_hdmi_bridge_nope(struct drm_bridge *bridge)
 	/* do nothing */
 }
 
+static void sti_hdmi_brigde_destroy(struct drm_bridge *bridge)
+{
+	drm_bridge_cleanup(bridge);
+	kfree(bridge);
+}
+
 static const struct drm_bridge_funcs sti_hdmi_bridge_funcs = {
 	.pre_enable = sti_hdmi_pre_enable,
 	.enable = sti_hdmi_bridge_nope,
 	.disable = sti_hdmi_disable,
 	.post_disable = sti_hdmi_bridge_nope,
 	.mode_set = sti_hdmi_set_mode,
+	.destroy = sti_hdmi_brigde_destroy,
 };
 
 static int sti_hdmi_connector_get_modes(struct drm_connector *connector)
@@ -720,8 +628,7 @@ static int sti_hdmi_bind(struct device *dev, struct device *master, void *data)
 		return -ENOMEM;
 
 	bridge->driver_private = hdmi;
-	bridge->funcs = &sti_hdmi_bridge_funcs;
-	drm_bridge_attach(drm_dev, bridge);
+	drm_bridge_init(drm_dev, bridge, &sti_hdmi_bridge_funcs);
 
 	encoder->bridge = bridge;
 	connector->encoder = encoder;
@@ -753,6 +660,7 @@ static int sti_hdmi_bind(struct device *dev, struct device *master, void *data)
 err_sysfs:
 	drm_connector_unregister(drm_connector);
 err_connector:
+	drm_bridge_cleanup(bridge);
 	drm_connector_cleanup(drm_connector);
 	return -EINVAL;
 }

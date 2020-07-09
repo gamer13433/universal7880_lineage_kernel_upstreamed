@@ -181,9 +181,9 @@ void fib_rules_unregister(struct fib_rules_ops *ops)
 
 	spin_lock(&net->rules_mod_lock);
 	list_del_rcu(&ops->list);
+	fib_rules_cleanup_ops(ops);
 	spin_unlock(&net->rules_mod_lock);
 
-	fib_rules_cleanup_ops(ops);
 	call_rcu(&ops->rcu, fib_rules_put_rcu);
 }
 EXPORT_SYMBOL_GPL(fib_rules_unregister);
@@ -679,8 +679,7 @@ static int fib_nl_fill_rule(struct sk_buff *skb, struct fib_rule *rule,
 	if (ops->fill(rule, skb, frh) < 0)
 		goto nla_put_failure;
 
-	nlmsg_end(skb, nlh);
-	return 0;
+	return nlmsg_end(skb, nlh);
 
 nla_put_failure:
 	nlmsg_cancel(skb, nlh);

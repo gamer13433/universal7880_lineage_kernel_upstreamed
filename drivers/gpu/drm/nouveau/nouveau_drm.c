@@ -52,7 +52,6 @@
 #include "nouveau_debugfs.h"
 #include "nouveau_usif.h"
 #include "nouveau_connector.h"
-#include "nouveau_platform.h"
 
 MODULE_PARM_DESC(config, "option string to pass to driver core");
 static char *nouveau_config;
@@ -124,7 +123,7 @@ nouveau_cli_create(u64 name, const char *sname,
 static void
 nouveau_cli_destroy(struct nouveau_cli *cli)
 {
-	nvkm_vm_ref(NULL, &nvxx_client(&cli->base)->vm, NULL);
+	nouveau_vm_ref(NULL, &nvkm_client(&cli->base)->vm, NULL);
 	nvif_client_fini(&cli->base);
 	usif_client_fini(cli);
 }
@@ -134,7 +133,7 @@ nouveau_accel_fini(struct nouveau_drm *drm)
 {
 	nouveau_channel_del(&drm->channel);
 	nvif_object_fini(&drm->ntfy);
-	nvkm_gpuobj_ref(NULL, &drm->notify);
+	nouveau_gpuobj_ref(NULL, &drm->notify);
 	nvif_object_fini(&drm->nvsw);
 	nouveau_channel_del(&drm->cechan);
 	nvif_object_fini(&drm->ttm.copy);
@@ -231,7 +230,7 @@ nouveau_accel_init(struct nouveau_drm *drm)
 	ret = nvif_object_init(drm->channel->object, NULL, NVDRM_NVSW,
 			       nouveau_abi16_swclass(drm), NULL, 0, &drm->nvsw);
 	if (ret == 0) {
-		struct nvkm_sw_chan *swch;
+		struct nouveau_software_chan *swch;
 		ret = RING_SPACE(drm->channel, 2);
 		if (ret == 0) {
 			if (device->info.family < NV_DEVICE_INFO_V0_FERMI) {
@@ -243,7 +242,7 @@ nouveau_accel_init(struct nouveau_drm *drm)
 				OUT_RING  (drm->channel, 0x001f0000);
 			}
 		}
-		swch = (void *)nvxx_object(&drm->nvsw)->parent;
+		swch = (void *)nvkm_object(&drm->nvsw)->parent;
 		swch->flip = nouveau_flip_complete;
 		swch->flip_data = drm->channel;
 	}
@@ -255,8 +254,8 @@ nouveau_accel_init(struct nouveau_drm *drm)
 	}
 
 	if (device->info.family < NV_DEVICE_INFO_V0_FERMI) {
-		ret = nvkm_gpuobj_new(nvxx_object(&drm->device), NULL, 32,
-				      0, 0, &drm->notify);
+		ret = nouveau_gpuobj_new(nvkm_object(&drm->device), NULL, 32,
+					 0, 0, &drm->notify);
 		if (ret) {
 			NV_ERROR(drm, "failed to allocate notifier, %d\n", ret);
 			nouveau_accel_fini(drm);
@@ -285,7 +284,7 @@ nouveau_accel_init(struct nouveau_drm *drm)
 static int nouveau_drm_probe(struct pci_dev *pdev,
 			     const struct pci_device_id *pent)
 {
-	struct nvkm_device *device;
+	struct nouveau_device *device;
 	struct apertures_struct *aper;
 	bool boot = false;
 	int ret;
@@ -318,9 +317,9 @@ static int nouveau_drm_probe(struct pci_dev *pdev,
 		remove_conflicting_framebuffers(aper, "nouveaufb", boot);
 	kfree(aper);
 
-	ret = nvkm_device_create(pdev, NVKM_BUS_PCI,
-				 nouveau_pci_name(pdev), pci_name(pdev),
-				 nouveau_config, nouveau_debug, &device);
+	ret = nouveau_device_create(pdev, NOUVEAU_BUS_PCI,
+				    nouveau_pci_name(pdev), pci_name(pdev),
+				    nouveau_config, nouveau_debug, &device);
 	if (ret)
 		return ret;
 
@@ -328,7 +327,7 @@ static int nouveau_drm_probe(struct pci_dev *pdev,
 
 	ret = drm_get_pci_dev(pdev, pent, &driver_pci);
 	if (ret) {
-		nvkm_object_ref(NULL, (struct nvkm_object **)&device);
+		nouveau_object_ref(NULL, (struct nouveau_object **)&device);
 		return ret;
 	}
 
@@ -379,8 +378,8 @@ nouveau_drm_load(struct drm_device *dev, unsigned long flags)
 
 	dev->dev_private = drm;
 	drm->dev = dev;
-	nvxx_client(&drm->client.base)->debug =
-		nvkm_dbgopt(nouveau_debug, "DRM");
+	nvkm_client(&drm->client.base)->debug =
+		nouveau_dbgopt(nouveau_debug, "DRM");
 
 	INIT_LIST_HEAD(&drm->clients);
 	spin_lock_init(&drm->tile.lock);
@@ -435,12 +434,12 @@ nouveau_drm_load(struct drm_device *dev, unsigned long flags)
 	nouveau_agp_init(drm);
 
 	if (drm->device.info.family >= NV_DEVICE_INFO_V0_TESLA) {
-		ret = nvkm_vm_new(nvxx_device(&drm->device), 0, (1ULL << 40),
-				  0x1000, &drm->client.vm);
+		ret = nouveau_vm_new(nvkm_device(&drm->device), 0, (1ULL << 40),
+				     0x1000, &drm->client.vm);
 		if (ret)
 			goto fail_device;
 
-		nvxx_client(&drm->client.base)->vm = drm->client.vm;
+		nvkm_client(&drm->client.base)->vm = drm->client.vm;
 	}
 
 	ret = nouveau_ttm_init(drm);
@@ -523,17 +522,18 @@ void
 nouveau_drm_device_remove(struct drm_device *dev)
 {
 	struct nouveau_drm *drm = nouveau_drm(dev);
-	struct nvkm_client *client;
-	struct nvkm_object *device;
+	struct nouveau_client *client;
+	struct nouveau_object *device;
 
 	dev->irq_enabled = false;
-	client = nvxx_client(&drm->client.base);
+	client = nvkm_client(&drm->client.base);
 	device = client->device;
 	drm_put_dev(dev);
 
-	nvkm_object_ref(NULL, &device);
-	nvkm_object_debug();
+	nouveau_object_ref(NULL, &device);
+	nouveau_object_debug();
 }
+EXPORT_SYMBOL(nouveau_drm_device_remove);
 
 static void
 nouveau_drm_remove(struct pci_dev *pdev)
@@ -727,14 +727,14 @@ nouveau_drm_open(struct drm_device *dev, struct drm_file *fpriv)
 	cli->base.super = false;
 
 	if (drm->device.info.family >= NV_DEVICE_INFO_V0_TESLA) {
-		ret = nvkm_vm_new(nvxx_device(&drm->device), 0, (1ULL << 40),
-				  0x1000, &cli->vm);
+		ret = nouveau_vm_new(nvkm_device(&drm->device), 0, (1ULL << 40),
+				     0x1000, &cli->vm);
 		if (ret) {
 			nouveau_cli_destroy(cli);
 			goto out_suspend;
 		}
 
-		nvxx_client(&cli->base)->vm = cli->vm;
+		nvkm_client(&cli->base)->vm = cli->vm;
 	}
 
 	fpriv->driver_priv = cli;
@@ -1050,10 +1050,10 @@ nouveau_platform_device_create_(struct platform_device *pdev, int size,
 	struct drm_device *drm;
 	int err;
 
-	err = nvkm_device_create_(pdev, NVKM_BUS_PLATFORM,
-				  nouveau_platform_name(pdev),
-				  dev_name(&pdev->dev), nouveau_config,
-				  nouveau_debug, size, pobject);
+	err = nouveau_device_create_(pdev, NOUVEAU_BUS_PLATFORM,
+				    nouveau_platform_name(pdev),
+				    dev_name(&pdev->dev), nouveau_config,
+				    nouveau_debug, size, pobject);
 	if (err)
 		return ERR_PTR(err);
 
@@ -1073,10 +1073,11 @@ nouveau_platform_device_create_(struct platform_device *pdev, int size,
 	return drm;
 
 err_free:
-	nvkm_object_ref(NULL, (struct nvkm_object **)pobject);
+	nouveau_object_ref(NULL, (struct nouveau_object **)pobject);
 
 	return ERR_PTR(err);
 }
+EXPORT_SYMBOL(nouveau_platform_device_create_);
 
 static int __init
 nouveau_drm_init(void)
@@ -1098,10 +1099,6 @@ nouveau_drm_init(void)
 	if (!nouveau_modeset)
 		return 0;
 
-#ifdef CONFIG_NOUVEAU_PLATFORM_DRIVER
-	platform_driver_register(&nouveau_platform_driver);
-#endif
-
 	nouveau_register_dsm_handler();
 	return drm_pci_init(&driver_pci, &nouveau_drm_pci_driver);
 }
@@ -1114,10 +1111,6 @@ nouveau_drm_exit(void)
 
 	drm_pci_exit(&driver_pci, &nouveau_drm_pci_driver);
 	nouveau_unregister_dsm_handler();
-
-#ifdef CONFIG_NOUVEAU_PLATFORM_DRIVER
-	platform_driver_unregister(&nouveau_platform_driver);
-#endif
 }
 
 module_init(nouveau_drm_init);

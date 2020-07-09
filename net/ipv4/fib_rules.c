@@ -81,25 +81,27 @@ static int fib4_rule_action(struct fib_rule *rule, struct flowi *flp,
 		break;
 
 	case FR_ACT_UNREACHABLE:
-		return -ENETUNREACH;
+		err = -ENETUNREACH;
+		goto errout;
 
 	case FR_ACT_PROHIBIT:
-		return -EACCES;
+		err = -EACCES;
+		goto errout;
 
 	case FR_ACT_BLACKHOLE:
 	default:
-		return -EINVAL;
+		err = -EINVAL;
+		goto errout;
 	}
 
-	rcu_read_lock();
-
 	tbl = fib_get_table(rule->fr_net, rule->table);
-	if (tbl)
-		err = fib_table_lookup(tbl, &flp->u.ip4,
-				       (struct fib_result *)arg->result,
-				       arg->flags);
+	if (!tbl)
+		goto errout;
 
-	rcu_read_unlock();
+	err = fib_table_lookup(tbl, &flp->u.ip4, (struct fib_result *) arg->result, arg->flags);
+	if (err > 0)
+		err = -EAGAIN;
+errout:
 	return err;
 }
 

@@ -32,7 +32,6 @@
  */
 
 #include <linux/mlx4/device.h>
-#include <linux/clocksource.h>
 
 #include "mlx4_en.h"
 
@@ -194,9 +193,12 @@ static int mlx4_en_phc_adjtime(struct ptp_clock_info *ptp, s64 delta)
 	struct mlx4_en_dev *mdev = container_of(ptp, struct mlx4_en_dev,
 						ptp_clock_info);
 	unsigned long flags;
+	s64 now;
 
 	write_lock_irqsave(&mdev->clock_lock, flags);
-	timecounter_adjtime(&mdev->clock, delta);
+	now = timecounter_read(&mdev->clock);
+	now += delta;
+	timecounter_init(&mdev->clock, &mdev->cycles, now);
 	write_unlock_irqrestore(&mdev->clock_lock, flags);
 
 	return 0;
@@ -287,7 +289,7 @@ void mlx4_en_init_timestamp(struct mlx4_en_dev *mdev)
 {
 	struct mlx4_dev *dev = mdev->dev;
 	unsigned long flags;
-	u64 ns, zero = 0;
+	u64 ns;
 
 	rwlock_init(&mdev->clock_lock);
 
@@ -312,7 +314,7 @@ void mlx4_en_init_timestamp(struct mlx4_en_dev *mdev)
 	/* Calculate period in seconds to call the overflow watchdog - to make
 	 * sure counter is checked at least once every wrap around.
 	 */
-	ns = cyclecounter_cyc2ns(&mdev->cycles, mdev->cycles.mask, zero, &zero);
+	ns = cyclecounter_cyc2ns(&mdev->cycles, mdev->cycles.mask);
 	do_div(ns, NSEC_PER_SEC / 2 / HZ);
 	mdev->overflow_period = ns;
 

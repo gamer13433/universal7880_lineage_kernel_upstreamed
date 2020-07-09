@@ -56,18 +56,21 @@ exit:
 	return ret;
 }
 
-int ath10k_htt_tx_alloc_msdu_id(struct ath10k_htt *htt, struct sk_buff *skb)
+int ath10k_htt_tx_alloc_msdu_id(struct ath10k_htt *htt)
 {
 	struct ath10k *ar = htt->ar;
-	int ret;
+	int msdu_id;
 
 	lockdep_assert_held(&htt->tx_lock);
 
-	ret = idr_alloc(&htt->pending_tx, skb, 0, 0x10000, GFP_ATOMIC);
+	msdu_id = find_first_zero_bit(htt->used_msdu_ids,
+				      htt->max_num_pending_tx);
+	if (msdu_id == htt->max_num_pending_tx)
+		return -ENOBUFS;
 
-	ath10k_dbg(ar, ATH10K_DBG_HTT, "htt tx alloc msdu_id %d\n", ret);
-
-	return ret;
+	ath10k_dbg(ar, ATH10K_DBG_HTT, "htt tx alloc msdu_id %d\n", msdu_id);
+	__set_bit(msdu_id, htt->used_msdu_ids);
+	return msdu_id;
 }
 
 void ath10k_htt_tx_free_msdu_id(struct ath10k_htt *htt, u16 msdu_id)
@@ -381,12 +384,13 @@ int ath10k_htt_mgmt_tx(struct ath10k_htt *htt, struct sk_buff *msdu)
 	len += sizeof(cmd->mgmt_tx);
 
 	spin_lock_bh(&htt->tx_lock);
-	res = ath10k_htt_tx_alloc_msdu_id(htt, msdu);
+	res = ath10k_htt_tx_alloc_msdu_id(htt);
 	if (res < 0) {
 		spin_unlock_bh(&htt->tx_lock);
 		goto err_tx_dec;
 	}
 	msdu_id = res;
+	htt->pending_tx[msdu_id] = msdu;
 	spin_unlock_bh(&htt->tx_lock);
 
 	txdesc = ath10k_htc_alloc_skb(ar, len);
@@ -425,6 +429,7 @@ err_free_txdesc:
 	dev_kfree_skb_any(txdesc);
 err_free_msdu_id:
 	spin_lock_bh(&htt->tx_lock);
+	htt->pending_tx[msdu_id] = NULL;
 	ath10k_htt_tx_free_msdu_id(htt, msdu_id);
 	spin_unlock_bh(&htt->tx_lock);
 err_tx_dec:
@@ -456,12 +461,13 @@ int ath10k_htt_tx(struct ath10k_htt *htt, struct sk_buff *msdu)
 		goto err;
 
 	spin_lock_bh(&htt->tx_lock);
-	res = ath10k_htt_tx_alloc_msdu_id(htt, msdu);
+	res = ath10k_htt_tx_alloc_msdu_id(htt);
 	if (res < 0) {
 		spin_unlock_bh(&htt->tx_lock);
 		goto err_tx_dec;
 	}
 	msdu_id = res;
+	htt->pending_tx[msdu_id] = msdu;
 	spin_unlock_bh(&htt->tx_lock);
 
 	prefetch_len = min(htt->prefetch_len, msdu->len);
@@ -475,17 +481,9 @@ int ath10k_htt_tx(struct ath10k_htt *htt, struct sk_buff *msdu)
 
 	skb_cb->htt.txbuf = dma_pool_alloc(htt->tx_pool, GFP_ATOMIC,
 					   &paddr);
-	if (!skb_cb->htt.txbuf) {
-		res = -ENOMEM;
+	if (!skb_cb->htt.txbuf)
 		goto err_free_msdu_id;
-	}
 	skb_cb->htt.txbuf_paddr = paddr;
-
-	if ((ieee80211_is_action(hdr->frame_control) ||
-	     ieee80211_is_deauth(hdr->frame_control) ||
-	     ieee80211_is_disassoc(hdr->frame_control)) &&
-	     ieee80211_has_protected(hdr->frame_control))
-		skb_put(msdu, IEEE80211_CCMP_MIC_LEN);
 
 	skb_cb->paddr = dma_map_single(dev, msdu->data, msdu->len,
 				       DMA_TO_DEVICE);
@@ -542,10 +540,8 @@ int ath10k_htt_tx(struct ath10k_htt *htt, struct sk_buff *msdu)
 
 	flags1 |= SM((u16)vdev_id, HTT_DATA_TX_DESC_FLAGS1_VDEV_ID);
 	flags1 |= SM((u16)tid, HTT_DATA_TX_DESC_FLAGS1_EXT_TID);
-	if (msdu->ip_summed == CHECKSUM_PARTIAL) {
-		flags1 |= HTT_DATA_TX_DESC_FLAGS1_CKSUM_L3_OFFLOAD;
-		flags1 |= HTT_DATA_TX_DESC_FLAGS1_CKSUM_L4_OFFLOAD;
-	}
+	flags1 |= HTT_DATA_TX_DESC_FLAGS1_CKSUM_L3_OFFLOAD;
+	flags1 |= HTT_DATA_TX_DESC_FLAGS1_CKSUM_L4_OFFLOAD;
 
 	/* Prevent firmware from sending up tx inspection requests. There's
 	 * nothing ath10k can do with frames requested for inspection so force
@@ -599,6 +595,7 @@ err_free_txbuf:
 		      skb_cb->htt.txbuf_paddr);
 err_free_msdu_id:
 	spin_lock_bh(&htt->tx_lock);
+	htt->pending_tx[msdu_id] = NULL;
 	ath10k_htt_tx_free_msdu_id(htt, msdu_id);
 	spin_unlock_bh(&htt->tx_lock);
 err_tx_dec:

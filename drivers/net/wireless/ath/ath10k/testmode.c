@@ -187,14 +187,13 @@ static int ath10k_tm_cmd_utf_start(struct ath10k *ar, struct nlattr *tb[])
 
 	memcpy(ar->testmode.orig_fw_features, ar->fw_features,
 	       sizeof(ar->fw_features));
-	ar->testmode.orig_wmi_op_version = ar->wmi.op_version;
 
 	/* utf.bin firmware image does not advertise firmware features. Do
 	 * an ugly hack where we force the firmware features so that wmi.c
 	 * will use the correct WMI interface.
 	 */
 	memset(ar->fw_features, 0, sizeof(ar->fw_features));
-	ar->wmi.op_version = ATH10K_FW_WMI_OP_VERSION_10_1;
+	__set_bit(ATH10K_FW_FEATURE_WMI_10X, ar->fw_features);
 
 	ret = ath10k_hif_power_up(ar);
 	if (ret) {
@@ -225,7 +224,6 @@ err_fw_features:
 	/* return the original firmware features */
 	memcpy(ar->fw_features, ar->testmode.orig_fw_features,
 	       sizeof(ar->fw_features));
-	ar->wmi.op_version = ar->testmode.orig_wmi_op_version;
 
 	release_firmware(ar->testmode.utf);
 	ar->testmode.utf = NULL;
@@ -252,7 +250,6 @@ static void __ath10k_tm_cmd_utf_stop(struct ath10k *ar)
 	/* return the original firmware features */
 	memcpy(ar->fw_features, ar->testmode.orig_fw_features,
 	       sizeof(ar->fw_features));
-	ar->wmi.op_version = ar->testmode.orig_wmi_op_version;
 
 	release_firmware(ar->testmode.utf);
 	ar->testmode.utf = NULL;

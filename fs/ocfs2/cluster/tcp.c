@@ -1016,8 +1016,7 @@ void o2net_fill_node_map(unsigned long *map, unsigned bytes)
 
 	memset(map, 0, bytes);
 	for (node = 0; node < O2NM_MAX_NODES; ++node) {
-		if (!o2net_tx_can_proceed(o2net_nn_from_num(node), &sc, &ret))
-			continue;
+		o2net_tx_can_proceed(o2net_nn_from_num(node), &sc, &ret);
 		if (!ret) {
 			set_bit(node, map);
 			sc_put(sc);

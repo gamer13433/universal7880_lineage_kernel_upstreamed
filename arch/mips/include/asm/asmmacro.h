@@ -19,7 +19,7 @@
 #include <asm/asmmacro-64.h>
 #endif
 
-#if defined(CONFIG_CPU_MIPSR2) || defined(CONFIG_CPU_MIPSR6)
+#ifdef CONFIG_CPU_MIPSR2
 	.macro	local_irq_enable reg=t0
 	ei
 	irq_enable_hazard
@@ -104,8 +104,7 @@
 	.endm
 
 	.macro	fpu_save_double thread status tmp
-#if defined(CONFIG_64BIT) || defined(CONFIG_CPU_MIPS32_R2) || \
-		defined(CONFIG_CPU_MIPS32_R6)
+#if defined(CONFIG_64BIT) || defined(CONFIG_CPU_MIPS32_R2)
 	sll	\tmp, \status, 5
 	bgez	\tmp, 10f
 	fpu_save_16odd \thread
@@ -161,8 +160,7 @@
 	.endm
 
 	.macro	fpu_restore_double thread status tmp
-#if defined(CONFIG_64BIT) || defined(CONFIG_CPU_MIPS32_R2) || \
-		defined(CONFIG_CPU_MIPS32_R6)
+#if defined(CONFIG_64BIT) || defined(CONFIG_CPU_MIPS32_R2)
 	sll	\tmp, \status, 5
 	bgez	\tmp, 10f				# 16 register mode?
 
@@ -172,16 +170,16 @@
 	fpu_restore_16even \thread \tmp
 	.endm
 
-#if defined(CONFIG_CPU_MIPSR2) || defined(CONFIG_CPU_MIPSR6)
+#ifdef CONFIG_CPU_MIPSR2
 	.macro	_EXT	rd, rs, p, s
 	ext	\rd, \rs, \p, \s
 	.endm
-#else /* !CONFIG_CPU_MIPSR2 || !CONFIG_CPU_MIPSR6 */
+#else /* !CONFIG_CPU_MIPSR2 */
 	.macro	_EXT	rd, rs, p, s
 	srl	\rd, \rs, \p
 	andi	\rd, \rd, (1 << \s) - 1
 	.endm
-#endif /* !CONFIG_CPU_MIPSR2 || !CONFIG_CPU_MIPSR6 */
+#endif /* !CONFIG_CPU_MIPSR2 */
 
 /*
  * Temporary until all gas have MT ASE support

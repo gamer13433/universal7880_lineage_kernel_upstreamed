@@ -382,7 +382,7 @@ done:
 *
 * Arguments:
 *	hw		device struct
-*	tx_urb		URB of data for transmission
+*	tx_urb		URB of data for tranmission
 *	memflags	memory allocation flags
 *
 * Returns:
@@ -2391,7 +2391,7 @@ int hfa384x_drvr_ramdl_write(hfa384x_t *hw, u32 daddr, void *buf, u32 len)
 *	0		success
 *	>0		f/w reported error - f/w status code
 *	<0		driver reported error
-*	-ETIMEDOUT	timeout waiting for the cmd regs to become
+*	-ETIMEDOUT	timout waiting for the cmd regs to become
 *			available, or waiting for the control reg
 *			to indicate the Aux port is enabled.
 *	-ENODATA	the buffer does NOT contain a valid PDA.
@@ -3346,7 +3346,7 @@ retry:
 		if (unlocked_usbctlx_cancel_async(hw, ctlx) == 0)
 			run_queue = 1;
 	} else {
-		const __le16 intype = (usbin->type & ~cpu_to_le16(0x8000));
+		const u16 intype = (usbin->type & ~cpu_to_le16(0x8000));
 
 		/*
 		 * Check that our message is what we're expecting ...
@@ -4127,11 +4127,12 @@ static int hfa384x_isgood_pdrcode(u16 pdrcode)
 			pr_debug("Encountered unknown PDR#=0x%04x, assuming it's ok.\n",
 				 pdrcode);
 			return 1;
+		} else {
+			/* bad code */
+			pr_debug("Encountered unknown PDR#=0x%04x, (>=0x1000), assuming it's bad.\n",
+				 pdrcode);
+			return 0;
 		}
-		break;
 	}
-	/* bad code */
-	pr_debug("Encountered unknown PDR#=0x%04x, (>=0x1000), assuming it's bad.\n",
-		 pdrcode);
-	return 0;
+	return 0;		/* avoid compiler warnings */
 }

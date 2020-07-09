@@ -232,13 +232,16 @@ static irqreturn_t tc3589x_gpio_irq(int irq, void *dev)
 static int tc3589x_gpio_probe(struct platform_device *pdev)
 {
 	struct tc3589x *tc3589x = dev_get_drvdata(pdev->dev.parent);
+	struct tc3589x_gpio_platform_data *pdata;
 	struct device_node *np = pdev->dev.of_node;
 	struct tc3589x_gpio *tc3589x_gpio;
 	int ret;
 	int irq;
 
-	if (!np) {
-		dev_err(&pdev->dev, "No Device Tree node found\n");
+	pdata = tc3589x->pdata->gpio;
+
+	if (!(pdata || np)) {
+		dev_err(&pdev->dev, "No platform data or Device Tree found\n");
 		return -EINVAL;
 	}
 
@@ -302,6 +305,9 @@ static int tc3589x_gpio_probe(struct platform_device *pdev)
 				     irq,
 				     NULL);
 
+	if (pdata && pdata->setup)
+		pdata->setup(tc3589x, tc3589x_gpio->chip.base);
+
 	platform_set_drvdata(pdev, tc3589x_gpio);
 
 	return 0;
@@ -310,6 +316,11 @@ static int tc3589x_gpio_probe(struct platform_device *pdev)
 static int tc3589x_gpio_remove(struct platform_device *pdev)
 {
 	struct tc3589x_gpio *tc3589x_gpio = platform_get_drvdata(pdev);
+	struct tc3589x *tc3589x = tc3589x_gpio->tc3589x;
+	struct tc3589x_gpio_platform_data *pdata = tc3589x->pdata->gpio;
+
+	if (pdata && pdata->remove)
+		pdata->remove(tc3589x, tc3589x_gpio->chip.base);
 
 	gpiochip_remove(&tc3589x_gpio->chip);
 

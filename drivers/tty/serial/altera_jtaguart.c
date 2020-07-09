@@ -441,7 +441,6 @@ static int altera_jtaguart_probe(struct platform_device *pdev)
 	port->iotype = SERIAL_IO_MEM;
 	port->ops = &altera_jtaguart_ops;
 	port->flags = UPF_BOOT_AUTOCONF;
-	port->dev = &pdev->dev;
 
 	uart_add_one_port(&altera_jtaguart_driver, port);
 

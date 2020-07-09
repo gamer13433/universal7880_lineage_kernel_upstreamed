@@ -47,6 +47,11 @@ static struct regmap *zynq_slcr_regmap;
  */
 static int zynq_slcr_write(u32 val, u32 offset)
 {
+	if (!zynq_slcr_regmap) {
+		writel(val, zynq_slcr_base + offset);
+		return 0;
+	}
+
 	return regmap_write(zynq_slcr_regmap, offset, val);
 }
 
@@ -60,7 +65,12 @@ static int zynq_slcr_write(u32 val, u32 offset)
  */
 static int zynq_slcr_read(u32 *val, u32 offset)
 {
-	return regmap_read(zynq_slcr_regmap, offset, val);
+	if (zynq_slcr_regmap)
+		return regmap_read(zynq_slcr_regmap, offset, val);
+
+	*val = readl(zynq_slcr_base + offset);
+
+	return 0;
 }
 
 /**
@@ -186,6 +196,23 @@ void zynq_slcr_cpu_state_write(int cpu, bool die)
 }
 
 /**
+ * zynq_slcr_init - Regular slcr driver init
+ * Return:	0 on success, negative errno otherwise.
+ *
+ * Called early during boot from platform code to remap SLCR area.
+ */
+int __init zynq_slcr_init(void)
+{
+	zynq_slcr_regmap = syscon_regmap_lookup_by_compatible("xlnx,zynq-slcr");
+	if (IS_ERR(zynq_slcr_regmap)) {
+		pr_err("%s: failed to find zynq-slcr\n", __func__);
+		return -ENODEV;
+	}
+
+	return 0;
+}
+
+/**
  * zynq_early_slcr_init - Early slcr init function
  *
  * Return:	0 on success, negative errno otherwise.
@@ -209,12 +236,6 @@ int __init zynq_early_slcr_init(void)
 	}
 
 	np->data = (__force void *)zynq_slcr_base;
-
-	zynq_slcr_regmap = syscon_regmap_lookup_by_compatible("xlnx,zynq-slcr");
-	if (IS_ERR(zynq_slcr_regmap)) {
-		pr_err("%s: failed to find zynq-slcr\n", __func__);
-		return -ENODEV;
-	}
 
 	/* unlock the SLCR so that registers can be changed */
 	zynq_slcr_unlock();

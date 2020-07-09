@@ -32,7 +32,7 @@ affs_insert_hash(struct inode *dir, struct buffer_head *bh)
 	ino = bh->b_blocknr;
 	offset = affs_hash_name(sb, AFFS_TAIL(sb, bh)->name + 1, AFFS_TAIL(sb, bh)->name[0]);
 
-	pr_debug("%s(dir=%lu, ino=%d)\n", __func__, dir->i_ino, ino);
+	pr_debug("%s(dir=%u, ino=%d)\n", __func__, (u32)dir->i_ino, ino);
 
 	dir_bh = affs_bread(sb, dir->i_ino);
 	if (!dir_bh)
@@ -82,8 +82,8 @@ affs_remove_hash(struct inode *dir, struct buffer_head *rem_bh)
 	sb = dir->i_sb;
 	rem_ino = rem_bh->b_blocknr;
 	offset = affs_hash_name(sb, AFFS_TAIL(sb, rem_bh)->name+1, AFFS_TAIL(sb, rem_bh)->name[0]);
-	pr_debug("%s(dir=%lu, ino=%d, hashval=%d)\n", __func__, dir->i_ino,
-		 rem_ino, offset);
+	pr_debug("%s(dir=%d, ino=%d, hashval=%d)\n",
+		 __func__, (u32)dir->i_ino, rem_ino, offset);
 
 	bh = affs_bread(sb, dir->i_ino);
 	if (!bh)
@@ -485,10 +485,11 @@ affs_check_name(const unsigned char *name, int len, bool notruncate)
 {
 	int	 i;
 
-	if (len > AFFSNAMEMAX) {
+	if (len > 30) {
 		if (notruncate)
 			return -ENAMETOOLONG;
-		len = AFFSNAMEMAX;
+		else
+			len = 30;
 	}
 	for (i = 0; i < len; i++) {
 		if (name[i] < ' ' || name[i] == ':'
@@ -509,7 +510,7 @@ affs_check_name(const unsigned char *name, int len, bool notruncate)
 int
 affs_copy_name(unsigned char *bstr, struct dentry *dentry)
 {
-	u32 len = min(dentry->d_name.len, AFFSNAMEMAX);
+	int len = min(dentry->d_name.len, 30u);
 
 	*bstr++ = len;
 	memcpy(bstr, dentry->d_name.name, len);

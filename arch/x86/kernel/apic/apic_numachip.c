@@ -37,12 +37,10 @@ static const struct apic apic_numachip;
 static unsigned int get_apic_id(unsigned long x)
 {
 	unsigned long value;
-	unsigned int id = (x >> 24) & 0xff;
+	unsigned int id;
 
-	if (static_cpu_has_safe(X86_FEATURE_NODEID_MSR)) {
-		rdmsrl(MSR_FAM10H_NODE_ID, value);
-		id |= (value << 2) & 0xff00;
-	}
+	rdmsrl(MSR_FAM10H_NODE_ID, value);
+	id = ((x >> 24) & 0xffU) | ((value << 2) & 0xff00U);
 
 	return id;
 }

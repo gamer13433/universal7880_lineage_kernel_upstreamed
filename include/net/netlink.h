@@ -490,10 +490,14 @@ static inline struct sk_buff *nlmsg_new(size_t payload, gfp_t flags)
  * Corrects the netlink message header to include the appeneded
  * attributes. Only necessary if attributes have been added to
  * the message.
+ *
+ * Returns the total data length of the skb.
  */
-static inline void nlmsg_end(struct sk_buff *skb, struct nlmsghdr *nlh)
+static inline int nlmsg_end(struct sk_buff *skb, struct nlmsghdr *nlh)
 {
 	nlh->nlmsg_len = skb_tail_pointer(skb) - (unsigned char *)nlh;
+
+	return skb->len;
 }
 
 /**
@@ -516,10 +520,8 @@ static inline void *nlmsg_get_pos(struct sk_buff *skb)
  */
 static inline void nlmsg_trim(struct sk_buff *skb, const void *mark)
 {
-	if (mark) {
-		WARN_ON((unsigned char *) mark < skb->data);
+	if (mark)
 		skb_trim(skb, (unsigned char *) mark - skb->data);
-	}
 }
 
 /**

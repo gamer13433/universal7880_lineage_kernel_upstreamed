@@ -364,7 +364,9 @@ static struct request_context *ezusb_alloc_ctx(struct ezusb_priv *upriv,
 	atomic_set(&ctx->refcount, 1);
 	init_completion(&ctx->done);
 
-	setup_timer(&ctx->timer, ezusb_request_timerfn, (u_long)ctx);
+	init_timer(&ctx->timer);
+	ctx->timer.function = ezusb_request_timerfn;
+	ctx->timer.data = (u_long) ctx;
 	return ctx;
 }
 

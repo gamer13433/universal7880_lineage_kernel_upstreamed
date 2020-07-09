@@ -575,8 +575,7 @@ static int cgw_put_job(struct sk_buff *skb, struct cgw_job *gwj, int type,
 			goto cancel;
 	}
 
-	nlmsg_end(skb, nlh);
-	return 0;
+	return nlmsg_end(skb, nlh);
 
 cancel:
 	nlmsg_cancel(skb, nlh);

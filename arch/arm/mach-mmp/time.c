@@ -213,7 +213,7 @@ void __init timer_init(int irq)
 }
 
 #ifdef CONFIG_OF
-static const struct of_device_id mmp_timer_dt_ids[] = {
+static struct of_device_id mmp_timer_dt_ids[] = {
 	{ .compatible = "mrvl,mmp-timer", },
 	{}
 };

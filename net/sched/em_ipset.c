@@ -59,7 +59,7 @@ static int em_ipset_match(struct sk_buff *skb, struct tcf_ematch *em,
 	struct net_device *dev, *indev = NULL;
 	int ret, network_offset;
 
-	switch (tc_skb_protocol(skb)) {
+	switch (skb->protocol) {
 	case htons(ETH_P_IP):
 		acpar.family = NFPROTO_IPV4;
 		if (!pskb_network_may_pull(skb, sizeof(struct iphdr)))

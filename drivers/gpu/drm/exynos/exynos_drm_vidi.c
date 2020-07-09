@@ -259,9 +259,9 @@ static int vidi_power_on(struct exynos_drm_manager *mgr, bool enable)
 
 		/* if vblank was enabled status, enable it again. */
 		if (test_and_clear_bit(0, &ctx->irq_flags))
-			vidi_enable_vblank(ctx->crtc);
+			vidi_enable_vblank(mgr);
 
-		vidi_apply(ctx);
+		vidi_apply(mgr);
 	} else {
 		ctx->suspended = true;
 	}
@@ -279,12 +279,12 @@ static void vidi_dpms(struct exynos_drm_manager *mgr, int mode)
 
 	switch (mode) {
 	case DRM_MODE_DPMS_ON:
-		vidi_power_on(ctx, true);
+		vidi_power_on(mgr, true);
 		break;
 	case DRM_MODE_DPMS_STANDBY:
 	case DRM_MODE_DPMS_SUSPEND:
 	case DRM_MODE_DPMS_OFF:
-		vidi_power_on(ctx, false);
+		vidi_power_on(mgr, false);
 		break;
 	default:
 		DRM_DEBUG_KMS("unspecified mode %d\n", mode);

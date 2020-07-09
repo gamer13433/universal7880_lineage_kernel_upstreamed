@@ -2683,7 +2683,9 @@ static int __exit bcm2048_i2c_driver_remove(struct i2c_client *client)
 		vd = bdev->videodev;
 
 		bcm2048_sysfs_unregister_properties(bdev, ARRAY_SIZE(attrs));
-		video_unregister_device(vd);
+
+		if (vd)
+			video_unregister_device(vd);
 
 		if (bdev->power_state)
 			bcm2048_set_power_state(bdev, BCM2048_POWER_OFF);
@@ -2695,6 +2697,8 @@ static int __exit bcm2048_i2c_driver_remove(struct i2c_client *client)
 
 		kfree(bdev);
 	}
+
+	i2c_set_clientdata(client, NULL);
 
 	return 0;
 }

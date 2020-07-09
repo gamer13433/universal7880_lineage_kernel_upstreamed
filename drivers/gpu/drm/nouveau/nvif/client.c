@@ -22,9 +22,9 @@
  * Authors: Ben Skeggs <bskeggs@redhat.com>
  */
 
-#include <nvif/client.h>
-#include <nvif/driver.h>
-#include <nvif/ioctl.h>
+#include "client.h"
+#include "driver.h"
+#include "ioctl.h"
 
 int
 nvif_client_ioctl(struct nvif_client *client, void *data, u32 size)

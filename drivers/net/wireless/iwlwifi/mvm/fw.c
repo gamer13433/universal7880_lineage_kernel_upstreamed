@@ -70,7 +70,6 @@
 #include "iwl-debug.h"
 #include "iwl-csr.h" /* for iwl_mvm_rx_card_state_notif */
 #include "iwl-io.h" /* for iwl_mvm_rx_card_state_notif */
-#include "iwl-prph.h"
 #include "iwl-eeprom-parse.h"
 
 #include "mvm.h"
@@ -261,7 +260,7 @@ static int iwl_send_phy_cfg_cmd(struct iwl_mvm *mvm)
 	enum iwl_ucode_type ucode_type = mvm->cur_ucode;
 
 	/* Set parameters */
-	phy_cfg_cmd.phy_cfg = cpu_to_le32(iwl_mvm_get_phy_config(mvm));
+	phy_cfg_cmd.phy_cfg = cpu_to_le32(mvm->fw->phy_config);
 	phy_cfg_cmd.calib_control.event_trigger =
 		mvm->fw->default_calib[ucode_type].event_trigger;
 	phy_cfg_cmd.calib_control.flow_trigger =
@@ -338,7 +337,7 @@ int iwl_run_init_mvm_ucode(struct iwl_mvm *mvm, bool read_nvm)
 	mvm->calibrating = true;
 
 	/* Send TX valid antennas before triggering calibrations */
-	ret = iwl_send_tx_ant_cfg(mvm, iwl_mvm_get_valid_tx_ant(mvm));
+	ret = iwl_send_tx_ant_cfg(mvm, mvm->fw->valid_tx_ant);
 	if (ret)
 		goto error;
 
@@ -391,35 +390,6 @@ out:
 	return ret;
 }
 
-static int iwl_mvm_config_ltr_v1(struct iwl_mvm *mvm)
-{
-	struct iwl_ltr_config_cmd_v1 cmd_v1 = {
-		.flags = cpu_to_le32(LTR_CFG_FLAG_FEATURE_ENABLE),
-	};
-
-	if (!mvm->trans->ltr_enabled)
-		return 0;
-
-	return iwl_mvm_send_cmd_pdu(mvm, LTR_CONFIG, 0,
-				    sizeof(cmd_v1), &cmd_v1);
-}
-
-static int iwl_mvm_config_ltr(struct iwl_mvm *mvm)
-{
-	struct iwl_ltr_config_cmd cmd = {
-		.flags = cpu_to_le32(LTR_CFG_FLAG_FEATURE_ENABLE),
-	};
-
-	if (!mvm->trans->ltr_enabled)
-		return 0;
-
-	if (!(mvm->fw->ucode_capa.api[0] & IWL_UCODE_TLV_API_HDC_PHASE_0))
-		return iwl_mvm_config_ltr_v1(mvm);
-
-	return iwl_mvm_send_cmd_pdu(mvm, LTR_CONFIG, 0,
-				    sizeof(cmd), &cmd);
-}
-
 int iwl_mvm_up(struct iwl_mvm *mvm)
 {
 	int ret, i;
@@ -467,14 +437,11 @@ int iwl_mvm_up(struct iwl_mvm *mvm)
 		goto error;
 	}
 
-	if (IWL_UCODE_API(mvm->fw->ucode_ver) >= 10)
-		iwl_mvm_get_shared_mem_conf(mvm);
-
 	ret = iwl_mvm_sf_update(mvm, NULL, false);
 	if (ret)
 		IWL_ERR(mvm, "Failed to initialize Smart Fifo\n");
 
-	ret = iwl_send_tx_ant_cfg(mvm, iwl_mvm_get_valid_tx_ant(mvm));
+	ret = iwl_send_tx_ant_cfg(mvm, mvm->fw->valid_tx_ant);
 	if (ret)
 		goto error;
 
@@ -521,7 +488,14 @@ int iwl_mvm_up(struct iwl_mvm *mvm)
 	/* Initialize tx backoffs to the minimal possible */
 	iwl_mvm_tt_tx_backoff(mvm, 0);
 
-	WARN_ON(iwl_mvm_config_ltr(mvm));
+	if (mvm->trans->ltr_enabled) {
+		struct iwl_ltr_config_cmd cmd = {
+			.flags = cpu_to_le32(LTR_CFG_FLAG_FEATURE_ENABLE),
+		};
+
+		WARN_ON(iwl_mvm_send_cmd_pdu(mvm, LTR_CONFIG, 0,
+					     sizeof(cmd), &cmd));
+	}
 
 	ret = iwl_mvm_power_update_device(mvm);
 	if (ret)
@@ -554,7 +528,7 @@ int iwl_mvm_load_d3_fw(struct iwl_mvm *mvm)
 		goto error;
 	}
 
-	ret = iwl_send_tx_ant_cfg(mvm, iwl_mvm_get_valid_tx_ant(mvm));
+	ret = iwl_send_tx_ant_cfg(mvm, mvm->fw->valid_tx_ant);
 	if (ret)
 		goto error;
 

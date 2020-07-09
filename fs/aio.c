@@ -178,15 +178,6 @@ static struct backing_dev_info aio_fs_backing_dev_info = {
 extern void rkp_set_mnt_flags(struct vfsmount *mnt, int flags);
 #endif
 
-/* Backing dev info for aio fs.
- * -no dirty page accounting or writeback happens
- */
-static struct backing_dev_info aio_fs_backing_dev_info = {
-	.name           = "aiofs",
-	.state          = 0,
-	.capabilities   = BDI_CAP_NO_ACCT_AND_WRITEBACK | BDI_CAP_MAP_COPY,
-};
-
 static struct file *aio_private_file(struct kioctx *ctx, loff_t nr_pages)
 {
 	struct qstr this = QSTR_INIT("[aio]", 5);
@@ -247,9 +238,6 @@ static int __init aio_setup(void)
 #else
 	aio_mnt->mnt_flags |= MNT_NOEXEC;
 #endif
-	if (bdi_init(&aio_fs_backing_dev_info))
-		panic("Failed to init aio fs backing dev info.");
-
 	if (bdi_init(&aio_fs_backing_dev_info))
 		panic("Failed to init aio fs backing dev info.");
 
@@ -735,6 +723,9 @@ static struct kioctx *ioctx_alloc(unsigned nr_events)
 err_cleanup:
 	aio_nr_sub(ctx->max_reqs);
 err_ctx:
+	atomic_set(&ctx->dead, 1);
+	if (ctx->mmap_size)
+		vm_munmap(ctx->mmap_base, ctx->mmap_size);
 	aio_free_ring(ctx);
 err:
 	mutex_unlock(&ctx->ring_lock);

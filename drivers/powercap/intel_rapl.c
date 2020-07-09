@@ -77,7 +77,7 @@
 
 #define TIME_WINDOW_MAX_MSEC 40000
 #define TIME_WINDOW_MIN_MSEC 250
-#define ENERGY_UNIT_SCALE    1000 /* scale from driver unit to powercap unit */
+
 enum unit_type {
 	ARBITRARY_UNIT, /* no translation */
 	POWER_UNIT,
@@ -162,7 +162,6 @@ struct rapl_domain {
 	struct rapl_power_limit rpl[NR_POWER_LIMITS];
 	u64 attr_map; /* track capabilities */
 	unsigned int state;
-	unsigned int domain_energy_unit;
 	int package_id;
 };
 #define power_zone_to_rapl_domain(_zone) \
@@ -220,8 +219,7 @@ static int rapl_read_data_raw(struct rapl_domain *rd,
 static int rapl_write_data_raw(struct rapl_domain *rd,
 			enum rapl_primitives prim,
 			unsigned long long value);
-static u64 rapl_unit_xlate(struct rapl_domain *rd, int package,
-			enum unit_type type, u64 value,
+static u64 rapl_unit_xlate(int package, enum unit_type type, u64 value,
 			int to_raw);
 static void package_power_limit_irq_save(int package_id);
 
@@ -299,9 +297,7 @@ static int get_energy_counter(struct powercap_zone *power_zone, u64 *energy_raw)
 
 static int get_max_energy_counter(struct powercap_zone *pcd_dev, u64 *energy)
 {
-	struct rapl_domain *rd = power_zone_to_rapl_domain(pcd_dev);
-
-	*energy = rapl_unit_xlate(rd, 0, ENERGY_UNIT, ENERGY_STATUS_MASK, 0);
+	*energy = rapl_unit_xlate(0, ENERGY_UNIT, ENERGY_STATUS_MASK, 0);
 	return 0;
 }
 
@@ -645,11 +641,6 @@ static void rapl_init_domains(struct rapl_package *rp)
 			rd->msrs[4] = MSR_DRAM_POWER_INFO;
 			rd->rpl[0].prim_id = PL1_ENABLE;
 			rd->rpl[0].name = pl1_name;
-			rd->domain_energy_unit =
-				rapl_defaults->dram_domain_energy_unit;
-			if (rd->domain_energy_unit)
-				pr_info("DRAM domain energy unit %dpj\n",
-					rd->domain_energy_unit);
 			break;
 		}
 		if (mask) {
@@ -804,7 +795,7 @@ static int rapl_read_data_raw(struct rapl_domain *rd,
 	final = value & rp->mask;
 	final = final >> rp->shift;
 	if (xlate)
-		*data = rapl_unit_xlate(rd, rd->package_id, rp->unit, final, 0);
+		*data = rapl_unit_xlate(rd->package_id, rp->unit, final, 0);
 	else
 		*data = final;
 
@@ -830,7 +821,7 @@ static int rapl_write_data_raw(struct rapl_domain *rd,
 			"failed to read msr 0x%x on cpu %d\n", msr, cpu);
 		return -EIO;
 	}
-	value = rapl_unit_xlate(rd, rd->package_id, rp->unit, value, 1);
+	value = rapl_unit_xlate(rd->package_id, rp->unit, value, 1);
 	msr_val &= ~rp->mask;
 	msr_val |= value << rp->shift;
 	if (wrmsrl_safe_on_cpu(cpu, msr, msr_val)) {

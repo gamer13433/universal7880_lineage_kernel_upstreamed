@@ -296,7 +296,7 @@ done:
 static int l2cap_sock_accept(struct socket *sock, struct socket *newsock,
 			     int flags)
 {
-	DEFINE_WAIT_FUNC(wait, woken_wake_function);
+	DECLARE_WAITQUEUE(wait, current);
 	struct sock *sk = sock->sk, *nsk;
 	long timeo;
 	int err = 0;
@@ -310,6 +310,8 @@ static int l2cap_sock_accept(struct socket *sock, struct socket *newsock,
 	/* Wait for an incoming connection. (wake-one). */
 	add_wait_queue_exclusive(sk_sleep(sk), &wait);
 	while (1) {
+		set_current_state(TASK_INTERRUPTIBLE);
+
 		if (sk->sk_state != BT_LISTEN) {
 			err = -EBADFD;
 			break;
@@ -1598,8 +1600,6 @@ static const struct net_proto_family l2cap_sock_family_ops = {
 int __init l2cap_init_sockets(void)
 {
 	int err;
-
-	BUILD_BUG_ON(sizeof(struct sockaddr_l2) > sizeof(struct sockaddr));
 
 	err = proto_register(&l2cap_proto, 0);
 	if (err < 0)

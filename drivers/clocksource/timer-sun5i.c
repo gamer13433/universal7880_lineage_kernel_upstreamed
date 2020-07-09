@@ -17,6 +17,7 @@
 #include <linux/irq.h>
 #include <linux/irqreturn.h>
 #include <linux/reset.h>
+#include <linux/sched_clock.h>
 #include <linux/of.h>
 #include <linux/of_address.h>
 #include <linux/of_irq.h>
@@ -135,6 +136,11 @@ static struct irqaction sun5i_timer_irq = {
 	.handler = sun5i_timer_interrupt,
 	.dev_id = &sun5i_clockevent,
 };
+
+static u64 sun5i_timer_sched_read(void)
+{
+	return ~readl(timer_base + TIMER_CNTVAL_LO_REG(1));
+}
 
 static void __init sun5i_timer_init(struct device_node *node)
 {

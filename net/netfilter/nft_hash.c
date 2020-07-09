@@ -33,7 +33,7 @@ static bool nft_hash_lookup(const struct nft_set *set,
 			    const struct nft_data *key,
 			    struct nft_data *data)
 {
-	struct rhashtable *priv = nft_set_priv(set);
+	const struct rhashtable *priv = nft_set_priv(set);
 	const struct nft_hash_elem *he;
 
 	he = rhashtable_lookup(priv, key);
@@ -179,23 +179,18 @@ static int nft_hash_init(const struct nft_set *set,
 
 static void nft_hash_destroy(const struct nft_set *set)
 {
-	struct rhashtable *priv = nft_set_priv(set);
-	const struct bucket_table *tbl;
-	struct nft_hash_elem *he;
-	struct rhash_head *pos, *next;
+	const struct rhashtable *priv = nft_set_priv(set);
+	const struct bucket_table *tbl = priv->tbl;
+	struct nft_hash_elem *he, *next;
 	unsigned int i;
 
-	/* Stop an eventual async resizing */
-	priv->being_destroyed = true;
-	mutex_lock(&priv->mutex);
-
-	tbl = rht_dereference(priv->tbl, priv);
 	for (i = 0; i < tbl->size; i++) {
-		rht_for_each_entry_safe(he, pos, next, tbl, i, node)
+		for (he = rht_entry(tbl->buckets[i], struct nft_hash_elem, node);
+		     he != NULL; he = next) {
+			next = rht_entry(he->node.next, struct nft_hash_elem, node);
 			nft_hash_elem_destroy(set, he);
+		}
 	}
-	mutex_unlock(&priv->mutex);
-
 	rhashtable_destroy(priv);
 }
 

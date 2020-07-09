@@ -253,6 +253,9 @@ static inline void arch_read_lock(arch_rwlock_t *rw)
 	smp_llsc_mb();
 }
 
+/* Note the use of sub, not subu which will make the kernel die with an
+   overflow exception if we ever try to unlock an rwlock that is already
+   unlocked or is being held by a writer.  */
 static inline void arch_read_unlock(arch_rwlock_t *rw)
 {
 	unsigned int tmp;

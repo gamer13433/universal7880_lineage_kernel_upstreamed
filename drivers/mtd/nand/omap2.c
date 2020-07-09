@@ -1044,9 +1044,10 @@ static int omap_dev_ready(struct mtd_info *mtd)
  * @mtd: MTD device structure
  * @mode: Read/Write mode
  *
- * When using BCH with SW correction (i.e. no ELM), sector size is set
- * to 512 bytes and we use BCH_WRAPMODE_6 wrapping mode
- * for both reading and writing with:
+ * When using BCH, sector size is hardcoded to 512 bytes.
+ * Using wrapping mode 6 both for reading and writing if ELM module not uses
+ * for error correction.
+ * On writing,
  * eccsize0 = 0  (no additional protected byte in spare area)
  * eccsize1 = 32 (skip 32 nibbles = 16 bytes per sector in spare area)
  */
@@ -1066,9 +1067,15 @@ static void __maybe_unused omap_enable_hwecc_bch(struct mtd_info *mtd, int mode)
 	case OMAP_ECC_BCH4_CODE_HW_DETECTION_SW:
 		bch_type = 0;
 		nsectors = 1;
-		wr_mode	  = BCH_WRAPMODE_6;
-		ecc_size0 = BCH_ECC_SIZE0;
-		ecc_size1 = BCH_ECC_SIZE1;
+		if (mode == NAND_ECC_READ) {
+			wr_mode	  = BCH_WRAPMODE_6;
+			ecc_size0 = BCH_ECC_SIZE0;
+			ecc_size1 = BCH_ECC_SIZE1;
+		} else {
+			wr_mode   = BCH_WRAPMODE_6;
+			ecc_size0 = BCH_ECC_SIZE0;
+			ecc_size1 = BCH_ECC_SIZE1;
+		}
 		break;
 	case OMAP_ECC_BCH4_CODE_HW:
 		bch_type = 0;
@@ -1086,9 +1093,15 @@ static void __maybe_unused omap_enable_hwecc_bch(struct mtd_info *mtd, int mode)
 	case OMAP_ECC_BCH8_CODE_HW_DETECTION_SW:
 		bch_type = 1;
 		nsectors = 1;
-		wr_mode	  = BCH_WRAPMODE_6;
-		ecc_size0 = BCH_ECC_SIZE0;
-		ecc_size1 = BCH_ECC_SIZE1;
+		if (mode == NAND_ECC_READ) {
+			wr_mode	  = BCH_WRAPMODE_6;
+			ecc_size0 = BCH_ECC_SIZE0;
+			ecc_size1 = BCH_ECC_SIZE1;
+		} else {
+			wr_mode   = BCH_WRAPMODE_6;
+			ecc_size0 = BCH_ECC_SIZE0;
+			ecc_size1 = BCH_ECC_SIZE1;
+		}
 		break;
 	case OMAP_ECC_BCH8_CODE_HW:
 		bch_type = 1;

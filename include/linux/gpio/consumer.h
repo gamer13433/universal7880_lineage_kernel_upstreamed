@@ -295,32 +295,31 @@ static inline int desc_to_gpio(const struct gpio_desc *desc)
  * etc.
  */
 #define __gpiod_get(dev, con_id, flags, ...) __gpiod_get(dev, con_id, flags)
-#define gpiod_get(varargs...) __gpiod_get(varargs, GPIOD_ASIS)
+#define gpiod_get(varargs...) __gpiod_get(varargs, 0)
 #define __gpiod_get_index(dev, con_id, index, flags, ...)		\
 	__gpiod_get_index(dev, con_id, index, flags)
-#define gpiod_get_index(varargs...) __gpiod_get_index(varargs, GPIOD_ASIS)
+#define gpiod_get_index(varargs...) __gpiod_get_index(varargs, 0)
 #define __gpiod_get_optional(dev, con_id, flags, ...)			\
 	__gpiod_get_optional(dev, con_id, flags)
-#define gpiod_get_optional(varargs...) __gpiod_get_optional(varargs, GPIOD_ASIS)
+#define gpiod_get_optional(varargs...) __gpiod_get_optional(varargs, 0)
 #define __gpiod_get_index_optional(dev, con_id, index, flags, ...)	\
 	__gpiod_get_index_optional(dev, con_id, index, flags)
 #define gpiod_get_index_optional(varargs...)				\
-	__gpiod_get_index_optional(varargs, GPIOD_ASIS)
+	__gpiod_get_index_optional(varargs, 0)
 #define __devm_gpiod_get(dev, con_id, flags, ...)			\
 	__devm_gpiod_get(dev, con_id, flags)
-#define devm_gpiod_get(varargs...) __devm_gpiod_get(varargs, GPIOD_ASIS)
+#define devm_gpiod_get(varargs...) __devm_gpiod_get(varargs, 0)
 #define __devm_gpiod_get_index(dev, con_id, index, flags, ...)		\
 	__devm_gpiod_get_index(dev, con_id, index, flags)
-#define devm_gpiod_get_index(varargs...)				\
-	__devm_gpiod_get_index(varargs, GPIOD_ASIS)
+#define devm_gpiod_get_index(varargs...) __devm_gpiod_get_index(varargs, 0)
 #define __devm_gpiod_get_optional(dev, con_id, flags, ...)		\
 	__devm_gpiod_get_optional(dev, con_id, flags)
 #define devm_gpiod_get_optional(varargs...)				\
-	__devm_gpiod_get_optional(varargs, GPIOD_ASIS)
+	__devm_gpiod_get_optional(varargs, 0)
 #define __devm_gpiod_get_index_optional(dev, con_id, index, flags, ...)	\
 	__devm_gpiod_get_index_optional(dev, con_id, index, flags)
 #define devm_gpiod_get_index_optional(varargs...)			\
-	__devm_gpiod_get_index_optional(varargs, GPIOD_ASIS)
+	__devm_gpiod_get_index_optional(varargs, 0)
 
 #if IS_ENABLED(CONFIG_GPIOLIB) && IS_ENABLED(CONFIG_GPIO_SYSFS)
 

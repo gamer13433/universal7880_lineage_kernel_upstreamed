@@ -2679,7 +2679,7 @@ static int __cvmx_usb_poll_channel(struct cvmx_usb_state *usb, int channel)
 
 	/*
 	 * Read the channel config info so we can figure out how much data
-	 * transferred
+	 * transfered
 	 */
 	usbc_hcchar.u32 = __cvmx_usb_read_csr32(usb,
 			CVMX_USBCX_HCCHARX(channel, usb->index));

@@ -144,11 +144,11 @@ static void __init probe_page_size_mask(void)
 
 	/* Enable PSE if available */
 	if (cpu_has_pse)
-		cr4_set_bits_and_update_boot(X86_CR4_PSE);
+		set_in_cr4(X86_CR4_PSE);
 
 	/* Enable PGE if available */
 	if (cpu_has_pge) {
-		cr4_set_bits_and_update_boot(X86_CR4_PGE);
+		set_in_cr4(X86_CR4_PGE);
 		__supported_pte_mask |= _PAGE_GLOBAL;
 	}
 }
@@ -207,31 +207,6 @@ static void __init_refok adjust_range_page_size_mask(struct map_range *mr,
 				mr[i].page_size_mask |= 1<<PG_LEVEL_1G;
 		}
 	}
-}
-
-static const char *page_size_string(struct map_range *mr)
-{
-	static const char str_1g[] = "1G";
-	static const char str_2m[] = "2M";
-	static const char str_4m[] = "4M";
-	static const char str_4k[] = "4k";
-
-	if (mr->page_size_mask & (1<<PG_LEVEL_1G))
-		return str_1g;
-	/*
-	 * 32-bit without PAE has a 4M large page size.
-	 * PG_LEVEL_2M is misnamed, but we can at least
-	 * print out the right size in the string.
-	 */
-	if (IS_ENABLED(CONFIG_X86_32) &&
-	    !IS_ENABLED(CONFIG_X86_PAE) &&
-	    mr->page_size_mask & (1<<PG_LEVEL_2M))
-		return str_4m;
-
-	if (mr->page_size_mask & (1<<PG_LEVEL_2M))
-		return str_2m;
-
-	return str_4k;
 }
 
 static int __meminit split_mem_range(struct map_range *mr, int nr_range,
@@ -329,7 +304,8 @@ static int __meminit split_mem_range(struct map_range *mr, int nr_range,
 	for (i = 0; i < nr_range; i++)
 		printk(KERN_DEBUG " [mem %#010lx-%#010lx] page %s\n",
 				mr[i].start, mr[i].end - 1,
-				page_size_string(&mr[i]));
+			(mr[i].page_size_mask & (1<<PG_LEVEL_1G))?"1G":(
+			 (mr[i].page_size_mask & (1<<PG_LEVEL_2M))?"2M":"4k"));
 
 	return nr_range;
 }
@@ -606,7 +582,7 @@ void __init init_mem_mapping(void)
  *
  *
  * On x86, access has to be given to the first megabyte of ram because that area
- * contains BIOS code and data regions used by X and dosemu and similar apps.
+ * contains bios code and data regions used by X and dosemu and similar apps.
  * Access has to be given to non-kernel-ram areas as well, these contain the PCI
  * mmio resources as well as potential bios/acpi data regions.
  */

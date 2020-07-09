@@ -404,9 +404,6 @@ struct scsi_host_template {
 	 */
 #define SCSI_DEFAULT_MAX_SECTORS	1024
 
-	/* If use block layer to manage tags, this is tag allocation policy */
-	int tag_alloc_policy;
-
 	/*
 	 * True if this host adapter can make good use of linked commands.
 	 * This will allow more than one command to be queued to a given

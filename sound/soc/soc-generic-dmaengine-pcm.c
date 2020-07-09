@@ -151,7 +151,7 @@ static int dmaengine_pcm_set_runtime_hwparams(struct snd_pcm_substream *substrea
 			hw.info |= SNDRV_PCM_INFO_BATCH;
 
 		if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK)
-			addr_widths = dma_caps.dst_addr_widths;
+			addr_widths = dma_caps.dstn_addr_widths;
 		else
 			addr_widths = dma_caps.src_addr_widths;
 	}
@@ -198,6 +198,11 @@ static int dmaengine_pcm_open(struct snd_pcm_substream *substream)
 		return ret;
 
 	return snd_dmaengine_pcm_open(substream, chan);
+}
+
+static void dmaengine_pcm_free(struct snd_pcm *pcm)
+{
+	snd_pcm_lib_preallocate_free_for_all(pcm);
 }
 
 static struct dma_chan *dmaengine_pcm_compat_request_channel(
@@ -278,7 +283,8 @@ static int dmaengine_pcm_new(struct snd_soc_pcm_runtime *rtd)
 		if (!pcm->chan[i]) {
 			dev_err(rtd->platform->dev,
 				"Missing dma channel for stream: %d\n", i);
-			return -EINVAL;
+			ret = -EINVAL;
+			goto err_free;
 		}
 
 		ret = snd_pcm_lib_preallocate_pages(substream,
@@ -287,7 +293,7 @@ static int dmaengine_pcm_new(struct snd_soc_pcm_runtime *rtd)
 				prealloc_buffer_size,
 				max_buffer_size);
 		if (ret)
-			return ret;
+			goto err_free;
 
 		/*
 		 * This will only return false if we know for sure that at least
@@ -301,6 +307,10 @@ static int dmaengine_pcm_new(struct snd_soc_pcm_runtime *rtd)
 	}
 
 	return 0;
+
+err_free:
+	dmaengine_pcm_free(rtd->pcm);
+	return ret;
 }
 
 static snd_pcm_uframes_t dmaengine_pcm_pointer(
@@ -331,6 +341,7 @@ static const struct snd_soc_platform_driver dmaengine_pcm_platform = {
 	},
 	.ops		= &dmaengine_pcm_ops,
 	.pcm_new	= dmaengine_pcm_new,
+	.pcm_free	= dmaengine_pcm_free,
 };
 
 static const char * const dmaengine_pcm_dma_channel_names[] = {

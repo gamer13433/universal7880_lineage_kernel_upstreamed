@@ -692,7 +692,8 @@ start_here:
 	 * init's THREAD like the context switch code does, but this is
 	 * easier......until someone changes init's static structures.
 	 */
-	lis	r6, swapper_pg_dir@ha
+	lis	r6, swapper_pg_dir@h
+	ori	r6, r6, swapper_pg_dir@l
 	tophys(r6,r6)
 #ifdef CONFIG_8xx_CPU6
 	lis	r4, cpu6_errata_word@h

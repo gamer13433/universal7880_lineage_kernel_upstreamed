@@ -367,8 +367,8 @@ ENDPROC(set_cpu_boot_mode_flag)
  * zeroing of .bss would clobber it.
  */
 	.pushsection	.data..cacheline_aligned
-	.align	L1_CACHE_SHIFT
 ENTRY(__boot_cpu_mode)
+	.align	L1_CACHE_SHIFT
 	.long	BOOT_CPU_MODE_EL2
 	.long	0
 	.popsection

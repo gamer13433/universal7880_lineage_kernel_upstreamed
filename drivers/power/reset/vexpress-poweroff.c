@@ -124,12 +124,20 @@ static int vexpress_reset_probe(struct platform_device *pdev)
 	return 0;
 }
 
+static const struct platform_device_id vexpress_reset_id_table[] = {
+	{ .name = "vexpress-reset", .driver_data = FUNC_RESET, },
+	{ .name = "vexpress-shutdown", .driver_data = FUNC_SHUTDOWN, },
+	{ .name = "vexpress-reboot", .driver_data = FUNC_REBOOT, },
+	{}
+};
+
 static struct platform_driver vexpress_reset_driver = {
 	.probe = vexpress_reset_probe,
 	.driver = {
 		.name = "vexpress-reset",
 		.of_match_table = vexpress_reset_of_match,
 	},
+	.id_table = vexpress_reset_id_table,
 };
 
 static int __init vexpress_reset_init(void)

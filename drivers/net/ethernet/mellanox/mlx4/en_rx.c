@@ -159,10 +159,6 @@ static int mlx4_en_init_allocator(struct mlx4_en_priv *priv,
 		if (mlx4_alloc_pages(priv, &ring->page_alloc[i],
 				     frag_info, GFP_KERNEL))
 			goto out;
-
-		en_dbg(DRV, priv, "  frag %d allocator: - size:%d frags:%d\n",
-		       i, ring->page_alloc[i].page_size,
-		       atomic_read(&ring->page_alloc[i].page->_count));
 	}
 	return 0;
 
@@ -393,10 +389,10 @@ int mlx4_en_create_rx_ring(struct mlx4_en_priv *priv,
 		 ring->rx_info, tmp);
 
 	/* Allocate HW buffers on provided NUMA node */
-	set_dev_node(&mdev->dev->persist->pdev->dev, node);
+	set_dev_node(&mdev->dev->pdev->dev, node);
 	err = mlx4_alloc_hwq_res(mdev->dev, &ring->wqres,
 				 ring->buf_size, 2 * PAGE_SIZE);
-	set_dev_node(&mdev->dev->persist->pdev->dev, mdev->dev->numa_node);
+	set_dev_node(&mdev->dev->pdev->dev, mdev->dev->numa_node);
 	if (err)
 		goto err_info;
 

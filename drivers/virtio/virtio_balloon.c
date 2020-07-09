@@ -38,7 +38,8 @@
 #define VIRTIO_BALLOON_PAGES_PER_PAGE (unsigned)(PAGE_SIZE >> VIRTIO_BALLOON_PFN_SHIFT)
 #define VIRTIO_BALLOON_ARRAY_PFNS_MAX 256
 
-struct virtio_balloon {
+struct virtio_balloon
+{
 	struct virtio_device *vdev;
 	struct virtqueue *inflate_vq, *deflate_vq, *stats_vq;
 
@@ -429,12 +430,6 @@ static int virtballoon_probe(struct virtio_device *vdev)
 	struct virtio_balloon *vb;
 	int err;
 
-	if (!vdev->config->get) {
-		dev_err(&vdev->dev, "%s failure: config access disabled\n",
-			__func__);
-		return -EINVAL;
-	}
-
 	vdev->priv = vb = kmalloc(sizeof(*vb), GFP_KERNEL);
 	if (!vb) {
 		err = -ENOMEM;
@@ -456,8 +451,6 @@ static int virtballoon_probe(struct virtio_device *vdev)
 	err = init_vqs(vb);
 	if (err)
 		goto out_free_vb;
-
-	virtio_device_ready(vdev);
 
 	virtio_device_ready(vdev);
 

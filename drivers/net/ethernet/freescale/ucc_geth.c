@@ -3893,9 +3893,6 @@ static int ucc_geth_probe(struct platform_device* ofdev)
 	ugeth->phy_interface = phy_interface;
 	ugeth->max_speed = max_speed;
 
-	/* Carrier starts down, phylib will bring it up */
-	netif_carrier_off(dev);
-
 	err = register_netdev(dev);
 	if (err) {
 		if (netif_msg_probe(ugeth))

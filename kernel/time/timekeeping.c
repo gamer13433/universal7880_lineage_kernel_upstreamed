@@ -230,7 +230,9 @@ static inline s64 timekeeping_get_ns_raw(struct timekeeper *tk)
 
 /**
  * update_fast_timekeeper - Update the fast and NMI safe monotonic timekeeper.
- * @tkr: Timekeeping readout base from which we take the update
+ * @tk:		The timekeeper from which we take the update
+ * @tkf:	The fast timekeeper to update
+ * @tbase:	The time base for the fast timekeeper (mono/raw)
  *
  * We want to use this from any context including NMI and tracing /
  * instrumenting the timekeeping code itself.
@@ -242,11 +244,11 @@ static inline s64 timekeeping_get_ns_raw(struct timekeeper *tk)
  * smp_wmb();	<- Ensure that the last base[1] update is visible
  * tkf->seq++;
  * smp_wmb();	<- Ensure that the seqcount update is visible
- * update(tkf->base[0], tkr);
+ * update(tkf->base[0], tk);
  * smp_wmb();	<- Ensure that the base[0] update is visible
  * tkf->seq++;
  * smp_wmb();	<- Ensure that the seqcount update is visible
- * update(tkf->base[1], tkr);
+ * update(tkf->base[1], tk);
  *
  * The reader side does:
  *
@@ -267,7 +269,7 @@ static inline s64 timekeeping_get_ns_raw(struct timekeeper *tk)
  * slightly wrong timestamp (a few nanoseconds). See
  * @ktime_get_mono_fast_ns.
  */
-static void update_fast_timekeeper(struct tk_read_base *tkr)
+static void update_fast_timekeeper(struct timekeeper *tk)
 {
 	struct tk_read_base *base = tk_fast_mono.base;
 
@@ -275,7 +277,7 @@ static void update_fast_timekeeper(struct tk_read_base *tkr)
 	raw_write_seqcount_latch(&tk_fast_mono.seq);
 
 	/* Update base[0] */
-	memcpy(base, tkr, sizeof(*base));
+	memcpy(base, &tk->tkr, sizeof(*base));
 
 	/* Force readers back to base[0] */
 	raw_write_seqcount_latch(&tk_fast_mono.seq);
@@ -331,35 +333,6 @@ u64 notrace ktime_get_mono_fast_ns(void)
 	return now;
 }
 EXPORT_SYMBOL_GPL(ktime_get_mono_fast_ns);
-
-/* Suspend-time cycles value for halted fast timekeeper. */
-static cycle_t cycles_at_suspend;
-
-static cycle_t dummy_clock_read(struct clocksource *cs)
-{
-	return cycles_at_suspend;
-}
-
-/**
- * halt_fast_timekeeper - Prevent fast timekeeper from accessing clocksource.
- * @tk: Timekeeper to snapshot.
- *
- * It generally is unsafe to access the clocksource after timekeeping has been
- * suspended, so take a snapshot of the readout base of @tk and use it as the
- * fast timekeeper's readout base while suspended.  It will return the same
- * number of cycles every time until timekeeping is resumed at which time the
- * proper readout base for the fast timekeeper will be restored automatically.
- */
-static void halt_fast_timekeeper(struct timekeeper *tk)
-{
-	static struct tk_read_base tkr_dummy;
-	struct tk_read_base *tkr = &tk->tkr;
-
-	memcpy(&tkr_dummy, tkr, sizeof(tkr_dummy));
-	cycles_at_suspend = tkr->read(tkr->clock);
-	tkr_dummy.read = dummy_clock_read;
-	update_fast_timekeeper(&tkr_dummy);
-}
 
 #ifdef CONFIG_GENERIC_TIME_VSYSCALL_OLD
 
@@ -479,7 +452,7 @@ static void timekeeping_update(struct timekeeper *tk, unsigned int action)
 		memcpy(&shadow_timekeeper, &tk_core.timekeeper,
 		       sizeof(tk_core.timekeeper));
 
-	update_fast_timekeeper(&tk->tkr);
+	update_fast_timekeeper(tk);
 }
 
 /**
@@ -1141,7 +1114,7 @@ void timekeeping_inject_sleeptime(struct timespec *delta)
  * xtime/wall_to_monotonic/jiffies/etc are
  * still managed by arch specific suspend/resume code.
  */
-void timekeeping_resume(void)
+static void timekeeping_resume(void)
 {
 	struct timekeeper *tk = &tk_core.timekeeper;
 	struct clocksource *clock = tk->tkr.clock;
@@ -1222,7 +1195,7 @@ void timekeeping_resume(void)
 	hrtimers_resume();
 }
 
-int timekeeping_suspend(void)
+static int timekeeping_suspend(void)
 {
 	struct timekeeper *tk = &tk_core.timekeeper;
 	unsigned long flags;
@@ -1267,7 +1240,6 @@ int timekeeping_suspend(void)
 	}
 
 	timekeeping_update(tk, TK_MIRROR);
-	halt_fast_timekeeper(tk);
 	write_seqcount_end(&tk_core.seq);
 	raw_spin_unlock_irqrestore(&timekeeper_lock, flags);
 
@@ -1624,24 +1596,24 @@ out:
 }
 
 /**
- * getboottime64 - Return the real time of system boot.
- * @ts:		pointer to the timespec64 to be set
+ * getboottime - Return the real time of system boot.
+ * @ts:		pointer to the timespec to be set
  *
- * Returns the wall-time of boot in a timespec64.
+ * Returns the wall-time of boot in a timespec.
  *
  * This is based on the wall_to_monotonic offset and the total suspend
  * time. Calls to settimeofday will affect the value returned (which
  * basically means that however wrong your real time clock is at boot time,
  * you get the right time here).
  */
-void getboottime64(struct timespec64 *ts)
+void getboottime(struct timespec *ts)
 {
 	struct timekeeper *tk = &tk_core.timekeeper;
 	ktime_t t = ktime_sub(tk->offs_real, tk->offs_boot);
 
-	*ts = ktime_to_timespec64(t);
+	*ts = ktime_to_timespec(t);
 }
-EXPORT_SYMBOL_GPL(getboottime64);
+EXPORT_SYMBOL_GPL(getboottime);
 
 unsigned long get_seconds(void)
 {

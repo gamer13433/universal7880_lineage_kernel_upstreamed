@@ -135,8 +135,7 @@ static int mv88e6131_setup_global(struct dsa_switch *ds)
 		int nexthop;
 
 		nexthop = 0x1f;
-		if (ds->pd->rtable &&
-		    i != ds->index && i < ds->dst->pd->nr_chips)
+		if (i != ds->index && i < ds->dst->pd->nr_chips)
 			nexthop = ds->pd->rtable[i] & 0x1f;
 
 		REG_WRITE(REG_GLOBAL2, 0x06, 0x8000 | (i << 8) | nexthop);

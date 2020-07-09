@@ -109,6 +109,7 @@ int snd_hda_create_hwdep(struct hda_codec *codec)
 	hwdep->iface = SNDRV_HWDEP_IFACE_HDA;
 	hwdep->private_data = codec;
 	hwdep->exclusive = 1;
+	hwdep->groups = snd_hda_dev_attr_groups;
 
 	hwdep->ops.open = hda_hwdep_open;
 	hwdep->ops.ioctl = hda_hwdep_ioctl;
@@ -117,11 +118,7 @@ int snd_hda_create_hwdep(struct hda_codec *codec)
 #endif
 
 	/* link to codec */
-	hwdep->dev.parent = &codec->dev;
-
-	/* for sysfs */
-	hwdep->dev.groups = snd_hda_dev_attr_groups;
-	dev_set_drvdata(&hwdep->dev, codec);
+	hwdep->dev = &codec->dev;
 
 	return 0;
 }

@@ -254,9 +254,7 @@ static int sdhci_bcm_kona_probe(struct platform_device *pdev)
 	kona_dev = sdhci_pltfm_priv(pltfm_priv);
 	mutex_init(&kona_dev->write_lock);
 
-	ret = mmc_of_parse(host->mmc);
-	if (ret)
-		goto err_pltfm_free;
+	mmc_of_parse(host->mmc);
 
 	if (!host->mmc->f_max) {
 		dev_err(&pdev->dev, "Missing max-freq for SDHCI cfg\n");

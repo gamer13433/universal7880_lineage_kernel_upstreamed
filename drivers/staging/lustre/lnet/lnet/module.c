@@ -108,7 +108,7 @@ lnet_ioctl(unsigned int cmd, struct libcfs_ioctl_data *data)
 	}
 }
 
-static DECLARE_IOCTL_HANDLER(lnet_ioctl_handler, lnet_ioctl);
+DECLARE_IOCTL_HANDLER(lnet_ioctl_handler, lnet_ioctl);
 
 int
 init_lnet(void)

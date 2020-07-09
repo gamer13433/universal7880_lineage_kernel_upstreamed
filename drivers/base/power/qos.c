@@ -64,8 +64,6 @@ enum pm_qos_flags_status __dev_pm_qos_flags(struct device *dev, s32 mask)
 	struct pm_qos_flags *pqf;
 	s32 val;
 
-	lockdep_assert_held(&dev->power.lock);
-
 	if (IS_ERR_OR_NULL(qos))
 		return PM_QOS_FLAGS_UNDEFINED;
 
@@ -106,8 +104,6 @@ EXPORT_SYMBOL_GPL(dev_pm_qos_flags);
  */
 s32 __dev_pm_qos_read_value(struct device *dev)
 {
-	lockdep_assert_held(&dev->power.lock);
-
 	return IS_ERR_OR_NULL(dev->power.qos) ?
 		0 : pm_qos_read_value(&dev->power.qos->resume_latency);
 }

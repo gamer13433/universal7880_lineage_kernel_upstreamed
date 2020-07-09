@@ -18,7 +18,7 @@ struct pidmap {
 #define BITS_PER_PAGE_MASK	(BITS_PER_PAGE-1)
 #define PIDMAP_ENTRIES		((PID_MAX_LIMIT+BITS_PER_PAGE-1)/BITS_PER_PAGE)
 
-struct fs_pin;
+struct bsd_acct_struct;
 
 struct pid_namespace {
 	struct kref kref;
@@ -36,7 +36,7 @@ struct pid_namespace {
 	struct dentry *proc_thread_self;
 #endif
 #ifdef CONFIG_BSD_PROCESS_ACCT
-	struct fs_pin *bacct;
+	struct bsd_acct_struct *bacct;
 #endif
 	struct user_namespace *user_ns;
 	struct work_struct proc_work;

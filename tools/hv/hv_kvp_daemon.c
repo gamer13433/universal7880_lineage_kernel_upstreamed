@@ -146,6 +146,7 @@ static void kvp_release_lock(int pool)
 static void kvp_update_file(int pool)
 {
 	FILE *filep;
+	size_t bytes_written;
 
 	/*
 	 * We are going to write our in-memory registry out to
@@ -161,7 +162,8 @@ static void kvp_update_file(int pool)
 		exit(EXIT_FAILURE);
 	}
 
-	fwrite(kvp_file_info[pool].records, sizeof(struct kvp_record),
+	bytes_written = fwrite(kvp_file_info[pool].records,
+				sizeof(struct kvp_record),
 				kvp_file_info[pool].num_records, filep);
 
 	if (ferror(filep) || fclose(filep)) {
@@ -307,7 +309,7 @@ static int kvp_file_init(void)
 	return 0;
 }
 
-static int kvp_key_delete(int pool, const __u8 *key, int key_size)
+static int kvp_key_delete(int pool, const char *key, int key_size)
 {
 	int i;
 	int j, k;
@@ -350,8 +352,8 @@ static int kvp_key_delete(int pool, const __u8 *key, int key_size)
 	return 1;
 }
 
-static int kvp_key_add_or_modify(int pool, const __u8 *key, int key_size,
-				 const __u8 *value, int value_size)
+static int kvp_key_add_or_modify(int pool, const char *key, int key_size, const char *value,
+			int value_size)
 {
 	int i;
 	int num_records;
@@ -404,7 +406,7 @@ static int kvp_key_add_or_modify(int pool, const __u8 *key, int key_size,
 	return 0;
 }
 
-static int kvp_get_value(int pool, const __u8 *key, int key_size, __u8 *value,
+static int kvp_get_value(int pool, const char *key, int key_size, char *value,
 			int value_size)
 {
 	int i;
@@ -436,8 +438,8 @@ static int kvp_get_value(int pool, const __u8 *key, int key_size, __u8 *value,
 	return 1;
 }
 
-static int kvp_pool_enumerate(int pool, int index, __u8 *key, int key_size,
-				__u8 *value, int value_size)
+static int kvp_pool_enumerate(int pool, int index, char *key, int key_size,
+				char *value, int value_size)
 {
 	struct kvp_record *record;
 
@@ -658,7 +660,7 @@ static char *kvp_if_name_to_mac(char *if_name)
 	char    *p, *x;
 	char    buf[256];
 	char addr_file[256];
-	unsigned int i;
+	int i;
 	char *mac_addr = NULL;
 
 	snprintf(addr_file, sizeof(addr_file), "%s%s%s", "/sys/class/net/",
@@ -697,7 +699,7 @@ static char *kvp_mac_to_if_name(char *mac)
 	char    buf[256];
 	char *kvp_net_dir = "/sys/class/net/";
 	char dev_id[256];
-	unsigned int i;
+	int i;
 
 	dir = opendir(kvp_net_dir);
 	if (dir == NULL)
@@ -747,7 +749,7 @@ static char *kvp_mac_to_if_name(char *mac)
 
 
 static void kvp_process_ipconfig_file(char *cmd,
-					char *config_buf, unsigned int len,
+					char *config_buf, int len,
 					int element_size, int offset)
 {
 	char buf[256];
@@ -765,7 +767,7 @@ static void kvp_process_ipconfig_file(char *cmd,
 	if (offset == 0)
 		memset(config_buf, 0, len);
 	while ((p = fgets(buf, sizeof(buf), file)) != NULL) {
-		if (len < strlen(config_buf) + element_size + 1)
+		if ((len - strlen(config_buf)) < (element_size + 1))
 			break;
 
 		x = strchr(p, '\n');
@@ -913,7 +915,7 @@ static int kvp_process_ip_address(void *addrp,
 
 static int
 kvp_get_ip_info(int family, char *if_name, int op,
-		 void  *out_buffer, unsigned int length)
+		 void  *out_buffer, int length)
 {
 	struct ifaddrs *ifap;
 	struct ifaddrs *curp;
@@ -1016,7 +1018,8 @@ kvp_get_ip_info(int family, char *if_name, int op,
 					weight += hweight32(&w[i]);
 
 				sprintf(cidr_mask, "/%d", weight);
-				if (length < sn_offset + strlen(cidr_mask) + 1)
+				if ((length - sn_offset) <
+					(strlen(cidr_mask) + 1))
 					goto gather_ipaddr;
 
 				if (sn_offset == 0)
@@ -1304,16 +1307,15 @@ static int kvp_set_ip_info(char *if_name, struct hv_kvp_ipaddr_value *new_val)
 	if (error)
 		goto setval_error;
 
-	/*
-	 * The dhcp_enabled flag is only for IPv4. In the case the host only
-	 * injects an IPv6 address, the flag is true, but we still need to
-	 * proceed to parse and pass the IPv6 information to the
-	 * disto-specific script hv_set_ifconfig.
-	 */
 	if (new_val->dhcp_enabled) {
 		error = kvp_write_file(file, "BOOTPROTO", "", "dhcp");
 		if (error)
 			goto setval_error;
+
+		/*
+		 * We are done!.
+		 */
+		goto setval_done;
 
 	} else {
 		error = kvp_write_file(file, "BOOTPROTO", "", "none");
@@ -1342,6 +1344,7 @@ static int kvp_set_ip_info(char *if_name, struct hv_kvp_ipaddr_value *new_val)
 	if (error)
 		goto setval_error;
 
+setval_done:
 	fclose(file);
 
 	/*

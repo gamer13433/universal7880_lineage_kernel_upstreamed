@@ -37,17 +37,7 @@
 		for ((index) = 0; (index) < AT91_MAX_USBH_PORTS; (index)++)
 
 /* interface, function and usb clocks; sometimes also an AHB clock */
-#define hcd_to_ohci_at91_priv(h) \
-	((struct ohci_at91_priv *)hcd_to_ohci(h)->priv)
-
-struct ohci_at91_priv {
-	struct clk *iclk;
-	struct clk *fclk;
-	struct clk *uclk;
-	struct clk *hclk;
-	bool clocked;
-	bool wakeup;		/* Saved wake-up state for resume */
-};
+static struct clk *iclk, *fclk, *uclk, *hclk;
 /* interface and function clocks; sometimes also an AHB clock */
 
 #define DRIVER_DESC "OHCI Atmel driver"
@@ -55,53 +45,45 @@ struct ohci_at91_priv {
 static const char hcd_name[] = "ohci-atmel";
 
 static struct hc_driver __read_mostly ohci_at91_hc_driver;
-
-static const struct ohci_driver_overrides ohci_at91_drv_overrides __initconst = {
-	.extra_priv_size = sizeof(struct ohci_at91_priv),
-};
+static int clocked;
 
 extern int usb_disabled(void);
 
 /*-------------------------------------------------------------------------*/
 
-static void at91_start_clock(struct ohci_at91_priv *ohci_at91)
+static void at91_start_clock(void)
 {
-	if (ohci_at91->clocked)
-		return;
 	if (IS_ENABLED(CONFIG_COMMON_CLK)) {
-		clk_set_rate(ohci_at91->uclk, 48000000);
-		clk_prepare_enable(ohci_at91->uclk);
+		clk_set_rate(uclk, 48000000);
+		clk_prepare_enable(uclk);
 	}
-	clk_prepare_enable(ohci_at91->hclk);
-	clk_prepare_enable(ohci_at91->iclk);
-	clk_prepare_enable(ohci_at91->fclk);
-	ohci_at91->clocked = true;
+	clk_prepare_enable(hclk);
+	clk_prepare_enable(iclk);
+	clk_prepare_enable(fclk);
+	clocked = 1;
 }
 
-static void at91_stop_clock(struct ohci_at91_priv *ohci_at91)
+static void at91_stop_clock(void)
 {
-	if (!ohci_at91->clocked)
-		return;
-	clk_disable_unprepare(ohci_at91->fclk);
-	clk_disable_unprepare(ohci_at91->iclk);
-	clk_disable_unprepare(ohci_at91->hclk);
+	clk_disable_unprepare(fclk);
+	clk_disable_unprepare(iclk);
+	clk_disable_unprepare(hclk);
 	if (IS_ENABLED(CONFIG_COMMON_CLK))
-		clk_disable_unprepare(ohci_at91->uclk);
-	ohci_at91->clocked = false;
+		clk_disable_unprepare(uclk);
+	clocked = 0;
 }
 
 static void at91_start_hc(struct platform_device *pdev)
 {
 	struct usb_hcd *hcd = platform_get_drvdata(pdev);
 	struct ohci_regs __iomem *regs = hcd->regs;
-	struct ohci_at91_priv *ohci_at91 = hcd_to_ohci_at91_priv(hcd);
 
 	dev_dbg(&pdev->dev, "start\n");
 
 	/*
 	 * Start the USB clocks.
 	 */
-	at91_start_clock(ohci_at91);
+	at91_start_clock();
 
 	/*
 	 * The USB host controller must remain in reset.
@@ -113,7 +95,6 @@ static void at91_stop_hc(struct platform_device *pdev)
 {
 	struct usb_hcd *hcd = platform_get_drvdata(pdev);
 	struct ohci_regs __iomem *regs = hcd->regs;
-	struct ohci_at91_priv *ohci_at91 = hcd_to_ohci_at91_priv(hcd);
 
 	dev_dbg(&pdev->dev, "stop\n");
 
@@ -125,7 +106,7 @@ static void at91_stop_hc(struct platform_device *pdev)
 	/*
 	 * Stop the USB clocks.
 	 */
-	at91_stop_clock(ohci_at91);
+	at91_stop_clock();
 }
 
 
@@ -151,8 +132,7 @@ static int usb_hcd_at91_probe(const struct hc_driver *driver,
 	struct at91_usbh_data *board;
 	struct ohci_hcd *ohci;
 	int retval;
-	struct usb_hcd *hcd;
-	struct ohci_at91_priv *ohci_at91;
+	struct usb_hcd *hcd = NULL;
 	struct device *dev = &pdev->dev;
 	struct resource *res;
 	int irq;
@@ -479,7 +459,6 @@ static int ohci_at91_of_init(struct platform_device *pdev)
 	pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
 	if (!pdata)
 		return -ENOMEM;
-	ohci_at91 = hcd_to_ohci_at91_priv(hcd);
 
 	if (!of_property_read_u32(np, "num-ports", &ports))
 		pdata->ports = ports;
@@ -623,27 +602,19 @@ static int ohci_hcd_at91_drv_remove(struct platform_device *pdev)
 #ifdef CONFIG_PM
 
 static int
-ohci_hcd_at91_drv_suspend(struct device *dev)
+ohci_hcd_at91_drv_suspend(struct platform_device *pdev, pm_message_t mesg)
 {
-	struct usb_hcd	*hcd = dev_get_drvdata(dev);
+	struct usb_hcd	*hcd = platform_get_drvdata(pdev);
 	struct ohci_hcd	*ohci = hcd_to_ohci(hcd);
-	struct ohci_at91_priv *ohci_at91 = hcd_to_ohci_at91_priv(hcd);
+	bool		do_wakeup = device_may_wakeup(&pdev->dev);
 	int		ret;
 
-	/*
-	 * Disable wakeup if we are going to sleep with slow clock mode
-	 * enabled.
-	 */
-	ohci_at91->wakeup = device_may_wakeup(dev)
-			&& !at91_suspend_entering_slow_clock();
-
-	if (ohci_at91->wakeup)
+	if (do_wakeup)
 		enable_irq_wake(hcd->irq);
 
-	ret = ohci_suspend(hcd, ohci_at91->wakeup);
+	ret = ohci_suspend(hcd, do_wakeup);
 	if (ret) {
-		if (ohci_at91->wakeup)
-			disable_irq_wake(hcd->irq);
+		disable_irq_wake(hcd->irq);
 		return ret;
 	}
 	/*
@@ -653,7 +624,7 @@ ohci_hcd_at91_drv_suspend(struct device *dev)
 	 *
 	 * REVISIT: some boards will be able to turn VBUS off...
 	 */
-	if (!ohci_at91->wakeup) {
+	if (at91_suspend_entering_slow_clock()) {
 		ohci->hc_control = ohci_readl(ohci, &ohci->regs->control);
 		ohci->hc_control &= OHCI_CTRL_RWC;
 		ohci_writel(ohci, ohci->hc_control, &ohci->regs->control);
@@ -704,7 +675,7 @@ static int __init ohci_at91_init(void)
 		return -ENODEV;
 
 	pr_info("%s: " DRIVER_DESC "\n", hcd_name);
-	ohci_init_driver(&ohci_at91_hc_driver, &ohci_at91_drv_overrides);
+	ohci_init_driver(&ohci_at91_hc_driver, NULL);
 
 	/*
 	 * The Atmel HW has some unusual quirks, which require Atmel-specific

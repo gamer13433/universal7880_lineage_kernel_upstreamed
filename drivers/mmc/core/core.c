@@ -42,7 +42,6 @@
 #include "bus.h"
 #include "host.h"
 #include "sdio_bus.h"
-#include "pwrseq.h"
 
 #include "mmc_ops.h"
 #include "sd_ops.h"
@@ -187,14 +186,13 @@ void mmc_request_done(struct mmc_host *host, struct mmc_request *mrq)
 
 EXPORT_SYMBOL(mmc_request_done);
 
-static int mmc_start_request(struct mmc_host *host, struct mmc_request *mrq)
+static void
+mmc_start_request(struct mmc_host *host, struct mmc_request *mrq)
 {
 #ifdef CONFIG_MMC_DEBUG
 	unsigned int i, sz;
 	struct scatterlist *sg;
 #endif
-	if (mmc_card_removed(host->card))
-		return -ENOMEDIUM;
 
 	if (mrq->sbc) {
 		pr_debug("<%s: starting CMD%u arg %08x flags %08x>\n",
@@ -250,8 +248,6 @@ static int mmc_start_request(struct mmc_host *host, struct mmc_request *mrq)
 	mmc_host_clk_hold(host);
 	led_trigger_event(host->led, LED_FULL);
 	host->ops->request(host, mrq);
-
-	return 0;
 }
 
 /**
@@ -272,7 +268,7 @@ void mmc_start_bkops(struct mmc_card *card, bool from_exception)
 
 	BUG_ON(!card);
 
-	if (!card->ext_csd.man_bkops_en || mmc_card_doing_bkops(card))
+	if (!card->ext_csd.bkops_en || mmc_card_doing_bkops(card))
 		return;
 
 	err = mmc_read_bkops_status(card);
@@ -350,34 +346,29 @@ static void mmc_wait_done(struct mmc_request *mrq)
  */
 static int __mmc_start_data_req(struct mmc_host *host, struct mmc_request *mrq)
 {
-	int err;
-
 	mrq->done = mmc_wait_data_done;
 	mrq->host = host;
-
-	err = mmc_start_request(host, mrq);
-	if (err) {
-		mrq->cmd->error = err;
+	if (mmc_card_removed(host->card)) {
+		mrq->cmd->error = -ENOMEDIUM;
 		mmc_wait_data_done(mrq);
+		return -ENOMEDIUM;
 	}
+	mmc_start_request(host, mrq);
 
-	return err;
+	return 0;
 }
 
 static int __mmc_start_req(struct mmc_host *host, struct mmc_request *mrq)
 {
-	int err;
-
 	init_completion(&mrq->completion);
 	mrq->done = mmc_wait_done;
-
-	err = mmc_start_request(host, mrq);
-	if (err) {
-		mrq->cmd->error = err;
+	if (mmc_card_removed(host->card)) {
+		mrq->cmd->error = -ENOMEDIUM;
 		complete(&mrq->completion);
+		return -ENOMEDIUM;
 	}
-
-	return err;
+	mmc_start_request(host, mrq);
+	return 0;
 }
 
 /*
@@ -1100,30 +1091,6 @@ void mmc_set_ungated(struct mmc_host *host)
 }
 #endif
 
-int mmc_execute_tuning(struct mmc_card *card)
-{
-	struct mmc_host *host = card->host;
-	u32 opcode;
-	int err;
-
-	if (!host->ops->execute_tuning)
-		return 0;
-
-	if (mmc_card_mmc(card))
-		opcode = MMC_SEND_TUNING_BLOCK_HS200;
-	else
-		opcode = MMC_SEND_TUNING_BLOCK;
-
-	mmc_host_clk_hold(host);
-	err = host->ops->execute_tuning(host, opcode);
-	mmc_host_clk_release(host);
-
-	if (err)
-		pr_err("%s: tuning execution failed\n", mmc_hostname(host));
-
-	return err;
-}
-
 /*
  * Change the bus mode (open drain/push-pull) of a host.
  */
@@ -1262,34 +1229,6 @@ int mmc_of_parse_voltage(struct device_node *np, u32 *mask)
 EXPORT_SYMBOL(mmc_of_parse_voltage);
 
 #endif /* CONFIG_OF */
-
-static int mmc_of_get_func_num(struct device_node *node)
-{
-	u32 reg;
-	int ret;
-
-	ret = of_property_read_u32(node, "reg", &reg);
-	if (ret < 0)
-		return ret;
-
-	return reg;
-}
-
-struct device_node *mmc_of_find_child_device(struct mmc_host *host,
-		unsigned func_num)
-{
-	struct device_node *node;
-
-	if (!host->parent || !host->parent->of_node)
-		return NULL;
-
-	for_each_child_of_node(host->parent->of_node, node) {
-		if (mmc_of_get_func_num(node) == func_num)
-			return node;
-	}
-
-	return NULL;
-}
 
 #ifdef CONFIG_REGULATOR
 
@@ -1611,8 +1550,6 @@ void mmc_power_up(struct mmc_host *host, u32 ocr)
 
 	mmc_host_clk_hold(host);
 
-	mmc_pwrseq_pre_power_on(host);
-
 	host->ios.vdd = fls(ocr) - 1;
 	if (mmc_host_is_spi(host))
 		host->ios.chip_select = MMC_CS_HIGH;
@@ -1638,8 +1575,6 @@ void mmc_power_up(struct mmc_host *host, u32 ocr)
 	 */
 	mmc_delay(10);
 
-	mmc_pwrseq_post_power_on(host);
-
 	host->ios.clock = host->f_init;
 
 	host->ios.power_mode = MMC_POWER_ON;
@@ -1660,8 +1595,6 @@ void mmc_power_off(struct mmc_host *host)
 		return;
 
 	mmc_host_clk_hold(host);
-
-	mmc_pwrseq_power_off(host);
 
 	host->ios.clock = 0;
 	host->ios.vdd = 0;

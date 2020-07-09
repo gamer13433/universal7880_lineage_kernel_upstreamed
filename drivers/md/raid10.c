@@ -674,7 +674,7 @@ static sector_t raid10_find_virt(struct r10conf *conf, sector_t sector, int dev)
 
 /**
  *	raid10_mergeable_bvec -- tell bio layer if a two requests can be merged
- *	@mddev: the md device
+ *	@q: request queue
  *	@bvm: properties of new bio
  *	@biovec: the request that could be merged to it.
  *
@@ -682,10 +682,11 @@ static sector_t raid10_find_virt(struct r10conf *conf, sector_t sector, int dev)
  *	This requires checking for end-of-chunk if near_copies != raid_disks,
  *	and for subordinate merge_bvec_fns if merge_check_needed.
  */
-static int raid10_mergeable_bvec(struct mddev *mddev,
+static int raid10_mergeable_bvec(struct request_queue *q,
 				 struct bvec_merge_data *bvm,
 				 struct bio_vec *biovec)
 {
+	struct mddev *mddev = q->queuedata;
 	struct r10conf *conf = mddev->private;
 	sector_t sector = bvm->bi_sector + get_start_sect(bvm->bi_bdev);
 	int max;
@@ -909,7 +910,7 @@ retry:
 	return rdev;
 }
 
-static int raid10_congested(struct mddev *mddev, int bits)
+int md_raid10_congested(struct mddev *mddev, int bits)
 {
 	struct r10conf *conf = mddev->private;
 	int i, ret = 0;
@@ -932,6 +933,15 @@ static int raid10_congested(struct mddev *mddev, int bits)
 	}
 	rcu_read_unlock();
 	return ret;
+}
+EXPORT_SYMBOL_GPL(md_raid10_congested);
+
+static int raid10_congested(void *data, int bits)
+{
+	struct mddev *mddev = data;
+
+	return mddev_congested(mddev, bits) ||
+		md_raid10_congested(mddev, bits);
 }
 
 static void flush_pending_writes(struct r10conf *conf)
@@ -2572,8 +2582,7 @@ static int narrow_write_error(struct r10bio *r10_bio, int i)
 	if (rdev->badblocks.shift < 0)
 		return 0;
 
-	block_sectors = roundup(1 << rdev->badblocks.shift,
-				bdev_logical_block_size(rdev->bdev) >> 9);
+	block_sectors = 1 << rdev->badblocks.shift;
 	sector = r10_bio->sector;
 	sectors = ((r10_bio->sector + block_sectors)
 		   & ~(sector_t)(block_sectors - 1))
@@ -3748,6 +3757,8 @@ static int run(struct mddev *mddev)
 	if (mddev->queue) {
 		int stripe = conf->geo.raid_disks *
 			((mddev->chunk_sectors << 9) / PAGE_SIZE);
+		mddev->queue->backing_dev_info.congested_fn = raid10_congested;
+		mddev->queue->backing_dev_info.congested_data = mddev;
 
 		/* Calculate max read-ahead size.
 		 * We need to readahead at least twice a whole stripe....
@@ -3756,6 +3767,7 @@ static int run(struct mddev *mddev)
 		stripe /= conf->geo.near_copies;
 		if (mddev->queue->backing_dev_info.ra_pages < 2 * stripe)
 			mddev->queue->backing_dev_info.ra_pages = 2 * stripe;
+		blk_queue_merge_bvec(mddev->queue, raid10_mergeable_bvec);
 	}
 
 	if (md_integrity_register(mddev))
@@ -3799,9 +3811,17 @@ out:
 	return -EIO;
 }
 
-static void raid10_free(struct mddev *mddev, void *priv)
+static int stop(struct mddev *mddev)
 {
-	struct r10conf *conf = priv;
+	struct r10conf *conf = mddev->private;
+
+	raise_barrier(conf, 0);
+	lower_barrier(conf);
+
+	md_unregister_thread(&mddev->thread);
+	if (mddev->queue)
+		/* the unplug fn references 'conf'*/
+		blk_sync_queue(mddev->queue);
 
 	if (conf->r10bio_pool)
 		mempool_destroy(conf->r10bio_pool);
@@ -3810,6 +3830,8 @@ static void raid10_free(struct mddev *mddev, void *priv)
 	kfree(conf->mirrors_old);
 	kfree(conf->mirrors_new);
 	kfree(conf);
+	mddev->private = NULL;
+	return 0;
 }
 
 static void raid10_quiesce(struct mddev *mddev, int state)
@@ -3873,7 +3895,7 @@ static int raid10_resize(struct mddev *mddev, sector_t sectors)
 	return 0;
 }
 
-static void *raid10_takeover_raid0(struct mddev *mddev, sector_t size, int devs)
+static void *raid10_takeover_raid0(struct mddev *mddev)
 {
 	struct md_rdev *rdev;
 	struct r10conf *conf;
@@ -3883,7 +3905,6 @@ static void *raid10_takeover_raid0(struct mddev *mddev, sector_t size, int devs)
 		       mdname(mddev));
 		return ERR_PTR(-EINVAL);
 	}
-	sector_div(size, devs);
 
 	/* Set new parameters */
 	mddev->new_level = 10;
@@ -3894,15 +3915,12 @@ static void *raid10_takeover_raid0(struct mddev *mddev, sector_t size, int devs)
 	mddev->raid_disks *= 2;
 	/* make sure it will be not marked as dirty */
 	mddev->recovery_cp = MaxSector;
-	mddev->dev_sectors = size;
 
 	conf = setup_conf(mddev);
 	if (!IS_ERR(conf)) {
 		rdev_for_each(rdev, mddev)
-			if (rdev->raid_disk >= 0) {
+			if (rdev->raid_disk >= 0)
 				rdev->new_raid_disk = rdev->raid_disk * 2;
-				rdev->sectors = size;
-			}
 		conf->barrier = 1;
 	}
 
@@ -3925,9 +3943,7 @@ static void *raid10_takeover(struct mddev *mddev)
 			       mdname(mddev));
 			return ERR_PTR(-EINVAL);
 		}
-		return raid10_takeover_raid0(mddev,
-			raid0_conf->strip_zone->zone_end,
-			raid0_conf->strip_zone->nb_dev);
+		return raid10_takeover_raid0(mddev);
 	}
 	return ERR_PTR(-EINVAL);
 }
@@ -4697,7 +4713,7 @@ static struct md_personality raid10_personality =
 	.owner		= THIS_MODULE,
 	.make_request	= make_request,
 	.run		= run,
-	.free		= raid10_free,
+	.stop		= stop,
 	.status		= status,
 	.error_handler	= error,
 	.hot_add_disk	= raid10_add_disk,
@@ -4711,8 +4727,6 @@ static struct md_personality raid10_personality =
 	.check_reshape	= raid10_check_reshape,
 	.start_reshape	= raid10_start_reshape,
 	.finish_reshape	= raid10_finish_reshape,
-	.congested	= raid10_congested,
-	.mergeable_bvec	= raid10_mergeable_bvec,
 };
 
 static int __init raid_init(void)

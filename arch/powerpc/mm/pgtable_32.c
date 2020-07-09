@@ -63,6 +63,7 @@ void setbat(int index, unsigned long virt, phys_addr_t phys,
 #endif /* HAVE_BATS */
 
 #ifdef HAVE_TLBCAM
+extern unsigned int tlbcam_index;
 extern phys_addr_t v_mapped_by_tlbcam(unsigned long va);
 extern unsigned long p_mapped_by_tlbcam(phys_addr_t pa);
 #else /* !HAVE_TLBCAM */
@@ -72,25 +73,13 @@ extern unsigned long p_mapped_by_tlbcam(phys_addr_t pa);
 
 #define PGDIR_ORDER	(32 + PGD_T_LOG2 - PGDIR_SHIFT)
 
-#ifndef CONFIG_PPC_4K_PAGES
-static struct kmem_cache *pgtable_cache;
-
-void pgtable_cache_init(void)
-{
-	pgtable_cache = kmem_cache_create("PGDIR cache", 1 << PGDIR_ORDER,
-					  1 << PGDIR_ORDER, 0, NULL);
-	if (pgtable_cache == NULL)
-		panic("Couldn't allocate pgtable caches");
-}
-#endif
-
 pgd_t *pgd_alloc(struct mm_struct *mm)
 {
 	pgd_t *ret;
 
 	/* pgdir take page or two with 4K pages and a page fraction otherwise */
 #ifndef CONFIG_PPC_4K_PAGES
-	ret = kmem_cache_alloc(pgtable_cache, GFP_KERNEL | __GFP_ZERO);
+	ret = kzalloc(1 << PGDIR_ORDER, GFP_KERNEL);
 #else
 	ret = (pgd_t *)__get_free_pages(GFP_KERNEL|__GFP_ZERO,
 			PGDIR_ORDER - PAGE_SHIFT);
@@ -101,7 +90,7 @@ pgd_t *pgd_alloc(struct mm_struct *mm)
 void pgd_free(struct mm_struct *mm, pgd_t *pgd)
 {
 #ifndef CONFIG_PPC_4K_PAGES
-	kmem_cache_free(pgtable_cache, (void *)pgd);
+	kfree((void *)pgd);
 #else
 	free_pages((unsigned long)pgd, PGDIR_ORDER - PAGE_SHIFT);
 #endif
@@ -159,7 +148,7 @@ void __iomem *
 ioremap_prot(phys_addr_t addr, unsigned long size, unsigned long flags)
 {
 	/* writeable implies dirty for kernel addresses */
-	if ((flags & (_PAGE_RW | _PAGE_RO)) != _PAGE_RO)
+	if (flags & _PAGE_RW)
 		flags |= _PAGE_DIRTY | _PAGE_HWWRITE;
 
 	/* we don't want to let _PAGE_USER and _PAGE_EXEC leak out */

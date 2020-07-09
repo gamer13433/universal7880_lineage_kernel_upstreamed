@@ -21,8 +21,6 @@
 #define S3C24XX_SERIAL_CTRL_NUM			0x4
 #define S3C24XX_SERIAL_BUAD_NUM			0x2
 
-#include <linux/dmaengine.h>
-
 struct s3c24xx_uart_info {
 	char			*name;
 	unsigned int		type;
@@ -56,40 +54,6 @@ struct uart_local_buf {
 	unsigned char *buffer;
 	unsigned int size;
 	unsigned int index;
-};
-
-struct s3c24xx_uart_dma {
-	dma_filter_fn			fn;
-	void				*rx_param;
-	void				*tx_param;
-
-	unsigned int			rx_chan_id;
-	unsigned int			tx_chan_id;
-
-	struct dma_slave_config		rx_conf;
-	struct dma_slave_config		tx_conf;
-
-	struct dma_chan			*rx_chan;
-	struct dma_chan			*tx_chan;
-
-	dma_addr_t			rx_addr;
-	dma_addr_t			tx_addr;
-
-	dma_cookie_t			rx_cookie;
-	dma_cookie_t			tx_cookie;
-
-	char				*rx_buf;
-
-	dma_addr_t			tx_transfer_addr;
-
-	size_t				rx_size;
-	size_t				tx_size;
-
-	struct dma_async_tx_descriptor	*tx_desc;
-	struct dma_async_tx_descriptor	*rx_desc;
-
-	int				tx_bytes_requested;
-	int				rx_bytes_requested;
 };
 
 struct s3c24xx_uart_port {

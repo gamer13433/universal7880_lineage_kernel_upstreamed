@@ -18,7 +18,10 @@
 
 #include <linux/kernel.h>
 
-#include "comedi_pcmcia.h"
+#include <pcmcia/cistpl.h>
+#include <pcmcia/ds.h>
+
+#include "comedidev.h"
 
 /**
  * comedi_to_pcmcia_dev() - comedi_device pointer to pcmcia_device pointer.

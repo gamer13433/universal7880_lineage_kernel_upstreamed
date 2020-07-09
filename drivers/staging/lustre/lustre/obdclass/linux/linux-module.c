@@ -83,8 +83,9 @@ int obd_ioctl_getdata(char **buf, int *len, void *arg)
 	int err;
 	int offset = 0;
 
-	if (copy_from_user(&hdr, (void *)arg, sizeof(hdr)))
-		return -EFAULT;
+	err = copy_from_user(&hdr, (void *)arg, sizeof(hdr));
+	if (err)
+		return err;
 
 	if (hdr.ioc_version != OBD_IOCTL_VERSION) {
 		CERROR("Version mismatch kernel (%x) vs application (%x)\n",
@@ -116,19 +117,18 @@ int obd_ioctl_getdata(char **buf, int *len, void *arg)
 	*len = hdr.ioc_len;
 	data = (struct obd_ioctl_data *)*buf;
 
-	if (copy_from_user(*buf, (void *)arg, hdr.ioc_len)) {
-		err = -EFAULT;
-		goto free_buf;
+	err = copy_from_user(*buf, (void *)arg, hdr.ioc_len);
+	if (err) {
+		OBD_FREE_LARGE(*buf, hdr.ioc_len);
+		return err;
 	}
-	if (hdr.ioc_len != data->ioc_len) {
-		err = -EINVAL;
-		goto free_buf;
-	}
+	if (hdr.ioc_len != data->ioc_len)
+		return -EINVAL;
 
 	if (obd_ioctl_is_invalid(data)) {
 		CERROR("ioctl not correctly formatted\n");
-		err = -EINVAL;
-		goto free_buf;
+		OBD_FREE_LARGE(*buf, hdr.ioc_len);
+		return -EINVAL;
 	}
 
 	if (data->ioc_inllen1) {
@@ -151,10 +151,6 @@ int obd_ioctl_getdata(char **buf, int *len, void *arg)
 	}
 
 	return 0;
-
-free_buf:
-	OBD_FREE_LARGE(*buf, hdr.ioc_len);
-	return err;
 }
 EXPORT_SYMBOL(obd_ioctl_getdata);
 
@@ -276,9 +272,8 @@ static int obd_proc_jobid_var_seq_show(struct seq_file *m, void *v)
 	return seq_printf(m, "%s\n", obd_jobid_var);
 }
 
-static ssize_t obd_proc_jobid_var_seq_write(struct file *file,
-				const char __user *buffer,
-				size_t count, loff_t *off)
+static ssize_t obd_proc_jobid_var_seq_write(struct file *file, const char *buffer,
+					size_t count, loff_t *off)
 {
 	if (!count || count > JOBSTATS_JOBID_VAR_MAX_LEN)
 		return -EINVAL;

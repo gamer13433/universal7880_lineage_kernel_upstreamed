@@ -190,14 +190,6 @@ unsigned int mnt_get_count(struct mount *mnt)
 #endif
 }
 
-static void drop_mountpoint(struct fs_pin *p)
-{
-	struct mount *m = container_of(p, struct mount, mnt_umount);
-	dput(m->mnt_ex_mountpoint);
-	pin_remove(p);
-	mntput(&m->mnt);
-}
-
 static struct mount *alloc_vfsmnt(const char *name)
 {
 	struct mount *mnt = kmem_cache_zalloc(mnt_cache, GFP_KERNEL);
@@ -209,7 +201,7 @@ static struct mount *alloc_vfsmnt(const char *name)
 			goto out_free_cache;
 
 		if (name) {
-			mnt->mnt_devname = kstrdup_const(name, GFP_KERNEL);
+			mnt->mnt_devname = kstrdup(name, GFP_KERNEL);
 			if (!mnt->mnt_devname)
 				goto out_free_id;
 		}
@@ -237,13 +229,12 @@ static struct mount *alloc_vfsmnt(const char *name)
 #ifdef CONFIG_FSNOTIFY
 		INIT_HLIST_HEAD(&mnt->mnt_fsnotify_marks);
 #endif
-		init_fs_pin(&mnt->mnt_umount, drop_mountpoint);
 	}
 	return mnt;
 
 #ifdef CONFIG_SMP
 out_free_devname:
-	kfree_const(mnt->mnt_devname);
+	kfree(mnt->mnt_devname);
 #endif
 out_free_id:
 	mnt_free_id(mnt);
@@ -1315,6 +1306,7 @@ static HLIST_HEAD(unmounted);	/* protected by namespace_sem */
 
 static void namespace_unlock(void)
 {
+	struct mount *mnt;
 	struct hlist_head head = unmounted;
 
 	if (likely(hlist_empty(&head))) {
@@ -1360,6 +1352,7 @@ static void umount_tree(struct mount *mnt, enum umount_tree_flags how)
 {
 	HLIST_HEAD(tmp_list);
 	struct mount *p;
+	struct mount *last = NULL;
 
 	for (p = mnt; p; p = next_mnt(p, mnt)) {
 		hlist_del_init_rcu(&p->mnt_hash);
@@ -1950,8 +1943,8 @@ static int graft_tree(struct mount *mnt, struct mount *p, struct mountpoint *mp)
 	if (mnt->mnt.mnt_sb->s_flags & MS_NOUSER)
 		return -EINVAL;
 
-	if (d_is_dir(mp->m_dentry) !=
-	      d_is_dir(mnt->mnt.mnt_root))
+	if (S_ISDIR(mp->m_dentry->d_inode->i_mode) !=
+	      S_ISDIR(mnt->mnt.mnt_root->d_inode->i_mode))
 		return -ENOTDIR;
 
 	return attach_recursive_mnt(mnt, p, mp, NULL);
@@ -2226,8 +2219,8 @@ static int do_move_mount(struct path *path, const char *old_name)
 	if (!mnt_has_parent(old))
 		goto out1;
 
-	if (d_is_dir(path->dentry) !=
-	      d_is_dir(old_path.dentry))
+	if (S_ISDIR(path->dentry->d_inode->i_mode) !=
+	      S_ISDIR(old_path.dentry->d_inode->i_mode))
 		goto out1;
 	/*
 	 * Don't move a mount residing in a shared parent.
@@ -2317,7 +2310,7 @@ static int do_add_mount(struct mount *newmnt, struct path *path, int mnt_flags)
 		goto unlock;
 
 	err = -EINVAL;
-	if (d_is_symlink(newmnt->mnt.mnt_root))
+	if (S_ISLNK(newmnt->mnt.mnt_root->d_inode->i_mode))
 		goto unlock;
 
 	newmnt->mnt.mnt_flags = mnt_flags;

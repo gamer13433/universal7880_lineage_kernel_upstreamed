@@ -200,7 +200,9 @@ static int process_buildids(struct record *rec)
 	if (size == 0)
 		return 0;
 
-	return perf_session__process_events(session, &rec->tool);
+	return __perf_session__process_events(session, start,
+					      size - start,
+					      size, &build_id__mark_dso_hit_ops);
 }
 
 static void perf_event__synthesize_guest_os(struct machine *machine, void *data)
@@ -309,7 +311,6 @@ static int __cmd_record(struct record *rec, int argc, const char **argv)
 	struct perf_data_file *file = &rec->file;
 	struct perf_session *session;
 	bool disabled = false, draining = false;
-	int fd;
 
 	rec->progname = argv[0];
 
@@ -324,7 +325,6 @@ static int __cmd_record(struct record *rec, int argc, const char **argv)
 		return -1;
 	}
 
-	fd = perf_data_file__fd(file);
 	rec->session = session;
 
 	record__init_features(rec);
@@ -349,11 +349,12 @@ static int __cmd_record(struct record *rec, int argc, const char **argv)
 		perf_header__clear_feat(&session->header, HEADER_GROUP_DESC);
 
 	if (file->is_pipe) {
-		err = perf_header__write_pipe(fd);
+		err = perf_header__write_pipe(file->fd);
 		if (err < 0)
 			goto out_child;
 	} else {
-		err = perf_session__write_header(session, rec->evlist, fd, false);
+		err = perf_session__write_header(session, rec->evlist,
+						 file->fd, false);
 		if (err < 0)
 			goto out_child;
 	}
@@ -385,7 +386,7 @@ static int __cmd_record(struct record *rec, int argc, const char **argv)
 			 * return this more properly and also
 			 * propagate errors that now are calling die()
 			 */
-			err = perf_event__synthesize_tracing_data(tool,	fd, rec->evlist,
+			err = perf_event__synthesize_tracing_data(tool, file->fd, rec->evlist,
 								  process_synthesized_event);
 			if (err <= 0) {
 				pr_err("Couldn't record tracing data.\n");
@@ -492,8 +493,18 @@ static int __cmd_record(struct record *rec, int argc, const char **argv)
 		goto out_child;
 	}
 
-	if (!quiet)
+	if (!quiet) {
 		fprintf(stderr, "[ perf record: Woken up %ld times to write data ]\n", waking);
+
+		/*
+		 * Approximate RIP event size: 24 bytes.
+		 */
+		fprintf(stderr,
+			"[ perf record: Captured and wrote %.3f MB %s (~%" PRIu64 " samples) ]\n",
+			(double)rec->bytes_written / 1024.0 / 1024.0,
+			file->path,
+			rec->bytes_written / 24);
+	}
 
 out_child:
 	if (forks) {
@@ -513,29 +524,13 @@ out_child:
 	} else
 		status = err;
 
-	/* this will be recalculated during process_buildids() */
-	rec->samples = 0;
-
 	if (!err && !file->is_pipe) {
 		rec->session->header.data_size += rec->bytes_written;
 
 		if (!rec->no_buildid)
 			process_buildids(rec);
-		perf_session__write_header(rec->session, rec->evlist, fd, true);
-	}
-
-	if (!err && !quiet) {
-		char samples[128];
-
-		if (rec->samples)
-			scnprintf(samples, sizeof(samples),
-				  " (%" PRIu64 " samples)", rec->samples);
-		else
-			samples[0] = '\0';
-
-		fprintf(stderr,	"[ perf record: Captured and wrote %.3f MB %s%s ]\n",
-			perf_data_file__size(file) / 1024.0 / 1024.0,
-			file->path, samples);
+		perf_session__write_header(rec->session, rec->evlist,
+					   file->fd, true);
 	}
 
 out_delete_session:
@@ -712,13 +707,6 @@ static struct record record = {
 			.uses_mmap   = true,
 			.default_per_cpu = true,
 		},
-	},
-	.tool = {
-		.sample		= process_sample_event,
-		.fork		= perf_event__process_fork,
-		.comm		= perf_event__process_comm,
-		.mmap		= perf_event__process_mmap,
-		.mmap2		= perf_event__process_mmap2,
 	},
 };
 

@@ -32,8 +32,6 @@
 #include <linux/netdevice.h>
 #include <linux/skbuff.h>
 
-#include <net/cfg802154.h>
-
 struct ieee802154_sechdr {
 #if defined(__LITTLE_ENDIAN_BITFIELD)
 	u8 level:3,
@@ -343,7 +341,7 @@ struct ieee802154_mac_params {
 	s8 frame_retries;
 
 	bool lbt;
-	struct wpan_phy_cca cca;
+	u8 cca_mode;
 	s32 cca_ed_level;
 };
 

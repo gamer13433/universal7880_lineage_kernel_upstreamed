@@ -132,7 +132,6 @@ MODULE_DEVICE_TABLE(usb, id_table);
 #define UART_OVERRUN_ERROR		0x40
 #define UART_CTS			0x80
 
-static void pl2303_set_break(struct usb_serial_port *port, bool enable);
 
 enum pl2303_type {
 	TYPE_01,	/* Type 0 and 1 (difference unknown) */
@@ -616,7 +615,6 @@ static void pl2303_close(struct usb_serial_port *port)
 {
 	usb_serial_generic_close(port);
 	usb_kill_urb(port->interrupt_in_urb);
-	pl2303_set_break(port, false);
 }
 
 static int pl2303_open(struct tty_struct *tty, struct usb_serial_port *port)
@@ -743,16 +741,17 @@ static int pl2303_ioctl(struct tty_struct *tty,
 	return -ENOIOCTLCMD;
 }
 
-static void pl2303_set_break(struct usb_serial_port *port, bool enable)
+static void pl2303_break_ctl(struct tty_struct *tty, int break_state)
 {
+	struct usb_serial_port *port = tty->driver_data;
 	struct usb_serial *serial = port->serial;
 	u16 state;
 	int result;
 
-	if (enable)
-		state = BREAK_ON;
-	else
+	if (break_state == 0)
 		state = BREAK_OFF;
+	else
+		state = BREAK_ON;
 
 	dev_dbg(&port->dev, "%s - turning break %s\n", __func__,
 			state == BREAK_OFF ? "off" : "on");
@@ -762,13 +761,6 @@ static void pl2303_set_break(struct usb_serial_port *port, bool enable)
 				 0, NULL, 0, 100);
 	if (result)
 		dev_err(&port->dev, "error sending break = %d\n", result);
-}
-
-static void pl2303_break_ctl(struct tty_struct *tty, int state)
-{
-	struct usb_serial_port *port = tty->driver_data;
-
-	pl2303_set_break(port, state);
 }
 
 static void pl2303_update_line_status(struct usb_serial_port *port,

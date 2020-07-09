@@ -20,18 +20,19 @@
  * @len:	length of buffer
  *
  * This function returns a string formatted to 3 significant figures
- * giving the size in the required units.  @buf should have room for
- * at least 9 bytes and will always be zero terminated.
+ * giving the size in the required units.  Returns 0 on success or
+ * error on failure.  @buf is always zero terminated.
  *
  */
-void string_get_size(u64 size, const enum string_size_units units,
-		     char *buf, int len)
+int string_get_size(u64 size, const enum string_size_units units,
+		    char *buf, int len)
 {
 	static const char *const units_10[] = {
-		"B", "kB", "MB", "GB", "TB", "PB", "EB"
+		"B", "kB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB", NULL
 	};
 	static const char *const units_2[] = {
-		"B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB"
+		"B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB", "YiB",
+		NULL
 	};
 	static const char *const *const units_str[] = {
 		[STRING_UNITS_10] = units_10,
@@ -42,13 +43,13 @@ void string_get_size(u64 size, const enum string_size_units units,
 		[STRING_UNITS_2] = 1024,
 	};
 	int i, j;
-	u32 remainder = 0, sf_cap;
+	u64 remainder = 0, sf_cap;
 	char tmp[8];
 
 	tmp[0] = '\0';
 	i = 0;
 	if (size >= divisor[units]) {
-		while (size >= divisor[units]) {
+		while (size >= divisor[units] && units_str[units][i]) {
 			remainder = do_div(size, divisor[units]);
 			i++;
 		}
@@ -59,14 +60,17 @@ void string_get_size(u64 size, const enum string_size_units units,
 
 		if (j) {
 			remainder *= 1000;
-			remainder /= divisor[units];
-			snprintf(tmp, sizeof(tmp), ".%03u", remainder);
+			do_div(remainder, divisor[units]);
+			snprintf(tmp, sizeof(tmp), ".%03lld",
+				 (unsigned long long)remainder);
 			tmp[j+1] = '\0';
 		}
 	}
 
-	snprintf(buf, len, "%u%s %s", (u32)size,
+	snprintf(buf, len, "%lld%s %s", (unsigned long long)size,
 		 tmp, units_str[units][i]);
+
+	return 0;
 }
 EXPORT_SYMBOL(string_get_size);
 

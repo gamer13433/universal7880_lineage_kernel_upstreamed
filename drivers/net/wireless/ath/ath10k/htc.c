@@ -700,9 +700,11 @@ int ath10k_htc_connect_service(struct ath10k_htc *htc,
 	/* wait for response */
 	status = wait_for_completion_timeout(&htc->ctl_resp,
 					     ATH10K_HTC_CONN_SVC_TIMEOUT_HZ);
-	if (status == 0) {
+	if (status <= 0) {
+		if (status == 0)
+			status = -ETIMEDOUT;
 		ath10k_err(ar, "Service connect timeout: %d\n", status);
-		return -ETIMEDOUT;
+		return status;
 	}
 
 	/* we controlled the buffer creation, it's aligned */

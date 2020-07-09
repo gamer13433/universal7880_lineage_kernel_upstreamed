@@ -37,8 +37,6 @@ struct brcmf_commonring {
 	unsigned long flags;
 	bool inited;
 	bool was_full;
-
-	atomic_t outstanding_tx;
 };
 
 

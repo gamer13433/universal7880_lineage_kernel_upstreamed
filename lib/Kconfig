@@ -13,17 +13,8 @@ config RAID6_PQ
 config BITREVERSE
 	tristate
 
-config HAVE_ARCH_BITREVERSE
-	bool
-	default n
-	depends on BITREVERSE
-	help
-	  This option provides an config for the architecture which have instruction
-	  can do bitreverse operation, we use the hardware instruction if the architecture
-	  have this capability.
-
 config RATIONAL
-	bool
+	boolean
 
 config GENERIC_STRNCPY_FROM_USER
 	bool
@@ -48,14 +39,14 @@ config GENERIC_IOMAP
 	select GENERIC_PCI_IOMAP
 
 config GENERIC_IO
-	bool
+	boolean
 	default n
 
 config STMP_DEVICE
 	bool
 
 config PERCPU_RWSEM
-	bool
+	boolean
 
 config ARCH_USE_CMPXCHG_LOCKREF
 	bool
@@ -266,7 +257,7 @@ config DECOMPRESS_LZ4
 # Generic allocator support is selected if needed
 #
 config GENERIC_ALLOCATOR
-	bool
+	boolean
 
 #
 # reed solomon support is select'ed if needed
@@ -275,16 +266,16 @@ config REED_SOLOMON
 	tristate
 	
 config REED_SOLOMON_ENC8
-	bool
+	boolean
 
 config REED_SOLOMON_DEC8
-	bool
+	boolean
 
 config REED_SOLOMON_ENC16
-	bool
+	boolean
 
 config REED_SOLOMON_DEC16
-	bool
+	boolean
 
 #
 # BCH support is selected if needed
@@ -293,7 +284,7 @@ config BCH
 	tristate
 
 config BCH_CONST_PARAMS
-	bool
+	boolean
 	help
 	  Drivers may select this option to force specific constant
 	  values for parameters 'm' (Galois field order) and 't'
@@ -329,7 +320,7 @@ config BCH_CONST_T
 # Textsearch support is select'ed if needed
 #
 config TEXTSEARCH
-	bool
+	boolean
 
 config TEXTSEARCH_KMP
 	tristate
@@ -341,10 +332,10 @@ config TEXTSEARCH_FSM
 	tristate
 
 config BTREE
-	bool
+	boolean
 
 config INTERVAL_TREE
-	bool
+	boolean
 	help
 	  Simple, embeddable, interval-tree. Can find the start of an
 	  overlapping range in log(n) time and then iterate over all
@@ -372,18 +363,18 @@ config ASSOCIATIVE_ARRAY
 	  for more information.
 
 config HAS_IOMEM
-	bool
+	boolean
 	depends on !NO_IOMEM
 	select GENERIC_IO
 	default y
 
 config HAS_IOPORT_MAP
-	bool
+	boolean
 	depends on HAS_IOMEM && !NO_IOPORT_MAP
 	default y
 
 config HAS_DMA
-	bool
+	boolean
 	depends on !NO_DMA
 	default y
 

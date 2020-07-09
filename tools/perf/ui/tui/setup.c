@@ -14,7 +14,6 @@
 static volatile int ui__need_resize;
 
 extern struct perf_error_ops perf_tui_eops;
-extern bool tui_helpline__set;
 
 extern void hist_browser__init_hpp(void);
 
@@ -138,7 +137,7 @@ out:
 
 void ui__exit(bool wait_for_ok)
 {
-	if (wait_for_ok && tui_helpline__set)
+	if (wait_for_ok)
 		ui__question_window("Fatal Error",
 				    ui_helpline__last_msg,
 				    "Press any key...", 0);

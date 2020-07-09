@@ -73,10 +73,9 @@ bool __ieee80211_recalc_txpower(struct ieee80211_sub_if_data *sdata)
 	return false;
 }
 
-void ieee80211_recalc_txpower(struct ieee80211_sub_if_data *sdata,
-			      bool update_bss)
+void ieee80211_recalc_txpower(struct ieee80211_sub_if_data *sdata)
 {
-	if (__ieee80211_recalc_txpower(sdata) || update_bss)
+	if (__ieee80211_recalc_txpower(sdata))
 		ieee80211_bss_info_change_notify(sdata, BSS_CHANGED_TXPOWER);
 }
 
@@ -94,7 +93,7 @@ static u32 __ieee80211_idle_on(struct ieee80211_local *local)
 	if (local->hw.conf.flags & IEEE80211_CONF_IDLE)
 		return 0;
 
-	ieee80211_flush_queues(local, NULL, false);
+	ieee80211_flush_queues(local, NULL);
 
 	local->hw.conf.flags |= IEEE80211_CONF_IDLE;
 	return IEEE80211_CONF_CHANGE_IDLE;
@@ -1157,7 +1156,12 @@ static void ieee80211_iface_work(struct work_struct *work)
 	if (local->scanning)
 		return;
 
-	if (!ieee80211_can_run_worker(local))
+	/*
+	 * ieee80211_queue_work() should have picked up most cases,
+	 * here we'll pick the rest.
+	 */
+	if (WARN(local->suspended,
+		 "interface work scheduled while going to suspend\n"))
 		return;
 
 	/* first process frames */

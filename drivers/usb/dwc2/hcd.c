@@ -316,12 +316,10 @@ void dwc2_hcd_disconnect(struct dwc2_hsotg *hsotg)
  */
 static void dwc2_hcd_rem_wakeup(struct dwc2_hsotg *hsotg)
 {
-	if (hsotg->lx_state == DWC2_L2) {
+	if (hsotg->lx_state == DWC2_L2)
 		hsotg->flags.b.port_suspend_change = 1;
-		usb_hcd_resume_root_hub(hsotg->priv);
-	} else {
+	else
 		hsotg->flags.b.port_l1_change = 1;
-	}
 }
 
 /**
@@ -1608,9 +1606,7 @@ static int dwc2_hcd_hub_control(struct dwc2_hsotg *hsotg, u16 typereq,
 		hub_desc->bDescLength = 9;
 		hub_desc->bDescriptorType = 0x29;
 		hub_desc->bNbrPorts = 1;
-		hub_desc->wHubCharacteristics =
-			cpu_to_le16(HUB_CHAR_COMMON_LPSM |
-				    HUB_CHAR_INDV_PORT_OCPM);
+		hub_desc->wHubCharacteristics = cpu_to_le16(0x08);
 		hub_desc->bPwrOn2PwrGood = 1;
 		hub_desc->bHubContrCurrent = 0;
 		hub_desc->u.hs.DeviceRemovable[0] = 0;

@@ -2110,7 +2110,10 @@ static int hw_card_shutdown(struct hw *hw)
 		free_irq(hw->irq, hw);
 
 	hw->irq	= -1;
-	iounmap(hw->mem_base);
+
+	if (hw->mem_base)
+		iounmap(hw->mem_base);
+
 	hw->mem_base = NULL;
 
 	if (hw->io_base)
@@ -2206,12 +2209,24 @@ static int hw_card_init(struct hw *hw, struct card_conf *info)
 #ifdef CONFIG_PM_SLEEP
 static int hw_suspend(struct hw *hw)
 {
+	struct pci_dev *pci = hw->pci;
+
 	hw_card_stop(hw);
+
+	pci_disable_device(pci);
+	pci_save_state(pci);
+	pci_set_power_state(pci, PCI_D3hot);
+
 	return 0;
 }
 
 static int hw_resume(struct hw *hw, struct card_conf *info)
 {
+	struct pci_dev *pci = hw->pci;
+
+	pci_set_power_state(pci, PCI_D0);
+	pci_restore_state(pci);
+
 	/* Re-initialize card hardware. */
 	return hw_card_init(hw, info);
 }

@@ -368,6 +368,10 @@ static void labpc_adc_timing(struct comedi_device *dev, struct comedi_cmd *cmd,
 			     enum scan_mode mode)
 {
 	struct labpc_private *devpriv = dev->private;
+	/* max value for 16 bit counter in mode 2 */
+	const int max_counter_value = 0x10000;
+	/* min value for 16 bit counter in mode 2 */
+	const int min_counter_value = 2;
 	unsigned int base_period;
 	unsigned int scan_period;
 	unsigned int convert_period;
@@ -384,10 +388,11 @@ static void labpc_adc_timing(struct comedi_device *dev, struct comedi_cmd *cmd,
 		 * clock speed on convert and scan counters)
 		 */
 		devpriv->divisor_b0 = (scan_period - 1) /
-		    (I8254_OSC_BASE_2MHZ * 0x10000) + 1;
-
-		cfc_check_trigger_arg_min(&devpriv->divisor_b0, 2);
-		cfc_check_trigger_arg_max(&devpriv->divisor_b0, 0x10000);
+		    (I8254_OSC_BASE_2MHZ * max_counter_value) + 1;
+		if (devpriv->divisor_b0 < min_counter_value)
+			devpriv->divisor_b0 = min_counter_value;
+		if (devpriv->divisor_b0 > max_counter_value)
+			devpriv->divisor_b0 = max_counter_value;
 
 		base_period = I8254_OSC_BASE_2MHZ * devpriv->divisor_b0;
 
@@ -395,16 +400,16 @@ static void labpc_adc_timing(struct comedi_device *dev, struct comedi_cmd *cmd,
 		switch (cmd->flags & CMDF_ROUND_MASK) {
 		default:
 		case CMDF_ROUND_NEAREST:
-			devpriv->divisor_a0 = DIV_ROUND_CLOSEST(convert_period,
-								base_period);
-			devpriv->divisor_b1 = DIV_ROUND_CLOSEST(scan_period,
-								base_period);
+			devpriv->divisor_a0 =
+			    (convert_period + (base_period / 2)) / base_period;
+			devpriv->divisor_b1 =
+			    (scan_period + (base_period / 2)) / base_period;
 			break;
 		case CMDF_ROUND_UP:
-			devpriv->divisor_a0 = DIV_ROUND_UP(convert_period,
-							   base_period);
-			devpriv->divisor_b1 = DIV_ROUND_UP(scan_period,
-							   base_period);
+			devpriv->divisor_a0 =
+			    (convert_period + (base_period - 1)) / base_period;
+			devpriv->divisor_b1 =
+			    (scan_period + (base_period - 1)) / base_period;
 			break;
 		case CMDF_ROUND_DOWN:
 			devpriv->divisor_a0 = convert_period / base_period;
@@ -412,10 +417,14 @@ static void labpc_adc_timing(struct comedi_device *dev, struct comedi_cmd *cmd,
 			break;
 		}
 		/*  make sure a0 and b1 values are acceptable */
-		cfc_check_trigger_arg_min(&devpriv->divisor_a0, 2);
-		cfc_check_trigger_arg_max(&devpriv->divisor_a0, 0x10000);
-		cfc_check_trigger_arg_min(&devpriv->divisor_b1, 2);
-		cfc_check_trigger_arg_max(&devpriv->divisor_b1, 0x10000);
+		if (devpriv->divisor_a0 < min_counter_value)
+			devpriv->divisor_a0 = min_counter_value;
+		if (devpriv->divisor_a0 > max_counter_value)
+			devpriv->divisor_a0 = max_counter_value;
+		if (devpriv->divisor_b1 < min_counter_value)
+			devpriv->divisor_b1 = min_counter_value;
+		if (devpriv->divisor_b1 > max_counter_value)
+			devpriv->divisor_b1 = max_counter_value;
 		/*  write corrected timings to command */
 		labpc_set_ai_convert_period(cmd, mode,
 					    base_period * devpriv->divisor_a0);
@@ -678,7 +687,7 @@ static int labpc_ai_cmd(struct comedi_device *dev, struct comedi_subdevice *s)
 	}
 
 	/* figure out what method we will use to transfer data */
-	if (devpriv->dma &&
+	if (labpc_have_dma_chan(dev) &&
 	    /* dma unsafe at RT priority,
 	     * and too much setup time for CMDF_WAKE_EOS */
 	    (cmd->flags & (CMDF_WAKE_EOS | CMDF_PRIORITY)) == 0)
@@ -814,7 +823,7 @@ static int labpc_drain_fifo(struct comedi_device *dev)
 	}
 	if (i == timeout) {
 		dev_err(dev->class_dev, "ai timeout, fifo never empties\n");
-		async->events |= COMEDI_CB_ERROR;
+		async->events |= COMEDI_CB_ERROR | COMEDI_CB_EOA;
 		return -1;
 	}
 
@@ -1240,14 +1249,10 @@ int labpc_common_attach(struct comedi_device *dev,
 			unsigned int irq, unsigned long isr_flags)
 {
 	const struct labpc_boardinfo *board = dev->board_ptr;
-	struct labpc_private *devpriv;
+	struct labpc_private *devpriv = dev->private;
 	struct comedi_subdevice *s;
 	int ret;
 	int i;
-
-	devpriv = comedi_alloc_devpriv(dev, sizeof(*devpriv));
-	if (!devpriv)
-		return -ENOMEM;
 
 	if (dev->mmio) {
 		devpriv->read_byte = labpc_readb;

@@ -19,21 +19,6 @@ static inline void paravirt_activate_mm(struct mm_struct *prev,
 }
 #endif	/* !CONFIG_PARAVIRT */
 
-#ifdef CONFIG_PERF_EVENTS
-extern struct static_key rdpmc_always_available;
-
-static inline void load_mm_cr4(struct mm_struct *mm)
-{
-	if (static_key_true(&rdpmc_always_available) ||
-	    atomic_read(&mm->context.perf_rdpmc_allowed))
-		cr4_set_bits(X86_CR4_PCE);
-	else
-		cr4_clear_bits(X86_CR4_PCE);
-}
-#else
-static inline void load_mm_cr4(struct mm_struct *mm) {}
-#endif
-
 /*
  * Used for LDT copy/destruction.
  */
@@ -92,7 +77,6 @@ static inline void switch_mm(struct mm_struct *prev, struct mm_struct *next,
 			 */
 			load_cr3(next->pgd);
 			trace_tlb_flush(TLB_FLUSH_ON_TASK_SWITCH, TLB_FLUSH_ALL);
-			load_mm_cr4(next);
 			load_LDT_nolock(&next->context);
 		}
 	}

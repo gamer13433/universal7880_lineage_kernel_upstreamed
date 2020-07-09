@@ -47,11 +47,17 @@ struct thread_struct {
 /* Forward declaration, a strange C thing */
 struct task_struct;
 
+/* Return saved PC of a blocked thread  */
+unsigned long thread_saved_pc(struct task_struct *t);
+
 #define task_pt_regs(p) \
 	((struct pt_regs *)(THREAD_SIZE + (void *)task_stack_page(p)) - 1)
 
 /* Free all resources held by a thread */
 #define release_thread(thread) do { } while (0)
+
+/* Prepare to copy thread state - unlazy all lazy status */
+#define prepare_to_copy(tsk)    do { } while (0)
 
 /*
  * A lot of busy-wait loops in SMP are based off of non-volatile data otherwise

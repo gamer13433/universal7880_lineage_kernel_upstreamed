@@ -28,75 +28,85 @@
 
 #define CURRENT_FILE_PC VISOR_CHIPSET_PC_file_c
 
-static struct cdev file_cdev;
-static struct visorchannel **file_controlvm_channel;
-static dev_t majordev = -1; /**< indicates major num for device */
-static BOOL registered = FALSE;
+static struct cdev Cdev;
+static VISORCHANNEL **PControlVm_channel;
+static dev_t MajorDev = -1; /**< indicates major num for device */
+static BOOL Registered = FALSE;
 
 static int visorchipset_open(struct inode *inode, struct file *file);
 static int visorchipset_release(struct inode *inode, struct file *file);
 static int visorchipset_mmap(struct file *file, struct vm_area_struct *vma);
+#ifdef HAVE_UNLOCKED_IOCTL
 long visorchipset_ioctl(struct file *file, unsigned int cmd, unsigned long arg);
+#else
+int visorchipset_ioctl(struct inode *inode, struct file *file,
+		       unsigned int cmd, unsigned long arg);
+#endif
 
 static const struct file_operations visorchipset_fops = {
 	.owner = THIS_MODULE,
 	.open = visorchipset_open,
 	.read = NULL,
 	.write = NULL,
+#ifdef HAVE_UNLOCKED_IOCTL
 	.unlocked_ioctl = visorchipset_ioctl,
+#else
+	.ioctl = visorchipset_ioctl,
+#endif
 	.release = visorchipset_release,
 	.mmap = visorchipset_mmap,
 };
 
 int
-visorchipset_file_init(dev_t major_dev, struct visorchannel **controlvm_channel)
+visorchipset_file_init(dev_t majorDev, VISORCHANNEL **pControlVm_channel)
 {
-	int rc = 0;
+	int rc = -1;
 
-	file_controlvm_channel = controlvm_channel;
-	majordev = major_dev;
-	cdev_init(&file_cdev, &visorchipset_fops);
-	file_cdev.owner = THIS_MODULE;
-	if (MAJOR(majordev) == 0) {
+	PControlVm_channel = pControlVm_channel;
+	MajorDev = majorDev;
+	cdev_init(&Cdev, &visorchipset_fops);
+	Cdev.owner = THIS_MODULE;
+	if (MAJOR(MajorDev) == 0) {
 		/* dynamic major device number registration required */
-		if (alloc_chrdev_region(&majordev, 0, 1, MYDRVNAME) < 0) {
+		if (alloc_chrdev_region(&MajorDev, 0, 1, MYDRVNAME) < 0) {
 			ERRDRV("Unable to allocate+register char device %s",
 			       MYDRVNAME);
-			return -1;
+			goto Away;
 		}
-		registered = TRUE;
-		INFODRV("New major number %d registered\n", MAJOR(majordev));
+		Registered = TRUE;
+		INFODRV("New major number %d registered\n", MAJOR(MajorDev));
 	} else {
 		/* static major device number registration required */
-		if (register_chrdev_region(majordev, 1, MYDRVNAME) < 0) {
+		if (register_chrdev_region(MajorDev, 1, MYDRVNAME) < 0) {
 			ERRDRV("Unable to register char device %s", MYDRVNAME);
-			return -1;
+			goto Away;
 		}
-		registered = TRUE;
-		INFODRV("Static major number %d registered\n", MAJOR(majordev));
+		Registered = TRUE;
+		INFODRV("Static major number %d registered\n", MAJOR(MajorDev));
 	}
-	rc = cdev_add(&file_cdev, MKDEV(MAJOR(majordev), 0), 1);
-	if (rc  < 0) {
+	if (cdev_add(&Cdev, MKDEV(MAJOR(MajorDev), 0), 1) < 0) {
 		ERRDRV("failed to create char device: (status=%d)\n", rc);
-		return -1;
+		goto Away;
 	}
 	INFODRV("Registered char device for %s (major=%d)",
-		MYDRVNAME, MAJOR(majordev));
-	return 0;
+		MYDRVNAME, MAJOR(MajorDev));
+	rc = 0;
+Away:
+	return rc;
 }
 
 void
 visorchipset_file_cleanup(void)
 {
-	if (file_cdev.ops != NULL)
-		cdev_del(&file_cdev);
-	file_cdev.ops = NULL;
-	if (registered) {
-		if (MAJOR(majordev) >= 0) {
-			unregister_chrdev_region(majordev, 1);
-			majordev = MKDEV(0, 0);
+	if (Cdev.ops != NULL)
+		cdev_del(&Cdev);
+	Cdev.ops = NULL;
+	if (Registered) {
+		if (MAJOR(MajorDev) >= 0) {
+			unregister_chrdev_region(MajorDev, 1);
+			MajorDev = MKDEV(0, 0);
 		}
-		registered = FALSE;
+		Registered = FALSE;
 	}
 }
 
@@ -104,12 +114,17 @@ static int
 visorchipset_open(struct inode *inode, struct file *file)
 {
 	unsigned minor_number = iminor(inode);
+	int rc = -ENODEV;
 
 	DEBUGDRV("%s", __func__);
 	if (minor_number != 0)
-		return -ENODEV;
+		goto Away;
 	file->private_data = NULL;
-	return 0;
+	rc = 0;
+Away:
+	if (rc < 0)
+		ERRDRV("%s minor=%d failed", __func__, minor_number);
+	return rc;
 }
 
 static int
@@ -122,7 +137,7 @@ visorchipset_release(struct inode *inode, struct file *file)
 static int
 visorchipset_mmap(struct file *file, struct vm_area_struct *vma)
 {
-	ulong physaddr = 0;
+	ulong physAddr = 0;
 	ulong offset = vma->vm_pgoff << PAGE_SHIFT;
 	GUEST_PHYSICAL_ADDRESS addr = 0;
 
@@ -147,10 +162,10 @@ visorchipset_mmap(struct file *file, struct vm_area_struct *vma)
 			ERRDRV("%s control channel address is 0", __func__);
 			return -ENXIO;
 		}
-		physaddr = (ulong)addr;
-		DEBUGDRV("mapping physical address = 0x%lx", physaddr);
+		physAddr = (ulong) (addr);
+		DEBUGDRV("mapping physical address = 0x%lx", physAddr);
 		if (remap_pfn_range(vma, vma->vm_start,
-				    physaddr >> PAGE_SHIFT,
+				    physAddr >> PAGE_SHIFT,
 				    vma->vm_end - vma->vm_start,
 				    /*pgprot_noncached */
 				    (vma->vm_page_prot))) {
@@ -165,8 +180,16 @@ visorchipset_mmap(struct file *file, struct vm_area_struct *vma)
 	return 0;
 }
 
-long visorchipset_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+#ifdef HAVE_UNLOCKED_IOCTL
+long
+visorchipset_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+#else
+int
+visorchipset_ioctl(struct inode *inode, struct file *file,
+		   unsigned int cmd, unsigned long arg)
+#endif
 {
+	int rc = SUCCESS;
 	s64 adjustment;
 	s64 vrtc_offset;
 
@@ -177,21 +200,28 @@ long visorchipset_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 		vrtc_offset = issue_vmcall_query_guest_virtual_time_offset();
 		if (copy_to_user
 		    ((void __user *)arg, &vrtc_offset, sizeof(vrtc_offset))) {
-			return -EFAULT;
+			rc = -EFAULT;
+			goto Away;
 		}
 		DBGINF("insde visorchipset_ioctl, cmd=%d, vrtc_offset=%lld",
 		       cmd, vrtc_offset);
-		return SUCCESS;
+		break;
 	case VMCALL_UPDATE_PHYSICAL_TIME:
 		if (copy_from_user
 		    (&adjustment, (void __user *)arg, sizeof(adjustment))) {
-			return -EFAULT;
+			rc = -EFAULT;
+			goto Away;
 		}
 		DBGINF("insde visorchipset_ioctl, cmd=%d, adjustment=%lld", cmd,
 		       adjustment);
-		return issue_vmcall_update_physical_time(adjustment);
+		rc = issue_vmcall_update_physical_time(adjustment);
+		break;
 	default:
 		LOGERR("visorchipset_ioctl received invalid command");
-		return -EFAULT;
+		rc = -EFAULT;
+		break;
 	}
+Away:
+	DBGINF("exiting %d!", rc);
+	return rc;
 }

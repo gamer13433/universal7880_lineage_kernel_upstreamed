@@ -299,6 +299,8 @@ static enum hrtimer_restart xgbe_tx_timer(struct hrtimer *timer)
 
 	channel->tx_timer_active = 0;
 
+	spin_unlock_irqrestore(&ring->lock, flags);
+
 	DBGPR("<--xgbe_tx_timer\n");
 
 	return HRTIMER_NORESTART;
@@ -442,68 +444,6 @@ static void xgbe_napi_disable(struct xgbe_prv_data *pdata, unsigned int del)
 		netif_napi_del(&pdata->napi);
 }
 
-static int xgbe_request_irqs(struct xgbe_prv_data *pdata)
-{
-	struct xgbe_channel *channel;
-	struct net_device *netdev = pdata->netdev;
-	unsigned int i;
-	int ret;
-
-	ret = devm_request_irq(pdata->dev, pdata->dev_irq, xgbe_isr, 0,
-			       netdev->name, pdata);
-	if (ret) {
-		netdev_alert(netdev, "error requesting irq %d\n",
-			     pdata->dev_irq);
-		return ret;
-	}
-
-	if (!pdata->per_channel_irq)
-		return 0;
-
-	channel = pdata->channel;
-	for (i = 0; i < pdata->channel_count; i++, channel++) {
-		snprintf(channel->dma_irq_name,
-			 sizeof(channel->dma_irq_name) - 1,
-			 "%s-TxRx-%u", netdev_name(netdev),
-			 channel->queue_index);
-
-		ret = devm_request_irq(pdata->dev, channel->dma_irq,
-				       xgbe_dma_isr, 0,
-				       channel->dma_irq_name, channel);
-		if (ret) {
-			netdev_alert(netdev, "error requesting irq %d\n",
-				     channel->dma_irq);
-			goto err_irq;
-		}
-	}
-
-	return 0;
-
-err_irq:
-	/* Using an unsigned int, 'i' will go to UINT_MAX and exit */
-	for (i--, channel--; i < pdata->channel_count; i--, channel--)
-		devm_free_irq(pdata->dev, channel->dma_irq, channel);
-
-	devm_free_irq(pdata->dev, pdata->dev_irq, pdata);
-
-	return ret;
-}
-
-static void xgbe_free_irqs(struct xgbe_prv_data *pdata)
-{
-	struct xgbe_channel *channel;
-	unsigned int i;
-
-	devm_free_irq(pdata->dev, pdata->dev_irq, pdata);
-
-	if (!pdata->per_channel_irq)
-		return;
-
-	channel = pdata->channel;
-	for (i = 0; i < pdata->channel_count; i++, channel++)
-		devm_free_irq(pdata->dev, channel->dma_irq, channel);
-}
-
 void xgbe_init_tx_coalesce(struct xgbe_prv_data *pdata)
 {
 	struct xgbe_hw_if *hw_if = &pdata->hw_if;
@@ -589,7 +529,7 @@ static void xgbe_adjust_link(struct net_device *netdev)
 	struct phy_device *phydev = pdata->phydev;
 	int new_state = 0;
 
-	if (!phydev)
+	if (phydev == NULL)
 		return;
 
 	if (phydev->link) {
@@ -705,19 +645,19 @@ int xgbe_powerdown(struct net_device *netdev, unsigned int caller)
 		return -EINVAL;
 	}
 
+	phy_stop(pdata->phydev);
+
 	spin_lock_irqsave(&pdata->lock, flags);
 
 	if (caller == XGMAC_DRIVER_CONTEXT)
 		netif_device_detach(netdev);
 
 	netif_tx_stop_all_queues(netdev);
-
-	hw_if->powerdown_tx(pdata);
-	hw_if->powerdown_rx(pdata);
-
 	xgbe_napi_disable(pdata, 0);
 
-	phy_stop(pdata->phydev);
+	/* Powerdown Tx/Rx */
+	hw_if->powerdown_tx(pdata);
+	hw_if->powerdown_rx(pdata);
 
 	pdata->power_down = 1;
 
@@ -749,14 +689,14 @@ int xgbe_powerup(struct net_device *netdev, unsigned int caller)
 
 	phy_start(pdata->phydev);
 
-	xgbe_napi_enable(pdata, 0);
-
+	/* Enable Tx/Rx */
 	hw_if->powerup_tx(pdata);
 	hw_if->powerup_rx(pdata);
 
 	if (caller == XGMAC_DRIVER_CONTEXT)
 		netif_device_attach(netdev);
 
+	xgbe_napi_enable(pdata, 0);
 	netif_tx_start_all_queues(netdev);
 
 	spin_unlock_irqrestore(&pdata->lock, flags);
@@ -770,7 +710,6 @@ static int xgbe_start(struct xgbe_prv_data *pdata)
 {
 	struct xgbe_hw_if *hw_if = &pdata->hw_if;
 	struct net_device *netdev = pdata->netdev;
-	int ret;
 
 	DBGPR("-->xgbe_start\n");
 
@@ -780,31 +719,17 @@ static int xgbe_start(struct xgbe_prv_data *pdata)
 
 	phy_start(pdata->phydev);
 
-	xgbe_napi_enable(pdata, 1);
-
-	ret = xgbe_request_irqs(pdata);
-	if (ret)
-		goto err_napi;
-
 	hw_if->enable_tx(pdata);
 	hw_if->enable_rx(pdata);
 
 	xgbe_init_tx_timers(pdata);
 
+	xgbe_napi_enable(pdata, 1);
 	netif_tx_start_all_queues(netdev);
 
 	DBGPR("<--xgbe_start\n");
 
 	return 0;
-
-err_napi:
-	xgbe_napi_disable(pdata, 1);
-
-	phy_stop(pdata->phydev);
-
-	hw_if->exit(pdata);
-
-	return ret;
 }
 
 static void xgbe_stop(struct xgbe_prv_data *pdata)
@@ -860,7 +785,7 @@ static void xgbe_restart(struct work_struct *work)
 
 	rtnl_lock();
 
-	xgbe_restart_dev(pdata);
+	xgbe_restart_dev(pdata, 1);
 
 	rtnl_unlock();
 }
@@ -1058,8 +983,8 @@ static void xgbe_prep_tx_tstamp(struct xgbe_prv_data *pdata,
 
 static void xgbe_prep_vlan(struct sk_buff *skb, struct xgbe_packet_data *packet)
 {
-	if (skb_vlan_tag_present(skb))
-		packet->vlan_ctag = skb_vlan_tag_get(skb);
+	if (vlan_tx_tag_present(skb))
+		packet->vlan_ctag = vlan_tx_tag_get(skb);
 }
 
 static int xgbe_prep_tso(struct sk_buff *skb, struct xgbe_packet_data *packet)
@@ -1129,9 +1054,9 @@ static void xgbe_packet_info(struct xgbe_prv_data *pdata,
 		XGMAC_SET_BITS(packet->attributes, TX_PACKET_ATTRIBUTES,
 			       CSUM_ENABLE, 1);
 
-	if (skb_vlan_tag_present(skb)) {
+	if (vlan_tx_tag_present(skb)) {
 		/* VLAN requires an extra descriptor if tag is different */
-		if (skb_vlan_tag_get(skb) != ring->tx.cur_vlan_ctag)
+		if (vlan_tx_tag_get(skb) != ring->tx.cur_vlan_ctag)
 			/* We can share with the TSO context descriptor */
 			if (!context_desc) {
 				context_desc = 1;
@@ -1296,6 +1221,8 @@ static int xgbe_xmit(struct sk_buff *skb, struct net_device *netdev)
 
 	ret = NETDEV_TX_OK;
 
+	spin_lock_irqsave(&ring->lock, flags);
+
 	if (skb->len == 0) {
 		netdev_err(netdev, "empty skb received from stack\n");
 		dev_kfree_skb_any(skb);
@@ -1338,6 +1265,10 @@ static int xgbe_xmit(struct sk_buff *skb, struct net_device *netdev)
 #endif
 
 tx_netdev_return:
+	spin_unlock_irqrestore(&ring->lock, flags);
+
+	DBGPR("<--xgbe_xmit\n");
+
 	return ret;
 }
 
@@ -1415,7 +1346,7 @@ static int xgbe_change_mtu(struct net_device *netdev, int mtu)
 	pdata->rx_buf_size = ret;
 	netdev->mtu = mtu;
 
-	xgbe_restart_dev(pdata);
+	xgbe_restart_dev(pdata, 0);
 
 	DBGPR("<--xgbe_change_mtu\n");
 
@@ -1620,6 +1551,8 @@ static int xgbe_tx_poll(struct xgbe_channel *channel)
 	if (!ring)
 		return 0;
 
+	spin_lock_irqsave(&ring->lock, flags);
+
 	while ((processed < XGBE_TX_DESC_MAX_PROC) &&
 	       (ring->dirty < ring->cur)) {
 		rdata = XGBE_GET_DESC_DATA(ring, ring->dirty);
@@ -1698,7 +1631,7 @@ static int xgbe_rx_poll(struct xgbe_channel *channel, int budget)
 read_again:
 		rdata = XGBE_GET_DESC_DATA(ring, ring->cur);
 
-		if (xgbe_rx_dirty_desc(ring) > (XGBE_RX_DESC_CNT >> 3))
+		if (ring->dirty > (XGBE_RX_DESC_CNT >> 3))
 			xgbe_rx_refresh(channel);
 
 		if (hw_if->dev_read(channel))
@@ -1706,6 +1639,7 @@ read_again:
 
 		received++;
 		ring->cur++;
+		ring->dirty++;
 
 		dma_unmap_single(pdata->dev, rdata->skb_dma,
 				 rdata->skb_dma_len, DMA_FROM_DEVICE);

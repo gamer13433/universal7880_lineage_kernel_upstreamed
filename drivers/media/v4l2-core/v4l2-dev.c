@@ -47,15 +47,15 @@ static ssize_t index_show(struct device *cd,
 }
 static DEVICE_ATTR_RO(index);
 
-static ssize_t dev_debug_show(struct device *cd,
+static ssize_t debug_show(struct device *cd,
 			  struct device_attribute *attr, char *buf)
 {
 	struct video_device *vdev = to_video_device(cd);
 
-	return sprintf(buf, "%i\n", vdev->dev_debug);
+	return sprintf(buf, "%i\n", vdev->debug);
 }
 
-static ssize_t dev_debug_store(struct device *cd, struct device_attribute *attr,
+static ssize_t debug_store(struct device *cd, struct device_attribute *attr,
 			  const char *buf, size_t len)
 {
 	struct video_device *vdev = to_video_device(cd);
@@ -66,10 +66,10 @@ static ssize_t dev_debug_store(struct device *cd, struct device_attribute *attr,
 	if (res)
 		return res;
 
-	vdev->dev_debug = value;
+	vdev->debug = value;
 	return len;
 }
-static DEVICE_ATTR_RW(dev_debug);
+static DEVICE_ATTR_RW(debug);
 
 static ssize_t name_show(struct device *cd,
 			 struct device_attribute *attr, char *buf)
@@ -82,7 +82,7 @@ static DEVICE_ATTR_RO(name);
 
 static struct attribute *video_device_attrs[] = {
 	&dev_attr_name.attr,
-	&dev_attr_dev_debug.attr,
+	&dev_attr_debug.attr,
 	&dev_attr_index.attr,
 	NULL,
 };
@@ -304,8 +304,7 @@ static ssize_t v4l2_read(struct file *filp, char __user *buf,
 		return -EINVAL;
 	if (video_is_registered(vdev))
 		ret = vdev->fops->read(filp, buf, sz, off);
-	if ((vdev->dev_debug & V4L2_DEV_DEBUG_FOP) &&
-	    (vdev->dev_debug & V4L2_DEV_DEBUG_STREAMING))
+	if (vdev->debug)
 		printk(KERN_DEBUG "%s: read: %zd (%d)\n",
 			video_device_node_name(vdev), sz, ret);
 	return ret;
@@ -321,8 +320,7 @@ static ssize_t v4l2_write(struct file *filp, const char __user *buf,
 		return -EINVAL;
 	if (video_is_registered(vdev))
 		ret = vdev->fops->write(filp, buf, sz, off);
-	if ((vdev->dev_debug & V4L2_DEV_DEBUG_FOP) &&
-	    (vdev->dev_debug & V4L2_DEV_DEBUG_STREAMING))
+	if (vdev->debug)
 		printk(KERN_DEBUG "%s: write: %zd (%d)\n",
 			video_device_node_name(vdev), sz, ret);
 	return ret;
@@ -337,7 +335,7 @@ static unsigned int v4l2_poll(struct file *filp, struct poll_table_struct *poll)
 		return DEFAULT_POLLMASK;
 	if (video_is_registered(vdev))
 		res = vdev->fops->poll(filp, poll);
-	if (vdev->dev_debug & V4L2_DEV_DEBUG_POLL)
+	if (vdev->debug > 2)
 		printk(KERN_DEBUG "%s: poll: %08x\n",
 			video_device_node_name(vdev), res);
 	return res;
@@ -411,7 +409,7 @@ static unsigned long v4l2_get_unmapped_area(struct file *filp,
 	if (!video_is_registered(vdev))
 		return -ENODEV;
 	ret = vdev->fops->get_unmapped_area(filp, addr, len, pgoff, flags);
-	if (vdev->dev_debug & V4L2_DEV_DEBUG_FOP)
+	if (vdev->debug)
 		printk(KERN_DEBUG "%s: get_unmapped_area (%d)\n",
 			video_device_node_name(vdev), ret);
 	return ret;
@@ -427,7 +425,7 @@ static int v4l2_mmap(struct file *filp, struct vm_area_struct *vm)
 		return -ENODEV;
 	if (video_is_registered(vdev))
 		ret = vdev->fops->mmap(filp, vm);
-	if (vdev->dev_debug & V4L2_DEV_DEBUG_FOP)
+	if (vdev->debug)
 		printk(KERN_DEBUG "%s: mmap (%d)\n",
 			video_device_node_name(vdev), ret);
 	return ret;
@@ -457,7 +455,7 @@ static int v4l2_open(struct inode *inode, struct file *filp)
 			ret = -ENODEV;
 	}
 
-	if (vdev->dev_debug & V4L2_DEV_DEBUG_FOP)
+	if (vdev->debug)
 		printk(KERN_DEBUG "%s: open (%d)\n",
 			video_device_node_name(vdev), ret);
 	/* decrease the refcount in case of an error */
@@ -474,7 +472,7 @@ static int v4l2_release(struct inode *inode, struct file *filp)
 
 	if (vdev->fops->release)
 		ret = vdev->fops->release(filp);
-	if (vdev->dev_debug & V4L2_DEV_DEBUG_FOP)
+	if (vdev->debug)
 		printk(KERN_DEBUG "%s: release\n",
 			video_device_node_name(vdev));
 
@@ -1041,3 +1039,10 @@ MODULE_AUTHOR("Alan Cox, Mauro Carvalho Chehab <mchehab@infradead.org>");
 MODULE_DESCRIPTION("Device registrar for Video4Linux drivers v2");
 MODULE_LICENSE("GPL");
 MODULE_ALIAS_CHARDEV_MAJOR(VIDEO_MAJOR);
+
+
+/*
+ * Local variables:
+ * c-basic-offset: 8
+ * End:
+ */

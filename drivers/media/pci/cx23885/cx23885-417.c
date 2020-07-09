@@ -1341,13 +1341,14 @@ static int vidioc_querycap(struct file *file, void  *priv,
 	strlcpy(cap->driver, dev->name, sizeof(cap->driver));
 	strlcpy(cap->card, cx23885_boards[tsport->dev->board].name,
 		sizeof(cap->card));
-	sprintf(cap->bus_info, "PCIe:%s", pci_name(dev->pci));
-	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_READWRITE |
-			   V4L2_CAP_STREAMING;
+	sprintf(cap->bus_info, "PCI:%s", pci_name(dev->pci));
+	cap->capabilities =
+		V4L2_CAP_VIDEO_CAPTURE |
+		V4L2_CAP_READWRITE     |
+		V4L2_CAP_STREAMING     |
+		0;
 	if (dev->tuner_type != TUNER_ABSENT)
-		cap->device_caps |= V4L2_CAP_TUNER;
-	cap->capabilities = cap->device_caps | V4L2_CAP_VBI_CAPTURE |
-		V4L2_CAP_AUDIO | V4L2_CAP_DEVICE_CAPS;
+		cap->capabilities |= V4L2_CAP_TUNER;
 
 	return 0;
 }

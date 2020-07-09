@@ -376,7 +376,7 @@ static const struct snd_kcontrol_new rt5651_snd_controls[] = {
 static int set_dmic_clk(struct snd_soc_dapm_widget *w,
 	struct snd_kcontrol *kcontrol, int event)
 {
-	struct snd_soc_codec *codec = snd_soc_dapm_to_codec(w->dapm);
+	struct snd_soc_codec *codec = w->codec;
 	struct rt5651_priv *rt5651 = snd_soc_codec_get_drvdata(codec);
 	int idx = -EINVAL;
 
@@ -394,10 +394,9 @@ static int set_dmic_clk(struct snd_soc_dapm_widget *w,
 static int is_sysclk_from_pll(struct snd_soc_dapm_widget *source,
 			 struct snd_soc_dapm_widget *sink)
 {
-	struct snd_soc_codec *codec = snd_soc_dapm_to_codec(source->dapm);
 	unsigned int val;
 
-	val = snd_soc_read(codec, RT5651_GLB_CLK);
+	val = snd_soc_read(source->codec, RT5651_GLB_CLK);
 	val &= RT5651_SCLK_SRC_MASK;
 	if (val == RT5651_SCLK_SRC_PLL1)
 		return 1;
@@ -732,7 +731,7 @@ static const struct snd_kcontrol_new rt5651_pdm_r_mux =
 static int rt5651_amp_power_event(struct snd_soc_dapm_widget *w,
 	struct snd_kcontrol *kcontrol, int event)
 {
-	struct snd_soc_codec *codec = snd_soc_dapm_to_codec(w->dapm);
+	struct snd_soc_codec *codec = w->codec;
 	struct rt5651_priv *rt5651 = snd_soc_codec_get_drvdata(codec);
 
 	switch (event) {
@@ -770,7 +769,7 @@ static int rt5651_amp_power_event(struct snd_soc_dapm_widget *w,
 static int rt5651_hp_event(struct snd_soc_dapm_widget *w,
 	struct snd_kcontrol *kcontrol, int event)
 {
-	struct snd_soc_codec *codec = snd_soc_dapm_to_codec(w->dapm);
+	struct snd_soc_codec *codec = w->codec;
 	struct rt5651_priv *rt5651 = snd_soc_codec_get_drvdata(codec);
 
 	switch (event) {
@@ -814,8 +813,7 @@ static int rt5651_hp_event(struct snd_soc_dapm_widget *w,
 static int rt5651_hp_post_event(struct snd_soc_dapm_widget *w,
 			   struct snd_kcontrol *kcontrol, int event)
 {
-
-	struct snd_soc_codec *codec = snd_soc_dapm_to_codec(w->dapm);
+	struct snd_soc_codec *codec = w->codec;
 	struct rt5651_priv *rt5651 = snd_soc_codec_get_drvdata(codec);
 
 	switch (event) {
@@ -835,7 +833,7 @@ static int rt5651_hp_post_event(struct snd_soc_dapm_widget *w,
 static int rt5651_bst1_event(struct snd_soc_dapm_widget *w,
 	struct snd_kcontrol *kcontrol, int event)
 {
-	struct snd_soc_codec *codec = snd_soc_dapm_to_codec(w->dapm);
+	struct snd_soc_codec *codec = w->codec;
 
 	switch (event) {
 	case SND_SOC_DAPM_POST_PMU:
@@ -858,7 +856,7 @@ static int rt5651_bst1_event(struct snd_soc_dapm_widget *w,
 static int rt5651_bst2_event(struct snd_soc_dapm_widget *w,
 	struct snd_kcontrol *kcontrol, int event)
 {
-	struct snd_soc_codec *codec = snd_soc_dapm_to_codec(w->dapm);
+	struct snd_soc_codec *codec = w->codec;
 
 	switch (event) {
 	case SND_SOC_DAPM_POST_PMU:
@@ -881,7 +879,7 @@ static int rt5651_bst2_event(struct snd_soc_dapm_widget *w,
 static int rt5651_bst3_event(struct snd_soc_dapm_widget *w,
 	struct snd_kcontrol *kcontrol, int event)
 {
-	struct snd_soc_codec *codec = snd_soc_dapm_to_codec(w->dapm);
+	struct snd_soc_codec *codec = w->codec;
 
 	switch (event) {
 	case SND_SOC_DAPM_POST_PMU:

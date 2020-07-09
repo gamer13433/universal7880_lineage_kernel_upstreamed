@@ -13,7 +13,6 @@ struct kvm_timer {
 	s64 period; 				/* unit: ns */
 	u32 timer_mode_mask;
 	u64 tscdeadline;
-	u64 expired_tscdeadline;
 	atomic_t pending;			/* accumulated triggered timers */
 };
 
@@ -170,7 +169,5 @@ static inline bool kvm_apic_has_events(struct kvm_vcpu *vcpu)
 }
 
 bool kvm_apic_pending_eoi(struct kvm_vcpu *vcpu, int vector);
-
-void wait_lapic_expire(struct kvm_vcpu *vcpu);
 
 #endif

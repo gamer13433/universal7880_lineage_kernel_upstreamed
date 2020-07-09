@@ -40,10 +40,6 @@
 #include "msg.h"
 #include "node.h"
 
-/* TIPC-specific error codes
-*/
-#define ELINKCONG EAGAIN	/* link congestion <=> resource unavailable */
-
 /* Out-of-range value for link sequence numbers
  */
 #define INVALID_LINK_SEQ 0x10000
@@ -102,14 +98,13 @@ struct tipc_stats {
  * @media_addr: media address to use when sending messages over link
  * @timer: link timer
  * @owner: pointer to peer node
- * @refcnt: reference counter for permanent references (owner node & timer)
  * @flags: execution state flags for link endpoint instance
  * @checkpoint: reference point for triggering link continuity checking
  * @peer_session: link session # being used by peer end of link
  * @peer_bearer_id: bearer id used by link's peer endpoint
  * @bearer_id: local bearer id used by link
  * @tolerance: minimum link continuity loss needed to reset link [in ms]
- * @cont_intv: link continuity testing interval
+ * @continuity_interval: link continuity testing interval [in ms]
  * @abort_limit: # of unacknowledged continuity probes needed to reset link
  * @state: current state of link FSM
  * @fsm_msg_cnt: # of protocol messages link FSM has sent in current state
@@ -149,7 +144,6 @@ struct tipc_link {
 	struct tipc_media_addr media_addr;
 	struct timer_list timer;
 	struct tipc_node *owner;
-	struct kref ref;
 
 	/* Management and link supervision data */
 	unsigned int flags;
@@ -158,7 +152,7 @@ struct tipc_link {
 	u32 peer_bearer_id;
 	u32 bearer_id;
 	u32 tolerance;
-	unsigned long cont_intv;
+	u32 continuity_interval;
 	u32 abort_limit;
 	int state;
 	u32 fsm_msg_cnt;
@@ -282,10 +276,6 @@ static inline u32 lesser(u32 left, u32 right)
 	return less_eq(left, right) ? left : right;
 }
 
-static inline u32 link_own_addr(struct tipc_link *l)
-{
-	return msg_prevnode(l->pmsg);
-}
 
 /*
  * Link status checking routines

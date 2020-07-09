@@ -1126,7 +1126,7 @@ static int rockchip_pinctrl_parse_groups(struct device_node *np,
 			return -EINVAL;
 
 		np_config = of_find_node_by_phandle(be32_to_cpup(phandle));
-		ret = pinconf_generic_parse_dt_config(np_config, NULL,
+		ret = pinconf_generic_parse_dt_config(np_config,
 				&grp->data[j].configs, &grp->data[j].nconfigs);
 		if (ret)
 			return ret;
@@ -1552,14 +1552,6 @@ static int rockchip_interrupts_register(struct platform_device *pdev,
 			irq_domain_remove(bank->domain);
 			continue;
 		}
-
-		/*
-		 * Linux assumes that all interrupts start out disabled/masked.
-		 * Our driver only uses the concept of masked and always keeps
-		 * things enabled, so for us that's all masked and all enabled.
-		 */
-		writel_relaxed(0xffffffff, bank->reg_base + GPIO_INTMASK);
-		writel_relaxed(0xffffffff, bank->reg_base + GPIO_INTEN);
 
 		gc = irq_get_domain_generic_chip(bank->domain, 0);
 		gc->reg_base = bank->reg_base;

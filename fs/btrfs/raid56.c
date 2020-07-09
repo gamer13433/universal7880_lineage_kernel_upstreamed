@@ -59,27 +59,11 @@
 #define RBIO_CACHE_READY_BIT	3
 
 
-/*
- * bbio and raid_map is managed by the caller, so we shouldn't free
- * them here. And besides that, all rbios with this flag should not
- * be cached, because we need raid_map to check the rbios' stripe
- * is the same or not, but it is very likely that the caller has
- * free raid_map, so don't cache those rbios.
- */
-#define RBIO_HOLD_BBIO_MAP_BIT	4
-
 #define RBIO_CACHE_SIZE 1024
 
 struct btrfs_raid_bio {
 	struct btrfs_fs_info *fs_info;
 	struct btrfs_bio *bbio;
-
-	/*
-	 * logical block numbers for the start of each stripe
-	 * The last one or two are p/q.  These are sorted,
-	 * so raid_map[0] is the start of our full stripe
-	 */
-	u64 *raid_map;
 
 	/*
 	 * logical block numbers for the start of each stripe
@@ -810,21 +794,6 @@ done:
 done_nolock:
 	if (!keep_cache)
 		remove_rbio_from_cache(rbio);
-}
-
-static inline void
-__free_bbio_and_raid_map(struct btrfs_bio *bbio, u64 *raid_map, int need)
-{
-	if (need) {
-		kfree(raid_map);
-		kfree(bbio);
-	}
-}
-
-static inline void free_bbio_and_raid_map(struct btrfs_raid_bio *rbio)
-{
-	__free_bbio_and_raid_map(rbio->bbio, rbio->raid_map,
-			!test_bit(RBIO_HOLD_BBIO_MAP_BIT, &rbio->flags));
 }
 
 static void __free_raid_bio(struct btrfs_raid_bio *rbio)

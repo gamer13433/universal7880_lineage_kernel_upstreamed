@@ -351,7 +351,11 @@ void ath9k_htc_txcompletion_cb(struct htc_target *htc_handle,
 
 	return;
 ret:
-	kfree_skb(skb);
+	/* HTC-generated packets are freed here. */
+	if (htc_hdr && htc_hdr->endpoint_id != ENDPOINT0)
+		dev_kfree_skb_any(skb);
+	else
+		kfree_skb(skb);
 }
 
 static void ath9k_htc_fw_panic_report(struct htc_target *htc_handle,

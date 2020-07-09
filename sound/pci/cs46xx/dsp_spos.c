@@ -20,7 +20,7 @@
  */
 
 
-#include <linux/io.h>
+#include <asm/io.h>
 #include <linux/delay.h>
 #include <linux/pm.h>
 #include <linux/init.h>

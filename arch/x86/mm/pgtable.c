@@ -190,7 +190,7 @@ void pud_populate(struct mm_struct *mm, pud_t *pudp, pmd_t *pmd)
 
 #endif	/* CONFIG_X86_PAE */
 
-static void free_pmds(struct mm_struct *mm, pmd_t *pmds[])
+static void free_pmds(pmd_t *pmds[])
 {
 	int i;
 
@@ -198,11 +198,10 @@ static void free_pmds(struct mm_struct *mm, pmd_t *pmds[])
 		if (pmds[i]) {
 			pgtable_pmd_page_dtor(virt_to_page(pmds[i]));
 			free_page((unsigned long)pmds[i]);
-			mm_dec_nr_pmds(mm);
 		}
 }
 
-static int preallocate_pmds(struct mm_struct *mm, pmd_t *pmds[])
+static int preallocate_pmds(pmd_t *pmds[])
 {
 	int i;
 	bool failed = false;
@@ -216,13 +215,11 @@ static int preallocate_pmds(struct mm_struct *mm, pmd_t *pmds[])
 			pmd = NULL;
 			failed = true;
 		}
-		if (pmd)
-			mm_inc_nr_pmds(mm);
 		pmds[i] = pmd;
 	}
 
 	if (failed) {
-		free_pmds(mm, pmds);
+		free_pmds(pmds);
 		return -ENOMEM;
 	}
 
@@ -249,7 +246,6 @@ static void pgd_mop_up_pmds(struct mm_struct *mm, pgd_t *pgdp)
 
 			paravirt_release_pmd(pgd_val(pgd) >> PAGE_SHIFT);
 			pmd_free(mm, pmd);
-			mm_dec_nr_pmds(mm);
 		}
 	}
 }
@@ -287,7 +283,7 @@ pgd_t *pgd_alloc(struct mm_struct *mm)
 
 	mm->pgd = pgd;
 
-	if (preallocate_pmds(mm, pmds) != 0)
+	if (preallocate_pmds(pmds) != 0)
 		goto out_free_pgd;
 
 	if (paravirt_pgd_alloc(mm) != 0)
@@ -308,7 +304,7 @@ pgd_t *pgd_alloc(struct mm_struct *mm)
 	return pgd;
 
 out_free_pmds:
-	free_pmds(mm, pmds);
+	free_pmds(pmds);
 out_free_pgd:
 	free_page((unsigned long)pgd);
 out:

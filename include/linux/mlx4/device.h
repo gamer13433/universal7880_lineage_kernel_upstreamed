@@ -42,7 +42,7 @@
 
 #include <linux/atomic.h>
 
-#include <linux/timecounter.h>
+#include <linux/clocksource.h>
 
 #define MAX_MSIX_P_PORT		17
 #define MAX_MSIX		64
@@ -70,7 +70,6 @@ enum {
 	MLX4_FLAG_SLAVE		= 1 << 3,
 	MLX4_FLAG_SRIOV		= 1 << 4,
 	MLX4_FLAG_OLD_REG_MAC	= 1 << 6,
-	MLX4_FLAG_BONDED	= 1 << 7
 };
 
 enum {
@@ -216,12 +215,7 @@ enum {
 	MLX4_BMME_FLAG_TYPE_2_WIN	= 1 <<  9,
 	MLX4_BMME_FLAG_RESERVED_LKEY	= 1 << 10,
 	MLX4_BMME_FLAG_FAST_REG_WR	= 1 << 11,
-	MLX4_BMME_FLAG_PORT_REMAP	= 1 << 24,
 	MLX4_BMME_FLAG_VSD_INIT2RTR	= 1 << 28,
-};
-
-enum {
-	MLX4_FLAG_PORT_REMAP		= MLX4_BMME_FLAG_PORT_REMAP
 };
 
 enum mlx4_event {
@@ -249,18 +243,12 @@ enum mlx4_event {
 	MLX4_EVENT_TYPE_FATAL_WARNING	   = 0x1b,
 	MLX4_EVENT_TYPE_FLR_EVENT	   = 0x1c,
 	MLX4_EVENT_TYPE_PORT_MNG_CHG_EVENT = 0x1d,
-	MLX4_EVENT_TYPE_RECOVERABLE_ERROR_EVENT  = 0x3e,
 	MLX4_EVENT_TYPE_NONE		   = 0xff,
 };
 
 enum {
 	MLX4_PORT_CHANGE_SUBTYPE_DOWN	= 1,
 	MLX4_PORT_CHANGE_SUBTYPE_ACTIVE	= 4
-};
-
-enum {
-	MLX4_RECOVERABLE_ERROR_EVENT_SUBTYPE_BAD_CABLE		= 1,
-	MLX4_RECOVERABLE_ERROR_EVENT_SUBTYPE_UNSUPPORTED_CABLE	= 2,
 };
 
 enum {
@@ -386,16 +374,6 @@ enum {
 	MLX4_EQ_PORT_INFO_LID_CHANGE_MASK		= 1 << 2,
 	MLX4_EQ_PORT_INFO_CLIENT_REREG_MASK		= 1 << 3,
 	MLX4_EQ_PORT_INFO_MSTR_SM_SL_CHANGE_MASK	= 1 << 4,
-};
-
-enum {
-	MLX4_DEVICE_STATE_UP			= 1 << 0,
-	MLX4_DEVICE_STATE_INTERNAL_ERROR	= 1 << 1,
-};
-
-enum {
-	MLX4_INTERFACE_STATE_UP		= 1 << 0,
-	MLX4_INTERFACE_STATE_DELETION	= 1 << 1,
 };
 
 #define MSTR_SM_CHANGE_MASK (MLX4_EQ_PORT_INFO_MSTR_SM_SL_CHANGE_MASK | \
@@ -713,23 +691,8 @@ struct mlx4_vf_dev {
 	u8			n_ports;
 };
 
-struct mlx4_dev_persistent {
-	struct pci_dev	       *pdev;
-	struct mlx4_dev	       *dev;
-	int                     nvfs[MLX4_MAX_PORTS + 1];
-	int			num_vfs;
-	enum mlx4_port_type curr_port_type[MLX4_MAX_PORTS + 1];
-	enum mlx4_port_type curr_port_poss_type[MLX4_MAX_PORTS + 1];
-	struct work_struct      catas_work;
-	struct workqueue_struct *catas_wq;
-	struct mutex	device_state_mutex; /* protect HW state */
-	u8		state;
-	struct mutex	interface_state_mutex; /* protect SW state */
-	u8	interface_state;
-};
-
 struct mlx4_dev {
-	struct mlx4_dev_persistent *persist;
+	struct pci_dev	       *pdev;
 	unsigned long		flags;
 	unsigned long		num_slaves;
 	struct mlx4_caps	caps;
@@ -738,11 +701,13 @@ struct mlx4_dev {
 	struct radix_tree_root	qp_table_tree;
 	u8			rev_id;
 	char			board_id[MLX4_BOARD_ID_LEN];
+	int			num_vfs;
 	int			numa_node;
 	int			oper_log_mgm_entry_size;
 	u64			regid_promisc_array[MLX4_MAX_PORTS + 1];
 	u64			regid_allmulti_array[MLX4_MAX_PORTS + 1];
 	struct mlx4_vf_dev     *dev_vfs;
+	int                     nvfs[MLX4_MAX_PORTS + 1];
 };
 
 struct mlx4_eqe {
@@ -814,11 +779,6 @@ struct mlx4_eqe {
 				} __packed tbl_change_info;
 			} params;
 		} __packed port_mgmt_change;
-		struct {
-			u8 reserved[3];
-			u8 port;
-			u32 reserved1[5];
-		} __packed bad_cable;
 	}			event;
 	u8			slave_id;
 	u8			reserved3[2];
@@ -1303,8 +1263,6 @@ int mlx4_phys_to_slave_port(struct mlx4_dev *dev, int slave, int port);
 int mlx4_get_base_gid_ix(struct mlx4_dev *dev, int slave, int port);
 
 int mlx4_config_vxlan_port(struct mlx4_dev *dev, __be16 udp_port);
-int mlx4_disable_rx_port_check(struct mlx4_dev *dev, bool dis);
-int mlx4_virt2phy_port_map(struct mlx4_dev *dev, u32 port1, u32 port2);
 int mlx4_vf_smi_enabled(struct mlx4_dev *dev, int slave, int port);
 int mlx4_vf_get_enable_smi_admin(struct mlx4_dev *dev, int slave, int port);
 int mlx4_vf_set_enable_smi_admin(struct mlx4_dev *dev, int slave, int port,

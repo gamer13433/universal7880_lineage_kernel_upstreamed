@@ -269,18 +269,18 @@ config CGROUP_NET_PRIO
 	  a per-interface basis.
 
 config CGROUP_NET_CLASSID
-	bool "Network classid cgroup"
+	boolean "Network classid cgroup"
 	depends on CGROUPS
 	---help---
 	  Cgroup subsystem for use as general purpose socket classid marker that is
 	  being used in cls_cgroup and for netfilter matching.
 
 config NET_RX_BUSY_POLL
-	bool
+	boolean
 	default y
 
 config BQL
-	bool
+	boolean
 	depends on SYSFS
 	select DQL
 	default y
@@ -297,7 +297,7 @@ config BPF_JIT
 	  this feature changing /proc/sys/net/core/bpf_jit_enable
 
 config NET_FLOW_LIMIT
-	bool
+	boolean
 	depends on RPS
 	default y
 	---help---

@@ -91,7 +91,7 @@ static void fill_txdesc_sectype(struct pkt_attrib *pattrib, struct tx_desc *ptxd
 	}
 }
 
-static void fill_txdesc_vcs(struct pkt_attrib *pattrib, __le32 *pdw)
+static void fill_txdesc_vcs(struct pkt_attrib *pattrib, u32 *pdw)
 {
 	/* DBG_8723A("cvs_mode =%d\n", pattrib->vcs_mode); */
 
@@ -126,7 +126,7 @@ static void fill_txdesc_vcs(struct pkt_attrib *pattrib, __le32 *pdw)
 	}
 }
 
-static void fill_txdesc_phy(struct pkt_attrib *pattrib, __le32 *pdw)
+static void fill_txdesc_phy(struct pkt_attrib *pattrib, u32 *pdw)
 {
 	if (pattrib->ht_en) {
 		*pdw |= (pattrib->bwmode&HT_CHANNEL_WIDTH_40) ? cpu_to_le32(BIT(25)) : 0;

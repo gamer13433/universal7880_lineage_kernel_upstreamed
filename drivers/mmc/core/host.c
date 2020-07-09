@@ -29,20 +29,13 @@
 
 #include "core.h"
 #include "host.h"
-#include "slot-gpio.h"
-#include "pwrseq.h"
 
 #define cls_dev_to_mmc_host(d)	container_of(d, struct mmc_host, class_dev)
-
-static DEFINE_IDR(mmc_host_idr);
-static DEFINE_SPINLOCK(mmc_host_lock);
 
 static void mmc_host_classdev_release(struct device *dev)
 {
 	struct mmc_host *host = cls_dev_to_mmc_host(dev);
-	spin_lock(&mmc_host_lock);
-	idr_remove(&mmc_host_idr, host->index);
-	spin_unlock(&mmc_host_lock);
+	mutex_destroy(&host->slot.lock);
 	kfree(host);
 }
 
@@ -60,6 +53,9 @@ void mmc_unregister_host_class(void)
 {
 	class_unregister(&mmc_host_class);
 }
+
+static DEFINE_IDR(mmc_host_idr);
+static DEFINE_SPINLOCK(mmc_host_lock);
 
 #ifdef CONFIG_MMC_CLKGATE
 static ssize_t clkgate_delay_show(struct device *dev,
@@ -372,10 +368,16 @@ int mmc_of_parse(struct mmc_host *host)
 
 		ret = mmc_gpiod_request_cd(host, "cd", 0, true,
 					   0, &cd_gpio_invert);
-		if (!ret)
+		if (ret) {
+			if (ret == -EPROBE_DEFER)
+				return ret;
+			if (ret != -ENOENT) {
+				dev_err(host->parent,
+					"Failed to request CD GPIO: %d\n",
+					ret);
+			}
+		} else
 			dev_info(host->parent, "Got CD GPIO\n");
-		else if (ret != -ENOENT)
-			return ret;
 
 		/*
 		 * There are two ways to flag that the CD line is inverted:
@@ -396,10 +398,16 @@ int mmc_of_parse(struct mmc_host *host)
 	ro_cap_invert = of_property_read_bool(np, "wp-inverted");
 
 	ret = mmc_gpiod_request_ro(host, "wp", 0, false, 0, &ro_gpio_invert);
-	if (!ret)
+	if (ret) {
+		if (ret == -EPROBE_DEFER)
+			goto out;
+		if (ret != -ENOENT) {
+			dev_err(host->parent,
+				"Failed to request WP GPIO: %d\n",
+				ret);
+		}
+	} else
 		dev_info(host->parent, "Got WP GPIO\n");
-	else if (ret != -ENOENT)
-		return ret;
 
 	/* See the comment on CD inversion above */
 	if (ro_cap_invert ^ ro_gpio_invert)
@@ -492,10 +500,8 @@ struct mmc_host *mmc_alloc_host(int extra, struct device *dev)
 		host->index = err;
 	spin_unlock(&mmc_host_lock);
 	idr_preload_end();
-	if (err < 0) {
-		kfree(host);
-		return NULL;
-	}
+	if (err < 0)
+		goto free;
 
 	dev_set_name(&host->class_dev, "mmc%d", host->index);
 
@@ -504,12 +510,10 @@ struct mmc_host *mmc_alloc_host(int extra, struct device *dev)
 	host->class_dev.class = &mmc_host_class;
 	device_initialize(&host->class_dev);
 
-	if (mmc_gpio_alloc(host)) {
-		put_device(&host->class_dev);
-		return NULL;
-	}
-
 	mmc_host_clk_init(host);
+
+	mutex_init(&host->slot.lock);
+	host->slot.cd_irq = -EINVAL;
 
 	spin_lock_init(&host->lock);
 	init_waitqueue_head(&host->wq);
@@ -534,6 +538,10 @@ struct mmc_host *mmc_alloc_host(int extra, struct device *dev)
 	host->max_blk_count = PAGE_CACHE_SIZE / 512;
 
 	return host;
+
+free:
+	kfree(host);
+	return NULL;
 }
 
 EXPORT_SYMBOL(mmc_alloc_host);

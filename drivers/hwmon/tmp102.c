@@ -249,7 +249,7 @@ static int tmp102_remove(struct i2c_client *client)
 	return 0;
 }
 
-#ifdef CONFIG_PM_SLEEP
+#ifdef CONFIG_PM
 static int tmp102_suspend(struct device *dev)
 {
 	struct i2c_client *client = to_i2c_client(dev);
@@ -275,9 +275,16 @@ static int tmp102_resume(struct device *dev)
 	config &= ~TMP102_CONF_SD;
 	return i2c_smbus_write_word_swapped(client, TMP102_CONF_REG, config);
 }
-#endif /* CONFIG_PM */
 
-static SIMPLE_DEV_PM_OPS(tmp102_dev_pm_ops, tmp102_suspend, tmp102_resume);
+static const struct dev_pm_ops tmp102_dev_pm_ops = {
+	.suspend	= tmp102_suspend,
+	.resume		= tmp102_resume,
+};
+
+#define TMP102_DEV_PM_OPS (&tmp102_dev_pm_ops)
+#else
+#define	TMP102_DEV_PM_OPS NULL
+#endif /* CONFIG_PM */
 
 static const struct i2c_device_id tmp102_id[] = {
 	{ "tmp102", 0 },
@@ -287,7 +294,7 @@ MODULE_DEVICE_TABLE(i2c, tmp102_id);
 
 static struct i2c_driver tmp102_driver = {
 	.driver.name	= DRIVER_NAME,
-	.driver.pm	= &tmp102_dev_pm_ops,
+	.driver.pm	= TMP102_DEV_PM_OPS,
 	.probe		= tmp102_probe,
 	.remove		= tmp102_remove,
 	.id_table	= tmp102_id,

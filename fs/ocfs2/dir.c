@@ -3454,8 +3454,10 @@ static int ocfs2_find_dir_space_el(struct inode *dir, const char *name,
 	int blocksize = dir->i_sb->s_blocksize;
 
 	status = ocfs2_read_dir_block(dir, 0, &bh, 0);
-	if (status)
+	if (status) {
+		mlog_errno(status);
 		goto bail;
+	}
 
 	rec_len = OCFS2_DIR_REC_LEN(namelen);
 	offset = 0;
@@ -3476,9 +3478,10 @@ static int ocfs2_find_dir_space_el(struct inode *dir, const char *name,
 			status = ocfs2_read_dir_block(dir,
 					     offset >> sb->s_blocksize_bits,
 					     &bh, 0);
-			if (status)
+			if (status) {
+				mlog_errno(status);
 				goto bail;
-
+			}
 			/* move to next block */
 			de = (struct ocfs2_dir_entry *) bh->b_data;
 		}
@@ -3508,6 +3511,7 @@ next:
 		de = (struct ocfs2_dir_entry *)((char *) de + le16_to_cpu(de->rec_len));
 	}
 
+	status = 0;
 bail:
 	brelse(bh);
 	if (status)

@@ -302,7 +302,7 @@ static int ieee802154_nl_fill_iface(struct sk_buff *msg, u32 portid,
 			       params.transmit_power) ||
 		    nla_put_u8(msg, IEEE802154_ATTR_LBT_ENABLED, params.lbt) ||
 		    nla_put_u8(msg, IEEE802154_ATTR_CCA_MODE,
-			       params.cca.mode) ||
+			       params.cca_mode) ||
 		    nla_put_s32(msg, IEEE802154_ATTR_CCA_ED_LEVEL,
 				params.cca_ed_level) ||
 		    nla_put_u8(msg, IEEE802154_ATTR_CSMA_RETRIES,
@@ -317,8 +317,7 @@ static int ieee802154_nl_fill_iface(struct sk_buff *msg, u32 portid,
 	}
 
 	wpan_phy_put(phy);
-	genlmsg_end(msg, hdr);
-	return 0;
+	return genlmsg_end(msg, hdr);
 
 nla_put_failure:
 	wpan_phy_put(phy);
@@ -692,7 +691,7 @@ int ieee802154_set_macparams(struct sk_buff *skb, struct genl_info *info)
 		params.lbt = nla_get_u8(info->attrs[IEEE802154_ATTR_LBT_ENABLED]);
 
 	if (info->attrs[IEEE802154_ATTR_CCA_MODE])
-		params.cca.mode = nla_get_u8(info->attrs[IEEE802154_ATTR_CCA_MODE]);
+		params.cca_mode = nla_get_u8(info->attrs[IEEE802154_ATTR_CCA_MODE]);
 
 	if (info->attrs[IEEE802154_ATTR_CCA_ED_LEVEL])
 		params.cca_ed_level = nla_get_s32(info->attrs[IEEE802154_ATTR_CCA_ED_LEVEL]);

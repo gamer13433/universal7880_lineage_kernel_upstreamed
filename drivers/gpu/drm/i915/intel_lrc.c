@@ -210,7 +210,8 @@ enum {
  * @enable_execlists: value of i915.enable_execlists module parameter.
  *
  * Only certain platforms support Execlists (the prerequisites being
- * support for Logical Ring Contexts and Aliasing PPGTT or better).
+ * support for Logical Ring Contexts and Aliasing PPGTT or better),
+ * and only when enabled via module parameter.
  *
  * Return: 1 if Execlists is supported and has to be enabled.
  */
@@ -277,6 +278,7 @@ static void execlists_elsp_write(struct intel_engine_cs *ring,
 	struct drm_i915_private *dev_priv = ring->dev->dev_private;
 	uint64_t temp = 0;
 	uint32_t desc[4];
+	unsigned long flags;
 
 	/* XXX: You must always write both descriptors in the order below. */
 	if (ctx_obj1)
@@ -451,13 +453,13 @@ static bool execlists_check_remove_request(struct intel_engine_cs *ring,
 }
 
 /**
- * intel_lrc_irq_handler() - handle Context Switch interrupts
+ * intel_execlists_handle_ctx_events() - handle Context Switch interrupts
  * @ring: Engine Command Streamer to handle.
  *
  * Check the unread Context Status Buffers and manage the submission of new
  * contexts to the ELSP accordingly.
  */
-void intel_lrc_irq_handler(struct intel_engine_cs *ring)
+void intel_execlists_handle_ctx_events(struct intel_engine_cs *ring)
 {
 	struct drm_i915_private *dev_priv = ring->dev->dev_private;
 	u32 status_pointer;
@@ -553,10 +555,10 @@ static int execlists_context_queue(struct intel_engine_cs *ring,
 			break;
 
 	if (num_elements > 2) {
-		struct drm_i915_gem_request *tail_req;
+		struct intel_ctx_submit_request *tail_req;
 
 		tail_req = list_last_entry(&ring->execlist_queue,
-					   struct drm_i915_gem_request,
+					   struct intel_ctx_submit_request,
 					   execlist_link);
 
 		if (to == tail_req->ctx) {
@@ -567,7 +569,7 @@ static int execlists_context_queue(struct intel_engine_cs *ring,
 		}
 	}
 
-	list_add_tail(&request->execlist_link, &ring->execlist_queue);
+	list_add_tail(&req->execlist_link, &ring->execlist_queue);
 	if (num_elements == 0)
 		execlists_context_unqueue(ring);
 
@@ -576,8 +578,7 @@ static int execlists_context_queue(struct intel_engine_cs *ring,
 	return 0;
 }
 
-static int logical_ring_invalidate_all_caches(struct intel_ringbuffer *ringbuf,
-					      struct intel_context *ctx)
+static int logical_ring_invalidate_all_caches(struct intel_ringbuffer *ringbuf)
 {
 	struct intel_engine_cs *ring = ringbuf->ring;
 	uint32_t flush_domains;
@@ -587,8 +588,7 @@ static int logical_ring_invalidate_all_caches(struct intel_ringbuffer *ringbuf,
 	if (ring->gpu_caches_dirty)
 		flush_domains = I915_GEM_GPU_DOMAINS;
 
-	ret = ring->emit_flush(ringbuf, ctx,
-			       I915_GEM_GPU_DOMAINS, flush_domains);
+	ret = ring->emit_flush(ringbuf, I915_GEM_GPU_DOMAINS, flush_domains);
 	if (ret)
 		return ret;
 
@@ -597,7 +597,6 @@ static int logical_ring_invalidate_all_caches(struct intel_ringbuffer *ringbuf,
 }
 
 static int execlists_move_to_gpu(struct intel_ringbuffer *ringbuf,
-				 struct intel_context *ctx,
 				 struct list_head *vmas)
 {
 	struct intel_engine_cs *ring = ringbuf->ring;
@@ -625,7 +624,7 @@ static int execlists_move_to_gpu(struct intel_ringbuffer *ringbuf,
 	/* Unconditionally invalidate gpu caches and ensure that we do flush
 	 * any residual writes from the previous batch.
 	 */
-	return logical_ring_invalidate_all_caches(ringbuf, ctx);
+	return logical_ring_invalidate_all_caches(ringbuf);
 }
 
 /**
@@ -705,13 +704,13 @@ int intel_execlists_submission(struct drm_device *dev, struct drm_file *file,
 		return -EINVAL;
 	}
 
-	ret = execlists_move_to_gpu(ringbuf, ctx, vmas);
+	ret = execlists_move_to_gpu(ringbuf, vmas);
 	if (ret)
 		return ret;
 
 	if (ring == &dev_priv->ring[RCS] &&
 	    instp_mode != dev_priv->relative_constants_mode) {
-		ret = intel_logical_ring_begin(ringbuf, ctx, 4);
+		ret = intel_logical_ring_begin(ringbuf, 4);
 		if (ret)
 			return ret;
 
@@ -724,7 +723,7 @@ int intel_execlists_submission(struct drm_device *dev, struct drm_file *file,
 		dev_priv->relative_constants_mode = instp_mode;
 	}
 
-	ret = ring->emit_bb_start(ringbuf, ctx, exec_start, flags);
+	ret = ring->emit_bb_start(ringbuf, exec_start, flags);
 	if (ret)
 		return ret;
 
@@ -756,8 +755,7 @@ void intel_logical_ring_stop(struct intel_engine_cs *ring)
 	I915_WRITE_MODE(ring, _MASKED_BIT_DISABLE(STOP_RING));
 }
 
-int logical_ring_flush_all_caches(struct intel_ringbuffer *ringbuf,
-				  struct intel_context *ctx)
+int logical_ring_flush_all_caches(struct intel_ringbuffer *ringbuf)
 {
 	struct intel_engine_cs *ring = ringbuf->ring;
 	int ret;
@@ -765,7 +763,7 @@ int logical_ring_flush_all_caches(struct intel_ringbuffer *ringbuf,
 	if (!ring->gpu_caches_dirty)
 		return 0;
 
-	ret = ring->emit_flush(ringbuf, ctx, 0, I915_GEM_GPU_DOMAINS);
+	ret = ring->emit_flush(ringbuf, 0, I915_GEM_GPU_DOMAINS);
 	if (ret)
 		return ret;
 
@@ -782,18 +780,17 @@ int logical_ring_flush_all_caches(struct intel_ringbuffer *ringbuf,
  * on a queue waiting for the ELSP to be ready to accept a new context submission. At that
  * point, the tail *inside* the context is updated and the ELSP written to.
  */
-void intel_logical_ring_advance_and_submit(struct intel_ringbuffer *ringbuf,
-					   struct intel_context *ctx,
-					   struct drm_i915_gem_request *request)
+void intel_logical_ring_advance_and_submit(struct intel_ringbuffer *ringbuf)
 {
 	struct intel_engine_cs *ring = ringbuf->ring;
+	struct intel_context *ctx = ringbuf->FIXME_lrc_ctx;
 
 	intel_logical_ring_advance(ringbuf);
 
 	if (intel_ring_stopped(ring))
 		return;
 
-	execlists_context_queue(ring, ctx, ringbuf->tail, request);
+	execlists_context_queue(ring, ctx, ringbuf->tail);
 }
 
 static int logical_ring_alloc_seqno(struct intel_engine_cs *ring,
@@ -827,42 +824,42 @@ static int logical_ring_wait_request(struct intel_ringbuffer *ringbuf,
 {
 	struct intel_engine_cs *ring = ringbuf->ring;
 	struct drm_i915_gem_request *request;
+	u32 seqno = 0;
 	int ret;
 
-	if (intel_ring_space(ringbuf) >= bytes)
-		return 0;
+	if (ringbuf->last_retired_head != -1) {
+		ringbuf->head = ringbuf->last_retired_head;
+		ringbuf->last_retired_head = -1;
+
+		ringbuf->space = intel_ring_space(ringbuf);
+		if (ringbuf->space >= bytes)
+			return 0;
+	}
 
 	list_for_each_entry(request, &ring->request_list, list) {
-		/*
-		 * The request queue is per-engine, so can contain requests
-		 * from multiple ringbuffers. Here, we must ignore any that
-		 * aren't from the ringbuffer we're considering.
-		 */
-		struct intel_context *ctx = request->ctx;
-		if (ctx->engine[ring->id].ringbuf != ringbuf)
-			continue;
-
-		/* Would completion of this request free enough space? */
 		if (__intel_ring_space(request->tail, ringbuf->tail,
 				       ringbuf->size) >= bytes) {
+			seqno = request->seqno;
 			break;
 		}
 	}
 
-	if (&request->list == &ring->request_list)
+	if (seqno == 0)
 		return -ENOSPC;
 
-	ret = i915_wait_request(request);
+	ret = i915_wait_seqno(ring, seqno);
 	if (ret)
 		return ret;
 
 	i915_gem_retire_requests_ring(ring);
+	ringbuf->head = ringbuf->last_retired_head;
+	ringbuf->last_retired_head = -1;
 
-	return intel_ring_space(ringbuf) >= bytes ? 0 : -ENOSPC;
+	ringbuf->space = intel_ring_space(ringbuf);
+	return 0;
 }
 
 static int logical_ring_wait_for_space(struct intel_ringbuffer *ringbuf,
-				       struct intel_context *ctx,
 				       int bytes)
 {
 	struct intel_engine_cs *ring = ringbuf->ring;
@@ -876,7 +873,7 @@ static int logical_ring_wait_for_space(struct intel_ringbuffer *ringbuf,
 		return ret;
 
 	/* Force the context submission in case we have been skipping it */
-	intel_logical_ring_advance_and_submit(ringbuf, ctx, NULL);
+	intel_logical_ring_advance_and_submit(ringbuf);
 
 	/* With GEM the hangcheck timer should kick us out of the loop,
 	 * leaving it early runs the risk of corrupting GEM state (due
@@ -885,10 +882,13 @@ static int logical_ring_wait_for_space(struct intel_ringbuffer *ringbuf,
 	 * case by choosing an insanely large timeout. */
 	end = jiffies + 60 * HZ;
 
-	ret = 0;
 	do {
-		if (intel_ring_space(ringbuf) >= bytes)
+		ringbuf->head = I915_READ_HEAD(ring);
+		ringbuf->space = intel_ring_space(ringbuf);
+		if (ringbuf->space >= bytes) {
+			ret = 0;
 			break;
+		}
 
 		msleep(1);
 
@@ -911,14 +911,13 @@ static int logical_ring_wait_for_space(struct intel_ringbuffer *ringbuf,
 	return ret;
 }
 
-static int logical_ring_wrap_buffer(struct intel_ringbuffer *ringbuf,
-				    struct intel_context *ctx)
+static int logical_ring_wrap_buffer(struct intel_ringbuffer *ringbuf)
 {
 	uint32_t __iomem *virt;
 	int rem = ringbuf->size - ringbuf->tail;
 
 	if (ringbuf->space < rem) {
-		int ret = logical_ring_wait_for_space(ringbuf, ctx, rem);
+		int ret = logical_ring_wait_for_space(ringbuf, rem);
 
 		if (ret)
 			return ret;
@@ -930,24 +929,23 @@ static int logical_ring_wrap_buffer(struct intel_ringbuffer *ringbuf,
 		iowrite32(MI_NOOP, virt++);
 
 	ringbuf->tail = 0;
-	intel_ring_update_space(ringbuf);
+	ringbuf->space = intel_ring_space(ringbuf);
 
 	return 0;
 }
 
-static int logical_ring_prepare(struct intel_ringbuffer *ringbuf,
-				struct intel_context *ctx, int bytes)
+static int logical_ring_prepare(struct intel_ringbuffer *ringbuf, int bytes)
 {
 	int ret;
 
 	if (unlikely(ringbuf->tail + bytes > ringbuf->effective_size)) {
-		ret = logical_ring_wrap_buffer(ringbuf, ctx);
+		ret = logical_ring_wrap_buffer(ringbuf);
 		if (unlikely(ret))
 			return ret;
 	}
 
 	if (unlikely(ringbuf->space < bytes)) {
-		ret = logical_ring_wait_for_space(ringbuf, ctx, bytes);
+		ret = logical_ring_wait_for_space(ringbuf, bytes);
 		if (unlikely(ret))
 			return ret;
 	}
@@ -968,8 +966,7 @@ static int logical_ring_prepare(struct intel_ringbuffer *ringbuf,
  *
  * Return: non-zero if the ringbuffer is not ready to be written to.
  */
-int intel_logical_ring_begin(struct intel_ringbuffer *ringbuf,
-			     struct intel_context *ctx, int num_dwords)
+int intel_logical_ring_begin(struct intel_ringbuffer *ringbuf, int num_dwords)
 {
 	struct intel_engine_cs *ring = ringbuf->ring;
 	struct drm_device *dev = ring->dev;
@@ -981,12 +978,12 @@ int intel_logical_ring_begin(struct intel_ringbuffer *ringbuf,
 	if (ret)
 		return ret;
 
-	ret = logical_ring_prepare(ringbuf, ctx, num_dwords * sizeof(uint32_t));
+	ret = logical_ring_prepare(ringbuf, num_dwords * sizeof(uint32_t));
 	if (ret)
 		return ret;
 
 	/* Preallocate the olr before touching the ring */
-	ret = logical_ring_alloc_request(ring, ctx);
+	ret = logical_ring_alloc_seqno(ring, ringbuf->FIXME_lrc_ctx);
 	if (ret)
 		return ret;
 
@@ -1006,7 +1003,6 @@ static int gen8_init_common_ring(struct intel_engine_cs *ring)
 		   _MASKED_BIT_DISABLE(GFX_REPLAY_MODE) |
 		   _MASKED_BIT_ENABLE(GFX_RUN_LIST_ENABLE));
 	POSTING_READ(RING_MODE_GEN7(ring));
-	ring->next_context_status_buffer = 0;
 	DRM_DEBUG_DRIVER("Execlists enabled for %s\n", ring->name);
 
 	memset(&ring->hangcheck, 0, sizeof(ring->hangcheck));
@@ -1095,7 +1091,6 @@ static void gen8_logical_ring_put_irq(struct intel_engine_cs *ring)
 }
 
 static int gen8_emit_flush(struct intel_ringbuffer *ringbuf,
-			   struct intel_context *ctx,
 			   u32 invalidate_domains,
 			   u32 unused)
 {
@@ -1136,7 +1131,6 @@ static int gen8_emit_flush(struct intel_ringbuffer *ringbuf,
 }
 
 static int gen8_emit_flush_render(struct intel_ringbuffer *ringbuf,
-				  struct intel_context *ctx,
 				  u32 invalidate_domains,
 				  u32 flush_domains)
 {
@@ -1163,7 +1157,7 @@ static int gen8_emit_flush_render(struct intel_ringbuffer *ringbuf,
 		flags |= PIPE_CONTROL_GLOBAL_GTT_IVB;
 	}
 
-	ret = intel_logical_ring_begin(ringbuf, ctx, 6);
+	ret = intel_logical_ring_begin(ringbuf, 6);
 	if (ret)
 		return ret;
 
@@ -1188,18 +1182,17 @@ static void gen8_set_seqno(struct intel_engine_cs *ring, u32 seqno)
 	intel_write_status_page(ring, I915_GEM_HWS_INDEX, seqno);
 }
 
-static int gen8_emit_request(struct intel_ringbuffer *ringbuf,
-			     struct drm_i915_gem_request *request)
+static int gen8_emit_request(struct intel_ringbuffer *ringbuf)
 {
 	struct intel_engine_cs *ring = ringbuf->ring;
 	u32 cmd;
 	int ret;
 
-	ret = intel_logical_ring_begin(ringbuf, request->ctx, 6);
+	ret = intel_logical_ring_begin(ringbuf, 6);
 	if (ret)
 		return ret;
 
-	cmd = MI_STORE_DWORD_IMM_GEN4;
+	cmd = MI_STORE_DWORD_IMM_GEN8;
 	cmd |= MI_GLOBAL_GTT;
 
 	intel_logical_ring_emit(ringbuf, cmd);
@@ -1207,25 +1200,12 @@ static int gen8_emit_request(struct intel_ringbuffer *ringbuf,
 				(ring->status_page.gfx_addr +
 				(I915_GEM_HWS_INDEX << MI_STORE_DWORD_INDEX_SHIFT)));
 	intel_logical_ring_emit(ringbuf, 0);
-	intel_logical_ring_emit(ringbuf,
-		i915_gem_request_get_seqno(ring->outstanding_lazy_request));
+	intel_logical_ring_emit(ringbuf, ring->outstanding_lazy_seqno);
 	intel_logical_ring_emit(ringbuf, MI_USER_INTERRUPT);
 	intel_logical_ring_emit(ringbuf, MI_NOOP);
-	intel_logical_ring_advance_and_submit(ringbuf, request->ctx, request);
+	intel_logical_ring_advance_and_submit(ringbuf);
 
 	return 0;
-}
-
-static int gen8_init_rcs_context(struct intel_engine_cs *ring,
-		       struct intel_context *ctx)
-{
-	int ret;
-
-	ret = intel_logical_ring_workarounds_emit(ring, ctx);
-	if (ret)
-		return ret;
-
-	return intel_lr_context_render_state_init(ring, ctx);
 }
 
 /**
@@ -1243,7 +1223,8 @@ void intel_logical_ring_cleanup(struct intel_engine_cs *ring)
 
 	intel_logical_ring_stop(ring);
 	WARN_ON((I915_READ_MODE(ring) & MODE_IDLE) == 0);
-	i915_gem_request_assign(&ring->outstanding_lazy_request, NULL);
+	ring->preallocated_lazy_request = NULL;
+	ring->outstanding_lazy_seqno = 0;
 
 	if (ring->cleanup)
 		ring->cleanup(ring);
@@ -1270,10 +1251,17 @@ static int logical_ring_init(struct drm_device *dev, struct intel_engine_cs *rin
 
 	INIT_LIST_HEAD(&ring->execlist_queue);
 	spin_lock_init(&ring->execlist_lock);
+	ring->next_context_status_buffer = 0;
 
 	ret = i915_cmd_parser_init_ring(ring);
 	if (ret)
 		return ret;
+
+	if (ring->init) {
+		ret = ring->init(ring);
+		if (ret)
+			return ret;
+	}
 
 	ret = intel_lr_context_deferred_create(ring->default_context, ring);
 
@@ -1284,7 +1272,6 @@ static int logical_render_ring_init(struct drm_device *dev)
 {
 	struct drm_i915_private *dev_priv = dev->dev_private;
 	struct intel_engine_cs *ring = &dev_priv->ring[RCS];
-	int ret;
 
 	ring->name = "render ring";
 	ring->id = RCS;
@@ -1306,12 +1293,7 @@ static int logical_render_ring_init(struct drm_device *dev)
 	ring->irq_put = gen8_logical_ring_put_irq;
 	ring->emit_bb_start = gen8_emit_bb_start;
 
-	ring->dev = dev;
-	ret = logical_ring_init(dev, ring);
-	if (ret)
-		return ret;
-
-	return intel_init_pipe_control(ring);
+	return logical_ring_init(dev, ring);
 }
 
 static int logical_bsd_ring_init(struct drm_device *dev)
@@ -1327,7 +1309,7 @@ static int logical_bsd_ring_init(struct drm_device *dev)
 	ring->irq_keep_mask =
 		GT_CONTEXT_SWITCH_INTERRUPT << GEN8_VCS1_IRQ_SHIFT;
 
-	ring->init_hw = gen8_init_common_ring;
+	ring->init = gen8_init_common_ring;
 	ring->get_seqno = gen8_get_seqno;
 	ring->set_seqno = gen8_set_seqno;
 	ring->emit_request = gen8_emit_request;
@@ -1352,7 +1334,7 @@ static int logical_bsd2_ring_init(struct drm_device *dev)
 	ring->irq_keep_mask =
 		GT_CONTEXT_SWITCH_INTERRUPT << GEN8_VCS2_IRQ_SHIFT;
 
-	ring->init_hw = gen8_init_common_ring;
+	ring->init = gen8_init_common_ring;
 	ring->get_seqno = gen8_get_seqno;
 	ring->set_seqno = gen8_set_seqno;
 	ring->emit_request = gen8_emit_request;
@@ -1377,7 +1359,7 @@ static int logical_blt_ring_init(struct drm_device *dev)
 	ring->irq_keep_mask =
 		GT_CONTEXT_SWITCH_INTERRUPT << GEN8_BCS_IRQ_SHIFT;
 
-	ring->init_hw = gen8_init_common_ring;
+	ring->init = gen8_init_common_ring;
 	ring->get_seqno = gen8_get_seqno;
 	ring->set_seqno = gen8_set_seqno;
 	ring->emit_request = gen8_emit_request;
@@ -1402,7 +1384,7 @@ static int logical_vebox_ring_init(struct drm_device *dev)
 	ring->irq_keep_mask =
 		GT_CONTEXT_SWITCH_INTERRUPT << GEN8_VECS_IRQ_SHIFT;
 
-	ring->init_hw = gen8_init_common_ring;
+	ring->init = gen8_init_common_ring;
 	ring->get_seqno = gen8_get_seqno;
 	ring->set_seqno = gen8_set_seqno;
 	ring->emit_request = gen8_emit_request;
@@ -1494,7 +1476,6 @@ int intel_lr_context_render_state_init(struct intel_engine_cs *ring,
 		return 0;
 
 	ret = ring->emit_bb_start(ringbuf,
-			ctx,
 			so.ggtt_offset,
 			I915_DISPATCH_SECURE);
 	if (ret)
@@ -1502,7 +1483,7 @@ int intel_lr_context_render_state_init(struct intel_engine_cs *ring,
 
 	i915_vma_move_to_active(i915_gem_obj_to_ggtt(so.obj), ring);
 
-	ret = __i915_add_request(ring, file, so.obj);
+	ret = __i915_add_request(ring, file, so.obj, NULL);
 	/* intel_logical_ring_add_request moves object to inactive if it
 	 * fails */
 out:
@@ -1693,7 +1674,8 @@ int intel_lr_context_deferred_create(struct intel_context *ctx,
 	int ret;
 
 	WARN_ON(ctx->legacy_hw_ctx.rcs_state != NULL);
-	WARN_ON(ctx->engine[ring->id].state);
+	if (ctx->engine[ring->id].state)
+		return 0;
 
 	context_size = round_up(get_lr_context_size(ring), 4096);
 
@@ -1722,13 +1704,14 @@ int intel_lr_context_deferred_create(struct intel_context *ctx,
 	}
 
 	ringbuf->ring = ring;
+	ringbuf->FIXME_lrc_ctx = ctx;
 
 	ringbuf->size = 32 * PAGE_SIZE;
 	ringbuf->effective_size = ringbuf->size;
 	ringbuf->head = 0;
 	ringbuf->tail = 0;
+	ringbuf->space = ringbuf->size;
 	ringbuf->last_retired_head = -1;
-	intel_ring_update_space(ringbuf);
 
 	/* TODO: For now we put this in the mappable region so that we can reuse
 	 * the existing ringbuffer code which ioremaps it. When we start

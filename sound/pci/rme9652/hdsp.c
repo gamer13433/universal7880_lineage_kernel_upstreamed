@@ -29,7 +29,6 @@
 #include <linux/module.h>
 #include <linux/math64.h>
 #include <linux/vmalloc.h>
-#include <linux/io.h>
 
 #include <sound/core.h>
 #include <sound/control.h>
@@ -43,6 +42,7 @@
 
 #include <asm/byteorder.h>
 #include <asm/current.h>
+#include <asm/io.h>
 
 static int index[SNDRV_CARDS] = SNDRV_DEFAULT_IDX;	/* Index 0-MAX */
 static char *id[SNDRV_CARDS] = SNDRV_DEFAULT_STR;	/* ID for this card */
@@ -1428,8 +1428,10 @@ static void snd_hdsp_midi_output_timer(unsigned long data)
 	   leaving istimer wherever it was set before.
 	*/
 
-	if (hmidi->istimer)
-		mod_timer(&hmidi->timer, 1 + jiffies);
+	if (hmidi->istimer) {
+		hmidi->timer.expires = 1 + jiffies;
+		add_timer(&hmidi->timer);
+	}
 
 	spin_unlock_irqrestore (&hmidi->lock, flags);
 }
@@ -1443,9 +1445,11 @@ static void snd_hdsp_midi_output_trigger(struct snd_rawmidi_substream *substream
 	spin_lock_irqsave (&hmidi->lock, flags);
 	if (up) {
 		if (!hmidi->istimer) {
-			setup_timer(&hmidi->timer, snd_hdsp_midi_output_timer,
-				    (unsigned long) hmidi);
-			mod_timer(&hmidi->timer, 1 + jiffies);
+			init_timer(&hmidi->timer);
+			hmidi->timer.function = snd_hdsp_midi_output_timer;
+			hmidi->timer.data = (unsigned long) hmidi;
+			hmidi->timer.expires = 1 + jiffies;
+			add_timer(&hmidi->timer);
 			hmidi->istimer++;
 		}
 	} else {
@@ -5367,7 +5371,9 @@ static int snd_hdsp_free(struct hdsp *hdsp)
 	if (hdsp->firmware)
 		release_firmware(hdsp->firmware);
 	vfree(hdsp->fw_uploaded);
-	iounmap(hdsp->iobase);
+
+	if (hdsp->iobase)
+		iounmap(hdsp->iobase);
 
 	if (hdsp->port)
 		pci_release_regions(hdsp->pci);

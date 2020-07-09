@@ -1246,6 +1246,25 @@ int btrfs_check_shared(struct btrfs_trans_handle *trans,
 	return ret;
 }
 
+/*
+ * this makes the path point to (inum INODE_ITEM ioff)
+ */
+int inode_item_info(u64 inum, u64 ioff, struct btrfs_root *fs_root,
+			struct btrfs_path *path)
+{
+	struct btrfs_key key;
+	return btrfs_find_item(fs_root, path, inum, ioff,
+			BTRFS_INODE_ITEM_KEY, &key);
+}
+
+static int inode_ref_info(u64 inum, u64 ioff, struct btrfs_root *fs_root,
+				struct btrfs_path *path,
+				struct btrfs_key *found_key)
+{
+	return btrfs_find_item(fs_root, path, inum, ioff,
+			BTRFS_INODE_REF_KEY, found_key);
+}
+
 int btrfs_find_one_extref(struct btrfs_root *root, u64 inode_objectid,
 			  u64 start_off, struct btrfs_path *path,
 			  struct btrfs_inode_extref **ret_extref,
@@ -1355,8 +1374,7 @@ char *btrfs_ref_to_path(struct btrfs_root *fs_root, struct btrfs_path *path,
 			btrfs_tree_read_unlock_blocking(eb);
 			free_extent_buffer(eb);
 		}
-		ret = btrfs_find_item(fs_root, path, parent, 0,
-				BTRFS_INODE_REF_KEY, &found_key);
+		ret = inode_ref_info(parent, 0, fs_root, path, &found_key);
 		if (ret > 0)
 			ret = -ENOENT;
 		if (ret)
@@ -1702,10 +1720,8 @@ static int iterate_inode_refs(u64 inum, struct btrfs_root *fs_root,
 	struct btrfs_key found_key;
 
 	while (!ret) {
-		ret = btrfs_find_item(fs_root, path, inum,
-				parent ? parent + 1 : 0, BTRFS_INODE_REF_KEY,
-				&found_key);
-
+		ret = inode_ref_info(inum, parent ? parent+1 : 0, fs_root, path,
+				     &found_key);
 		if (ret < 0)
 			break;
 		if (ret) {

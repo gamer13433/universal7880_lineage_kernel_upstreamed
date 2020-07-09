@@ -1476,7 +1476,7 @@ static struct gpio_desc *of_find_gpio(struct device *dev, const char *con_id,
 				      unsigned int idx,
 				      enum gpio_lookup_flags *flags)
 {
-	static const char * const suffixes[] = { "gpios", "gpio" };
+	static const char *suffixes[] = { "gpios", "gpio" };
 	char prop_name[32]; /* 32 is max size of property name */
 	enum of_gpio_flags of_flags;
 	struct gpio_desc *desc;
@@ -1484,11 +1484,9 @@ static struct gpio_desc *of_find_gpio(struct device *dev, const char *con_id,
 
 	for (i = 0; i < ARRAY_SIZE(suffixes); i++) {
 		if (con_id)
-			snprintf(prop_name, sizeof(prop_name), "%s-%s", con_id,
-							       suffixes[i]);
+			snprintf(prop_name, 32, "%s-%s", con_id, suffixes[i]);
 		else
-			snprintf(prop_name, sizeof(prop_name), "%s",
-							       suffixes[i]);
+			snprintf(prop_name, 32, "%s", suffixes[i]);
 
 		desc = of_get_named_gpiod_flags(dev->of_node, prop_name, idx,
 						&of_flags);

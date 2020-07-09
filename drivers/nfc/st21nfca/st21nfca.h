@@ -20,7 +20,6 @@
 #include <net/nfc/hci.h>
 
 #include "st21nfca_dep.h"
-#include "st21nfca_se.h"
 
 #define HCI_MODE 0
 
@@ -52,15 +51,9 @@
 
 #define ST21NFCA_NUM_DEVICES 256
 
-struct st21nfca_se_status {
-	bool is_ese_present;
-	bool is_uicc_present;
-};
-
 int st21nfca_hci_probe(void *phy_id, struct nfc_phy_ops *phy_ops,
 		       char *llc_name, int phy_headroom, int phy_tailroom,
-		       int phy_payload, struct nfc_hci_dev **hdev,
-			   struct st21nfca_se_status *se_status);
+		       int phy_payload, struct nfc_hci_dev **hdev);
 void st21nfca_hci_remove(struct nfc_hci_dev *hdev);
 
 enum st21nfca_state {
@@ -73,7 +66,6 @@ struct st21nfca_hci_info {
 	void *phy_id;
 
 	struct nfc_hci_dev *hdev;
-	struct st21nfca_se_status *se_status;
 
 	enum st21nfca_state state;
 
@@ -84,17 +76,14 @@ struct st21nfca_hci_info {
 	void *async_cb_context;
 
 	struct st21nfca_dep_info dep_info;
-	struct st21nfca_se_info se_info;
 };
 
 /* Reader RF commands */
-#define ST21NFCA_WR_XCHG_DATA           0x10
+#define ST21NFCA_WR_XCHG_DATA            0x10
 
-#define ST21NFCA_DEVICE_MGNT_GATE       0x01
-#define ST21NFCA_RF_READER_F_GATE       0x14
-#define ST21NFCA_RF_CARD_F_GATE			0x24
-#define ST21NFCA_APDU_READER_GATE		0xf0
-#define ST21NFCA_CONNECTIVITY_GATE		0x41
+#define ST21NFCA_RF_READER_F_GATE               0x14
+
+#define ST21NFCA_RF_CARD_F_GATE 0x24
 
 #define ST21NFCA_EVT_SEND_DATA 0x10
 

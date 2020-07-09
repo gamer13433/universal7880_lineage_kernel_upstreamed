@@ -1212,7 +1212,8 @@ static bool batadv_nc_skb_coding_possible(struct sk_buff *skb,
 {
 	if (BATADV_SKB_CB(skb)->decoded && !batadv_compare_eth(dst, src))
 		return false;
-	return true;
+	else
+		return true;
 }
 
 /**

@@ -1208,6 +1208,7 @@ int tcp_sendmsg(struct kiocb *iocb, struct sock *sk, struct msghdr *msg,
 			goto out;
 		else if (err)
 			goto out_err;
+		offset = copied_syn;
 	}
 
 	timeo = sock_sndtimeo(sk, flags & MSG_DONTWAIT);

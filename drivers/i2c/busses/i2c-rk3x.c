@@ -100,9 +100,6 @@ struct rk3x_i2c {
 
 	/* Settings */
 	unsigned int scl_frequency;
-	unsigned int scl_rise_ns;
-	unsigned int scl_fall_ns;
-	unsigned int sda_fall_ns;
 
 	/* Synchronization & notification */
 	spinlock_t lock;
@@ -648,24 +645,6 @@ static int rk3x_i2c_probe(struct platform_device *pdev)
 			 DEFAULT_SCL_RATE);
 		i2c->scl_frequency = DEFAULT_SCL_RATE;
 	}
-
-	/*
-	 * Read rise and fall time from device tree. If not available use
-	 * the default maximum timing from the specification.
-	 */
-	if (of_property_read_u32(pdev->dev.of_node, "i2c-scl-rising-time-ns",
-				 &i2c->scl_rise_ns)) {
-		if (i2c->scl_frequency <= 100000)
-			i2c->scl_rise_ns = 1000;
-		else
-			i2c->scl_rise_ns = 300;
-	}
-	if (of_property_read_u32(pdev->dev.of_node, "i2c-scl-falling-time-ns",
-				 &i2c->scl_fall_ns))
-		i2c->scl_fall_ns = 300;
-	if (of_property_read_u32(pdev->dev.of_node, "i2c-sda-falling-time-ns",
-				 &i2c->scl_fall_ns))
-		i2c->sda_fall_ns = i2c->scl_fall_ns;
 
 	strlcpy(i2c->adap.name, "rk3x-i2c", sizeof(i2c->adap.name));
 	i2c->adap.owner = THIS_MODULE;

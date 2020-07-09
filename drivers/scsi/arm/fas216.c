@@ -2999,7 +2999,7 @@ void fas216_print_devices(FAS216_Info *info, struct seq_file *m)
 	struct fas216_device *dev;
 	struct scsi_device *scd;
 
-	seq_puts(m, "Device/Lun TaggedQ       Parity   Sync\n");
+	seq_printf(m, "Device/Lun TaggedQ       Parity   Sync\n");
 
 	shost_for_each_device(scd, info->host) {
 		dev = &info->device[scd->id];
@@ -3009,7 +3009,7 @@ void fas216_print_devices(FAS216_Info *info, struct seq_file *m)
 				     scd->simple_tags ? "en" : "dis",
 				     scd->current_tag);
 		else
-			seq_puts(m, "unsupported   ");
+			seq_printf(m, "unsupported   ");
 
 		seq_printf(m, "%3sabled ", dev->parity_enabled ? "en" : "dis");
 
@@ -3017,7 +3017,7 @@ void fas216_print_devices(FAS216_Info *info, struct seq_file *m)
 			seq_printf(m, "offset %d, %d ns\n",
 				     dev->sof, dev->period * 4);
 		else
-			seq_puts(m, "async\n");
+			seq_printf(m, "async\n");
 	}
 }
 

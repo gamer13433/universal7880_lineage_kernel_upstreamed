@@ -2637,7 +2637,7 @@ static int qe_udc_remove(struct platform_device *ofdev)
 	struct qe_udc *udc = platform_get_drvdata(ofdev);
 	struct qe_ep *ep;
 	unsigned int size;
-	DECLARE_COMPLETION_ONSTACK(done);
+	DECLARE_COMPLETION(done);
 
 	usb_del_gadget_udc(&udc->gadget);
 

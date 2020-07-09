@@ -132,7 +132,6 @@ static const struct regulator_desc rk808_reg[] = {
 		.vsel_mask = RK808_BUCK_VSEL_MASK,
 		.enable_reg = RK808_DCDC_EN_REG,
 		.enable_mask = BIT(0),
-		.enable_time = 400,
 		.owner = THIS_MODULE,
 	}, {
 		.name = "DCDC_REG2",
@@ -147,7 +146,6 @@ static const struct regulator_desc rk808_reg[] = {
 		.vsel_mask = RK808_BUCK_VSEL_MASK,
 		.enable_reg = RK808_DCDC_EN_REG,
 		.enable_mask = BIT(1),
-		.enable_time = 400,
 		.owner = THIS_MODULE,
 	}, {
 		.name = "DCDC_REG3",
@@ -158,7 +156,6 @@ static const struct regulator_desc rk808_reg[] = {
 		.n_voltages = 1,
 		.enable_reg = RK808_DCDC_EN_REG,
 		.enable_mask = BIT(2),
-		.enable_time = 400,
 		.owner = THIS_MODULE,
 	}, {
 		.name = "DCDC_REG4",
@@ -173,7 +170,6 @@ static const struct regulator_desc rk808_reg[] = {
 		.vsel_mask = RK808_BUCK4_VSEL_MASK,
 		.enable_reg = RK808_DCDC_EN_REG,
 		.enable_mask = BIT(3),
-		.enable_time = 400,
 		.owner = THIS_MODULE,
 	}, {
 		.name = "LDO_REG1",
@@ -303,7 +299,6 @@ static const struct regulator_desc rk808_reg[] = {
 		.type = REGULATOR_VOLTAGE,
 		.enable_reg = RK808_DCDC_EN_REG,
 		.enable_mask = BIT(5),
-		.enable_time = 400,
 		.owner = THIS_MODULE,
 	}, {
 		.name = "SWITCH_REG2",
@@ -313,7 +308,6 @@ static const struct regulator_desc rk808_reg[] = {
 		.type = REGULATOR_VOLTAGE,
 		.enable_reg = RK808_DCDC_EN_REG,
 		.enable_mask = BIT(6),
-		.enable_time = 400,
 		.owner = THIS_MODULE,
 	},
 };

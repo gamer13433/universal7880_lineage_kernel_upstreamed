@@ -417,10 +417,7 @@ static int pn_set_alt(struct usb_function *f, unsigned intf, unsigned alt)
 			return -EINVAL;
 
 		spin_lock(&port->lock);
-
-		if (fp->in_ep->driver_data)
-			__pn_reset(f);
-
+		__pn_reset(f);
 		if (alt == 1) {
 			int i;
 

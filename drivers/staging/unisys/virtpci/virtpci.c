@@ -103,6 +103,8 @@ static ssize_t virtpci_driver_attr_store(struct kobject *kobj,
 					 const char *buf, size_t count);
 static int virtpci_bus_match(struct device *dev, struct device_driver *drv);
 static int virtpci_uevent(struct device *dev, struct kobj_uevent_env *env);
+static int virtpci_device_suspend(struct device *dev, pm_message_t state);
+static int virtpci_device_resume(struct device *dev);
 static int virtpci_device_probe(struct device *dev);
 static int virtpci_device_remove(struct device *dev);
 
@@ -125,6 +127,8 @@ static struct bus_type virtpci_bus_type = {
 	.name = "uisvirtpci",
 	.match = virtpci_bus_match,
 	.uevent = virtpci_uevent,
+	.suspend = virtpci_device_suspend,
+	.resume = virtpci_device_resume,
 };
 
 static struct device virtpci_rootbus_device = {
@@ -451,7 +455,7 @@ static int pause_vhba(struct pause_virt_guestpart *pauseparams)
 	GET_SCSIADAPINFO_FROM_CHANPTR(pauseparams->chanptr);
 
 	LOGINF("Pausing vhba wwnn:%x:%x\n", scsi.wwnn.wwnn1, scsi.wwnn.wwnn2);
-	i = virtpci_device_serverdown(NULL /*no parent bus */, VIRTHBA_TYPE,
+	i = virtpci_device_serverdown(NULL /*no parent bus */ , VIRTHBA_TYPE,
 				      &scsi.wwnn, NULL);
 	if (i)
 		LOGINF("Paused vhba wwnn:%x:%x\n", scsi.wwnn.wwnn1,
@@ -472,7 +476,7 @@ static int pause_vnic(struct pause_virt_guestpart *pauseparams)
 	LOGINF("Pausing vnic macaddr:%02x:%02x:%02x:%02x:%02x:%02x\n",
 	       net.mac_addr[0], net.mac_addr[1], net.mac_addr[2],
 	       net.mac_addr[3], net.mac_addr[4], net.mac_addr[5]);
-	i = virtpci_device_serverdown(NULL /*no parent bus */, VIRTNIC_TYPE,
+	i = virtpci_device_serverdown(NULL /*no parent bus */ , VIRTNIC_TYPE,
 				      NULL, net.mac_addr);
 	if (i) {
 		LOGINF(" Paused vnic macaddr:%02x:%02x:%02x:%02x:%02x:%02x\n",
@@ -493,7 +497,7 @@ static int resume_vhba(struct resume_virt_guestpart *resumeparams)
 	GET_SCSIADAPINFO_FROM_CHANPTR(resumeparams->chanptr);
 
 	LOGINF("Resuming vhba wwnn:%x:%x\n", scsi.wwnn.wwnn1, scsi.wwnn.wwnn2);
-	i = virtpci_device_serverup(NULL /*no parent bus */, VIRTHBA_TYPE,
+	i = virtpci_device_serverup(NULL /*no parent bus */ , VIRTHBA_TYPE,
 				    &scsi.wwnn, NULL);
 	if (i)
 		LOGINF("Resumed vhba wwnn:%x:%x\n", scsi.wwnn.wwnn1,
@@ -515,7 +519,7 @@ resume_vnic(struct resume_virt_guestpart *resumeparams)
 	LOGINF("Resuming vnic macaddr:%02x:%02x:%02x:%02x:%02x:%02x\n",
 	       net.mac_addr[0], net.mac_addr[1], net.mac_addr[2],
 	       net.mac_addr[3], net.mac_addr[4], net.mac_addr[5]);
-	i = virtpci_device_serverup(NULL /*no parent bus */, VIRTNIC_TYPE,
+	i = virtpci_device_serverup(NULL /*no parent bus */ , VIRTNIC_TYPE,
 				    NULL, net.mac_addr);
 	if (i) {
 		LOGINF(" Resumed vnic macaddr:%02x:%02x:%02x:%02x:%02x:%02x\n",
@@ -536,7 +540,7 @@ static int delete_vhba(struct del_virt_guestpart *delparams)
 	GET_SCSIADAPINFO_FROM_CHANPTR(delparams->chanptr);
 
 	LOGINF("Deleting vhba wwnn:%x:%x\n", scsi.wwnn.wwnn1, scsi.wwnn.wwnn2);
-	i = virtpci_device_del(NULL /*no parent bus */, VIRTHBA_TYPE,
+	i = virtpci_device_del(NULL /*no parent bus */ , VIRTHBA_TYPE,
 			       &scsi.wwnn, NULL);
 	if (i) {
 		LOGINF("Deleted vhba wwnn:%x:%x\n", scsi.wwnn.wwnn1,
@@ -559,7 +563,7 @@ static int delete_vnic(struct del_virt_guestpart *delparams)
 	LOGINF("Deleting vnic macaddr:%02x:%02x:%02x:%02x:%02x:%02x\n",
 	       net.mac_addr[0], net.mac_addr[1], net.mac_addr[2],
 	       net.mac_addr[3], net.mac_addr[4], net.mac_addr[5]);
-	i = virtpci_device_del(NULL /*no parent bus */, VIRTNIC_TYPE, NULL,
+	i = virtpci_device_del(NULL /*no parent bus */ , VIRTNIC_TYPE, NULL,
 			       net.mac_addr);
 	if (i) {
 		LOGINF("Deleted vnic macaddr:%02x:%02x:%02x:%02x:%02x:%02x\n",
@@ -731,6 +735,18 @@ static int virtpci_uevent(struct device *dev, struct kobj_uevent_env *env)
 	 */
 	if (add_uevent_var(env, "VIRTPCI_VERSION=%s", VIRTPCI_VERSION))
 		return -ENOMEM;
+	return 0;
+}
+
+static int virtpci_device_suspend(struct device *dev, pm_message_t state)
+{
+	DBGINF("In virtpci_device_suspend -NYI ****\n");
+	return 0;
+}
+
+static int virtpci_device_resume(struct device *dev)
+{
+	DBGINF("In virtpci_device_resume -NYI ****\n");
 	return 0;
 }
 
@@ -1298,13 +1314,18 @@ static ssize_t virtpci_driver_attr_show(struct kobject *kobj,
 	ssize_t ret = 0;
 
 	struct driver_private *dprivate = to_driver(kobj);
-	struct device_driver *driver = dprivate->driver;
+	struct device_driver *driver;
 
-	DBGINF("In virtpci_driver_attr_show driver->name:%s\n",	driver->name);
+	if (dprivate != NULL)
+		driver = dprivate->driver;
+	else
+		driver = NULL;
 
-	if (dattr->show)
-		ret = dattr->show(driver, buf);
-
+	DBGINF("In virtpci_driver_attr_show driver->name:%s\n", driver->name);
+	if (driver) {
+		if (dattr->show)
+			ret = dattr->show(driver, buf);
+	}
 	return ret;
 }
 
@@ -1316,13 +1337,19 @@ static ssize_t virtpci_driver_attr_store(struct kobject *kobj,
 	ssize_t ret = 0;
 
 	struct driver_private *dprivate = to_driver(kobj);
-	struct device_driver *driver = dprivate->driver;
+	struct device_driver *driver;
+
+	if (dprivate != NULL)
+		driver = dprivate->driver;
+	else
+		driver = NULL;
 
 	DBGINF("In virtpci_driver_attr_store driver->name:%s\n", driver->name);
 
-	if (dattr->store)
-		ret = dattr->store(driver, buf, count);
-
+	if (driver) {
+		if (dattr->store)
+			ret = dattr->store(driver, buf, count);
+	}
 	return ret;
 }
 

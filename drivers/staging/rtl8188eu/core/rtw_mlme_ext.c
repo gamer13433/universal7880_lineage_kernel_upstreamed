@@ -485,8 +485,17 @@ void mgt_dispatcher(struct adapter *padapter, struct recv_frame *precv_frame)
 		/* fall through */
 	case WIFI_ASSOCREQ:
 	case WIFI_REASSOCREQ:
+		_mgt_dispatcher(padapter, ptable, precv_frame);
+		break;
 	case WIFI_PROBEREQ:
+		if (check_fwstate(pmlmepriv, WIFI_AP_STATE))
+			_mgt_dispatcher(padapter, ptable, precv_frame);
+		else
+			_mgt_dispatcher(padapter, ptable, precv_frame);
+		break;
 	case WIFI_BEACON:
+		_mgt_dispatcher(padapter, ptable, precv_frame);
+		break;
 	case WIFI_ACTION:
 		_mgt_dispatcher(padapter, ptable, precv_frame);
 		break;
@@ -569,14 +578,13 @@ unsigned int OnBeacon(struct adapter *padapter, struct recv_frame *precv_frame)
 	uint len = precv_frame->len;
 	struct wlan_bssid_ex *pbss;
 	int ret = _SUCCESS;
-	struct wlan_bssid_ex *pnetwork = &(pmlmeinfo->network);
 
 	if (pmlmeext->sitesurvey_res.state == SCAN_PROCESS) {
 		report_survey_event(padapter, precv_frame);
 		return _SUCCESS;
 	}
 
-	if (!memcmp(GetAddr3Ptr(pframe), pnetwork->MacAddress, ETH_ALEN)) {
+	if (!memcmp(GetAddr3Ptr(pframe), get_my_bssid(&pmlmeinfo->network), ETH_ALEN)) {
 		if (pmlmeinfo->state & WIFI_FW_AUTH_NULL) {
 			/* we should update current network before auth, or some IE is wrong */
 			pbss = (struct wlan_bssid_ex *)rtw_malloc(sizeof(struct wlan_bssid_ex));
@@ -1438,10 +1446,10 @@ unsigned int OnDeAuth(struct adapter *padapter, struct recv_frame *precv_frame)
 	struct mlme_ext_priv	*pmlmeext = &padapter->mlmeextpriv;
 	struct mlme_ext_info	*pmlmeinfo = &(pmlmeext->mlmext_info);
 	u8 *pframe = precv_frame->rx_data;
-	struct wlan_bssid_ex *pnetwork = &(pmlmeinfo->network);
 
 	/* check A3 */
-	if (memcmp(GetAddr3Ptr(pframe), pnetwork->MacAddress, ETH_ALEN))
+	if (memcmp(GetAddr3Ptr(pframe), get_my_bssid(&pmlmeinfo->network),
+		   ETH_ALEN))
 		return _SUCCESS;
 
 	reason = le16_to_cpu(*(__le16 *)(pframe + WLAN_HDR_A3_LEN));
@@ -1492,10 +1500,10 @@ unsigned int OnDisassoc(struct adapter *padapter, struct recv_frame *precv_frame
 	struct mlme_ext_priv	*pmlmeext = &padapter->mlmeextpriv;
 	struct mlme_ext_info	*pmlmeinfo = &(pmlmeext->mlmext_info);
 	u8 *pframe = precv_frame->rx_data;
-	struct wlan_bssid_ex *pnetwork = &(pmlmeinfo->network);
 
 	/* check A3 */
-	if (memcmp(GetAddr3Ptr(pframe), pnetwork->MacAddress, ETH_ALEN))
+	if (memcmp(GetAddr3Ptr(pframe), get_my_bssid(&pmlmeinfo->network),
+		   ETH_ALEN))
 		return _SUCCESS;
 
 	reason = le16_to_cpu(*(__le16 *)(pframe + WLAN_HDR_A3_LEN));
@@ -2012,7 +2020,7 @@ void issue_beacon(struct adapter *padapter, int timeout_ms)
 
 	memcpy(pwlanhdr->addr1, bc_addr, ETH_ALEN);
 	memcpy(pwlanhdr->addr2, myid(&(padapter->eeprompriv)), ETH_ALEN);
-	memcpy(pwlanhdr->addr3, cur_network->MacAddress, ETH_ALEN);
+	memcpy(pwlanhdr->addr3, get_my_bssid(cur_network), ETH_ALEN);
 
 	SetSeqNum(pwlanhdr, 0/*pmlmeext->mgnt_seq*/);
 	/* pmlmeext->mgnt_seq++; */
@@ -2416,7 +2424,6 @@ void issue_auth(struct adapter *padapter, struct sta_info *psta, unsigned short 
 	struct xmit_priv *pxmitpriv = &(padapter->xmitpriv);
 	struct mlme_ext_priv	*pmlmeext = &(padapter->mlmeextpriv);
 	struct mlme_ext_info	*pmlmeinfo = &(pmlmeext->mlmext_info);
-	struct wlan_bssid_ex    *pnetwork = &(pmlmeinfo->network);
 
 	pmgntframe = alloc_mgtxmitframe(pxmitpriv);
 	if (pmgntframe == NULL)
@@ -2482,9 +2489,9 @@ void issue_auth(struct adapter *padapter, struct sta_info *psta, unsigned short 
 	} else {
 		__le32 le_tmp32;
 		__le16 le_tmp16;
-		memcpy(pwlanhdr->addr1, pnetwork->MacAddress, ETH_ALEN);
+		memcpy(pwlanhdr->addr1, get_my_bssid(&pmlmeinfo->network), ETH_ALEN);
 		memcpy(pwlanhdr->addr2, myid(&padapter->eeprompriv), ETH_ALEN);
-		memcpy(pwlanhdr->addr3, pnetwork->MacAddress, ETH_ALEN);
+		memcpy(pwlanhdr->addr3, get_my_bssid(&pmlmeinfo->network), ETH_ALEN);
 
 		/*  setting auth algo number */
 		val16 = (pmlmeinfo->auth_algo == dot11AuthAlgrthm_Shared) ? 1 : 0;/*  0:OPEN System, 1:Shared key */
@@ -2577,7 +2584,7 @@ void issue_asocrsp(struct adapter *padapter, unsigned short status, struct sta_i
 
 	memcpy((void *)GetAddr1Ptr(pwlanhdr), pstat->hwaddr, ETH_ALEN);
 	memcpy((void *)GetAddr2Ptr(pwlanhdr), myid(&(padapter->eeprompriv)), ETH_ALEN);
-	memcpy((void *)GetAddr3Ptr(pwlanhdr), pnetwork->MacAddress, ETH_ALEN);
+	memcpy((void *)GetAddr3Ptr(pwlanhdr), get_my_bssid(&(pmlmeinfo->network)), ETH_ALEN);
 
 
 	SetSeqNum(pwlanhdr, pmlmeext->mgnt_seq);
@@ -2682,7 +2689,6 @@ void issue_assocreq(struct adapter *padapter)
 	struct mlme_ext_priv	*pmlmeext = &(padapter->mlmeextpriv);
 	struct mlme_ext_info	*pmlmeinfo = &(pmlmeext->mlmext_info);
 	int	bssrate_len = 0, sta_bssrate_len = 0;
-	struct wlan_bssid_ex    *pnetwork = &(pmlmeinfo->network);
 
 	pmgntframe = alloc_mgtxmitframe(pxmitpriv);
 	if (pmgntframe == NULL)
@@ -2698,9 +2704,9 @@ void issue_assocreq(struct adapter *padapter)
 
 	fctrl = &(pwlanhdr->frame_ctl);
 	*(fctrl) = 0;
-	memcpy(pwlanhdr->addr1, pnetwork->MacAddress, ETH_ALEN);
+	memcpy(pwlanhdr->addr1, get_my_bssid(&(pmlmeinfo->network)), ETH_ALEN);
 	memcpy(pwlanhdr->addr2, myid(&(padapter->eeprompriv)), ETH_ALEN);
-	memcpy(pwlanhdr->addr3, pnetwork->MacAddress, ETH_ALEN);
+	memcpy(pwlanhdr->addr3, get_my_bssid(&(pmlmeinfo->network)), ETH_ALEN);
 
 	SetSeqNum(pwlanhdr, pmlmeext->mgnt_seq);
 	pmlmeext->mgnt_seq++;
@@ -2875,7 +2881,6 @@ static int _issue_nulldata(struct adapter *padapter, unsigned char *da, unsigned
 	struct xmit_priv	*pxmitpriv;
 	struct mlme_ext_priv	*pmlmeext;
 	struct mlme_ext_info	*pmlmeinfo;
-	struct wlan_bssid_ex    *pnetwork;
 
 	if (!padapter)
 		goto exit;
@@ -2883,7 +2888,6 @@ static int _issue_nulldata(struct adapter *padapter, unsigned char *da, unsigned
 	pxmitpriv = &(padapter->xmitpriv);
 	pmlmeext = &(padapter->mlmeextpriv);
 	pmlmeinfo = &(pmlmeext->mlmext_info);
-	pnetwork = &(pmlmeinfo->network);
 
 	pmgntframe = alloc_mgtxmitframe(pxmitpriv);
 	if (pmgntframe == NULL)
@@ -2912,7 +2916,7 @@ static int _issue_nulldata(struct adapter *padapter, unsigned char *da, unsigned
 
 	memcpy(pwlanhdr->addr1, da, ETH_ALEN);
 	memcpy(pwlanhdr->addr2, myid(&(padapter->eeprompriv)), ETH_ALEN);
-	memcpy(pwlanhdr->addr3, pnetwork->MacAddress, ETH_ALEN);
+	memcpy(pwlanhdr->addr3, get_my_bssid(&(pmlmeinfo->network)), ETH_ALEN);
 
 	SetSeqNum(pwlanhdr, pmlmeext->mgnt_seq);
 	pmlmeext->mgnt_seq++;
@@ -2944,11 +2948,10 @@ int issue_nulldata(struct adapter *padapter, unsigned char *da, unsigned int pow
 	u32 start = jiffies;
 	struct mlme_ext_priv	*pmlmeext = &(padapter->mlmeextpriv);
 	struct mlme_ext_info	*pmlmeinfo = &(pmlmeext->mlmext_info);
-	struct wlan_bssid_ex    *pnetwork = &(pmlmeinfo->network);
 
 	/* da == NULL, assume it's null data for sta to ap*/
 	if (da == NULL)
-		da = pnetwork->MacAddress;
+		da = get_my_bssid(&(pmlmeinfo->network));
 
 	do {
 		ret = _issue_nulldata(padapter, da, power_mode, wait_ms > 0 ? true : false);
@@ -2994,7 +2997,6 @@ static int _issue_qos_nulldata(struct adapter *padapter, unsigned char *da, u16 
 	struct xmit_priv			*pxmitpriv = &(padapter->xmitpriv);
 	struct mlme_ext_priv	*pmlmeext = &(padapter->mlmeextpriv);
 	struct mlme_ext_info	*pmlmeinfo = &(pmlmeext->mlmext_info);
-	struct wlan_bssid_ex    *pnetwork = &(pmlmeinfo->network);
 
 	DBG_88E("%s\n", __func__);
 
@@ -3038,7 +3040,7 @@ static int _issue_qos_nulldata(struct adapter *padapter, unsigned char *da, u16 
 
 	memcpy(pwlanhdr->addr1, da, ETH_ALEN);
 	memcpy(pwlanhdr->addr2, myid(&(padapter->eeprompriv)), ETH_ALEN);
-	memcpy(pwlanhdr->addr3, pnetwork->MacAddress, ETH_ALEN);
+	memcpy(pwlanhdr->addr3, get_my_bssid(&(pmlmeinfo->network)), ETH_ALEN);
 
 	SetSeqNum(pwlanhdr, pmlmeext->mgnt_seq);
 	pmlmeext->mgnt_seq++;
@@ -3069,11 +3071,10 @@ int issue_qos_nulldata(struct adapter *padapter, unsigned char *da, u16 tid, int
 	u32 start = jiffies;
 	struct mlme_ext_priv	*pmlmeext = &(padapter->mlmeextpriv);
 	struct mlme_ext_info	*pmlmeinfo = &(pmlmeext->mlmext_info);
-	struct wlan_bssid_ex    *pnetwork = &(pmlmeinfo->network);
 
 	/* da == NULL, assume it's null data for sta to ap*/
 	if (da == NULL)
-		da = pnetwork->MacAddress;
+		da = get_my_bssid(&(pmlmeinfo->network));
 
 	do {
 		ret = _issue_qos_nulldata(padapter, da, tid, wait_ms > 0 ? true : false);
@@ -3116,7 +3117,6 @@ static int _issue_deauth(struct adapter *padapter, unsigned char *da, unsigned s
 	struct xmit_priv			*pxmitpriv = &(padapter->xmitpriv);
 	struct mlme_ext_priv	*pmlmeext = &(padapter->mlmeextpriv);
 	struct mlme_ext_info	*pmlmeinfo = &(pmlmeext->mlmext_info);
-	struct wlan_bssid_ex    *pnetwork = &(pmlmeinfo->network);
 	int ret = _FAIL;
 	__le16 le_tmp;
 
@@ -3139,7 +3139,7 @@ static int _issue_deauth(struct adapter *padapter, unsigned char *da, unsigned s
 
 	memcpy(pwlanhdr->addr1, da, ETH_ALEN);
 	memcpy(pwlanhdr->addr2, myid(&(padapter->eeprompriv)), ETH_ALEN);
-	memcpy(pwlanhdr->addr3, pnetwork->MacAddress, ETH_ALEN);
+	memcpy(pwlanhdr->addr3, get_my_bssid(&(pmlmeinfo->network)), ETH_ALEN);
 
 	SetSeqNum(pwlanhdr, pmlmeext->mgnt_seq);
 	pmlmeext->mgnt_seq++;
@@ -3290,7 +3290,6 @@ void issue_action_BA(struct adapter *padapter, unsigned char *raddr, unsigned ch
 	struct sta_info *psta;
 	struct sta_priv *pstapriv = &padapter->stapriv;
 	struct registry_priv *pregpriv = &padapter->registrypriv;
-	struct wlan_bssid_ex    *pnetwork = &(pmlmeinfo->network);
 
 	DBG_88E("%s, category=%d, action=%d, status=%d\n", __func__, category, action, status);
 
@@ -3313,7 +3312,7 @@ void issue_action_BA(struct adapter *padapter, unsigned char *raddr, unsigned ch
 	/* memcpy(pwlanhdr->addr1, get_my_bssid(&(pmlmeinfo->network)), ETH_ALEN); */
 	memcpy(pwlanhdr->addr1, raddr, ETH_ALEN);
 	memcpy(pwlanhdr->addr2, myid(&(padapter->eeprompriv)), ETH_ALEN);
-	memcpy(pwlanhdr->addr3, pnetwork->MacAddress, ETH_ALEN);
+	memcpy(pwlanhdr->addr3, get_my_bssid(&(pmlmeinfo->network)), ETH_ALEN);
 
 	SetSeqNum(pwlanhdr, pmlmeext->mgnt_seq);
 	pmlmeext->mgnt_seq++;
@@ -3423,8 +3422,6 @@ static void issue_action_BSSCoexistPacket(struct adapter *padapter)
 	struct __queue *queue	= &(pmlmepriv->scanned_queue);
 	u8 InfoContent[16] = {0};
 	u8 ICS[8][15];
-	struct wlan_bssid_ex  *cur_network   = &(pmlmeinfo->network);
-
 	if ((pmlmepriv->num_FortyMHzIntolerant == 0) || (pmlmepriv->num_sta_no_ht == 0))
 		return;
 
@@ -3454,9 +3451,9 @@ static void issue_action_BSSCoexistPacket(struct adapter *padapter)
 	fctrl = &(pwlanhdr->frame_ctl);
 	*(fctrl) = 0;
 
-	memcpy(pwlanhdr->addr1, cur_network->MacAddress, ETH_ALEN);
+	memcpy(pwlanhdr->addr1, get_my_bssid(&(pmlmeinfo->network)), ETH_ALEN);
 	memcpy(pwlanhdr->addr2, myid(&(padapter->eeprompriv)), ETH_ALEN);
-	memcpy(pwlanhdr->addr3, cur_network->MacAddress, ETH_ALEN);
+	memcpy(pwlanhdr->addr3, get_my_bssid(&(pmlmeinfo->network)), ETH_ALEN);
 
 	SetSeqNum(pwlanhdr, pmlmeext->mgnt_seq);
 	pmlmeext->mgnt_seq++;
@@ -4047,10 +4044,9 @@ unsigned int receive_disconnect(struct adapter *padapter, unsigned char *MacAddr
 {
 	struct mlme_ext_priv	*pmlmeext = &padapter->mlmeextpriv;
 	struct mlme_ext_info	*pmlmeinfo = &(pmlmeext->mlmext_info);
-	struct wlan_bssid_ex    *pnetwork = &(pmlmeinfo->network);
 
 	/* check A3 */
-	if (memcmp(MacAddr, pnetwork->MacAddress, ETH_ALEN))
+	if (memcmp(MacAddr, get_my_bssid(&pmlmeinfo->network), ETH_ALEN))
 		return _SUCCESS;
 
 	DBG_88E("%s\n", __func__);
@@ -4928,6 +4924,11 @@ void addba_timer_hdl(void *function_context)
 		if (phtpriv->candidate_tid_bitmap)
 			phtpriv->candidate_tid_bitmap = 0x0;
 	}
+}
+
+u8 NULL_hdl(struct adapter *padapter, u8 *pbuf)
+{
+	return H2C_SUCCESS;
 }
 
 u8 setopmode_hdl(struct adapter *padapter, u8 *pbuf)

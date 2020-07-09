@@ -4229,7 +4229,8 @@ static void myri10ge_remove(struct pci_dev *pdev)
 		mtrr_del(mgp->mtrr, mgp->iomem_base, mgp->board_span);
 #endif
 	myri10ge_free_slices(mgp);
-	kfree(mgp->msix_vectors);
+	if (mgp->msix_vectors != NULL)
+		kfree(mgp->msix_vectors);
 	dma_free_coherent(&pdev->dev, sizeof(*mgp->cmd),
 			  mgp->cmd, mgp->cmd_bus);
 

@@ -376,8 +376,7 @@ static int tse_rx(struct altera_tse_private *priv, int limit)
 	u16 pktlength;
 	u16 pktstatus;
 
-	while (((rxstatus = priv->dmaops->get_rx_status(priv)) != 0) &&
-	       (count < limit))  {
+	while ((rxstatus = priv->dmaops->get_rx_status(priv)) != 0) {
 		pktstatus = rxstatus >> 16;
 		pktlength = rxstatus & 0xffff;
 
@@ -492,27 +491,28 @@ static int tse_poll(struct napi_struct *napi, int budget)
 	struct altera_tse_private *priv =
 			container_of(napi, struct altera_tse_private, napi);
 	int rxcomplete = 0;
+	int txcomplete = 0;
 	unsigned long int flags;
 
-	tse_tx_complete(priv);
+	txcomplete = tse_tx_complete(priv);
 
 	rxcomplete = tse_rx(priv, budget);
 
-	if (rxcomplete < budget) {
+	if (rxcomplete >= budget || txcomplete > 0)
+		return rxcomplete;
 
-		napi_gro_flush(napi, false);
-		__napi_complete(napi);
+	napi_gro_flush(napi, false);
+	__napi_complete(napi);
 
-		netdev_dbg(priv->dev,
-			   "NAPI Complete, did %d packets with budget %d\n",
-			   rxcomplete, budget);
+	netdev_dbg(priv->dev,
+		   "NAPI Complete, did %d packets with budget %d\n",
+		   txcomplete+rxcomplete, budget);
 
-		spin_lock_irqsave(&priv->rxdma_irq_lock, flags);
-		priv->dmaops->enable_rxirq(priv);
-		priv->dmaops->enable_txirq(priv);
-		spin_unlock_irqrestore(&priv->rxdma_irq_lock, flags);
-	}
-	return rxcomplete;
+	spin_lock_irqsave(&priv->rxdma_irq_lock, flags);
+	priv->dmaops->enable_rxirq(priv);
+	priv->dmaops->enable_txirq(priv);
+	spin_unlock_irqrestore(&priv->rxdma_irq_lock, flags);
+	return rxcomplete + txcomplete;
 }
 
 /* DMA TX & RX FIFO interrupt routing
@@ -521,6 +521,7 @@ static irqreturn_t altera_isr(int irq, void *dev_id)
 {
 	struct net_device *dev = dev_id;
 	struct altera_tse_private *priv;
+	unsigned long int flags;
 
 	if (unlikely(!dev)) {
 		pr_err("%s: invalid dev pointer\n", __func__);
@@ -528,20 +529,20 @@ static irqreturn_t altera_isr(int irq, void *dev_id)
 	}
 	priv = netdev_priv(dev);
 
-	spin_lock(&priv->rxdma_irq_lock);
-	/* reset IRQs */
-	priv->dmaops->clear_rxirq(priv);
-	priv->dmaops->clear_txirq(priv);
-	spin_unlock(&priv->rxdma_irq_lock);
+	/* turn off desc irqs and enable napi rx */
+	spin_lock_irqsave(&priv->rxdma_irq_lock, flags);
 
 	if (likely(napi_schedule_prep(&priv->napi))) {
-		spin_lock(&priv->rxdma_irq_lock);
 		priv->dmaops->disable_rxirq(priv);
 		priv->dmaops->disable_txirq(priv);
-		spin_unlock(&priv->rxdma_irq_lock);
 		__napi_schedule(&priv->napi);
 	}
 
+	/* reset IRQs */
+	priv->dmaops->clear_rxirq(priv);
+	priv->dmaops->clear_txirq(priv);
+
+	spin_unlock_irqrestore(&priv->rxdma_irq_lock, flags);
 
 	return IRQ_HANDLED;
 }
@@ -1405,7 +1406,7 @@ static int altera_tse_probe(struct platform_device *pdev)
 	}
 
 	if (of_property_read_u32(pdev->dev.of_node, "tx-fifo-depth",
-				 &priv->tx_fifo_depth)) {
+				 &priv->rx_fifo_depth)) {
 		dev_err(&pdev->dev, "cannot obtain tx-fifo-depth\n");
 		ret = -ENXIO;
 		goto err_free_netdev;

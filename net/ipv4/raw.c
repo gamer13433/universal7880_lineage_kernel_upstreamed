@@ -327,7 +327,7 @@ int raw_rcv(struct sock *sk, struct sk_buff *skb)
 }
 
 static int raw_send_hdrinc(struct sock *sk, struct flowi4 *fl4,
-			   struct msghdr *msg, size_t length,
+			   void *from, size_t length,
 			   struct rtable **rtp,
 			   unsigned int flags)
 {
@@ -375,7 +375,7 @@ static int raw_send_hdrinc(struct sock *sk, struct flowi4 *fl4,
 
 	skb->transport_header = skb->network_header;
 	err = -EFAULT;
-	if (memcpy_from_msg(iph, msg, length))
+	if (memcpy_fromiovecend((void *)iph, from, 0, length))
 		goto error_free;
 
 	iphlen = iph->ihl * 4;

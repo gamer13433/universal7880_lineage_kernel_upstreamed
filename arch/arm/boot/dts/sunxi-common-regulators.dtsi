@@ -45,7 +45,7 @@
 		regulator-min-microvolt = <5000000>;
 		regulator-max-microvolt = <5000000>;
 		enable-active-high;
-		gpio = <&pio 1 8 GPIO_ACTIVE_HIGH>;
+		gpio = <&pio 1 8 0>;
 		status = "disabled";
 	};
 
@@ -57,7 +57,7 @@
 		regulator-min-microvolt = <5000000>;
 		regulator-max-microvolt = <5000000>;
 		enable-active-high;
-		gpio = <&pio 7 6 GPIO_ACTIVE_HIGH>;
+		gpio = <&pio 7 6 0>;
 		status = "disabled";
 	};
 
@@ -69,7 +69,7 @@
 		regulator-min-microvolt = <5000000>;
 		regulator-max-microvolt = <5000000>;
 		enable-active-high;
-		gpio = <&pio 7 3 GPIO_ACTIVE_HIGH>;
+		gpio = <&pio 7 3 0>;
 		status = "disabled";
 	};
 

@@ -1031,22 +1031,22 @@ extern __printf(3, 4)
 int dev_printk_emit(int level, const struct device *dev, const char *fmt, ...);
 
 extern __printf(3, 4)
-void dev_printk(const char *level, const struct device *dev,
-		const char *fmt, ...);
+int dev_printk(const char *level, const struct device *dev,
+	       const char *fmt, ...);
 extern __printf(2, 3)
-void dev_emerg(const struct device *dev, const char *fmt, ...);
+int dev_emerg(const struct device *dev, const char *fmt, ...);
 extern __printf(2, 3)
-void dev_alert(const struct device *dev, const char *fmt, ...);
+int dev_alert(const struct device *dev, const char *fmt, ...);
 extern __printf(2, 3)
-void dev_crit(const struct device *dev, const char *fmt, ...);
+int dev_crit(const struct device *dev, const char *fmt, ...);
 extern __printf(2, 3)
-void dev_err(const struct device *dev, const char *fmt, ...);
+int dev_err(const struct device *dev, const char *fmt, ...);
 extern __printf(2, 3)
-void dev_warn(const struct device *dev, const char *fmt, ...);
+int dev_warn(const struct device *dev, const char *fmt, ...);
 extern __printf(2, 3)
-void dev_notice(const struct device *dev, const char *fmt, ...);
+int dev_notice(const struct device *dev, const char *fmt, ...);
 extern __printf(2, 3)
-void _dev_info(const struct device *dev, const char *fmt, ...);
+int _dev_info(const struct device *dev, const char *fmt, ...);
 
 #else
 
@@ -1058,35 +1058,35 @@ static inline __printf(3, 4)
 int dev_printk_emit(int level, const struct device *dev, const char *fmt, ...)
 { return 0; }
 
-static inline void __dev_printk(const char *level, const struct device *dev,
-				struct va_format *vaf)
-{}
+static inline int __dev_printk(const char *level, const struct device *dev,
+			       struct va_format *vaf)
+{ return 0; }
 static inline __printf(3, 4)
-void dev_printk(const char *level, const struct device *dev,
-		const char *fmt, ...)
-{}
+int dev_printk(const char *level, const struct device *dev,
+	       const char *fmt, ...)
+{ return 0; }
 
 static inline __printf(2, 3)
-void dev_emerg(const struct device *dev, const char *fmt, ...)
-{}
+int dev_emerg(const struct device *dev, const char *fmt, ...)
+{ return 0; }
 static inline __printf(2, 3)
-void dev_crit(const struct device *dev, const char *fmt, ...)
-{}
+int dev_crit(const struct device *dev, const char *fmt, ...)
+{ return 0; }
 static inline __printf(2, 3)
-void dev_alert(const struct device *dev, const char *fmt, ...)
-{}
+int dev_alert(const struct device *dev, const char *fmt, ...)
+{ return 0; }
 static inline __printf(2, 3)
-void dev_err(const struct device *dev, const char *fmt, ...)
-{}
+int dev_err(const struct device *dev, const char *fmt, ...)
+{ return 0; }
 static inline __printf(2, 3)
-void dev_warn(const struct device *dev, const char *fmt, ...)
-{}
+int dev_warn(const struct device *dev, const char *fmt, ...)
+{ return 0; }
 static inline __printf(2, 3)
-void dev_notice(const struct device *dev, const char *fmt, ...)
-{}
+int dev_notice(const struct device *dev, const char *fmt, ...)
+{ return 0; }
 static inline __printf(2, 3)
-void _dev_info(const struct device *dev, const char *fmt, ...)
-{}
+int _dev_info(const struct device *dev, const char *fmt, ...)
+{ return 0; }
 
 #endif
 
@@ -1112,6 +1112,7 @@ do {						     \
 ({								\
 	if (0)							\
 		dev_printk(KERN_DEBUG, dev, format, ##arg);	\
+	0;							\
 })
 #endif
 
@@ -1172,6 +1173,7 @@ do {									\
 ({								\
 	if (0)							\
 		dev_printk(KERN_DEBUG, dev, format, ##arg);	\
+	0;							\
 })
 #endif
 

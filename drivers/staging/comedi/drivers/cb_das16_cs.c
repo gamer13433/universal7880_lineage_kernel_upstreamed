@@ -38,7 +38,10 @@ Status: experimental
 #include <linux/interrupt.h>
 #include <linux/delay.h>
 
-#include "../comedi_pcmcia.h"
+#include "../comedidev.h"
+
+#include <pcmcia/cistpl.h>
+#include <pcmcia/ds.h>
 
 #include "comedi_fc.h"
 #include "8253.h"

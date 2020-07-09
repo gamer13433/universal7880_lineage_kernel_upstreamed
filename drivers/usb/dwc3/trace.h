@@ -47,16 +47,6 @@ DEFINE_EVENT(dwc3_log_msg, dwc3_writel,
 	TP_ARGS(vaf)
 );
 
-DEFINE_EVENT(dwc3_log_msg, dwc3_gadget,
-	TP_PROTO(struct va_format *vaf),
-	TP_ARGS(vaf)
-);
-
-DEFINE_EVENT(dwc3_log_msg, dwc3_core,
-	TP_PROTO(struct va_format *vaf),
-	TP_ARGS(vaf)
-);
-
 DEFINE_EVENT(dwc3_log_msg, dwc3_ep0,
 	TP_PROTO(struct va_format *vaf),
 	TP_ARGS(vaf)

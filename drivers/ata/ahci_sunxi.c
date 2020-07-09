@@ -163,10 +163,6 @@ static const struct ata_port_info ahci_sunxi_port_info = {
 	.port_ops	= &ahci_platform_ops,
 };
 
-static struct scsi_host_template ahci_platform_sht = {
-	AHCI_SHT(DRV_NAME),
-};
-
 static int ahci_sunxi_probe(struct platform_device *pdev)
 {
 	struct device *dev = &pdev->dev;
@@ -190,8 +186,7 @@ static int ahci_sunxi_probe(struct platform_device *pdev)
 	hpriv->flags = AHCI_HFLAG_32BIT_ONLY | AHCI_HFLAG_NO_MSI |
 		       AHCI_HFLAG_NO_PMP | AHCI_HFLAG_YES_NCQ;
 
-	rc = ahci_platform_init_host(pdev, hpriv, &ahci_sunxi_port_info,
-				     &ahci_platform_sht);
+	rc = ahci_platform_init_host(pdev, hpriv, &ahci_sunxi_port_info);
 	if (rc)
 		goto disable_resources;
 

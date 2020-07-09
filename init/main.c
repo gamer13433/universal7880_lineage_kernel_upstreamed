@@ -106,10 +106,6 @@ int boot_mode_security;
 EXPORT_SYMBOL(boot_mode_security);
 #endif
 
-#ifdef CONFIG_X86_LOCAL_APIC
-#include <asm/smp.h>
-#endif
-
 static int kernel_init(void *);
 
 extern void init_IRQ(void);

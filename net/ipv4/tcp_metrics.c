@@ -886,8 +886,7 @@ static int tcp_metrics_dump_info(struct sk_buff *skb,
 	if (tcp_metrics_fill_info(skb, tm) < 0)
 		goto nla_put_failure;
 
-	genlmsg_end(skb, hdr);
-	return 0;
+	return genlmsg_end(skb, hdr);
 
 nla_put_failure:
 	genlmsg_cancel(skb, hdr);

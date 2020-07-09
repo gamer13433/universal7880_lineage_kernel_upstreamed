@@ -166,13 +166,6 @@ extern struct task_group root_task_group;
 # define INIT_RT_MUTEXES(tsk)
 #endif
 
-#ifdef CONFIG_KASAN
-# define INIT_KASAN(tsk)						\
-	.kasan_depth = 1,
-#else
-# define INIT_KASAN(tsk)
-#endif
-
 /*
  *  INIT_TASK is used to set up the first task table, touch at
  * your own risk!. Base=0, limit=0x1fffff (=2MB)
@@ -191,9 +184,6 @@ extern struct task_group root_task_group;
 	.nr_cpus_allowed= NR_CPUS,					\
 	.mm		= NULL,						\
 	.active_mm	= &init_mm,					\
-	.restart_block = {						\
-		.fn = do_no_restart_syscall,				\
-	},								\
 	.se		= {						\
 		.group_node 	= LIST_HEAD_INIT(tsk.se.group_node),	\
 	},								\

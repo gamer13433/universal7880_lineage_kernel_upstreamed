@@ -50,6 +50,7 @@ void batadv_mcast_purge_orig(struct batadv_orig_node *orig_node);
 
 static inline void batadv_mcast_mla_update(struct batadv_priv *bat_priv)
 {
+	return;
 }
 
 static inline enum batadv_forw_mode
@@ -66,10 +67,12 @@ static inline int batadv_mcast_init(struct batadv_priv *bat_priv)
 
 static inline void batadv_mcast_free(struct batadv_priv *bat_priv)
 {
+	return;
 }
 
 static inline void batadv_mcast_purge_orig(struct batadv_orig_node *orig_node)
 {
+	return;
 }
 
 #endif /* CONFIG_BATMAN_ADV_MCAST */

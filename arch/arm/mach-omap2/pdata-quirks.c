@@ -18,6 +18,7 @@
 #include <linux/platform_data/pinctrl-single.h>
 #include <linux/platform_data/iommu-omap.h>
 
+#include "am35xx.h"
 #include "common.h"
 #include "common-board-devices.h"
 #include "dss-common.h"
@@ -144,7 +145,6 @@ static void __init omap3_igep0020_legacy_init(void)
 
 static void __init omap3_evm_legacy_init(void)
 {
-	hsmmc2_internal_input_clk();
 	legacy_init_wl12xx(WL12XX_REFCLOCK_38, 0, 149);
 }
 

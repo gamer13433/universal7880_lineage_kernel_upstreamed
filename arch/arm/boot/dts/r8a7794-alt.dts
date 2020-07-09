@@ -39,9 +39,9 @@
 };
 
 &cmt0 {
-	status = "okay";
+	status = "ok";
 };
 
 &scif2 {
-	status = "okay";
+	status = "ok";
 };

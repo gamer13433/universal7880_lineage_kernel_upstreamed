@@ -379,11 +379,6 @@ int __generic_block_fiemap(struct inode *inode,
 				past_eof = true;
 		}
 		cond_resched();
-		if (fatal_signal_pending(current)) {
-			ret = -EINTR;
-			break;
-		}
-
 	} while (1);
 
 	/* If ret is 1 then we just hit the end of the extent array */

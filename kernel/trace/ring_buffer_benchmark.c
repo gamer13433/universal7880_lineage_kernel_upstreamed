@@ -7,7 +7,7 @@
 #include <linux/completion.h>
 #include <linux/kthread.h>
 #include <linux/module.h>
-#include <linux/ktime.h>
+#include <linux/time.h>
 #include <asm/local.h>
 
 struct rb_page {
@@ -17,7 +17,7 @@ struct rb_page {
 };
 
 /* run time and sleep time in seconds */
-#define RUN_TIME	10ULL
+#define RUN_TIME	10
 #define SLEEP_TIME	10
 
 /* number of events for writer to wake up the reader */
@@ -212,7 +212,8 @@ static void ring_buffer_consumer(void)
 
 static void ring_buffer_producer(void)
 {
-	ktime_t start_time, end_time, timeout;
+	struct timeval start_tv;
+	struct timeval end_tv;
 	unsigned long long time;
 	unsigned long long entries;
 	unsigned long long overruns;
@@ -226,8 +227,7 @@ static void ring_buffer_producer(void)
 	 * make the system stall)
 	 */
 	trace_printk("Starting ring buffer hammer\n");
-	start_time = ktime_get();
-	timeout = ktime_add_ns(start_time, RUN_TIME * NSEC_PER_SEC);
+	do_gettimeofday(&start_tv);
 	do {
 		struct ring_buffer_event *event;
 		int *entry;
@@ -244,7 +244,7 @@ static void ring_buffer_producer(void)
 				ring_buffer_unlock_commit(buffer, event);
 			}
 		}
-		end_time = ktime_get();
+		do_gettimeofday(&end_tv);
 
 		cnt++;
 		if (consumer && !(cnt % wakeup_interval))
@@ -264,7 +264,7 @@ static void ring_buffer_producer(void)
 			cond_resched();
 #endif
 
-	} while (ktime_before(end_time, timeout) && !kill_test);
+	} while (end_tv.tv_sec < (start_tv.tv_sec + RUN_TIME) && !kill_test);
 	trace_printk("End ring buffer hammer\n");
 
 	if (consumer) {
@@ -280,7 +280,9 @@ static void ring_buffer_producer(void)
 		wait_for_completion(&read_done);
 	}
 
-	time = ktime_us_delta(end_time, start_time);
+	time = end_tv.tv_sec - start_tv.tv_sec;
+	time *= USEC_PER_SEC;
+	time += (long long)((long)end_tv.tv_usec - (long)start_tv.tv_usec);
 
 	entries = ring_buffer_entries(buffer);
 	overruns = ring_buffer_overruns(buffer);

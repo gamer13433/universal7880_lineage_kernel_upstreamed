@@ -490,8 +490,7 @@ static int ip6addrlbl_fill(struct sk_buff *skb,
 		return -EMSGSIZE;
 	}
 
-	nlmsg_end(skb, nlh);
-	return 0;
+	return nlmsg_end(skb, nlh);
 }
 
 static int ip6addrlbl_dump(struct sk_buff *skb, struct netlink_callback *cb)
@@ -511,7 +510,7 @@ static int ip6addrlbl_dump(struct sk_buff *skb, struct netlink_callback *cb)
 					      cb->nlh->nlmsg_seq,
 					      RTM_NEWADDRLABEL,
 					      NLM_F_MULTI);
-			if (err < 0)
+			if (err <= 0)
 				break;
 		}
 		idx++;

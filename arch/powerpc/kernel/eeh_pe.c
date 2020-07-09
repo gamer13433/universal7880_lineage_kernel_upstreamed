@@ -239,18 +239,10 @@ static void *__eeh_pe_get(void *data, void *flag)
 	if (pe->type & EEH_PE_PHB)
 		return NULL;
 
-	/*
-	 * We prefer PE address. For most cases, we should
-	 * have non-zero PE address
-	 */
-	if (eeh_has_flag(EEH_VALID_PE_ZERO)) {
-		if (edev->pe_config_addr == pe->addr)
-			return pe;
-	} else {
-		if (edev->pe_config_addr &&
-		    (edev->pe_config_addr == pe->addr))
+	/* We prefer PE address */
+	if (edev->pe_config_addr &&
+	   (edev->pe_config_addr == pe->addr))
 		return pe;
-	}
 
 	/* Try BDF address */
 	if (edev->config_addr &&
@@ -526,7 +518,8 @@ static void *__eeh_pe_state_mark(void *data, void *flag)
 	struct pci_dev *pdev;
 
 	/* Keep the state of permanently removed PE intact */
-	if (pe->state & EEH_PE_REMOVED)
+	if ((pe->freeze_count > EEH_MAX_ALLOWED_FREEZES) &&
+	    (state & (EEH_PE_ISOLATED | EEH_PE_RECOVERING)))
 		return NULL;
 
 	pe->state |= state;
@@ -599,7 +592,8 @@ static void *__eeh_pe_state_clear(void *data, void *flag)
 	struct pci_dev *pdev;
 
 	/* Keep the state of permanently removed PE intact */
-	if (pe->state & EEH_PE_REMOVED)
+	if ((pe->freeze_count > EEH_MAX_ALLOWED_FREEZES) &&
+	    (state & EEH_PE_ISOLATED))
 		return NULL;
 
 	pe->state &= ~state;

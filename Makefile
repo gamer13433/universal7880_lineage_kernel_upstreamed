@@ -529,7 +529,7 @@ endif
 ifeq ($(KBUILD_EXTMOD),)
         ifneq ($(filter config %config,$(MAKECMDGOALS)),)
                 config-targets := 1
-                ifneq ($(words $(MAKECMDGOALS)),1)
+                ifneq ($(filter-out config %config,$(MAKECMDGOALS)),)
                         mixed-targets := 1
                 endif
         endif
@@ -776,14 +776,10 @@ KBUILD_CFLAGS 	+= $(call cc-option, -femit-struct-debug-baseonly) \
 endif
 
 ifdef CONFIG_FUNCTION_TRACER
-ifndef CC_FLAGS_FTRACE
-CC_FLAGS_FTRACE := -pg
-endif
-export CC_FLAGS_FTRACE
 ifdef CONFIG_HAVE_FENTRY
 CC_USING_FENTRY	:= $(call cc-option, -mfentry -DCC_USING_FENTRY)
 endif
-KBUILD_CFLAGS	+= $(CC_FLAGS_FTRACE) $(CC_USING_FENTRY)
+KBUILD_CFLAGS	+= -pg $(CC_USING_FENTRY)
 KBUILD_AFLAGS	+= $(CC_USING_FENTRY)
 ifdef CONFIG_DYNAMIC_FTRACE
 	ifdef CONFIG_HAVE_C_RECORDMCOUNT
@@ -1010,9 +1006,6 @@ ifdef CONFIG_SAMPLES
 endif
 ifdef CONFIG_BUILD_DOCSRC
 	$(Q)$(MAKE) $(build)=Documentation
-endif
-ifdef CONFIG_GDB_SCRIPTS
-	$(Q)ln -fsn `cd $(srctree) && /bin/pwd`/scripts/gdb/vmlinux-gdb.py
 endif
 	+$(call if_changed,link-vmlinux)
 

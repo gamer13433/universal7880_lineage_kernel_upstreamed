@@ -19,17 +19,16 @@
 static const struct dvb_frontend_ops si2168_ops;
 
 /* execute firmware command */
-static int si2168_cmd_execute(struct i2c_client *client, struct si2168_cmd *cmd)
+static int si2168_cmd_execute(struct si2168 *s, struct si2168_cmd *cmd)
 {
-	struct si2168_dev *dev = i2c_get_clientdata(client);
 	int ret;
 	unsigned long timeout;
 
-	mutex_lock(&dev->i2c_mutex);
+	mutex_lock(&s->i2c_mutex);
 
 	if (cmd->wlen) {
 		/* write cmd and args for firmware */
-		ret = i2c_master_send(client, cmd->args, cmd->wlen);
+		ret = i2c_master_send(s->client, cmd->args, cmd->wlen);
 		if (ret < 0) {
 			goto err_mutex_unlock;
 		} else if (ret != cmd->wlen) {
@@ -40,10 +39,10 @@ static int si2168_cmd_execute(struct i2c_client *client, struct si2168_cmd *cmd)
 
 	if (cmd->rlen) {
 		/* wait cmd execution terminate */
-		#define TIMEOUT 70
+		#define TIMEOUT 50
 		timeout = jiffies + msecs_to_jiffies(TIMEOUT);
 		while (!time_after(jiffies, timeout)) {
-			ret = i2c_master_recv(client, cmd->args, cmd->rlen);
+			ret = i2c_master_recv(s->client, cmd->args, cmd->rlen);
 			if (ret < 0) {
 				goto err_mutex_unlock;
 			} else if (ret != cmd->rlen) {
@@ -56,7 +55,7 @@ static int si2168_cmd_execute(struct i2c_client *client, struct si2168_cmd *cmd)
 				break;
 		}
 
-		dev_dbg(&client->dev, "cmd execution took %d ms\n",
+		dev_dbg(&s->client->dev, "cmd execution took %d ms\n",
 				jiffies_to_msecs(jiffies) -
 				(jiffies_to_msecs(timeout) - TIMEOUT));
 
@@ -66,26 +65,29 @@ static int si2168_cmd_execute(struct i2c_client *client, struct si2168_cmd *cmd)
 		}
 	}
 
-	mutex_unlock(&dev->i2c_mutex);
-	return 0;
+	ret = 0;
 
 err_mutex_unlock:
-	mutex_unlock(&dev->i2c_mutex);
-	dev_dbg(&client->dev, "failed=%d\n", ret);
+	mutex_unlock(&s->i2c_mutex);
+	if (ret)
+		goto err;
+
+	return 0;
+err:
+	dev_dbg(&s->client->dev, "failed=%d\n", ret);
 	return ret;
 }
 
 static int si2168_read_status(struct dvb_frontend *fe, fe_status_t *status)
 {
-	struct i2c_client *client = fe->demodulator_priv;
-	struct si2168_dev *dev = i2c_get_clientdata(client);
+	struct si2168 *s = fe->demodulator_priv;
 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
 	int ret;
 	struct si2168_cmd cmd;
 
 	*status = 0;
 
-	if (!dev->active) {
+	if (!s->active) {
 		ret = -EAGAIN;
 		goto err;
 	}
@@ -111,9 +113,20 @@ static int si2168_read_status(struct dvb_frontend *fe, fe_status_t *status)
 		goto err;
 	}
 
-	ret = si2168_cmd_execute(client, &cmd);
+	ret = si2168_cmd_execute(s, &cmd);
 	if (ret)
 		goto err;
+
+	/*
+	 * Possible values seen, in order from strong signal to weak:
+	 * 16 0001 0110 full lock
+	 * 1e 0001 1110 partial lock
+	 * 1a 0001 1010 partial lock
+	 * 18 0001 1000 no lock
+	 *
+	 * [b3:b1] lock bits
+	 * [b4] statistics ready? Set in a few secs after lock is gained.
+	 */
 
 	switch ((cmd.args[2] >> 1) & 0x03) {
 	case 0x01:
@@ -125,7 +138,7 @@ static int si2168_read_status(struct dvb_frontend *fe, fe_status_t *status)
 		break;
 	}
 
-	dev->fe_status = *status;
+	s->fe_status = *status;
 
 	if (*status & FE_HAS_LOCK) {
 		c->cnr.len = 1;
@@ -136,31 +149,30 @@ static int si2168_read_status(struct dvb_frontend *fe, fe_status_t *status)
 		c->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
 	}
 
-	dev_dbg(&client->dev, "status=%02x args=%*ph\n",
+	dev_dbg(&s->client->dev, "status=%02x args=%*ph\n",
 			*status, cmd.rlen, cmd.args);
 
 	return 0;
 err:
-	dev_dbg(&client->dev, "failed=%d\n", ret);
+	dev_dbg(&s->client->dev, "failed=%d\n", ret);
 	return ret;
 }
 
 static int si2168_set_frontend(struct dvb_frontend *fe)
 {
-	struct i2c_client *client = fe->demodulator_priv;
-	struct si2168_dev *dev = i2c_get_clientdata(client);
+	struct si2168 *s = fe->demodulator_priv;
 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
 	int ret;
 	struct si2168_cmd cmd;
 	u8 bandwidth, delivery_system;
 
-	dev_dbg(&client->dev,
-			"delivery_system=%u modulation=%u frequency=%u bandwidth_hz=%u symbol_rate=%u inversion=%u stream_id=%u\n",
-			c->delivery_system, c->modulation, c->frequency,
-			c->bandwidth_hz, c->symbol_rate, c->inversion,
-			c->stream_id);
+	dev_dbg(&s->client->dev,
+			"delivery_system=%u modulation=%u frequency=%u bandwidth_hz=%u symbol_rate=%u inversion=%u, stream_id=%d\n",
+			c->delivery_system, c->modulation,
+			c->frequency, c->bandwidth_hz, c->symbol_rate,
+			c->inversion, c->stream_id);
 
-	if (!dev->active) {
+	if (!s->active) {
 		ret = -EAGAIN;
 		goto err;
 	}
@@ -180,12 +192,7 @@ static int si2168_set_frontend(struct dvb_frontend *fe)
 		goto err;
 	}
 
-	if (c->bandwidth_hz == 0) {
-		ret = -EINVAL;
-		goto err;
-	} else if (c->bandwidth_hz <= 2000000)
-		bandwidth = 0x02;
-	else if (c->bandwidth_hz <= 5000000)
+	if (c->bandwidth_hz <= 5000000)
 		bandwidth = 0x05;
 	else if (c->bandwidth_hz <= 6000000)
 		bandwidth = 0x06;
@@ -210,7 +217,7 @@ static int si2168_set_frontend(struct dvb_frontend *fe)
 	memcpy(cmd.args, "\x88\x02\x02\x02\x02", 5);
 	cmd.wlen = 5;
 	cmd.rlen = 5;
-	ret = si2168_cmd_execute(client, &cmd);
+	ret = si2168_cmd_execute(s, &cmd);
 	if (ret)
 		goto err;
 
@@ -223,7 +230,7 @@ static int si2168_set_frontend(struct dvb_frontend *fe)
 		memcpy(cmd.args, "\x89\x21\x06\x11\x89\x20", 6);
 	cmd.wlen = 6;
 	cmd.rlen = 3;
-	ret = si2168_cmd_execute(client, &cmd);
+	ret = si2168_cmd_execute(s, &cmd);
 	if (ret)
 		goto err;
 
@@ -234,7 +241,7 @@ static int si2168_set_frontend(struct dvb_frontend *fe)
 		cmd.args[2] = c->stream_id == NO_STREAM_ID_FILTER ? 0 : 1;
 		cmd.wlen = 3;
 		cmd.rlen = 1;
-		ret = si2168_cmd_execute(client, &cmd);
+		ret = si2168_cmd_execute(s, &cmd);
 		if (ret)
 			goto err;
 	}
@@ -242,35 +249,35 @@ static int si2168_set_frontend(struct dvb_frontend *fe)
 	memcpy(cmd.args, "\x51\x03", 2);
 	cmd.wlen = 2;
 	cmd.rlen = 12;
-	ret = si2168_cmd_execute(client, &cmd);
+	ret = si2168_cmd_execute(s, &cmd);
 	if (ret)
 		goto err;
 
 	memcpy(cmd.args, "\x12\x08\x04", 3);
 	cmd.wlen = 3;
 	cmd.rlen = 3;
-	ret = si2168_cmd_execute(client, &cmd);
+	ret = si2168_cmd_execute(s, &cmd);
 	if (ret)
 		goto err;
 
 	memcpy(cmd.args, "\x14\x00\x0c\x10\x12\x00", 6);
 	cmd.wlen = 6;
 	cmd.rlen = 4;
-	ret = si2168_cmd_execute(client, &cmd);
+	ret = si2168_cmd_execute(s, &cmd);
 	if (ret)
 		goto err;
 
 	memcpy(cmd.args, "\x14\x00\x06\x10\x24\x00", 6);
 	cmd.wlen = 6;
 	cmd.rlen = 4;
-	ret = si2168_cmd_execute(client, &cmd);
+	ret = si2168_cmd_execute(s, &cmd);
 	if (ret)
 		goto err;
 
 	memcpy(cmd.args, "\x14\x00\x07\x10\x00\x24", 6);
 	cmd.wlen = 6;
 	cmd.rlen = 4;
-	ret = si2168_cmd_execute(client, &cmd);
+	ret = si2168_cmd_execute(s, &cmd);
 	if (ret)
 		goto err;
 
@@ -278,18 +285,18 @@ static int si2168_set_frontend(struct dvb_frontend *fe)
 	cmd.args[4] = delivery_system | bandwidth;
 	cmd.wlen = 6;
 	cmd.rlen = 4;
-	ret = si2168_cmd_execute(client, &cmd);
+	ret = si2168_cmd_execute(s, &cmd);
 	if (ret)
 		goto err;
 
 	/* set DVB-C symbol rate */
 	if (c->delivery_system == SYS_DVBC_ANNEX_A) {
 		memcpy(cmd.args, "\x14\x00\x02\x11", 4);
-		cmd.args[4] = ((c->symbol_rate / 1000) >> 0) & 0xff;
+		cmd.args[4] = (c->symbol_rate / 1000) & 0xff;
 		cmd.args[5] = ((c->symbol_rate / 1000) >> 8) & 0xff;
 		cmd.wlen = 6;
 		cmd.rlen = 4;
-		ret = si2168_cmd_execute(client, &cmd);
+		ret = si2168_cmd_execute(s, &cmd);
 		if (ret)
 			goto err;
 	}
@@ -387,7 +394,7 @@ static int si2168_init(struct dvb_frontend *fe)
 	memcpy(cmd.args, "\xc0\x06\x01\x0f\x00\x20\x20\x01", 8);
 	cmd.wlen = 8;
 	cmd.rlen = 1;
-	ret = si2168_cmd_execute(client, &cmd);
+	ret = si2168_cmd_execute(s, &cmd);
 	if (ret)
 		goto err;
 
@@ -395,7 +402,7 @@ static int si2168_init(struct dvb_frontend *fe)
 	memcpy(cmd.args, "\x02", 1);
 	cmd.wlen = 1;
 	cmd.rlen = 13;
-	ret = si2168_cmd_execute(client, &cmd);
+	ret = si2168_cmd_execute(s, &cmd);
 	if (ret)
 		goto err;
 
@@ -544,22 +551,21 @@ static int si2168_get_tune_settings(struct dvb_frontend *fe,
  */
 static int si2168_select(struct i2c_adapter *adap, void *mux_priv, u32 chan)
 {
-	struct i2c_client *client = mux_priv;
-	struct si2168_dev *dev = i2c_get_clientdata(client);
+	struct si2168 *s = mux_priv;
 	int ret;
 	struct i2c_msg gate_open_msg = {
-		.addr = client->addr,
+		.addr = s->client->addr,
 		.flags = 0,
 		.len = 3,
 		.buf = "\xc0\x0d\x01",
 	};
 
-	mutex_lock(&dev->i2c_mutex);
+	mutex_lock(&s->i2c_mutex);
 
 	/* open tuner I2C gate */
-	ret = __i2c_transfer(client->adapter, &gate_open_msg, 1);
+	ret = __i2c_transfer(s->client->adapter, &gate_open_msg, 1);
 	if (ret != 1) {
-		dev_warn(&client->dev, "i2c write failed=%d\n", ret);
+		dev_warn(&s->client->dev, "i2c write failed=%d\n", ret);
 		if (ret >= 0)
 			ret = -EREMOTEIO;
 	} else {
@@ -571,27 +577,26 @@ static int si2168_select(struct i2c_adapter *adap, void *mux_priv, u32 chan)
 
 static int si2168_deselect(struct i2c_adapter *adap, void *mux_priv, u32 chan)
 {
-	struct i2c_client *client = mux_priv;
-	struct si2168_dev *dev = i2c_get_clientdata(client);
+	struct si2168 *s = mux_priv;
 	int ret;
 	struct i2c_msg gate_close_msg = {
-		.addr = client->addr,
+		.addr = s->client->addr,
 		.flags = 0,
 		.len = 3,
 		.buf = "\xc0\x0d\x00",
 	};
 
 	/* close tuner I2C gate */
-	ret = __i2c_transfer(client->adapter, &gate_close_msg, 1);
+	ret = __i2c_transfer(s->client->adapter, &gate_close_msg, 1);
 	if (ret != 1) {
-		dev_warn(&client->dev, "i2c write failed=%d\n", ret);
+		dev_warn(&s->client->dev, "i2c write failed=%d\n", ret);
 		if (ret >= 0)
 			ret = -EREMOTEIO;
 	} else {
 		ret = 0;
 	}
 
-	mutex_unlock(&dev->i2c_mutex);
+	mutex_unlock(&s->i2c_mutex);
 
 	return ret;
 }
@@ -709,7 +714,7 @@ static struct i2c_driver si2168_driver = {
 	},
 	.probe		= si2168_probe,
 	.remove		= si2168_remove,
-	.id_table	= si2168_id_table,
+	.id_table	= si2168_id,
 };
 
 module_i2c_driver(si2168_driver);

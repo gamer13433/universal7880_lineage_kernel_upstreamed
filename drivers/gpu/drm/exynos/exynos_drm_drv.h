@@ -40,9 +40,6 @@ struct drm_device;
 struct exynos_drm_overlay;
 struct drm_connector;
 
-#define to_exynos_crtc(x)	container_of(x, struct exynos_drm_crtc, base)
-#define to_exynos_plane(x)	container_of(x, struct exynos_drm_plane, base)
-
 /* This enumerates device type. */
 enum exynos_drm_device_type {
 	EXYNOS_DEVICE_TYPE_NONE,
@@ -64,7 +61,6 @@ enum exynos_drm_output_type {
 /*
  * Exynos drm common overlay structure.
  *
- * @base: plane object
  * @fb_x: offset x on a framebuffer to be displayed.
  *	- the unit is screen coordinates.
  * @fb_y: offset y on a framebuffer to be displayed.
@@ -94,14 +90,11 @@ enum exynos_drm_output_type {
  * @local_path: in case of lcd type, local path mode on or off.
  * @transparency: transparency on or off.
  * @activated: activated or not.
- * @enabled: enabled or not.
  *
  * this structure is common to exynos SoC and its contents would be copied
  * to hardware specific overlay info.
  */
-
-struct exynos_drm_plane {
-	struct drm_plane base;
+struct exynos_drm_overlay {
 	unsigned int fb_x;
 	unsigned int fb_y;
 	unsigned int fb_width;
@@ -179,10 +172,11 @@ struct exynos_drm_display {
 };
 
 /*
- * Exynos drm crtc ops
+ * Exynos drm manager ops
  *
  * @dpms: control device power.
  * @mode_fixup: fix mode data before applying it
+ * @mode_set: set the given mode to the manager
  * @commit: set current hw specific display mode to hw.
  * @enable_vblank: specific driver callback for enabling vblank interrupt.
  * @disable_vblank: specific driver callback for disabling vblank interrupt.
@@ -270,6 +264,7 @@ struct exynos_drm_private {
 	 */
 	struct drm_crtc *crtc[MAX_CRTC];
 	struct drm_property *plane_zpos_property;
+	struct drm_property *crtc_mode_property;
 
 	unsigned long da_start;
 	unsigned long da_space_size;
@@ -369,7 +364,6 @@ void exynos_drm_component_del(struct device *dev,
 				enum exynos_drm_device_type dev_type);
 
 extern struct platform_driver fimd_driver;
-extern struct platform_driver decon_driver;
 extern struct platform_driver dp_driver;
 extern struct platform_driver dsi_driver;
 extern struct platform_driver mixer_driver;

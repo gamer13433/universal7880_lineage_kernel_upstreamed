@@ -74,6 +74,10 @@ struct nfs_client {
 	/* idmapper */
 	struct idmap *		cl_idmap;
 
+	/* Our own IP address, as a null-terminated string.
+	 * This is used to generate the mv0 callback address.
+	 */
+	char			cl_ipaddr[48];
 	u32			cl_cb_ident;	/* v4.0 callback identifier */
 	const struct nfs4_minor_version_ops *cl_mvops;
 	unsigned long		cl_mig_gen;
@@ -100,11 +104,6 @@ struct nfs_client {
 #define NFS_SP4_MACH_CRED_WRITE    5	/* WRITE */
 #define NFS_SP4_MACH_CRED_COMMIT   6	/* COMMIT */
 #endif /* CONFIG_NFS_V4 */
-
-	/* Our own IP address, as a null-terminated string.
-	 * This is used to generate the mv0 callback address.
-	 */
-	char			cl_ipaddr[48];
 
 #ifdef CONFIG_NFS_FSCACHE
 	struct fscache_cookie	*fscache;	/* client index cache cookie */

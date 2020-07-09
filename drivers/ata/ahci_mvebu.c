@@ -19,8 +19,6 @@
 #include <linux/platform_device.h>
 #include "ahci.h"
 
-#define DRV_NAME "ahci-mvebu"
-
 #define AHCI_VENDOR_SPECIFIC_0_ADDR  0xa0
 #define AHCI_VENDOR_SPECIFIC_0_DATA  0xa4
 
@@ -69,10 +67,6 @@ static const struct ata_port_info ahci_mvebu_port_info = {
 	.port_ops  = &ahci_platform_ops,
 };
 
-static struct scsi_host_template ahci_platform_sht = {
-	AHCI_SHT(DRV_NAME),
-};
-
 static int ahci_mvebu_probe(struct platform_device *pdev)
 {
 	struct ahci_host_priv *hpriv;
@@ -94,8 +88,7 @@ static int ahci_mvebu_probe(struct platform_device *pdev)
 	ahci_mvebu_mbus_config(hpriv, dram);
 	ahci_mvebu_regret_option(hpriv);
 
-	rc = ahci_platform_init_host(pdev, hpriv, &ahci_mvebu_port_info,
-				     &ahci_platform_sht);
+	rc = ahci_platform_init_host(pdev, hpriv, &ahci_mvebu_port_info);
 	if (rc)
 		goto disable_resources;
 

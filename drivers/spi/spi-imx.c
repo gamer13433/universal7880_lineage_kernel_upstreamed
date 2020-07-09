@@ -89,6 +89,7 @@ struct spi_imx_data {
 
 	struct completion xfer_done;
 	void __iomem *base;
+	int irq;
 	struct clk *clk_per;
 	struct clk *clk_ipg;
 	unsigned long spi_clk;
@@ -895,7 +896,6 @@ static int spi_imx_dma_transfer(struct spi_imx_data *spi_imx,
 {
 	struct dma_async_tx_descriptor *desc_tx = NULL, *desc_rx = NULL;
 	int ret;
-	unsigned long timeout;
 	u32 dma;
 	int left;
 	struct spi_master *master = spi_imx->bitbang.master;
@@ -943,17 +943,17 @@ static int spi_imx_dma_transfer(struct spi_imx_data *spi_imx,
 	dma_async_issue_pending(master->dma_tx);
 	dma_async_issue_pending(master->dma_rx);
 	/* Wait SDMA to finish the data transfer.*/
-	timeout = wait_for_completion_timeout(&spi_imx->dma_tx_completion,
+	ret = wait_for_completion_timeout(&spi_imx->dma_tx_completion,
 						IMX_DMA_TIMEOUT);
-	if (!timeout) {
+	if (!ret) {
 		pr_warn("%s %s: I/O Error in DMA TX\n",
 			dev_driver_string(&master->dev),
 			dev_name(&master->dev));
 		dmaengine_terminate_all(master->dma_tx);
 	} else {
-		timeout = wait_for_completion_timeout(
-				&spi_imx->dma_rx_completion, IMX_DMA_TIMEOUT);
-		if (!timeout) {
+		ret = wait_for_completion_timeout(&spi_imx->dma_rx_completion,
+				IMX_DMA_TIMEOUT);
+		if (!ret) {
 			pr_warn("%s %s: I/O Error in DMA RX\n",
 				dev_driver_string(&master->dev),
 				dev_name(&master->dev));
@@ -968,9 +968,9 @@ static int spi_imx_dma_transfer(struct spi_imx_data *spi_imx,
 	spi_imx->dma_finished = 1;
 	spi_imx->devtype_data->trigger(spi_imx);
 
-	if (!timeout)
+	if (!ret)
 		ret = -ETIMEDOUT;
-	else
+	else if (ret > 0)
 		ret = transfer->len;
 
 	return ret;
@@ -1080,7 +1080,7 @@ static int spi_imx_probe(struct platform_device *pdev)
 	struct spi_master *master;
 	struct spi_imx_data *spi_imx;
 	struct resource *res;
-	int i, ret, num_cs, irq;
+	int i, ret, num_cs;
 
 	if (!np && !mxc_platform_info) {
 		dev_err(&pdev->dev, "can't get the platform data\n");
@@ -1147,16 +1147,16 @@ static int spi_imx_probe(struct platform_device *pdev)
 		goto out_master_put;
 	}
 
-	irq = platform_get_irq(pdev, 0);
-	if (irq < 0) {
-		ret = irq;
+	spi_imx->irq = platform_get_irq(pdev, 0);
+	if (spi_imx->irq < 0) {
+		ret = spi_imx->irq;
 		goto out_master_put;
 	}
 
-	ret = devm_request_irq(&pdev->dev, irq, spi_imx_isr, 0,
+	ret = devm_request_irq(&pdev->dev, spi_imx->irq, spi_imx_isr, 0,
 			       dev_name(&pdev->dev), spi_imx);
 	if (ret) {
-		dev_err(&pdev->dev, "can't get irq%d: %d\n", irq, ret);
+		dev_err(&pdev->dev, "can't get irq%d: %d\n", spi_imx->irq, ret);
 		goto out_master_put;
 	}
 

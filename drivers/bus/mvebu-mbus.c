@@ -68,7 +68,6 @@
  */
 #define WIN_CTRL_OFF		0x0000
 #define   WIN_CTRL_ENABLE       BIT(0)
-#define   WIN_CTRL_SYNCBARRIER  BIT(1)
 #define   WIN_CTRL_TGT_MASK     0xf0
 #define   WIN_CTRL_TGT_SHIFT    4
 #define   WIN_CTRL_ATTR_MASK    0xff00
@@ -81,9 +80,6 @@
 #define WIN_REMAP_LO_OFF	0x0008
 #define   WIN_REMAP_LOW         0xffff0000
 #define WIN_REMAP_HI_OFF	0x000c
-
-#define UNIT_SYNC_BARRIER_OFF   0x84
-#define   UNIT_SYNC_BARRIER_ALL 0xFFFF
 
 #define ATTR_HW_COHERENCY	(0x1 << 4)
 
@@ -130,13 +126,6 @@ const struct mbus_dram_target_info *mv_mbus_dram_info(void)
 }
 EXPORT_SYMBOL_GPL(mv_mbus_dram_info);
 
-/* Checks whether the given window has remap capability */
-static bool mvebu_mbus_window_is_remappable(struct mvebu_mbus_state *mbus,
-					    const int win)
-{
-	return mbus->soc->win_remap_offset(win) != MVEBU_MBUS_NO_REMAP;
-}
-
 /*
  * Functions to manipulate the address decoding windows
  */
@@ -168,12 +157,9 @@ static void mvebu_mbus_read_window(struct mvebu_mbus_state *mbus,
 		*attr = (ctrlreg & WIN_CTRL_ATTR_MASK) >> WIN_CTRL_ATTR_SHIFT;
 
 	if (remap) {
-		if (mvebu_mbus_window_is_remappable(mbus, win)) {
-			u32 remap_low, remap_hi;
-			void __iomem *addr_rmp = mbus->mbuswins_base +
-				mbus->soc->win_remap_offset(win);
-			remap_low = readl(addr_rmp + WIN_REMAP_LO_OFF);
-			remap_hi  = readl(addr_rmp + WIN_REMAP_HI_OFF);
+		if (win < mbus->soc->num_remappable_wins) {
+			u32 remap_low = readl(addr + WIN_REMAP_LO_OFF);
+			u32 remap_hi  = readl(addr + WIN_REMAP_HI_OFF);
 			*remap = ((u64)remap_hi << 32) | remap_low;
 		} else
 			*remap = 0;
@@ -186,11 +172,10 @@ static void mvebu_mbus_disable_window(struct mvebu_mbus_state *mbus,
 	void __iomem *addr;
 
 	addr = mbus->mbuswins_base + mbus->soc->win_cfg_offset(win);
+
 	writel(0, addr + WIN_BASE_OFF);
 	writel(0, addr + WIN_CTRL_OFF);
-
-	if (mvebu_mbus_window_is_remappable(mbus, win)) {
-		addr = mbus->mbuswins_base + mbus->soc->win_remap_offset(win);
+	if (win < mbus->soc->num_remappable_wins) {
 		writel(0, addr + WIN_REMAP_LO_OFF);
 		writel(0, addr + WIN_REMAP_HI_OFF);
 	}
@@ -198,12 +183,23 @@ static void mvebu_mbus_disable_window(struct mvebu_mbus_state *mbus,
 
 /* Checks whether the given window number is available */
 
+/* On Armada XP, 375 and 38x the MBus window 13 has the remap
+ * capability, like windows 0 to 7. However, the mvebu-mbus driver
+ * isn't currently taking into account this special case, which means
+ * that when window 13 is actually used, the remap registers are left
+ * to 0, making the device using this MBus window unavailable. The
+ * quick fix for stable is to not use window 13. A follow up patch
+ * will correctly handle this window.
+*/
 static int mvebu_mbus_window_is_free(struct mvebu_mbus_state *mbus,
 				     const int win)
 {
 	void __iomem *addr = mbus->mbuswins_base +
 		mbus->soc->win_cfg_offset(win);
 	u32 ctrl = readl(addr + WIN_CTRL_OFF);
+
+	if (win == 13)
+		return false;
 
 	return !(ctrl & WIN_CTRL_ENABLE);
 }
@@ -292,22 +288,17 @@ static int mvebu_mbus_setup_window(struct mvebu_mbus_state *mbus,
 	ctrl = ((size - 1) & WIN_CTRL_SIZE_MASK) |
 		(attr << WIN_CTRL_ATTR_SHIFT)    |
 		(target << WIN_CTRL_TGT_SHIFT)   |
-		WIN_CTRL_SYNCBARRIER             |
 		WIN_CTRL_ENABLE;
 
 	writel(base & WIN_BASE_LOW, addr + WIN_BASE_OFF);
 	writel(ctrl, addr + WIN_CTRL_OFF);
-
-	if (mvebu_mbus_window_is_remappable(mbus, win)) {
-		void __iomem *addr_rmp = mbus->mbuswins_base +
-			mbus->soc->win_remap_offset(win);
-
+	if (win < mbus->soc->num_remappable_wins) {
 		if (remap == MVEBU_MBUS_NO_REMAP)
 			remap_addr = base;
 		else
 			remap_addr = remap;
-		writel(remap_addr & WIN_REMAP_LOW, addr_rmp + WIN_REMAP_LO_OFF);
-		writel(0, addr_rmp + WIN_REMAP_HI_OFF);
+		writel(remap_addr & WIN_REMAP_LOW, addr + WIN_REMAP_LO_OFF);
+		writel(0, addr + WIN_REMAP_HI_OFF);
 	}
 
 	return 0;
@@ -321,27 +312,19 @@ static int mvebu_mbus_alloc_window(struct mvebu_mbus_state *mbus,
 	int win;
 
 	if (remap == MVEBU_MBUS_NO_REMAP) {
-		for (win = 0; win < mbus->soc->num_wins; win++) {
-			if (mvebu_mbus_window_is_remappable(mbus, win))
-				continue;
-
+		for (win = mbus->soc->num_remappable_wins;
+		     win < mbus->soc->num_wins; win++)
 			if (mvebu_mbus_window_is_free(mbus, win))
 				return mvebu_mbus_setup_window(mbus, win, base,
 							       size, remap,
 							       target, attr);
-		}
 	}
 
-	for (win = 0; win < mbus->soc->num_wins; win++) {
-		/* Skip window if need remap but is not supported */
-		if ((remap != MVEBU_MBUS_NO_REMAP) &&
-		    !mvebu_mbus_window_is_remappable(mbus, win))
-			continue;
 
+	for (win = 0; win < mbus->soc->num_wins; win++)
 		if (mvebu_mbus_window_is_free(mbus, win))
 			return mvebu_mbus_setup_window(mbus, win, base, size,
 						       remap, target, attr);
-	}
 
 	return -ENOMEM;
 }
@@ -453,7 +436,7 @@ static int mvebu_devs_debug_show(struct seq_file *seq, void *v)
 		    ((wbase & (u64)(wsize - 1)) != 0))
 			seq_puts(seq, " (Invalid base/size!!)");
 
-		if (mvebu_mbus_window_is_remappable(mbus, win)) {
+		if (win < mbus->soc->num_remappable_wins) {
 			seq_printf(seq, " (remap %016llx)\n",
 				   (unsigned long long)wremap);
 		} else
@@ -479,12 +462,12 @@ static const struct file_operations mvebu_devs_debug_fops = {
  * SoC-specific functions and definitions
  */
 
-static unsigned int generic_mbus_win_cfg_offset(int win)
+static unsigned int orion_mbus_win_offset(int win)
 {
 	return win << 4;
 }
 
-static unsigned int armada_370_xp_mbus_win_cfg_offset(int win)
+static unsigned int armada_370_xp_mbus_win_offset(int win)
 {
 	/* The register layout is a bit annoying and the below code
 	 * tries to cope with it.
@@ -504,7 +487,7 @@ static unsigned int armada_370_xp_mbus_win_cfg_offset(int win)
 		return 0x90 + ((win - 8) << 3);
 }
 
-static unsigned int mv78xx0_mbus_win_cfg_offset(int win)
+static unsigned int mv78xx0_mbus_win_offset(int win)
 {
 	if (win < 8)
 		return win << 4;
@@ -512,140 +495,36 @@ static unsigned int mv78xx0_mbus_win_cfg_offset(int win)
 		return 0x900 + ((win - 8) << 4);
 }
 
-static unsigned int generic_mbus_win_remap_2_offset(int win)
-{
-	if (win < 2)
-		return generic_mbus_win_cfg_offset(win);
-	else
-		return MVEBU_MBUS_NO_REMAP;
-}
-
-static unsigned int generic_mbus_win_remap_4_offset(int win)
-{
-	if (win < 4)
-		return generic_mbus_win_cfg_offset(win);
-	else
-		return MVEBU_MBUS_NO_REMAP;
-}
-
-static unsigned int generic_mbus_win_remap_8_offset(int win)
-{
-	if (win < 8)
-		return generic_mbus_win_cfg_offset(win);
-	else
-		return MVEBU_MBUS_NO_REMAP;
-}
-
-static unsigned int armada_xp_mbus_win_remap_offset(int win)
-{
-	if (win < 8)
-		return generic_mbus_win_cfg_offset(win);
-	else if (win == 13)
-		return 0xF0 - WIN_REMAP_LO_OFF;
-	else
-		return MVEBU_MBUS_NO_REMAP;
-}
-
-/*
- * Use the memblock information to find the MBus bridge hole in the
- * physical address space.
- */
-static void __init
-mvebu_mbus_find_bridge_hole(uint64_t *start, uint64_t *end)
-{
-	struct memblock_region *r;
-	uint64_t s = 0;
-
-	for_each_memblock(memory, r) {
-		/*
-		 * This part of the memory is above 4 GB, so we don't
-		 * care for the MBus bridge hole.
-		 */
-		if (r->base >= 0x100000000)
-			continue;
-
-		/*
-		 * The MBus bridge hole is at the end of the RAM under
-		 * the 4 GB limit.
-		 */
-		if (r->base + r->size > s)
-			s = r->base + r->size;
-	}
-
-	*start = s;
-	*end = 0x100000000;
-}
-
 static void __init
 mvebu_mbus_default_setup_cpu_target(struct mvebu_mbus_state *mbus)
 {
 	int i;
 	int cs;
-	uint64_t mbus_bridge_base, mbus_bridge_end;
 
 	mvebu_mbus_dram_info.mbus_dram_target_id = TARGET_DDR;
 
-	mvebu_mbus_find_bridge_hole(&mbus_bridge_base, &mbus_bridge_end);
-
 	for (i = 0, cs = 0; i < 4; i++) {
-		u64 base = readl(mbus->sdramwins_base + DDR_BASE_CS_OFF(i));
-		u64 size = readl(mbus->sdramwins_base + DDR_SIZE_CS_OFF(i));
-		u64 end;
-		struct mbus_dram_window *w;
-
-		/* Ignore entries that are not enabled */
-		if (!(size & DDR_SIZE_ENABLED))
-			continue;
+		u32 base = readl(mbus->sdramwins_base + DDR_BASE_CS_OFF(i));
+		u32 size = readl(mbus->sdramwins_base + DDR_SIZE_CS_OFF(i));
 
 		/*
-		 * Ignore entries whose base address is above 2^32,
-		 * since devices cannot DMA to such high addresses
+		 * We only take care of entries for which the chip
+		 * select is enabled, and that don't have high base
+		 * address bits set (devices can only access the first
+		 * 32 bits of the memory).
 		 */
-		if (base & DDR_BASE_CS_HIGH_MASK)
-			continue;
+		if ((size & DDR_SIZE_ENABLED) &&
+		    !(base & DDR_BASE_CS_HIGH_MASK)) {
+			struct mbus_dram_window *w;
 
-		base = base & DDR_BASE_CS_LOW_MASK;
-		size = (size | ~DDR_SIZE_MASK) + 1;
-		end = base + size;
-
-		/*
-		 * Adjust base/size of the current CS to make sure it
-		 * doesn't overlap with the MBus bridge hole. This is
-		 * particularly important for devices that do DMA from
-		 * DRAM to a SRAM mapped in a MBus window, such as the
-		 * CESA cryptographic engine.
-		 */
-
-		/*
-		 * The CS is fully enclosed inside the MBus bridge
-		 * area, so ignore it.
-		 */
-		if (base >= mbus_bridge_base && end <= mbus_bridge_end)
-			continue;
-
-		/*
-		 * Beginning of CS overlaps with end of MBus, raise CS
-		 * base address, and shrink its size.
-		 */
-		if (base >= mbus_bridge_base && end > mbus_bridge_end) {
-			size -= mbus_bridge_end - base;
-			base = mbus_bridge_end;
+			w = &mvebu_mbus_dram_info.cs[cs++];
+			w->cs_index = i;
+			w->mbus_attr = 0xf & ~(1 << i);
+			if (mbus->hw_io_coherency)
+				w->mbus_attr |= ATTR_HW_COHERENCY;
+			w->base = base & DDR_BASE_CS_LOW_MASK;
+			w->size = (size | ~DDR_SIZE_MASK) + 1;
 		}
-
-		/*
-		 * End of CS overlaps with beginning of MBus, shrink
-		 * CS size.
-		 */
-		if (base < mbus_bridge_base && end > mbus_bridge_base)
-			size -= end - mbus_bridge_base;
-
-		w = &mvebu_mbus_dram_info.cs[cs++];
-		w->cs_index = i;
-		w->mbus_attr = 0xf & ~(1 << i);
-		if (mbus->hw_io_coherency)
-			w->mbus_attr |= ATTR_HW_COHERENCY;
-		w->base = base;
-		w->size = size;
 	}
 	mvebu_mbus_dram_info.num_cs = cs;
 }

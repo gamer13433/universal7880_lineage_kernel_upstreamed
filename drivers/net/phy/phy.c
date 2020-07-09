@@ -236,6 +236,25 @@ static inline unsigned int phy_find_valid(unsigned int idx, u32 features)
 }
 
 /**
+ * phy_check_valid - check if there is a valid PHY setting which matches
+ *		     speed, duplex, and feature mask
+ * @speed: speed to match
+ * @duplex: duplex to match
+ * @features: A mask of the valid settings
+ *
+ * Description: Returns true if there is a valid setting, false otherwise.
+ */
+static inline bool phy_check_valid(int speed, int duplex, u32 features)
+{
+	unsigned int idx;
+
+	idx = phy_find_valid(phy_find_setting(speed, duplex), features);
+
+	return settings[idx].speed == speed && settings[idx].duplex == duplex &&
+		(settings[idx].setting & features);
+}
+
+/**
  * phy_sanitize_settings - make sure the PHY is set to supported speed and duplex
  * @phydev: the target phy_device struct
  *

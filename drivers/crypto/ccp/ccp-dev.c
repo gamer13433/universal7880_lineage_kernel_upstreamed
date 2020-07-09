@@ -583,7 +583,6 @@ bool ccp_queues_suspended(struct ccp_device *ccp)
 #ifdef CONFIG_X86
 static const struct x86_cpu_id ccp_support[] = {
 	{ X86_VENDOR_AMD, 22, },
-	{ },
 };
 #endif
 

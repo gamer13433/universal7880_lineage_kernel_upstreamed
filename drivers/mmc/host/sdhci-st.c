@@ -78,9 +78,10 @@ static int sdhci_st_probe(struct platform_device *pdev)
 	}
 
 	ret = mmc_of_parse(host->mmc);
+
 	if (ret) {
 		dev_err(&pdev->dev, "Failed mmc_of_parse\n");
-		goto err_of;
+		return ret;
 	}
 
 	clk_prepare_enable(clk);
@@ -107,7 +108,6 @@ static int sdhci_st_probe(struct platform_device *pdev)
 
 err_out:
 	clk_disable_unprepare(clk);
-err_of:
 	sdhci_pltfm_free(pdev);
 
 	return ret;

@@ -40,7 +40,7 @@
 #include "node_subscr.h"
 
 struct tipc_subscription;
-struct tipc_plist;
+struct tipc_port_list;
 
 /*
  * TIPC name types reserved for internal TIPC use (both current and planned)

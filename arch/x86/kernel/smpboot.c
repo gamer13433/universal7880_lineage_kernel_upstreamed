@@ -73,6 +73,7 @@
 #include <asm/setup.h>
 #include <asm/uv/uv.h>
 #include <linux/mc146818rtc.h>
+#include <asm/smpboot_hooks.h>
 #include <asm/i8259.h>
 #include <asm/realmode.h>
 #include <asm/misc.h>
@@ -102,43 +103,6 @@ DEFINE_PER_CPU_SHARED_ALIGNED(struct cpuinfo_x86, cpu_info);
 EXPORT_PER_CPU_SYMBOL(cpu_info);
 
 atomic_t init_deasserted;
-
-static inline void smpboot_setup_warm_reset_vector(unsigned long start_eip)
-{
-	unsigned long flags;
-
-	spin_lock_irqsave(&rtc_lock, flags);
-	CMOS_WRITE(0xa, 0xf);
-	spin_unlock_irqrestore(&rtc_lock, flags);
-	local_flush_tlb();
-	pr_debug("1.\n");
-	*((volatile unsigned short *)phys_to_virt(TRAMPOLINE_PHYS_HIGH)) =
-							start_eip >> 4;
-	pr_debug("2.\n");
-	*((volatile unsigned short *)phys_to_virt(TRAMPOLINE_PHYS_LOW)) =
-							start_eip & 0xf;
-	pr_debug("3.\n");
-}
-
-static inline void smpboot_restore_warm_reset_vector(void)
-{
-	unsigned long flags;
-
-	/*
-	 * Install writable page 0 entry to set BIOS data area.
-	 */
-	local_flush_tlb();
-
-	/*
-	 * Paranoid:  Set warm reset code and vector here back
-	 * to default values.
-	 */
-	spin_lock_irqsave(&rtc_lock, flags);
-	CMOS_WRITE(0, 0xf);
-	spin_unlock_irqrestore(&rtc_lock, flags);
-
-	*((volatile u32 *)phys_to_virt(TRAMPOLINE_PHYS_LOW)) = 0;
-}
 
 /*
  * Report back to the Boot Processor during boot time or to the caller processor
@@ -172,7 +136,8 @@ static void smp_callin(void)
 	 * CPU, first the APIC. (this is probably redundant on most
 	 * boards)
 	 */
-	apic_ap_setup();
+	setup_local_APIC();
+	end_local_APIC_setup();
 
 	/*
 	 * Need to setup vector mappings before we enable interrupts.
@@ -990,12 +955,9 @@ void arch_disable_smp_support(void)
  */
 static __init void disable_smp(void)
 {
-	pr_info("SMP disabled\n");
-
-	disable_ioapic_support();
-
 	init_cpu_present(cpumask_of(0));
 	init_cpu_possible(cpumask_of(0));
+	smpboot_clear_io_apic_irqs();
 
 	if (smp_found_config)
 		physid_set_mask_of_physid(boot_cpu_physical_apicid, &phys_cpu_present_map);
@@ -1004,13 +966,6 @@ static __init void disable_smp(void)
 	cpumask_set_cpu(0, cpu_sibling_mask(0));
 	cpumask_set_cpu(0, cpu_core_mask(0));
 }
-
-enum {
-	SMP_OK,
-	SMP_NO_CONFIG,
-	SMP_NO_APIC,
-	SMP_FORCE_UP,
-};
 
 /*
  * Various sanity checks.
@@ -1059,7 +1014,10 @@ static int __init smp_sanity_check(unsigned max_cpus)
 	if (!smp_found_config && !acpi_lapic) {
 		preempt_enable();
 		pr_notice("SMP motherboard not detected\n");
-		return SMP_NO_CONFIG;
+		disable_smp();
+		if (APIC_init_uniprocessor())
+			pr_notice("Local APIC not detected. Using dummy APIC emulation.\n");
+		return -1;
 	}
 
 	/*
@@ -1083,7 +1041,9 @@ static int __init smp_sanity_check(unsigned max_cpus)
 				boot_cpu_physical_apicid);
 			pr_err("... forcing use of dummy APIC emulation (tell your hw vendor)\n");
 		}
-		return SMP_NO_APIC;
+		smpboot_clear_io_apic();
+		disable_ioapic_support();
+		return -1;
 	}
 
 	verify_local_APIC();
@@ -1093,10 +1053,15 @@ static int __init smp_sanity_check(unsigned max_cpus)
 	 */
 	if (!max_cpus) {
 		pr_info("SMP mode deactivated\n");
-		return SMP_FORCE_UP;
+		smpboot_clear_io_apic();
+
+		connect_bsp_APIC();
+		setup_local_APIC();
+		bsp_end_local_APIC_setup();
+		return -1;
 	}
 
-	return SMP_OK;
+	return 0;
 }
 
 static void __init smp_cpu_index_default(void)
@@ -1154,10 +1119,33 @@ void __init native_smp_prepare_cpus(unsigned int max_cpus)
 	}
 	preempt_enable();
 
-	cpu0_logical_apicid = apic_bsp_setup(false);
+	connect_bsp_APIC();
+
+	/*
+	 * Switch from PIC to APIC mode.
+	 */
+	setup_local_APIC();
+
+	if (x2apic_mode)
+		cpu0_logical_apicid = apic_read(APIC_LDR);
+	else
+		cpu0_logical_apicid = GET_APIC_LOGICAL_ID(apic_read(APIC_LDR));
+
+	/*
+	 * Enable IO APIC before setting up error vector
+	 */
+	if (!skip_ioapic_setup && nr_ioapics)
+		enable_IO_APIC();
+
+	bsp_end_local_APIC_setup();
+	smpboot_setup_io_apic();
+	/*
+	 * Set up local APIC timer on boot CPU.
+	 */
 
 	pr_info("CPU%d: ", 0);
 	print_cpu_info(&cpu_data(0));
+	x86_init.timers.setup_percpu_clockev();
 
 	if (is_uv_system())
 		uv_system_init();
@@ -1195,7 +1183,9 @@ void __init native_smp_cpus_done(unsigned int max_cpus)
 
 	nmi_selftest();
 	impress_friends();
+#ifdef CONFIG_X86_IO_APIC
 	setup_ioapic_dest();
+#endif
 	mtrr_aps_init();
 }
 

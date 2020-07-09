@@ -30,25 +30,22 @@
 #include <linux/virtio_config.h>
 
 /* Feature bits */
+#define VIRTIO_BLK_F_BARRIER	0	/* Does host support barriers? */
 #define VIRTIO_BLK_F_SIZE_MAX	1	/* Indicates maximum segment size */
 #define VIRTIO_BLK_F_SEG_MAX	2	/* Indicates maximum # of segments */
 #define VIRTIO_BLK_F_GEOMETRY	4	/* Legacy geometry available  */
 #define VIRTIO_BLK_F_RO		5	/* Disk is read-only */
 #define VIRTIO_BLK_F_BLK_SIZE	6	/* Block size of disk is available*/
-#define VIRTIO_BLK_F_TOPOLOGY	10	/* Topology information is available */
-#define VIRTIO_BLK_F_MQ		12	/* support more than one vq */
-
-/* Legacy feature bits */
-#ifndef VIRTIO_BLK_NO_LEGACY
-#define VIRTIO_BLK_F_BARRIER	0	/* Does host support barriers? */
 #define VIRTIO_BLK_F_SCSI	7	/* Supports scsi command passthru */
 #define VIRTIO_BLK_F_WCE	9	/* Writeback mode enabled after reset */
+#define VIRTIO_BLK_F_TOPOLOGY	10	/* Topology information is available */
 #define VIRTIO_BLK_F_CONFIG_WCE	11	/* Writeback mode available in config */
+#define VIRTIO_BLK_F_MQ		12	/* support more than one vq */
+
 #ifndef __KERNEL__
 /* Old (deprecated) name for VIRTIO_BLK_F_WCE. */
 #define VIRTIO_BLK_F_FLUSH VIRTIO_BLK_F_WCE
 #endif
-#endif /* !VIRTIO_BLK_NO_LEGACY */
 
 #define VIRTIO_BLK_ID_BYTES	20	/* ID string length */
 
@@ -59,7 +56,7 @@ struct virtio_blk_config {
 	__u32 size_max;
 	/* The maximum number of segments (if VIRTIO_BLK_F_SEG_MAX) */
 	__u32 seg_max;
-	/* geometry of the device (if VIRTIO_BLK_F_GEOMETRY) */
+	/* geometry the device (if VIRTIO_BLK_F_GEOMETRY) */
 	struct virtio_blk_geometry {
 		__u16 cylinders;
 		__u8 heads;
@@ -102,10 +99,8 @@ struct virtio_blk_config {
 #define VIRTIO_BLK_T_IN		0
 #define VIRTIO_BLK_T_OUT	1
 
-#ifndef VIRTIO_BLK_NO_LEGACY
 /* This bit says it's a scsi command, not an actual read or write. */
 #define VIRTIO_BLK_T_SCSI_CMD	2
-#endif /* VIRTIO_BLK_NO_LEGACY */
 
 /* Cache flush command */
 #define VIRTIO_BLK_T_FLUSH	4
@@ -113,16 +108,10 @@ struct virtio_blk_config {
 /* Get device ID command */
 #define VIRTIO_BLK_T_GET_ID    8
 
-#ifndef VIRTIO_BLK_NO_LEGACY
 /* Barrier before this op. */
 #define VIRTIO_BLK_T_BARRIER	0x80000000
-#endif /* !VIRTIO_BLK_NO_LEGACY */
 
-/*
- * This comes first in the read scatter-gather list.
- * For legacy virtio, if VIRTIO_F_ANY_LAYOUT is not negotiated,
- * this is the first element of the read scatter-gather list.
- */
+/* This is the first element of the read scatter-gather list. */
 struct virtio_blk_outhdr {
 	/* VIRTIO_BLK_T* */
 	__u32 type;

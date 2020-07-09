@@ -90,19 +90,6 @@
 		regulator-always-on;
 		regulator-boot-on;
 	};
-
-	vcc_phy: vcc-phy-regulator {
-		compatible = "regulator-fixed";
-		enable-active-high;
-		gpio = <&gpio0 6 GPIO_ACTIVE_HIGH>;
-		pinctrl-names = "default";
-		pinctrl-0 = <&eth_phy_pwr>;
-		regulator-name = "vcc_phy";
-		regulator-min-microvolt = <3300000>;
-		regulator-max-microvolt = <3300000>;
-		regulator-always-on;
-		regulator-boot-on;
-	};
 };
 
 &emmc {
@@ -114,11 +101,6 @@
 	num-slots = <1>;
 	pinctrl-names = "default";
 	pinctrl-0 = <&emmc_clk &emmc_cmd &emmc_pwr &emmc_bus8>;
-	status = "okay";
-};
-
-&hdmi {
-	ddc-i2c-bus = <&i2c5>;
 	status = "okay";
 };
 
@@ -135,10 +117,6 @@
 };
 
 &i2c0 {
-	status = "okay";
-};
-
-&i2c5 {
 	status = "okay";
 };
 
@@ -194,12 +172,6 @@
 			rockchip,pins = <0 14 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
 	};
-
-	eth_phy {
-		eth_phy_pwr: eth-phy-pwr {
-			rockchip,pins = <0 6 RK_FUNC_GPIO &pcfg_pull_none>;
-		};
-	};
 };
 
 &usb_host0_ehci {
@@ -207,21 +179,5 @@
 };
 
 &usb_host1 {
-	status = "okay";
-};
-
-&vopb {
-	status = "okay";
-};
-
-&vopb_mmu {
-	status = "okay";
-};
-
-&vopl {
-	status = "okay";
-};
-
-&vopl_mmu {
 	status = "okay";
 };

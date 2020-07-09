@@ -1483,7 +1483,6 @@ xfs_buf_iomove(
 static enum lru_status
 xfs_buftarg_wait_rele(
 	struct list_head	*item,
-	struct list_lru_one	*lru,
 	spinlock_t		*lru_lock,
 	void			*arg)
 
@@ -1505,7 +1504,7 @@ xfs_buftarg_wait_rele(
 	 */
 	atomic_set(&bp->b_lru_ref, 0);
 	bp->b_state |= XFS_BSTATE_DISPOSE;
-	list_lru_isolate_move(lru, item, dispose);
+	list_move(item, dispose);
 	spin_unlock(&bp->b_lock);
 	return LRU_REMOVED;
 }
@@ -1542,7 +1541,6 @@ xfs_wait_buftarg(
 static enum lru_status
 xfs_buftarg_isolate(
 	struct list_head	*item,
-	struct list_lru_one	*lru,
 	spinlock_t		*lru_lock,
 	void			*arg)
 {
@@ -1566,7 +1564,7 @@ xfs_buftarg_isolate(
 	}
 
 	bp->b_state |= XFS_BSTATE_DISPOSE;
-	list_lru_isolate_move(lru, item, dispose);
+	list_move(item, dispose);
 	spin_unlock(&bp->b_lock);
 	return LRU_REMOVED;
 }
@@ -1580,9 +1578,10 @@ xfs_buftarg_shrink_scan(
 					struct xfs_buftarg, bt_shrinker);
 	LIST_HEAD(dispose);
 	unsigned long		freed;
+	unsigned long		nr_to_scan = sc->nr_to_scan;
 
-	freed = list_lru_shrink_walk(&btp->bt_lru, sc,
-				     xfs_buftarg_isolate, &dispose);
+	freed = list_lru_walk_node(&btp->bt_lru, sc->nid, xfs_buftarg_isolate,
+				       &dispose, &nr_to_scan);
 
 	while (!list_empty(&dispose)) {
 		struct xfs_buf *bp;
@@ -1601,7 +1600,7 @@ xfs_buftarg_shrink_count(
 {
 	struct xfs_buftarg	*btp = container_of(shrink,
 					struct xfs_buftarg, bt_shrinker);
-	return list_lru_shrink_count(&btp->bt_lru, sc);
+	return list_lru_count_node(&btp->bt_lru, sc->nid);
 }
 
 void

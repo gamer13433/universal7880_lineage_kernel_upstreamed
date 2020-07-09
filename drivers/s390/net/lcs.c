@@ -88,8 +88,10 @@ static debug_info_t *lcs_dbf_trace;
 static void
 lcs_unregister_debug_facility(void)
 {
-	debug_unregister(lcs_dbf_setup);
-	debug_unregister(lcs_dbf_trace);
+	if (lcs_dbf_setup)
+		debug_unregister(lcs_dbf_setup);
+	if (lcs_dbf_trace)
+		debug_unregister(lcs_dbf_trace);
 }
 
 static int

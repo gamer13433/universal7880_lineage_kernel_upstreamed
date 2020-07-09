@@ -103,8 +103,7 @@ static int ar9003_hw_set_channel(struct ath_hw *ah, struct ath9k_channel *chan)
 			} else {
 				channelSel = CHANSEL_2G(freq) >> 1;
 			}
-		} else if (AR_SREV_9550(ah) || AR_SREV_9531(ah) ||
-			   AR_SREV_9561(ah)) {
+		} else if (AR_SREV_9550(ah) || AR_SREV_9531(ah)) {
 			if (ah->is_clk_25mhz)
 				div = 75;
 			else
@@ -119,8 +118,7 @@ static int ar9003_hw_set_channel(struct ath_hw *ah, struct ath9k_channel *chan)
 		/* Set to 2G mode */
 		bMode = 1;
 	} else {
-		if ((AR_SREV_9340(ah) || AR_SREV_9550(ah) ||
-		     AR_SREV_9531(ah) || AR_SREV_9561(ah)) &&
+		if ((AR_SREV_9340(ah) || AR_SREV_9550(ah) || AR_SREV_9531(ah)) &&
 		    ah->is_clk_25mhz) {
 			channelSel = freq / 75;
 			chan_frac = ((freq % 75) * 0x20000) / 75;
@@ -187,7 +185,7 @@ static void ar9003_hw_spur_mitigate_mrc_cck(struct ath_hw *ah,
 	 */
 
 	if (AR_SREV_9485(ah) || AR_SREV_9340(ah) || AR_SREV_9330(ah) ||
-	    AR_SREV_9550(ah) || AR_SREV_9561(ah)) {
+	    AR_SREV_9550(ah)) {
 		if (spur_fbin_ptr[0] == 0) /* No spur */
 			return;
 		max_spur_cnts = 5;
@@ -214,7 +212,7 @@ static void ar9003_hw_spur_mitigate_mrc_cck(struct ath_hw *ah,
 
 		negative = 0;
 		if (AR_SREV_9485(ah) || AR_SREV_9340(ah) || AR_SREV_9330(ah) ||
-		    AR_SREV_9550(ah) || AR_SREV_9561(ah))
+		    AR_SREV_9550(ah))
 			cur_bb_spur = ath9k_hw_fbin2freq(spur_fbin_ptr[i],
 							 IS_CHAN_2GHZ(chan));
 		else
@@ -563,10 +561,8 @@ static void ar9003_hw_set_channel_regs(struct ath_hw *ah,
 		(REG_READ(ah, AR_PHY_GEN_CTRL) & AR_PHY_GC_ENABLE_DAC_FIFO);
 
 	/* Enable 11n HT, 20 MHz */
-	phymode = AR_PHY_GC_HT_EN | AR_PHY_GC_SHORT_GI_40 | enableDacFifo;
-
-	if (!AR_SREV_9561(ah))
-		phymode |= AR_PHY_GC_SINGLE_HT_LTF1;
+	phymode = AR_PHY_GC_HT_EN | AR_PHY_GC_SINGLE_HT_LTF1 |
+		  AR_PHY_GC_SHORT_GI_40 | enableDacFifo;
 
 	/* Configure baseband for dynamic 20/40 operation */
 	if (IS_CHAN_HT40(chan)) {
@@ -669,8 +665,7 @@ static void ar9003_hw_override_ini(struct ath_hw *ah)
 	else
 		ah->enabled_cals &= ~TX_CL_CAL;
 
-	if (AR_SREV_9340(ah) || AR_SREV_9531(ah) || AR_SREV_9550(ah) ||
-	    AR_SREV_9561(ah)) {
+	if (AR_SREV_9340(ah) || AR_SREV_9531(ah) || AR_SREV_9550(ah)) {
 		if (ah->is_clk_25mhz) {
 			REG_WRITE(ah, AR_RTC_DERIVED_CLK, 0x17c << 1);
 			REG_WRITE(ah, AR_SLP32_MODE, 0x0010f3d7);
@@ -735,19 +730,6 @@ static int ar9550_hw_get_modes_txgain_index(struct ath_hw *ah,
 		ret++;
 
 	return ret;
-}
-
-static int ar9561_hw_get_modes_txgain_index(struct ath_hw *ah,
-					    struct ath9k_channel *chan)
-{
-	if (IS_CHAN_2GHZ(chan)) {
-		if (IS_CHAN_HT40(chan))
-			return 1;
-		else
-			return 2;
-	}
-
-	return 0;
 }
 
 static void ar9003_doubler_fix(struct ath_hw *ah)
@@ -849,28 +831,20 @@ static int ar9003_hw_process_ini(struct ath_hw *ah,
 			REG_WRITE_ARRAY(&ah->ini_modes_rxgain_5g_xlna,
 					modesIndex, regWrites);
 		}
-
-		if (AR_SREV_9561(ah) && (ar9003_hw_get_rx_gain_idx(ah) == 0))
-			REG_WRITE_ARRAY(&ah->ini_modes_rxgain_5g_xlna,
-					modesIndex, regWrites);
 	}
 
-	if (AR_SREV_9550(ah) || AR_SREV_9561(ah))
+	if (AR_SREV_9550(ah))
 		REG_WRITE_ARRAY(&ah->ini_modes_rx_gain_bounds, modesIndex,
 				regWrites);
 
 	/*
 	 * TXGAIN initvals.
 	 */
-	if (AR_SREV_9550(ah) || AR_SREV_9531(ah) || AR_SREV_9561(ah)) {
+	if (AR_SREV_9550(ah) || AR_SREV_9531(ah)) {
 		int modes_txgain_index = 1;
 
 		if (AR_SREV_9550(ah))
 			modes_txgain_index = ar9550_hw_get_modes_txgain_index(ah, chan);
-
-		if (AR_SREV_9561(ah))
-			modes_txgain_index =
-				ar9561_hw_get_modes_txgain_index(ah, chan);
 
 		if (modes_txgain_index < 0)
 			return -EINVAL;
@@ -1838,8 +1812,7 @@ void ar9003_hw_attach_phy_ops(struct ath_hw *ah)
 	priv_ops->rf_set_freq = ar9003_hw_set_channel;
 	priv_ops->spur_mitigate_freq = ar9003_hw_spur_mitigate;
 
-	if (AR_SREV_9340(ah) || AR_SREV_9550(ah) || AR_SREV_9531(ah) ||
-	    AR_SREV_9561(ah))
+	if (AR_SREV_9340(ah) || AR_SREV_9550(ah) || AR_SREV_9531(ah))
 		priv_ops->compute_pll_control = ar9003_hw_compute_pll_control_soc;
 	else
 		priv_ops->compute_pll_control = ar9003_hw_compute_pll_control;

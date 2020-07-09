@@ -238,6 +238,10 @@ DEVICE_PARAM(b80211hEnable, "802.11h mode");
    1: indicate enable 802.11h
 */
 
+#define DIVERSITY_ANT_DEF     0
+
+DEVICE_PARAM(bDiversityANTEnable, "ANT diversity mode");
+
 //
 // Static vars definitions
 //
@@ -445,6 +449,7 @@ static void device_init_registers(struct vnt_private *pDevice)
 {
 	unsigned int ii;
 	unsigned char byValue;
+	unsigned char byValue1;
 	unsigned char byCCKPwrdBm = 0;
 	unsigned char byOFDMPwrdBm = 0;
 	int zonetype = 0;
@@ -498,6 +503,13 @@ static void device_init_registers(struct vnt_private *pDevice)
 	if (byValue == 0)
 		byValue = (EEP_ANTENNA_AUX | EEP_ANTENNA_MAIN);
 
+	pDevice->ulDiversityNValue = 100*260;
+	pDevice->ulDiversityMValue = 100*16;
+	pDevice->byTMax = 1;
+	pDevice->byTMax2 = 4;
+	pDevice->ulSQ3TH = 0;
+	pDevice->byTMax3 = 64;
+
 	if (byValue == (EEP_ANTENNA_AUX | EEP_ANTENNA_MAIN)) {
 		pDevice->byAntennaCount = 2;
 		pDevice->byTxAntennaMode = ANT_B;
@@ -508,7 +520,16 @@ static void device_init_registers(struct vnt_private *pDevice)
 			pDevice->byRxAntennaMode = ANT_A;
 		else
 			pDevice->byRxAntennaMode = ANT_B;
+
+		byValue1 = SROMbyReadEmbedded(pDevice->PortOffset,
+					      EEP_OFS_ANTENNA);
+
+		if ((byValue1 & 0x08) == 0)
+			pDevice->bDiversityEnable = false;
+		else
+			pDevice->bDiversityEnable = true;
 	} else  {
+		pDevice->bDiversityEnable = false;
 		pDevice->byAntennaCount = 1;
 		pDevice->dwTxAntennaSel = 0;
 		pDevice->dwRxAntennaSel = 0;
@@ -2183,58 +2204,6 @@ static int  device_xmit(struct sk_buff *skb, struct net_device *dev) {
 	return 0;
 }
 
-static void vnt_check_bb_vga(struct vnt_private *priv)
-{
-	long dbm;
-	int i;
-
-	if (!priv->bUpdateBBVGA)
-		return;
-
-	if (priv->hw->conf.flags & IEEE80211_CONF_OFFCHANNEL)
-		return;
-
-	if (!(priv->vif->bss_conf.assoc && priv->uCurrRSSI))
-		return;
-
-	RFvRSSITodBm(priv, (u8)priv->uCurrRSSI, &dbm);
-
-	for (i = 0; i < BB_VGA_LEVEL; i++) {
-		if (dbm < priv->ldBmThreshold[i]) {
-			priv->byBBVGANew = priv->abyBBVGA[i];
-			break;
-		}
-	}
-
-	if (priv->byBBVGANew == priv->byBBVGACurrent) {
-		priv->uBBVGADiffCount = 1;
-		return;
-	}
-
-	priv->uBBVGADiffCount++;
-
-	if (priv->uBBVGADiffCount == 1) {
-		/* first VGA diff gain */
-		BBvSetVGAGainOffset(priv, priv->byBBVGANew);
-
-		dev_dbg(&priv->pcid->dev,
-			"First RSSI[%d] NewGain[%d] OldGain[%d] Count[%d]\n",
-			(int)dbm, priv->byBBVGANew,
-			priv->byBBVGACurrent,
-			(int)priv->uBBVGADiffCount);
-	}
-
-	if (priv->uBBVGADiffCount >= BB_VGA_CHANGE_THRESHOLD) {
-		dev_dbg(&priv->pcid->dev,
-			"RSSI[%d] NewGain[%d] OldGain[%d] Count[%d]\n",
-			(int)dbm, priv->byBBVGANew,
-			priv->byBBVGACurrent,
-			(int)priv->uBBVGADiffCount);
-
-		BBvSetVGAGainOffset(priv, priv->byBBVGANew);
-	}
-}
-
 static  irqreturn_t  device_intr(int irq,  void *dev_instance)
 {
 	struct net_device *dev = dev_instance;
@@ -2275,7 +2244,7 @@ static  irqreturn_t  device_intr(int irq,  void *dev_instance)
 	// Must do this after doing rx/tx, cause ISR bit is slow
 	// than RD/TD write back
 	// update ISR counter
-	STAvUpdate802_11Counter(&pDevice->s802_11Counter, &pDevice->scStatistic, dwMIBCounter);
+	STAvUpdate802_11Counter(&pDevice->s802_11Counter, &pDevice->scStatistic , dwMIBCounter);
 	while (pDevice->dwIsr != 0) {
 		STAvUpdateIsrStatCounter(&pDevice->scStatistic, pDevice->dwIsr);
 		MACvWriteISR(pDevice->PortOffset, pDevice->dwIsr);

@@ -124,8 +124,10 @@ int ivtv_udma_setup(struct ivtv *itv, unsigned long ivtv_dest_addr,
 	}
 
 	/* Get user pages for DMA Xfer */
-	err = get_user_pages_unlocked(current, current->mm,
-			user_dma.uaddr, user_dma.page_count, 0, 1, dma->map);
+	down_read(&current->mm->mmap_sem);
+	err = get_user_pages(current, current->mm,
+			user_dma.uaddr, user_dma.page_count, 0, 1, dma->map, NULL);
+	up_read(&current->mm->mmap_sem);
 
 	if (user_dma.page_count != err) {
 		IVTV_DEBUG_WARN("failed to map user pages, returned %d instead of %d\n",

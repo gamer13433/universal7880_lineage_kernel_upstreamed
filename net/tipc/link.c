@@ -75,20 +75,19 @@ static const char *link_unk_evt = "Unknown link event ";
  */
 #define START_CHANGEOVER 100000u
 
-static void link_handle_out_of_seq_msg(struct tipc_link *link,
-				       struct sk_buff *skb);
-static void tipc_link_proto_rcv(struct tipc_link *link,
-				struct sk_buff *skb);
-static int  tipc_link_tunnel_rcv(struct tipc_node *node,
-				 struct sk_buff **skb);
-static void link_set_supervision_props(struct tipc_link *l_ptr, u32 tol);
+static void link_handle_out_of_seq_msg(struct tipc_link *l_ptr,
+				       struct sk_buff *buf);
+static void tipc_link_proto_rcv(struct tipc_link *l_ptr, struct sk_buff *buf);
+static int  tipc_link_tunnel_rcv(struct tipc_node *n_ptr,
+				 struct sk_buff **buf);
+static void link_set_supervision_props(struct tipc_link *l_ptr, u32 tolerance);
 static void link_state_event(struct tipc_link *l_ptr, u32 event);
 static void link_reset_statistics(struct tipc_link *l_ptr);
 static void link_print(struct tipc_link *l_ptr, const char *str);
 static void tipc_link_sync_xmit(struct tipc_link *l);
 static void tipc_link_sync_rcv(struct tipc_node *n, struct sk_buff *buf);
-static void tipc_link_input(struct tipc_link *l, struct sk_buff *skb);
-static bool tipc_data_input(struct tipc_link *l, struct sk_buff *skb);
+static int tipc_link_input(struct tipc_link *l, struct sk_buff *buf);
+static int tipc_link_prepare_input(struct tipc_link *l, struct sk_buff **buf);
 
 /*
  *  Simple link routines
@@ -98,30 +97,13 @@ static unsigned int align(unsigned int i)
 	return (i + 3) & ~3u;
 }
 
-static void tipc_link_release(struct kref *kref)
-{
-	kfree(container_of(kref, struct tipc_link, ref));
-}
-
-static void tipc_link_get(struct tipc_link *l_ptr)
-{
-	kref_get(&l_ptr->ref);
-}
-
-static void tipc_link_put(struct tipc_link *l_ptr)
-{
-	kref_put(&l_ptr->ref, tipc_link_release);
-}
-
 static void link_init_max_pkt(struct tipc_link *l_ptr)
 {
-	struct tipc_node *node = l_ptr->owner;
-	struct tipc_net *tn = net_generic(node->net, tipc_net_id);
 	struct tipc_bearer *b_ptr;
 	u32 max_pkt;
 
 	rcu_read_lock();
-	b_ptr = rcu_dereference_rtnl(tn->bearer_list[l_ptr->bearer_id]);
+	b_ptr = rcu_dereference_rtnl(bearer_list[l_ptr->bearer_id]);
 	if (!b_ptr) {
 		rcu_read_unlock();
 		return;
@@ -217,13 +199,11 @@ static void link_timeout(struct tipc_link *l_ptr)
 		tipc_link_push_queue(l_ptr);
 
 	tipc_node_unlock(l_ptr->owner);
-	tipc_link_put(l_ptr);
 }
 
-static void link_set_timer(struct tipc_link *link, unsigned long time)
+static void link_set_timer(struct tipc_link *l_ptr, u32 time)
 {
-	if (!mod_timer(&link->timer, jiffies + time))
-		tipc_link_get(link);
+	k_start_timer(&l_ptr->timer, time);
 }
 
 /**
@@ -238,7 +218,6 @@ struct tipc_link *tipc_link_create(struct tipc_node *n_ptr,
 				   struct tipc_bearer *b_ptr,
 				   const struct tipc_media_addr *media_addr)
 {
-	struct tipc_net *tn = net_generic(n_ptr->net, tipc_net_id);
 	struct tipc_link *l_ptr;
 	struct tipc_msg *msg;
 	char *if_name;
@@ -263,12 +242,12 @@ struct tipc_link *tipc_link_create(struct tipc_node *n_ptr,
 		pr_warn("Link creation failed, no memory\n");
 		return NULL;
 	}
-	kref_init(&l_ptr->ref);
+
 	l_ptr->addr = peer;
 	if_name = strchr(b_ptr->name, ':') + 1;
 	sprintf(l_ptr->name, "%u.%u.%u:%s-%u.%u.%u:unknown",
-		tipc_zone(tn->own_addr), tipc_cluster(tn->own_addr),
-		tipc_node(tn->own_addr),
+		tipc_zone(tipc_own_addr), tipc_cluster(tipc_own_addr),
+		tipc_node(tipc_own_addr),
 		if_name,
 		tipc_zone(peer), tipc_cluster(peer), tipc_node(peer));
 		/* note: peer i/f name is updated by reset/activate message */
@@ -282,10 +261,9 @@ struct tipc_link *tipc_link_create(struct tipc_node *n_ptr,
 
 	l_ptr->pmsg = (struct tipc_msg *)&l_ptr->proto_msg;
 	msg = l_ptr->pmsg;
-	tipc_msg_init(tn->own_addr, msg, LINK_PROTOCOL, RESET_MSG, INT_H_SIZE,
-		      l_ptr->addr);
+	tipc_msg_init(msg, LINK_PROTOCOL, RESET_MSG, INT_H_SIZE, l_ptr->addr);
 	msg_set_size(msg, sizeof(l_ptr->proto_msg));
-	msg_set_session(msg, (tn->random & 0xffff));
+	msg_set_session(msg, (tipc_random & 0xffff));
 	msg_set_bearer_id(msg, b_ptr->identity);
 	strcpy((char *)msg_data(msg), if_name);
 
@@ -473,14 +451,13 @@ void tipc_link_reset(struct tipc_link *l_ptr)
 	link_reset_statistics(l_ptr);
 }
 
-void tipc_link_reset_list(struct net *net, unsigned int bearer_id)
+void tipc_link_reset_list(unsigned int bearer_id)
 {
-	struct tipc_net *tn = net_generic(net, tipc_net_id);
 	struct tipc_link *l_ptr;
 	struct tipc_node *n_ptr;
 
 	rcu_read_lock();
-	list_for_each_entry_rcu(n_ptr, &tn->node_list, list) {
+	list_for_each_entry_rcu(n_ptr, &tipc_node_list, list) {
 		tipc_node_lock(n_ptr);
 		l_ptr = n_ptr->links[bearer_id];
 		if (l_ptr)
@@ -490,14 +467,11 @@ void tipc_link_reset_list(struct net *net, unsigned int bearer_id)
 	rcu_read_unlock();
 }
 
-static void link_activate(struct tipc_link *link)
+static void link_activate(struct tipc_link *l_ptr)
 {
-	struct tipc_node *node = link->owner;
-
-	link->next_in_no = 1;
-	link->stats.recv_info = 1;
-	tipc_node_link_up(node, link);
-	tipc_bearer_add_dest(node->net, link->bearer_id, link->addr);
+	l_ptr->next_in_no = l_ptr->stats.recv_info = 1;
+	tipc_node_link_up(l_ptr->owner, l_ptr);
+	tipc_bearer_add_dest(l_ptr->bearer_id, l_ptr->addr);
 }
 
 /**
@@ -508,7 +482,7 @@ static void link_activate(struct tipc_link *link)
 static void link_state_event(struct tipc_link *l_ptr, unsigned int event)
 {
 	struct tipc_link *other;
-	unsigned long cont_intv = l_ptr->cont_intv;
+	u32 cont_intv = l_ptr->continuity_interval;
 
 	if (l_ptr->flags & LINK_STOPPED)
 		return;
@@ -551,8 +525,8 @@ static void link_state_event(struct tipc_link *l_ptr, unsigned int event)
 			link_set_timer(l_ptr, cont_intv / 4);
 			break;
 		case RESET_MSG:
-			pr_debug("%s<%s>, requested by peer\n",
-				 link_rst_msg, l_ptr->name);
+			pr_info("%s<%s>, requested by peer\n", link_rst_msg,
+				l_ptr->name);
 			tipc_link_reset(l_ptr);
 			l_ptr->state = RESET_RESET;
 			l_ptr->fsm_msg_cnt = 0;
@@ -562,7 +536,7 @@ static void link_state_event(struct tipc_link *l_ptr, unsigned int event)
 			link_set_timer(l_ptr, cont_intv);
 			break;
 		default:
-			pr_debug("%s%u in WW state\n", link_unk_evt, event);
+			pr_err("%s%u in WW state\n", link_unk_evt, event);
 		}
 		break;
 	case WORKING_UNKNOWN:
@@ -574,8 +548,8 @@ static void link_state_event(struct tipc_link *l_ptr, unsigned int event)
 			link_set_timer(l_ptr, cont_intv);
 			break;
 		case RESET_MSG:
-			pr_debug("%s<%s>, requested by peer while probing\n",
-				 link_rst_msg, l_ptr->name);
+			pr_info("%s<%s>, requested by peer while probing\n",
+				link_rst_msg, l_ptr->name);
 			tipc_link_reset(l_ptr);
 			l_ptr->state = RESET_RESET;
 			l_ptr->fsm_msg_cnt = 0;
@@ -601,8 +575,8 @@ static void link_state_event(struct tipc_link *l_ptr, unsigned int event)
 				l_ptr->fsm_msg_cnt++;
 				link_set_timer(l_ptr, cont_intv / 4);
 			} else {	/* Link has failed */
-				pr_debug("%s<%s>, peer not responding\n",
-					 link_rst_msg, l_ptr->name);
+				pr_warn("%s<%s>, peer not responding\n",
+					link_rst_msg, l_ptr->name);
 				tipc_link_reset(l_ptr);
 				l_ptr->state = RESET_UNKNOWN;
 				l_ptr->fsm_msg_cnt = 0;
@@ -643,9 +617,7 @@ static void link_state_event(struct tipc_link *l_ptr, unsigned int event)
 			break;
 		case STARTING_EVT:
 			l_ptr->flags |= LINK_STARTED;
-			l_ptr->fsm_msg_cnt++;
-			link_set_timer(l_ptr, cont_intv);
-			break;
+			/* fall through */
 		case TIMEOUT_EVT:
 			tipc_link_proto_xmit(l_ptr, RESET_MSG, 0, 0, 0, 0, 0);
 			l_ptr->fsm_msg_cnt++;
@@ -975,7 +947,6 @@ static void link_retransmit_failure(struct tipc_link *l_ptr,
 				    struct sk_buff *buf)
 {
 	struct tipc_msg *msg = buf_msg(buf);
-	struct net *net = l_ptr->owner->net;
 
 	pr_warn("Retransmission failure on link <%s>\n", l_ptr->name);
 
@@ -993,7 +964,7 @@ static void link_retransmit_failure(struct tipc_link *l_ptr,
 		pr_cont("Outstanding acks: %lu\n",
 			(unsigned long) TIPC_SKB_CB(buf)->handle);
 
-		n_ptr = tipc_bclink_retransmit_to(net);
+		n_ptr = tipc_bclink_retransmit_to();
 		tipc_node_lock(n_ptr);
 
 		tipc_addr_string_fill(addr_string, n_ptr->addr);
@@ -1008,7 +979,7 @@ static void link_retransmit_failure(struct tipc_link *l_ptr,
 
 		tipc_node_unlock(n_ptr);
 
-		tipc_bclink_set_flags(net, TIPC_BCLINK_RESET);
+		tipc_bclink_set_flags(TIPC_BCLINK_RESET);
 		l_ptr->stale_count = 0;
 	}
 }
@@ -1179,7 +1150,7 @@ void tipc_rcv(struct sk_buff *head, struct tipc_bearer *b_ptr)
 		/* Locate unicast link endpoint that should handle message */
 		l_ptr = n_ptr->links[b_ptr->identity];
 		if (unlikely(!l_ptr))
-			goto unlock;
+			goto unlock_discard;
 
 		/* Verify that communication with node is currently allowed */
 		if ((n_ptr->action_flags & TIPC_WAIT_PEER_LINKS_DOWN) &&
@@ -1190,7 +1161,7 @@ void tipc_rcv(struct sk_buff *head, struct tipc_bearer *b_ptr)
 			n_ptr->action_flags &= ~TIPC_WAIT_PEER_LINKS_DOWN;
 
 		if (tipc_node_blocked(n_ptr))
-			goto unlock;
+			goto unlock_discard;
 
 		/* Validate message sequence number info */
 		seq_no = msg_seqno(msg);
@@ -1466,7 +1437,7 @@ void tipc_link_proto_xmit(struct tipc_link *l_ptr, u32 msg_typ, int probe_msg,
 	msg_set_type(msg, msg_typ);
 	msg_set_net_plane(msg, l_ptr->net_plane);
 	msg_set_bcast_ack(msg, l_ptr->owner->bclink.last_in);
-	msg_set_last_bcast(msg, tipc_bclink_get_last_sent(l_ptr->owner->net));
+	msg_set_last_bcast(msg, tipc_bclink_get_last_sent());
 
 	if (msg_typ == STATE_MSG) {
 		u32 next_sent = mod(l_ptr->next_out_no);
@@ -1530,8 +1501,7 @@ void tipc_link_proto_xmit(struct tipc_link *l_ptr, u32 msg_typ, int probe_msg,
 	skb_copy_to_linear_data(buf, msg, sizeof(l_ptr->proto_msg));
 	buf->priority = TC_PRIO_CONTROL;
 
-	tipc_bearer_send(l_ptr->owner->net, l_ptr->bearer_id, buf,
-			 &l_ptr->media_addr);
+	tipc_bearer_send(l_ptr->bearer_id, buf, &l_ptr->media_addr);
 	l_ptr->unacked_window = 0;
 	kfree_skb(buf);
 }
@@ -1541,8 +1511,7 @@ void tipc_link_proto_xmit(struct tipc_link *l_ptr, u32 msg_typ, int probe_msg,
  * Note that network plane id propagates through the network, and may
  * change at any time. The node with lowest address rules
  */
-static void tipc_link_proto_rcv(struct tipc_link *l_ptr,
-				struct sk_buff *buf)
+static void tipc_link_proto_rcv(struct tipc_link *l_ptr, struct sk_buff *buf)
 {
 	u32 rec_gap = 0;
 	u32 max_pkt_info;
@@ -1555,7 +1524,7 @@ static void tipc_link_proto_rcv(struct tipc_link *l_ptr,
 		goto exit;
 
 	if (l_ptr->net_plane != msg_net_plane(msg))
-		if (link_own_addr(l_ptr) > msg_prevnode(msg))
+		if (tipc_own_addr > msg_prevnode(msg))
 			l_ptr->net_plane = msg_net_plane(msg);
 
 	switch (msg_type(msg)) {
@@ -1622,9 +1591,9 @@ static void tipc_link_proto_rcv(struct tipc_link *l_ptr,
 
 		if (msg_linkprio(msg) &&
 		    (msg_linkprio(msg) != l_ptr->priority)) {
-			pr_debug("%s<%s>, priority change %u->%u\n",
-				 link_rst_msg, l_ptr->name,
-				 l_ptr->priority, msg_linkprio(msg));
+			pr_warn("%s<%s>, priority change %u->%u\n",
+				link_rst_msg, l_ptr->name, l_ptr->priority,
+				msg_linkprio(msg));
 			l_ptr->priority = msg_linkprio(msg);
 			tipc_link_reset(l_ptr); /* Enforce change to take effect */
 			break;
@@ -1723,8 +1692,8 @@ void tipc_link_failover_send_queue(struct tipc_link *l_ptr)
 	if (!tunnel)
 		return;
 
-	tipc_msg_init(link_own_addr(l_ptr), &tunnel_hdr, CHANGEOVER_PROTOCOL,
-		      ORIGINAL_MSG, INT_H_SIZE, l_ptr->addr);
+	tipc_msg_init(&tunnel_hdr, CHANGEOVER_PROTOCOL,
+		 ORIGINAL_MSG, INT_H_SIZE, l_ptr->addr);
 	msg_set_bearer_id(&tunnel_hdr, l_ptr->peer_bearer_id);
 	msg_set_msgcnt(&tunnel_hdr, msgcount);
 
@@ -1821,7 +1790,7 @@ void tipc_link_dup_queue_xmit(struct tipc_link *l_ptr,
  * @from_pos: offset to extract from
  *
  * Returns a new message buffer containing an embedded message.  The
- * encapsulating buffer is left unchanged.
+ * encapsulating message itself is left unchanged.
  */
 static struct sk_buff *buf_extract(struct sk_buff *skb, u32 from_pos)
 {
@@ -1834,6 +1803,8 @@ static struct sk_buff *buf_extract(struct sk_buff *skb, u32 from_pos)
 		skb_copy_to_linear_data(eb, msg, size);
 	return eb;
 }
+
+
 
 /* tipc_link_dup_rcv(): Receive a tunnelled DUPLICATE_MSG packet.
  * Owner node is locked.
@@ -1894,8 +1865,10 @@ static struct sk_buff *tipc_link_failover_rcv(struct tipc_link *l_ptr,
 		}
 	}
 exit:
-	if ((!l_ptr->exp_msg_count) && (l_ptr->flags & LINK_STOPPED))
-		tipc_link_delete(l_ptr);
+	if ((l_ptr->exp_msg_count == 0) && (l_ptr->flags & LINK_STOPPED)) {
+		tipc_node_detach_link(l_ptr->owner, l_ptr);
+		kfree(l_ptr);
+	}
 	return buf;
 }
 
@@ -1933,16 +1906,50 @@ exit:
 	return *buf != NULL;
 }
 
-static void link_set_supervision_props(struct tipc_link *l_ptr, u32 tol)
+/*
+ *  Bundler functionality:
+ */
+void tipc_link_bundle_rcv(struct sk_buff *buf)
 {
-	unsigned long intv = ((tol / 4) > 500) ? 500 : tol / 4;
+	u32 msgcount = msg_msgcnt(buf_msg(buf));
+	u32 pos = INT_H_SIZE;
+	struct sk_buff *obuf;
+	struct tipc_msg *omsg;
 
-	if ((tol < TIPC_MIN_LINK_TOL) || (tol > TIPC_MAX_LINK_TOL))
+	while (msgcount--) {
+		obuf = buf_extract(buf, pos);
+		if (obuf == NULL) {
+			pr_warn("Link unable to unbundle message(s)\n");
+			break;
+		}
+		omsg = buf_msg(obuf);
+		pos += align(msg_size(omsg));
+		if (msg_isdata(omsg)) {
+			if (unlikely(msg_type(omsg) == TIPC_MCAST_MSG))
+				tipc_sk_mcast_rcv(obuf);
+			else
+				tipc_sk_rcv(obuf);
+		} else if (msg_user(omsg) == CONN_MANAGER) {
+			tipc_sk_rcv(obuf);
+		} else if (msg_user(omsg) == NAME_DISTRIBUTOR) {
+			tipc_named_rcv(obuf);
+		} else {
+			pr_warn("Illegal bundled msg: %u\n", msg_user(omsg));
+			kfree_skb(obuf);
+		}
+	}
+	kfree_skb(buf);
+}
+
+static void link_set_supervision_props(struct tipc_link *l_ptr, u32 tolerance)
+{
+	if ((tolerance < TIPC_MIN_LINK_TOL) || (tolerance > TIPC_MAX_LINK_TOL))
 		return;
 
-	l_ptr->tolerance = tol;
-	l_ptr->cont_intv = msecs_to_jiffies(intv);
-	l_ptr->abort_limit = tol / (jiffies_to_msecs(l_ptr->cont_intv) / 4);
+	l_ptr->tolerance = tolerance;
+	l_ptr->continuity_interval =
+		((tolerance / 4) > 500) ? 500 : tolerance / 4;
+	l_ptr->abort_limit = tolerance / (l_ptr->continuity_interval / 4);
 }
 
 void tipc_link_set_queue_limits(struct tipc_link *l_ptr, u32 window)
@@ -1965,25 +1972,22 @@ void tipc_link_set_queue_limits(struct tipc_link *l_ptr, u32 window)
 }
 
 /* tipc_link_find_owner - locate owner node of link by link's name
- * @net: the applicable net namespace
  * @name: pointer to link name string
  * @bearer_id: pointer to index in 'node->links' array where the link was found.
  *
  * Returns pointer to node owning the link, or 0 if no matching link is found.
  */
-static struct tipc_node *tipc_link_find_owner(struct net *net,
-					      const char *link_name,
+static struct tipc_node *tipc_link_find_owner(const char *link_name,
 					      unsigned int *bearer_id)
 {
-	struct tipc_net *tn = net_generic(net, tipc_net_id);
 	struct tipc_link *l_ptr;
 	struct tipc_node *n_ptr;
-	struct tipc_node *found_node = NULL;
+	struct tipc_node *found_node = 0;
 	int i;
 
 	*bearer_id = 0;
 	rcu_read_lock();
-	list_for_each_entry_rcu(n_ptr, &tn->node_list, list) {
+	list_for_each_entry_rcu(n_ptr, &tipc_node_list, list) {
 		tipc_node_lock(n_ptr);
 		for (i = 0; i < MAX_BEARERS; i++) {
 			l_ptr = n_ptr->links[i];
@@ -2003,6 +2007,148 @@ static struct tipc_node *tipc_link_find_owner(struct net *net,
 }
 
 /**
+ * link_value_is_valid -- validate proposed link tolerance/priority/window
+ *
+ * @cmd: value type (TIPC_CMD_SET_LINK_*)
+ * @new_value: the new value
+ *
+ * Returns 1 if value is within range, 0 if not.
+ */
+static int link_value_is_valid(u16 cmd, u32 new_value)
+{
+	switch (cmd) {
+	case TIPC_CMD_SET_LINK_TOL:
+		return (new_value >= TIPC_MIN_LINK_TOL) &&
+			(new_value <= TIPC_MAX_LINK_TOL);
+	case TIPC_CMD_SET_LINK_PRI:
+		return (new_value <= TIPC_MAX_LINK_PRI);
+	case TIPC_CMD_SET_LINK_WINDOW:
+		return (new_value >= TIPC_MIN_LINK_WIN) &&
+			(new_value <= TIPC_MAX_LINK_WIN);
+	}
+	return 0;
+}
+
+/**
+ * link_cmd_set_value - change priority/tolerance/window for link/bearer/media
+ * @name: ptr to link, bearer, or media name
+ * @new_value: new value of link, bearer, or media setting
+ * @cmd: which link, bearer, or media attribute to set (TIPC_CMD_SET_LINK_*)
+ *
+ * Caller must hold RTNL lock to ensure link/bearer/media is not deleted.
+ *
+ * Returns 0 if value updated and negative value on error.
+ */
+static int link_cmd_set_value(const char *name, u32 new_value, u16 cmd)
+{
+	struct tipc_node *node;
+	struct tipc_link *l_ptr;
+	struct tipc_bearer *b_ptr;
+	struct tipc_media *m_ptr;
+	int bearer_id;
+	int res = 0;
+
+	node = tipc_link_find_owner(name, &bearer_id);
+	if (node) {
+		tipc_node_lock(node);
+		l_ptr = node->links[bearer_id];
+
+		if (l_ptr) {
+			switch (cmd) {
+			case TIPC_CMD_SET_LINK_TOL:
+				link_set_supervision_props(l_ptr, new_value);
+				tipc_link_proto_xmit(l_ptr, STATE_MSG, 0, 0,
+						     new_value, 0, 0);
+				break;
+			case TIPC_CMD_SET_LINK_PRI:
+				l_ptr->priority = new_value;
+				tipc_link_proto_xmit(l_ptr, STATE_MSG, 0, 0,
+						     0, new_value, 0);
+				break;
+			case TIPC_CMD_SET_LINK_WINDOW:
+				tipc_link_set_queue_limits(l_ptr, new_value);
+				break;
+			default:
+				res = -EINVAL;
+				break;
+			}
+		}
+		tipc_node_unlock(node);
+		return res;
+	}
+
+	b_ptr = tipc_bearer_find(name);
+	if (b_ptr) {
+		switch (cmd) {
+		case TIPC_CMD_SET_LINK_TOL:
+			b_ptr->tolerance = new_value;
+			break;
+		case TIPC_CMD_SET_LINK_PRI:
+			b_ptr->priority = new_value;
+			break;
+		case TIPC_CMD_SET_LINK_WINDOW:
+			b_ptr->window = new_value;
+			break;
+		default:
+			res = -EINVAL;
+			break;
+		}
+		return res;
+	}
+
+	m_ptr = tipc_media_find(name);
+	if (!m_ptr)
+		return -ENODEV;
+	switch (cmd) {
+	case TIPC_CMD_SET_LINK_TOL:
+		m_ptr->tolerance = new_value;
+		break;
+	case TIPC_CMD_SET_LINK_PRI:
+		m_ptr->priority = new_value;
+		break;
+	case TIPC_CMD_SET_LINK_WINDOW:
+		m_ptr->window = new_value;
+		break;
+	default:
+		res = -EINVAL;
+		break;
+	}
+	return res;
+}
+
+struct sk_buff *tipc_link_cmd_config(const void *req_tlv_area, int req_tlv_space,
+				     u16 cmd)
+{
+	struct tipc_link_config *args;
+	u32 new_value;
+	int res;
+
+	if (!TLV_CHECK(req_tlv_area, req_tlv_space, TIPC_TLV_LINK_CONFIG))
+		return tipc_cfg_reply_error_string(TIPC_CFG_TLV_ERROR);
+
+	args = (struct tipc_link_config *)TLV_DATA(req_tlv_area);
+	new_value = ntohl(args->value);
+
+	if (!link_value_is_valid(cmd, new_value))
+		return tipc_cfg_reply_error_string(
+			"cannot change, value invalid");
+
+	if (!strcmp(args->name, tipc_bclink_name)) {
+		if ((cmd == TIPC_CMD_SET_LINK_WINDOW) &&
+		    (tipc_bclink_set_queue_limits(new_value) == 0))
+			return tipc_cfg_reply_none();
+		return tipc_cfg_reply_error_string(TIPC_CFG_NOT_SUPPORTED
+						   " (cannot change setting on broadcast link)");
+	}
+
+	res = link_cmd_set_value(args->name, new_value, cmd);
+	if (res)
+		return tipc_cfg_reply_error_string("cannot change link setting");
+
+	return tipc_cfg_reply_none();
+}
+
+/**
  * link_reset_statistics - reset link statistics
  * @l_ptr: pointer to link
  */
@@ -2013,13 +2159,207 @@ static void link_reset_statistics(struct tipc_link *l_ptr)
 	l_ptr->stats.recv_info = l_ptr->next_in_no;
 }
 
+struct sk_buff *tipc_link_cmd_reset_stats(const void *req_tlv_area, int req_tlv_space)
+{
+	char *link_name;
+	struct tipc_link *l_ptr;
+	struct tipc_node *node;
+	unsigned int bearer_id;
+
+	if (!TLV_CHECK(req_tlv_area, req_tlv_space, TIPC_TLV_LINK_NAME))
+		return tipc_cfg_reply_error_string(TIPC_CFG_TLV_ERROR);
+
+	link_name = (char *)TLV_DATA(req_tlv_area);
+	if (!strcmp(link_name, tipc_bclink_name)) {
+		if (tipc_bclink_reset_stats())
+			return tipc_cfg_reply_error_string("link not found");
+		return tipc_cfg_reply_none();
+	}
+	node = tipc_link_find_owner(link_name, &bearer_id);
+	if (!node)
+		return tipc_cfg_reply_error_string("link not found");
+
+	tipc_node_lock(node);
+	l_ptr = node->links[bearer_id];
+	if (!l_ptr) {
+		tipc_node_unlock(node);
+		return tipc_cfg_reply_error_string("link not found");
+	}
+	link_reset_statistics(l_ptr);
+	tipc_node_unlock(node);
+	return tipc_cfg_reply_none();
+}
+
+/**
+ * percent - convert count to a percentage of total (rounding up or down)
+ */
+static u32 percent(u32 count, u32 total)
+{
+	return (count * 100 + (total / 2)) / total;
+}
+
+/**
+ * tipc_link_stats - print link statistics
+ * @name: link name
+ * @buf: print buffer area
+ * @buf_size: size of print buffer area
+ *
+ * Returns length of print buffer data string (or 0 if error)
+ */
+static int tipc_link_stats(const char *name, char *buf, const u32 buf_size)
+{
+	struct tipc_link *l;
+	struct tipc_stats *s;
+	struct tipc_node *node;
+	char *status;
+	u32 profile_total = 0;
+	unsigned int bearer_id;
+	int ret;
+
+	if (!strcmp(name, tipc_bclink_name))
+		return tipc_bclink_stats(buf, buf_size);
+
+	node = tipc_link_find_owner(name, &bearer_id);
+	if (!node)
+		return 0;
+
+	tipc_node_lock(node);
+
+	l = node->links[bearer_id];
+	if (!l) {
+		tipc_node_unlock(node);
+		return 0;
+	}
+
+	s = &l->stats;
+
+	if (tipc_link_is_active(l))
+		status = "ACTIVE";
+	else if (tipc_link_is_up(l))
+		status = "STANDBY";
+	else
+		status = "DEFUNCT";
+
+	ret = tipc_snprintf(buf, buf_size, "Link <%s>\n"
+			    "  %s  MTU:%u  Priority:%u  Tolerance:%u ms"
+			    "  Window:%u packets\n",
+			    l->name, status, l->max_pkt, l->priority,
+			    l->tolerance, l->queue_limit[0]);
+
+	ret += tipc_snprintf(buf + ret, buf_size - ret,
+			     "  RX packets:%u fragments:%u/%u bundles:%u/%u\n",
+			     l->next_in_no - s->recv_info, s->recv_fragments,
+			     s->recv_fragmented, s->recv_bundles,
+			     s->recv_bundled);
+
+	ret += tipc_snprintf(buf + ret, buf_size - ret,
+			     "  TX packets:%u fragments:%u/%u bundles:%u/%u\n",
+			     l->next_out_no - s->sent_info, s->sent_fragments,
+			     s->sent_fragmented, s->sent_bundles,
+			     s->sent_bundled);
+
+	profile_total = s->msg_length_counts;
+	if (!profile_total)
+		profile_total = 1;
+
+	ret += tipc_snprintf(buf + ret, buf_size - ret,
+			     "  TX profile sample:%u packets  average:%u octets\n"
+			     "  0-64:%u%% -256:%u%% -1024:%u%% -4096:%u%% "
+			     "-16384:%u%% -32768:%u%% -66000:%u%%\n",
+			     s->msg_length_counts,
+			     s->msg_lengths_total / profile_total,
+			     percent(s->msg_length_profile[0], profile_total),
+			     percent(s->msg_length_profile[1], profile_total),
+			     percent(s->msg_length_profile[2], profile_total),
+			     percent(s->msg_length_profile[3], profile_total),
+			     percent(s->msg_length_profile[4], profile_total),
+			     percent(s->msg_length_profile[5], profile_total),
+			     percent(s->msg_length_profile[6], profile_total));
+
+	ret += tipc_snprintf(buf + ret, buf_size - ret,
+			     "  RX states:%u probes:%u naks:%u defs:%u"
+			     " dups:%u\n", s->recv_states, s->recv_probes,
+			     s->recv_nacks, s->deferred_recv, s->duplicates);
+
+	ret += tipc_snprintf(buf + ret, buf_size - ret,
+			     "  TX states:%u probes:%u naks:%u acks:%u"
+			     " dups:%u\n", s->sent_states, s->sent_probes,
+			     s->sent_nacks, s->sent_acks, s->retransmitted);
+
+	ret += tipc_snprintf(buf + ret, buf_size - ret,
+			     "  Congestion link:%u  Send queue"
+			     " max:%u avg:%u\n", s->link_congs,
+			     s->max_queue_sz, s->queue_sz_counts ?
+			     (s->accu_queue_sz / s->queue_sz_counts) : 0);
+
+	tipc_node_unlock(node);
+	return ret;
+}
+
+struct sk_buff *tipc_link_cmd_show_stats(const void *req_tlv_area, int req_tlv_space)
+{
+	struct sk_buff *buf;
+	struct tlv_desc *rep_tlv;
+	int str_len;
+	int pb_len;
+	char *pb;
+
+	if (!TLV_CHECK(req_tlv_area, req_tlv_space, TIPC_TLV_LINK_NAME))
+		return tipc_cfg_reply_error_string(TIPC_CFG_TLV_ERROR);
+
+	buf = tipc_cfg_reply_alloc(TLV_SPACE(ULTRA_STRING_MAX_LEN));
+	if (!buf)
+		return NULL;
+
+	rep_tlv = (struct tlv_desc *)buf->data;
+	pb = TLV_DATA(rep_tlv);
+	pb_len = ULTRA_STRING_MAX_LEN;
+	str_len = tipc_link_stats((char *)TLV_DATA(req_tlv_area),
+				  pb, pb_len);
+	if (!str_len) {
+		kfree_skb(buf);
+		return tipc_cfg_reply_error_string("link not found");
+	}
+	str_len += 1;	/* for "\0" */
+	skb_put(buf, TLV_SPACE(str_len));
+	TLV_SET(rep_tlv, TIPC_TLV_ULTRA_STRING, NULL, str_len);
+
+	return buf;
+}
+
+/**
+ * tipc_link_get_max_pkt - get maximum packet size to use when sending to destination
+ * @dest: network address of destination node
+ * @selector: used to select from set of active links
+ *
+ * If no active link can be found, uses default maximum packet size.
+ */
+u32 tipc_link_get_max_pkt(u32 dest, u32 selector)
+{
+	struct tipc_node *n_ptr;
+	struct tipc_link *l_ptr;
+	u32 res = MAX_PKT_DEFAULT;
+
+	if (dest == tipc_own_addr)
+		return MAX_MSG_SIZE;
+
+	n_ptr = tipc_node_find(dest);
+	if (n_ptr) {
+		tipc_node_lock(n_ptr);
+		l_ptr = n_ptr->active_links[selector & 1];
+		if (l_ptr)
+			res = l_ptr->max_pkt;
+		tipc_node_unlock(n_ptr);
+	}
+	return res;
+}
+
 static void link_print(struct tipc_link *l_ptr, const char *str)
 {
-	struct tipc_net *tn = net_generic(l_ptr->owner->net, tipc_net_id);
 	struct tipc_bearer *b_ptr;
 
 	rcu_read_lock();
-	b_ptr = rcu_dereference_rtnl(tn->bearer_list[l_ptr->bearer_id]);
+	b_ptr = rcu_dereference_rtnl(bearer_list[l_ptr->bearer_id]);
 	if (b_ptr)
 		pr_info("%s Link %x<%s>:", str, l_ptr->addr, b_ptr->name);
 	rcu_read_unlock();

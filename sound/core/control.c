@@ -50,7 +50,7 @@ static int snd_ctl_open(struct inode *inode, struct file *file)
 	unsigned long flags;
 	struct snd_card *card;
 	struct snd_ctl_file *ctl;
-	int i, err;
+	int err;
 
 	err = nonseekable_open(inode, file);
 	if (err < 0)
@@ -79,8 +79,8 @@ static int snd_ctl_open(struct inode *inode, struct file *file)
 	init_waitqueue_head(&ctl->change_sleep);
 	spin_lock_init(&ctl->read_lock);
 	ctl->card = card;
-	for (i = 0; i < SND_CTL_SUBDEV_ITEMS; i++)
-		ctl->preferred_subdevice[i] = -1;
+	ctl->prefer_pcm_subdevice = -1;
+	ctl->prefer_rawmidi_subdevice = -1;
 	ctl->pid = get_pid(task_pid(current));
 	file->private_data = ctl;
 	write_lock_irqsave(&card->ctl_files_rwlock, flags);
@@ -366,7 +366,6 @@ int snd_ctl_add(struct snd_card *card, struct snd_kcontrol *kcontrol)
 	card->controls_count += kcontrol->count;
 	kcontrol->id.numid = card->last_numid + 1;
 	card->last_numid += kcontrol->count;
-	id = kcontrol->id;
 	count = kcontrol->count;
 	up_write(&card->controls_rwsem);
 	for (idx = 0; idx < count; idx++, id.index++, id.numid++)
@@ -434,7 +433,6 @@ add:
 	card->controls_count += kcontrol->count;
 	kcontrol->id.numid = card->last_numid + 1;
 	card->last_numid += kcontrol->count;
-	id = kcontrol->id;
 	count = kcontrol->count;
 	up_write(&card->controls_rwsem);
 	for (idx = 0; idx < count; idx++, id.index++, id.numid++)
@@ -1173,10 +1171,6 @@ static int snd_ctl_elem_add(struct snd_ctl_file *file,
 		return -EINVAL;
 	if (strnlen(info->id.name, sizeof(info->id.name)) >= sizeof(info->id.name))
 		return -EINVAL;
-	if (!*info->id.name)
-		return -EINVAL;
-	if (strnlen(info->id.name, sizeof(info->id.name)) >= sizeof(info->id.name))
-		return -EINVAL;
 	access = info->access == 0 ? SNDRV_CTL_ELEM_ACCESS_READWRITE :
 		(info->access & (SNDRV_CTL_ELEM_ACCESS_READWRITE|
 				 SNDRV_CTL_ELEM_ACCESS_INACTIVE|
@@ -1600,27 +1594,6 @@ static int snd_ctl_fasync(int fd, struct file * file, int on)
 	return fasync_helper(fd, file, on, &ctl->fasync);
 }
 
-/* return the preferred subdevice number if already assigned;
- * otherwise return -1
- */
-int snd_ctl_get_preferred_subdevice(struct snd_card *card, int type)
-{
-	struct snd_ctl_file *kctl;
-	int subdevice = -1;
-
-	read_lock(&card->ctl_files_rwlock);
-	list_for_each_entry(kctl, &card->ctl_files, list) {
-		if (kctl->pid == task_pid(current)) {
-			subdevice = kctl->preferred_subdevice[type];
-			if (subdevice != -1)
-				break;
-		}
-	}
-	read_unlock(&card->ctl_files_rwlock);
-	return subdevice;
-}
-EXPORT_SYMBOL_GPL(snd_ctl_get_preferred_subdevice);
-
 /*
  * ioctl32 compat
  */
@@ -1653,9 +1626,19 @@ static const struct file_operations snd_ctl_f_ops =
 static int snd_ctl_dev_register(struct snd_device *device)
 {
 	struct snd_card *card = device->device_data;
+	int err, cardnum;
+	char name[16];
 
-	return snd_register_device(SNDRV_DEVICE_TYPE_CONTROL, card, -1,
-				   &snd_ctl_f_ops, card, &card->ctl_dev);
+	if (snd_BUG_ON(!card))
+		return -ENXIO;
+	cardnum = card->number;
+	if (snd_BUG_ON(cardnum < 0 || cardnum >= SNDRV_CARDS))
+		return -ENXIO;
+	sprintf(name, "controlC%i", cardnum);
+	if ((err = snd_register_device(SNDRV_DEVICE_TYPE_CONTROL, card, -1,
+				       &snd_ctl_f_ops, card, name)) < 0)
+		return err;
+	return 0;
 }
 
 /*
@@ -1665,6 +1648,13 @@ static int snd_ctl_dev_disconnect(struct snd_device *device)
 {
 	struct snd_card *card = device->device_data;
 	struct snd_ctl_file *ctl;
+	int err, cardnum;
+
+	if (snd_BUG_ON(!card))
+		return -ENXIO;
+	cardnum = card->number;
+	if (snd_BUG_ON(cardnum < 0 || cardnum >= SNDRV_CARDS))
+		return -ENXIO;
 
 	read_lock(&card->ctl_files_rwlock);
 	list_for_each_entry(ctl, &card->ctl_files, list) {
@@ -1673,7 +1663,10 @@ static int snd_ctl_dev_disconnect(struct snd_device *device)
 	}
 	read_unlock(&card->ctl_files_rwlock);
 
-	return snd_unregister_device(&card->ctl_dev);
+	if ((err = snd_unregister_device(SNDRV_DEVICE_TYPE_CONTROL,
+					 card, -1)) < 0)
+		return err;
+	return 0;
 }
 
 /*
@@ -1690,7 +1683,6 @@ static int snd_ctl_dev_free(struct snd_device *device)
 		snd_ctl_remove(card, control);
 	}
 	up_write(&card->controls_rwsem);
-	put_device(&card->ctl_dev);
 	return 0;
 }
 
@@ -1705,20 +1697,10 @@ int snd_ctl_create(struct snd_card *card)
 		.dev_register =	snd_ctl_dev_register,
 		.dev_disconnect = snd_ctl_dev_disconnect,
 	};
-	int err;
 
 	if (snd_BUG_ON(!card))
 		return -ENXIO;
-	if (snd_BUG_ON(card->number < 0 || card->number >= SNDRV_CARDS))
-		return -ENXIO;
-
-	snd_device_initialize(&card->ctl_dev, card);
-	dev_set_name(&card->ctl_dev, "controlC%d", card->number);
-
-	err = snd_device_new(card, SNDRV_DEV_CONTROL, card, &ops);
-	if (err < 0)
-		put_device(&card->ctl_dev);
-	return err;
+	return snd_device_new(card, SNDRV_DEV_CONTROL, card, &ops);
 }
 
 /*

@@ -520,12 +520,12 @@ unsigned char get_channel_number(void *pDeviceHandler, unsigned char byChannelIn
  * Return Value: true if succeeded; false if failed.
  *
  */
-bool set_channel(void *pDeviceHandler, struct ieee80211_channel *ch)
+bool set_channel(void *pDeviceHandler, unsigned int uConnectionChannel)
 {
 	struct vnt_private *pDevice = pDeviceHandler;
 	bool bResult = true;
 
-	if (pDevice->byCurrentCh == ch->hw_value)
+	if (pDevice->byCurrentCh == uConnectionChannel)
 		return bResult;
 
 	if (!sChannelTbl[uConnectionChannel].bValid)
@@ -565,8 +565,6 @@ bool set_channel(void *pDeviceHandler, struct ieee80211_channel *ch)
 		RFbSetPower(pDevice, RATE_6M, pDevice->byCurrentCh);
 		VNSvOutPortB(pDevice->PortOffset + MAC_REG_PWROFDM, pDevice->byCurPwr);
 		MACvSelectPage0(pDevice->PortOffset);
-
-		spin_unlock_irqrestore(&pDevice->lock, flags);
 	}
 
 	if (pDevice->eCurrentPHYType == PHY_TYPE_11B)

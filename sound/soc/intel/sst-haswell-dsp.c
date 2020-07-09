@@ -211,9 +211,6 @@ static int hsw_parse_fw_image(struct sst_fw *sst_fw)
 
 	sst_hsw_set_scratch_module(hsw, scratch);
 
-	/* allocate scratch mem regions */
-	sst_block_alloc_scratch(dsp);
-
 	return 0;
 }
 

@@ -165,7 +165,8 @@ scmd_eh_abort_handler(struct work_struct *work)
 	if (!scsi_eh_scmd_add(scmd, 0)) {
 		SCSI_LOG_ERROR_RECOVERY(3,
 			scmd_printk(KERN_WARNING, scmd,
-				    "terminate aborted command\n"));
+				    "scmd %p terminate "
+				    "aborted command\n", scmd));
 		set_host_byte(scmd, DID_TIME_OUT);
 		scsi_finish_command(scmd);
 	}
@@ -191,7 +192,7 @@ scsi_abort_command(struct scsi_cmnd *scmd)
 		scmd->eh_eflags &= ~SCSI_EH_ABORT_SCHEDULED;
 		SCSI_LOG_ERROR_RECOVERY(3,
 			scmd_printk(KERN_INFO, scmd,
-				    "previous abort failed\n"));
+				    "scmd %p previous abort failed\n", scmd));
 		BUG_ON(delayed_work_pending(&scmd->abort_work));
 		return FAILED;
 	}
@@ -205,7 +206,8 @@ scsi_abort_command(struct scsi_cmnd *scmd)
 		spin_unlock_irqrestore(shost->host_lock, flags);
 		SCSI_LOG_ERROR_RECOVERY(3,
 			scmd_printk(KERN_INFO, scmd,
-				    "not aborting, host in recovery\n"));
+				    "scmd %p not aborting, host in recovery\n",
+				    scmd));
 		return FAILED;
 	}
 
@@ -215,7 +217,8 @@ scsi_abort_command(struct scsi_cmnd *scmd)
 
 	scmd->eh_eflags |= SCSI_EH_ABORT_SCHEDULED;
 	SCSI_LOG_ERROR_RECOVERY(3,
-		scmd_printk(KERN_INFO, scmd, "abort scheduled\n"));
+		scmd_printk(KERN_INFO, scmd,
+			    "scmd %p abort scheduled\n", scmd));
 	queue_delayed_work(shost->tmf_work_q, &scmd->abort_work, HZ / 100);
 	return SUCCESS;
 }
@@ -737,7 +740,8 @@ static void scsi_eh_done(struct scsi_cmnd *scmd)
 	struct completion *eh_action;
 
 	SCSI_LOG_ERROR_RECOVERY(3, scmd_printk(KERN_INFO, scmd,
-			"%s result: %x\n", __func__, scmd->result));
+			"%s scmd: %p result: %x\n",
+			__func__, scmd, scmd->result));
 
 	eh_action = scmd->device->host->eh_action;
 	if (eh_action)
@@ -1034,8 +1038,8 @@ retry:
 	scsi_log_completion(scmd, rtn);
 
 	SCSI_LOG_ERROR_RECOVERY(3, scmd_printk(KERN_INFO, scmd,
-			"%s timeleft: %ld\n",
-			__func__, timeleft));
+			"%s: scmd: %p, timeleft: %ld\n",
+			__func__, scmd, timeleft));
 
 	/*
 	 * If there is time left scsi_eh_done got called, and we will examine
@@ -1217,7 +1221,7 @@ retry_tur:
 				scmd->device->eh_timeout, 0);
 
 	SCSI_LOG_ERROR_RECOVERY(3, scmd_printk(KERN_INFO, scmd,
-		"%s return: %x\n", __func__, rtn));
+		"%s: scmd %p rtn %x\n", __func__, scmd, rtn));
 
 	switch (rtn) {
 	case NEEDS_RETRY:
@@ -2077,8 +2081,8 @@ void scsi_eh_flush_done_q(struct list_head *done_q)
 		    (++scmd->retries <= scmd->allowed)) {
 			SCSI_LOG_ERROR_RECOVERY(3,
 				scmd_printk(KERN_INFO, scmd,
-					     "%s: flush retry cmd\n",
-					     current->comm));
+					     "%s: flush retry cmd: %p\n",
+					     current->comm, scmd));
 				scsi_queue_insert(scmd, SCSI_MLQUEUE_EH_RETRY);
 		} else {
 			/*
@@ -2090,8 +2094,8 @@ void scsi_eh_flush_done_q(struct list_head *done_q)
 				scmd->result |= (DRIVER_TIMEOUT << 24);
 			SCSI_LOG_ERROR_RECOVERY(3,
 				scmd_printk(KERN_INFO, scmd,
-					     "%s: flush finish cmd\n",
-					     current->comm));
+					     "%s: flush finish cmd: %p\n",
+					     current->comm, scmd));
 			scsi_finish_command(scmd);
 		}
 	}

@@ -38,6 +38,7 @@ struct sirfsoc_gpio_bank {
 
 struct sirfsoc_gpio_chip {
 	struct of_mm_gpio_chip chip;
+	bool is_marco; /* for marco, some registers are different with prima2 */
 	struct sirfsoc_gpio_bank sgpio_bank[SIRFSOC_GPIO_NO_OF_BANKS];
 };
 
@@ -148,14 +149,23 @@ static void sirfsoc_pinmux_endisable(struct sirfsoc_pmx *spmx,
 
 	for (i = 0; i < mux->muxmask_counts; i++) {
 		u32 muxval;
-		muxval = readl(spmx->gpio_virtbase +
-			SIRFSOC_GPIO_PAD_EN(mask[i].group));
-		if (enable)
-			muxval = muxval & ~mask[i].mask;
-		else
-			muxval = muxval | mask[i].mask;
-		writel(muxval, spmx->gpio_virtbase +
-			SIRFSOC_GPIO_PAD_EN(mask[i].group));
+		if (!spmx->is_marco) {
+			muxval = readl(spmx->gpio_virtbase +
+				SIRFSOC_GPIO_PAD_EN(mask[i].group));
+			if (enable)
+				muxval = muxval & ~mask[i].mask;
+			else
+				muxval = muxval | mask[i].mask;
+			writel(muxval, spmx->gpio_virtbase +
+				SIRFSOC_GPIO_PAD_EN(mask[i].group));
+		} else {
+			if (enable)
+				writel(mask[i].mask, spmx->gpio_virtbase +
+					SIRFSOC_GPIO_PAD_EN_CLR(mask[i].group));
+			else
+				writel(mask[i].mask, spmx->gpio_virtbase +
+					SIRFSOC_GPIO_PAD_EN(mask[i].group));
+		}
 	}
 
 	if (mux->funcmask && enable) {
@@ -213,11 +223,16 @@ static int sirfsoc_pinmux_request_gpio(struct pinctrl_dev *pmxdev,
 
 	spmx = pinctrl_dev_get_drvdata(pmxdev);
 
-	muxval = readl(spmx->gpio_virtbase +
-		SIRFSOC_GPIO_PAD_EN(group));
-	muxval = muxval | (1 << (offset - range->pin_base));
-	writel(muxval, spmx->gpio_virtbase +
-		SIRFSOC_GPIO_PAD_EN(group));
+	if (!spmx->is_marco) {
+		muxval = readl(spmx->gpio_virtbase +
+			SIRFSOC_GPIO_PAD_EN(group));
+		muxval = muxval | (1 << (offset - range->pin_base));
+		writel(muxval, spmx->gpio_virtbase +
+			SIRFSOC_GPIO_PAD_EN(group));
+	} else {
+		writel(1 << (offset - range->pin_base), spmx->gpio_virtbase +
+			SIRFSOC_GPIO_PAD_EN(group));
+	}
 
 	return 0;
 }
@@ -241,6 +256,7 @@ static void __iomem *sirfsoc_rsc_of_iomap(void)
 {
 	const struct of_device_id rsc_ids[]  = {
 		{ .compatible = "sirf,prima2-rsc" },
+		{ .compatible = "sirf,marco-rsc" },
 		{}
 	};
 	struct device_node *np;
@@ -268,6 +284,7 @@ static int sirfsoc_gpio_of_xlate(struct gpio_chip *gc,
 static const struct of_device_id pinmux_ids[] = {
 	{ .compatible = "sirf,prima2-pinctrl", .data = &prima2_pinctrl_data, },
 	{ .compatible = "sirf,atlas6-pinctrl", .data = &atlas6_pinctrl_data, },
+	{ .compatible = "sirf,marco-pinctrl", .data = &prima2_pinctrl_data, },
 	{}
 };
 
@@ -299,6 +316,9 @@ static int sirfsoc_pinmux_probe(struct platform_device *pdev)
 		dev_err(&pdev->dev, "can't map rsc registers\n");
 		goto out_no_rsc_remap;
 	}
+
+	if (of_device_is_compatible(np, "sirf,marco-pinctrl"))
+		spmx->is_marco = 1;
 
 	pdata = of_match_node(pinmux_ids, np)->data;
 	sirfsoc_pin_groups = pdata->grps;
@@ -784,6 +804,7 @@ static int sirfsoc_gpio_probe(struct device_node *np)
 	struct sirfsoc_gpio_bank *bank;
 	void __iomem *regs;
 	struct platform_device *pdev;
+	bool is_marco = false;
 
 	u32 pullups[SIRFSOC_GPIO_NO_OF_BANKS], pulldowns[SIRFSOC_GPIO_NO_OF_BANKS];
 
@@ -799,6 +820,9 @@ static int sirfsoc_gpio_probe(struct device_node *np)
 	if (!regs)
 		return -ENOMEM;
 
+	if (of_device_is_compatible(np, "sirf,marco-pinctrl"))
+		is_marco = 1;
+
 	sgpio->chip.gc.request = sirfsoc_gpio_request;
 	sgpio->chip.gc.free = sirfsoc_gpio_free;
 	sgpio->chip.gc.direction_input = sirfsoc_gpio_direction_input;
@@ -813,6 +837,7 @@ static int sirfsoc_gpio_probe(struct device_node *np)
 	sgpio->chip.gc.of_gpio_n_cells = 2;
 	sgpio->chip.gc.dev = &pdev->dev;
 	sgpio->chip.regs = regs;
+	sgpio->is_marco = is_marco;
 
 	err = gpiochip_add(&sgpio->chip.gc);
 	if (err) {

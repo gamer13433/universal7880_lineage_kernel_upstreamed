@@ -34,16 +34,6 @@ config PPC_SPLPAR
 	  processors, that is, which share physical processors between
 	  two or more partitions.
 
-config DTL
-	bool "Dispatch Trace Log"
-	depends on PPC_SPLPAR && DEBUG_FS
-	help
-	  SPLPAR machines can log hypervisor preempt & dispatch events to a
-	  kernel buffer. Saying Y here will enable logging these events,
-	  which are accessible through a debugfs file.
-
-	  Say N if you are unsure.
-
 config PSERIES_MSI
        bool
        depends on PCI_MSI && PPC_PSERIES && EEH
@@ -133,3 +123,13 @@ config HV_PERF_CTRS
 	  systems. 24x7 is available on Power 8 systems.
 
           If unsure, select Y.
+
+config DTL
+	bool "Dispatch Trace Log"
+	depends on PPC_SPLPAR && DEBUG_FS
+	help
+	  SPLPAR machines can log hypervisor preempt & dispatch events to a
+	  kernel buffer. Saying Y here will enable logging these events,
+	  which are accessible through a debugfs file.
+
+	  Say N if you are unsure.

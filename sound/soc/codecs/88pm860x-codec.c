@@ -386,7 +386,7 @@ static int snd_soc_put_volsw_2r_out(struct snd_kcontrol *kcontrol,
 static int pm860x_rsync_event(struct snd_soc_dapm_widget *w,
 			      struct snd_kcontrol *kcontrol, int event)
 {
-	struct snd_soc_codec *codec = snd_soc_dapm_to_codec(w->dapm);
+	struct snd_soc_codec *codec = w->codec;
 
 	/*
 	 * In order to avoid current on the load, mute power-on and power-off
@@ -403,7 +403,7 @@ static int pm860x_rsync_event(struct snd_soc_dapm_widget *w,
 static int pm860x_dac_event(struct snd_soc_dapm_widget *w,
 			    struct snd_kcontrol *kcontrol, int event)
 {
-	struct snd_soc_codec *codec = snd_soc_dapm_to_codec(w->dapm);
+	struct snd_soc_codec *codec = w->codec;
 	unsigned int dac = 0;
 	int data;
 

@@ -1,5 +1,5 @@
 config STAGING_BOARD
-	bool "Staging Board Support"
+	boolean "Staging Board Support"
 	depends on OF_ADDRESS
 	depends on BROKEN
 	help

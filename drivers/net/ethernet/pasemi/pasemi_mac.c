@@ -1239,9 +1239,11 @@ static int pasemi_mac_open(struct net_device *dev)
 	if (mac->phydev)
 		phy_start(mac->phydev);
 
-	setup_timer(&mac->tx->clean_timer, pasemi_mac_tx_timer,
-		    (unsigned long)mac->tx);
-	mod_timer(&mac->tx->clean_timer, jiffies + HZ);
+	init_timer(&mac->tx->clean_timer);
+	mac->tx->clean_timer.function = pasemi_mac_tx_timer;
+	mac->tx->clean_timer.data = (unsigned long)mac->tx;
+	mac->tx->clean_timer.expires = jiffies+HZ;
+	add_timer(&mac->tx->clean_timer);
 
 	return 0;
 

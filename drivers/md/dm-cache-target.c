@@ -11,7 +11,6 @@
 
 #include <linux/dm-io.h>
 #include <linux/dm-kcopyd.h>
-#include <linux/jiffies.h>
 #include <linux/init.h>
 #include <linux/mempool.h>
 #include <linux/module.h>
@@ -1469,8 +1468,8 @@ static void process_bio(struct cache *cache, struct prealloc *structs,
 
 static int need_commit_due_to_time(struct cache *cache)
 {
-	return !time_in_range(jiffies, cache->last_commit_jiffies,
-			      cache->last_commit_jiffies + COMMIT_PERIOD);
+	return jiffies < cache->last_commit_jiffies ||
+	       jiffies > cache->last_commit_jiffies + COMMIT_PERIOD;
 }
 
 static int commit_if_needed(struct cache *cache)

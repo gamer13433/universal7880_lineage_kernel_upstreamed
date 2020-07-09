@@ -330,9 +330,12 @@ static s32 fm10k_update_xc_addr_pf(struct fm10k_hw *hw, u16 glort,
 	struct fm10k_mac_update mac_update;
 	u32 msg[5];
 
-	/* if glort or vlan are not valid return error */
-	if (!fm10k_glort_valid_pf(hw, glort) || vid >= FM10K_VLAN_TABLE_VID_MAX)
+	/* if glort is not valid return error */
+	if (!fm10k_glort_valid_pf(hw, glort))
 		return FM10K_ERR_PARAM;
+
+	/* drop upper 4 bits of VLAN ID */
+	vid = (vid << 4) >> 4;
 
 	/* record fields */
 	mac_update.mac_lower = cpu_to_le32(((u32)mac[2] << 24) |

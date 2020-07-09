@@ -485,6 +485,7 @@ static irqreturn_t musb_stage0_irq(struct musb *musb, u8 int_usb,
 
 				musb->xceiv->state = OTG_STATE_A_HOST;
 				musb->is_active = 1;
+				musb_host_resume_root_hub(musb);
 				break;
 			case OTG_STATE_B_WAIT_ACON:
 				musb->xceiv->state = OTG_STATE_B_PERIPHERAL;
@@ -1900,10 +1901,6 @@ musb_init_controller(struct device *dev, int nIrq, void __iomem *ctrl)
 		status = -ENOMEM;
 		goto fail0;
 	}
-
-	pm_runtime_use_autosuspend(musb->controller);
-	pm_runtime_set_autosuspend_delay(musb->controller, 200);
-	pm_runtime_enable(musb->controller);
 
 	pm_runtime_use_autosuspend(musb->controller);
 	pm_runtime_set_autosuspend_delay(musb->controller, 200);

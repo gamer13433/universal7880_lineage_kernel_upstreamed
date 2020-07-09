@@ -48,7 +48,6 @@
 #include <net/arp.h>
 #include <net/route.h>
 #include <net/udp.h>
-#include <net/tcp.h>
 #include <net/sock.h>
 #include <net/pkt_sched.h>
 #include <net/fib_rules.h>
@@ -668,19 +667,9 @@ int rtnetlink_put_metrics(struct sk_buff *skb, u32 *metrics)
 
 	for (i = 0; i < RTAX_MAX; i++) {
 		if (metrics[i]) {
-			if (i == RTAX_CC_ALGO - 1) {
-				char tmp[TCP_CA_NAME_MAX], *name;
-
-				name = tcp_ca_get_name_by_key(metrics[i], tmp);
-				if (!name)
-					continue;
-				if (nla_put_string(skb, i + 1, name))
-					goto nla_put_failure;
-			} else {
-				if (nla_put_u32(skb, i + 1, metrics[i]))
-					goto nla_put_failure;
-			}
 			valid++;
+			if (nla_put_u32(skb, i+1, metrics[i]))
+				goto nla_put_failure;
 		}
 	}
 
@@ -873,7 +862,6 @@ static noinline size_t if_nlmsg_size(const struct net_device *dev,
 	       + nla_total_size(1) /* IFLA_OPERSTATE */
 	       + nla_total_size(1) /* IFLA_LINKMODE */
 	       + nla_total_size(4) /* IFLA_CARRIER_CHANGES */
-	       + nla_total_size(4) /* IFLA_LINK_NETNSID */
 	       + nla_total_size(ext_filter_mask
 			        & RTEXT_FILTER_VF ? 4 : 0) /* IFLA_NUM_VF */
 	       + rtnl_vfinfo_size(dev, ext_filter_mask) /* IFLA_VFINFO_LIST */
@@ -1146,18 +1134,6 @@ static int rtnl_fill_ifinfo(struct sk_buff *skb, struct net_device *dev,
 			goto nla_put_failure;
 	}
 
-	if (dev->rtnl_link_ops &&
-	    dev->rtnl_link_ops->get_link_net) {
-		struct net *link_net = dev->rtnl_link_ops->get_link_net(dev);
-
-		if (!net_eq(dev_net(dev), link_net)) {
-			int id = peernet2id(dev_net(dev), link_net);
-
-			if (nla_put_s32(skb, IFLA_LINK_NETNSID, id))
-				goto nla_put_failure;
-		}
-	}
-
 	if (!(af_spec = nla_nest_start(skb, IFLA_AF_SPEC)))
 		goto nla_put_failure;
 
@@ -1188,8 +1164,7 @@ static int rtnl_fill_ifinfo(struct sk_buff *skb, struct net_device *dev,
 
 	nla_nest_end(skb, af_spec);
 
-	nlmsg_end(skb, nlh);
-	return 0;
+	return nlmsg_end(skb, nlh);
 
 nla_put_failure:
 	nlmsg_cancel(skb, nlh);
@@ -1308,7 +1283,7 @@ static int rtnl_dump_ifinfo(struct sk_buff *skb, struct netlink_callback *cb)
 			 */
 			WARN_ON((err == -EMSGSIZE) && (skb->len == 0));
 
-			if (err < 0)
+			if (err <= 0)
 				goto out;
 
 			nl_dump_check_consistent(cb, nlmsg_hdr(skb));
@@ -1906,10 +1881,10 @@ static int rtnl_group_changelink(const struct sk_buff *skb,
 		struct ifinfomsg *ifm,
 		struct nlattr **tb)
 {
-	struct net_device *dev, *aux;
+	struct net_device *dev;
 	int err;
 
-	for_each_netdev_safe(net, dev, aux) {
+	for_each_netdev(net, dev) {
 		if (dev->group == group) {
 			err = do_setlink(skb, dev, ifm, tb, NULL, 0);
 			if (err < 0)
@@ -1984,11 +1959,11 @@ replay:
 	}
 
 	if (1) {
-		struct nlattr *attr[ops ? ops->maxtype + 1 : 1];
-		struct nlattr *slave_attr[m_ops ? m_ops->slave_maxtype + 1 : 1];
+		struct nlattr *attr[ops ? ops->maxtype + 1 : 0];
+		struct nlattr *slave_attr[m_ops ? m_ops->slave_maxtype + 1 : 0];
 		struct nlattr **data = NULL;
 		struct nlattr **slave_data = NULL;
-		struct net *dest_net, *link_net = NULL;
+		struct net *dest_net;
 
 		if (ops) {
 			if (ops->maxtype && linkinfo[IFLA_INFO_DATA]) {
@@ -2094,25 +2069,7 @@ replay:
 		if (IS_ERR(dest_net))
 			return PTR_ERR(dest_net);
 
-		err = -EPERM;
-		if (!netlink_ns_capable(skb, dest_net->user_ns, CAP_NET_ADMIN))
-			goto out;
-
-		if (tb[IFLA_LINK_NETNSID]) {
-			int id = nla_get_s32(tb[IFLA_LINK_NETNSID]);
-
-			link_net = get_net_ns_by_id(dest_net, id);
-			if (!link_net) {
-				err =  -EINVAL;
-				goto out;
-			}
-			err = -EPERM;
-			if (!netlink_ns_capable(skb, link_net->user_ns, CAP_NET_ADMIN))
-				goto out;
-		}
-
-		dev = rtnl_create_link(link_net ? : dest_net, ifname,
-				       name_assign_type, ops, tb);
+		dev = rtnl_create_link(dest_net, ifname, name_assign_type, ops, tb);
 		if (IS_ERR(dev)) {
 			err = PTR_ERR(dev);
 			goto out;
@@ -2121,7 +2078,7 @@ replay:
 		dev->ifindex = ifm->ifi_index;
 
 		if (ops->newlink) {
-			err = ops->newlink(link_net ? : net, dev, tb, data);
+			err = ops->newlink(net, dev, tb, data);
 			/* Drivers should call free_netdev() in ->destructor
 			 * and unregister it on failure after registration
 			 * so that device could be finally freed in rtnl_unlock.
@@ -2316,8 +2273,7 @@ static int nlmsg_populate_fdb_fill(struct sk_buff *skb,
 	if (nla_put(skb, NDA_LLADDR, ETH_ALEN, addr))
 		goto nla_put_failure;
 
-	nlmsg_end(skb, nlh);
-	return 0;
+	return nlmsg_end(skb, nlh);
 
 nla_put_failure:
 	nlmsg_cancel(skb, nlh);
@@ -2660,11 +2616,10 @@ static int rtnl_fdb_dump(struct sk_buff *skb, struct netlink_callback *cb)
 							 idx);
 		}
 
+		idx = ndo_dflt_fdb_dump(skb, cb, dev, NULL, idx);
 		if (dev->netdev_ops->ndo_fdb_dump)
-			idx = dev->netdev_ops->ndo_fdb_dump(skb, cb, dev, NULL,
+			idx = dev->netdev_ops->ndo_fdb_dump(skb, cb, bdev, dev,
 							    idx);
-		else
-			idx = ndo_dflt_fdb_dump(skb, cb, dev, NULL, idx);
 
 		cops = NULL;
 	}
@@ -2717,8 +2672,7 @@ int ndo_dflt_bridge_getlink(struct sk_buff *skb, u32 pid, u32 seq,
 	}
 	nla_nest_end(skb, br_afspec);
 
-	nlmsg_end(skb, nlh);
-	return 0;
+	return nlmsg_end(skb, nlh);
 nla_put_failure:
 	nlmsg_cancel(skb, nlh);
 	return -EMSGSIZE;
@@ -2789,14 +2743,12 @@ static inline size_t bridge_nlmsg_size(void)
 		+ nla_total_size(sizeof(u16));	/* IFLA_BRIDGE_MODE */
 }
 
-static int rtnl_bridge_notify(struct net_device *dev)
+static int rtnl_bridge_notify(struct net_device *dev, u16 flags)
 {
 	struct net *net = dev_net(dev);
+	struct net_device *br_dev = netdev_master_upper_dev_get(dev);
 	struct sk_buff *skb;
 	int err = -EOPNOTSUPP;
-
-	if (!dev->netdev_ops->ndo_bridge_getlink)
-		return 0;
 
 	skb = nlmsg_new(bridge_nlmsg_size(), GFP_ATOMIC);
 	if (!skb) {
@@ -2804,9 +2756,19 @@ static int rtnl_bridge_notify(struct net_device *dev)
 		goto errout;
 	}
 
-	err = dev->netdev_ops->ndo_bridge_getlink(skb, 0, 0, dev, 0);
-	if (err < 0)
-		goto errout;
+	if ((!flags || (flags & BRIDGE_FLAGS_MASTER)) &&
+	    br_dev && br_dev->netdev_ops->ndo_bridge_getlink) {
+		err = br_dev->netdev_ops->ndo_bridge_getlink(skb, 0, 0, dev, 0);
+		if (err < 0)
+			goto errout;
+	}
+
+	if ((flags & BRIDGE_FLAGS_SELF) &&
+	    dev->netdev_ops->ndo_bridge_getlink) {
+		err = dev->netdev_ops->ndo_bridge_getlink(skb, 0, 0, dev, 0);
+		if (err < 0)
+			goto errout;
+	}
 
 	if (!skb->len)
 		goto errout;
@@ -2828,7 +2790,7 @@ static int rtnl_bridge_setlink(struct sk_buff *skb, struct nlmsghdr *nlh)
 	struct net_device *dev;
 	struct nlattr *br_spec, *attr = NULL;
 	int rem, err = -EOPNOTSUPP;
-	u16 flags = 0;
+	u16 oflags, flags = 0;
 	bool have_flags = false;
 
 	if (nlmsg_len(nlh) < sizeof(*ifm))
@@ -2858,6 +2820,8 @@ static int rtnl_bridge_setlink(struct sk_buff *skb, struct nlmsghdr *nlh)
 		}
 	}
 
+	oflags = flags;
+
 	if (!flags || (flags & BRIDGE_FLAGS_MASTER)) {
 		struct net_device *br_dev = netdev_master_upper_dev_get(dev);
 
@@ -2866,7 +2830,7 @@ static int rtnl_bridge_setlink(struct sk_buff *skb, struct nlmsghdr *nlh)
 			goto out;
 		}
 
-		err = br_dev->netdev_ops->ndo_bridge_setlink(dev, nlh, flags);
+		err = br_dev->netdev_ops->ndo_bridge_setlink(dev, nlh);
 		if (err)
 			goto out;
 
@@ -2877,20 +2841,17 @@ static int rtnl_bridge_setlink(struct sk_buff *skb, struct nlmsghdr *nlh)
 		if (!dev->netdev_ops->ndo_bridge_setlink)
 			err = -EOPNOTSUPP;
 		else
-			err = dev->netdev_ops->ndo_bridge_setlink(dev, nlh,
-								  flags);
-		if (!err) {
-			flags &= ~BRIDGE_FLAGS_SELF;
+			err = dev->netdev_ops->ndo_bridge_setlink(dev, nlh);
 
-			/* Generate event to notify upper layer of bridge
-			 * change
-			 */
-			err = rtnl_bridge_notify(dev);
-		}
+		if (!err)
+			flags &= ~BRIDGE_FLAGS_SELF;
 	}
 
 	if (have_flags)
 		memcpy(nla_data(attr), &flags, sizeof(flags));
+	/* Generate event to notify upper layer of bridge change */
+	if (!err)
+		err = rtnl_bridge_notify(dev, oflags);
 out:
 	return err;
 }
@@ -2902,7 +2863,7 @@ static int rtnl_bridge_dellink(struct sk_buff *skb, struct nlmsghdr *nlh)
 	struct net_device *dev;
 	struct nlattr *br_spec, *attr = NULL;
 	int rem, err = -EOPNOTSUPP;
-	u16 flags = 0;
+	u16 oflags, flags = 0;
 	bool have_flags = false;
 
 	if (nlmsg_len(nlh) < sizeof(*ifm))
@@ -2932,6 +2893,8 @@ static int rtnl_bridge_dellink(struct sk_buff *skb, struct nlmsghdr *nlh)
 		}
 	}
 
+	oflags = flags;
+
 	if (!flags || (flags & BRIDGE_FLAGS_MASTER)) {
 		struct net_device *br_dev = netdev_master_upper_dev_get(dev);
 
@@ -2940,7 +2903,7 @@ static int rtnl_bridge_dellink(struct sk_buff *skb, struct nlmsghdr *nlh)
 			goto out;
 		}
 
-		err = br_dev->netdev_ops->ndo_bridge_dellink(dev, nlh, flags);
+		err = br_dev->netdev_ops->ndo_bridge_dellink(dev, nlh);
 		if (err)
 			goto out;
 
@@ -2951,21 +2914,17 @@ static int rtnl_bridge_dellink(struct sk_buff *skb, struct nlmsghdr *nlh)
 		if (!dev->netdev_ops->ndo_bridge_dellink)
 			err = -EOPNOTSUPP;
 		else
-			err = dev->netdev_ops->ndo_bridge_dellink(dev, nlh,
-								  flags);
+			err = dev->netdev_ops->ndo_bridge_dellink(dev, nlh);
 
-		if (!err) {
+		if (!err)
 			flags &= ~BRIDGE_FLAGS_SELF;
-
-			/* Generate event to notify upper layer of bridge
-			 * change
-			 */
-			err = rtnl_bridge_notify(dev);
-		}
 	}
 
 	if (have_flags)
 		memcpy(nla_data(attr), &flags, sizeof(flags));
+	/* Generate event to notify upper layer of bridge change */
+	if (!err)
+		err = rtnl_bridge_notify(dev, oflags);
 out:
 	return err;
 }
@@ -3055,7 +3014,6 @@ static int rtnetlink_event(struct notifier_block *this, unsigned long event, voi
 	case NETDEV_UNREGISTER_FINAL:
 	case NETDEV_RELEASE:
 	case NETDEV_JOIN:
-	case NETDEV_BONDING_INFO:
 		break;
 	default:
 		rtmsg_ifinfo(RTM_NEWLINK, dev, 0, GFP_KERNEL);

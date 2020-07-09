@@ -342,7 +342,6 @@ static void bcm_sysport_update_mib_counters(struct bcm_sysport_priv *priv)
 		s = &bcm_sysport_gstrings_stats[i];
 		switch (s->type) {
 		case BCM_SYSPORT_STAT_NETDEV:
-		case BCM_SYSPORT_STAT_SOFT:
 			continue;
 		case BCM_SYSPORT_STAT_MIB_RX:
 		case BCM_SYSPORT_STAT_MIB_TX:

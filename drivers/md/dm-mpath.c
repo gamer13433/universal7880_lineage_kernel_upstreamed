@@ -11,7 +11,6 @@
 #include "dm-path-selector.h"
 #include "dm-uevent.h"
 
-#include <linux/blkdev.h>
 #include <linux/ctype.h>
 #include <linux/init.h>
 #include <linux/mempool.h>
@@ -379,18 +378,18 @@ static int __must_push_back(struct multipath *m)
 /*
  * Map cloned requests
  */
-static int __multipath_map(struct dm_target *ti, struct request *clone,
-			   union map_info *map_context,
-			   struct request *rq, struct request **__clone)
+static int multipath_map(struct dm_target *ti, struct request *clone,
+			 union map_info *map_context)
 {
 	struct multipath *m = (struct multipath *) ti->private;
 	int r = DM_MAPIO_REQUEUE;
-	size_t nr_bytes = clone ? blk_rq_bytes(clone) : blk_rq_bytes(rq);
+	size_t nr_bytes = blk_rq_bytes(clone);
+	unsigned long flags;
 	struct pgpath *pgpath;
 	struct block_device *bdev;
 	struct dm_mpath_io *mpio;
 
-	spin_lock_irq(&m->lock);
+	spin_lock_irqsave(&m->lock, flags);
 
 	/* Do we need to select a new pgpath? */
 	if (!m->current_pgpath ||
@@ -412,59 +411,23 @@ static int __multipath_map(struct dm_target *ti, struct request *clone,
 		/* ENOMEM, requeue */
 		goto out_unlock;
 
+	bdev = pgpath->path.dev->bdev;
+	clone->q = bdev_get_queue(bdev);
+	clone->rq_disk = bdev->bd_disk;
+	clone->cmd_flags |= REQ_FAILFAST_TRANSPORT;
 	mpio = map_context->ptr;
 	mpio->pgpath = pgpath;
 	mpio->nr_bytes = nr_bytes;
-
-	bdev = pgpath->path.dev->bdev;
-
-	spin_unlock_irq(&m->lock);
-
-	if (clone) {
-		/* Old request-based interface: allocated clone is passed in */
-		clone->q = bdev_get_queue(bdev);
-		clone->rq_disk = bdev->bd_disk;
-		clone->cmd_flags |= REQ_FAILFAST_TRANSPORT;
-	} else {
-		/* blk-mq request-based interface */
-		*__clone = blk_get_request(bdev_get_queue(bdev),
-					   rq_data_dir(rq), GFP_KERNEL);
-		if (IS_ERR(*__clone))
-			/* ENOMEM, requeue */
-			return r;
-		(*__clone)->bio = (*__clone)->biotail = NULL;
-		(*__clone)->rq_disk = bdev->bd_disk;
-		(*__clone)->cmd_flags |= REQ_FAILFAST_TRANSPORT;
-	}
-
 	if (pgpath->pg->ps.type->start_io)
 		pgpath->pg->ps.type->start_io(&pgpath->pg->ps,
 					      &pgpath->path,
 					      nr_bytes);
-	return DM_MAPIO_REMAPPED;
+	r = DM_MAPIO_REMAPPED;
 
 out_unlock:
-	spin_unlock_irq(&m->lock);
+	spin_unlock_irqrestore(&m->lock, flags);
 
 	return r;
-}
-
-static int multipath_map(struct dm_target *ti, struct request *clone,
-			 union map_info *map_context)
-{
-	return __multipath_map(ti, clone, map_context, NULL, NULL);
-}
-
-static int multipath_clone_and_map(struct dm_target *ti, struct request *rq,
-				   union map_info *map_context,
-				   struct request **clone)
-{
-	return __multipath_map(ti, NULL, map_context, rq, clone);
-}
-
-static void multipath_release_clone(struct request *clone)
-{
-	blk_put_request(clone);
 }
 
 /*
@@ -1703,13 +1666,11 @@ out:
  *---------------------------------------------------------------*/
 static struct target_type multipath_target = {
 	.name = "multipath",
-	.version = {1, 8, 0},
+	.version = {1, 7, 0},
 	.module = THIS_MODULE,
 	.ctr = multipath_ctr,
 	.dtr = multipath_dtr,
 	.map_rq = multipath_map,
-	.clone_and_map_rq = multipath_clone_and_map,
-	.release_clone_rq = multipath_release_clone,
 	.rq_end_io = multipath_end_io,
 	.presuspend = multipath_presuspend,
 	.postsuspend = multipath_postsuspend,
@@ -1733,15 +1694,16 @@ static int __init dm_multipath_init(void)
 	r = dm_register_target(&multipath_target);
 	if (r < 0) {
 		DMERR("register failed %d", r);
-		r = -EINVAL;
-		goto bad_register_target;
+		kmem_cache_destroy(_mpio_cache);
+		return -EINVAL;
 	}
 
 	kmultipathd = alloc_workqueue("kmpathd", WQ_MEM_RECLAIM, 0);
 	if (!kmultipathd) {
 		DMERR("failed to create workqueue kmpathd");
-		r = -ENOMEM;
-		goto bad_alloc_kmultipathd;
+		dm_unregister_target(&multipath_target);
+		kmem_cache_destroy(_mpio_cache);
+		return -ENOMEM;
 	}
 
 	/*
@@ -1754,22 +1716,15 @@ static int __init dm_multipath_init(void)
 						  WQ_MEM_RECLAIM);
 	if (!kmpath_handlerd) {
 		DMERR("failed to create workqueue kmpath_handlerd");
-		r = -ENOMEM;
-		goto bad_alloc_kmpath_handlerd;
+		destroy_workqueue(kmultipathd);
+		dm_unregister_target(&multipath_target);
+		kmem_cache_destroy(_mpio_cache);
+		return -ENOMEM;
 	}
 
 	DMINFO("version %u.%u.%u loaded",
 	       multipath_target.version[0], multipath_target.version[1],
 	       multipath_target.version[2]);
-
-	return 0;
-
-bad_alloc_kmpath_handlerd:
-	destroy_workqueue(kmultipathd);
-bad_alloc_kmultipathd:
-	dm_unregister_target(&multipath_target);
-bad_register_target:
-	kmem_cache_destroy(_mpio_cache);
 
 	return r;
 }

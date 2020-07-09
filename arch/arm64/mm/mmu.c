@@ -26,8 +26,6 @@
 #include <linux/memblock.h>
 #include <linux/fs.h>
 #include <linux/io.h>
-#include <linux/slab.h>
-#include <linux/stop_machine.h>
 
 #include <asm/cputype.h>
 #include <asm/sections.h>
@@ -56,6 +54,80 @@ extern int boot_mode_security;
  */
 struct page *empty_zero_page;
 EXPORT_SYMBOL(empty_zero_page);
+
+struct cachepolicy {
+	const char	policy[16];
+	u64		mair;
+	u64		tcr;
+};
+
+static struct cachepolicy cache_policies[] __initdata = {
+	{
+		.policy		= "uncached",
+		.mair		= 0x44,			/* inner, outer non-cacheable */
+		.tcr		= TCR_IRGN_NC | TCR_ORGN_NC,
+	}, {
+		.policy		= "writethrough",
+		.mair		= 0xaa,			/* inner, outer write-through, read-allocate */
+		.tcr		= TCR_IRGN_WT | TCR_ORGN_WT,
+	}, {
+		.policy		= "writeback",
+		.mair		= 0xee,			/* inner, outer write-back, read-allocate */
+		.tcr		= TCR_IRGN_WBnWA | TCR_ORGN_WBnWA,
+	}
+};
+
+/*
+ * These are useful for identifying cache coherency problems by allowing the
+ * cache or the cache and writebuffer to be turned off. It changes the Normal
+ * memory caching attributes in the MAIR_EL1 register.
+ */
+static int __init early_cachepolicy(char *p)
+{
+	int i;
+	u64 tmp;
+
+	for (i = 0; i < ARRAY_SIZE(cache_policies); i++) {
+		int len = strlen(cache_policies[i].policy);
+
+		if (memcmp(p, cache_policies[i].policy, len) == 0)
+			break;
+	}
+	if (i == ARRAY_SIZE(cache_policies)) {
+		pr_err("ERROR: unknown or unsupported cache policy: %s\n", p);
+		return 0;
+	}
+
+	flush_cache_all();
+
+	/*
+	 * Modify MT_NORMAL attributes in MAIR_EL1.
+	 */
+	asm volatile(
+	"	mrs	%0, mair_el1\n"
+	"	bfi	%0, %1, %2, #8\n"
+	"	msr	mair_el1, %0\n"
+	"	isb\n"
+	: "=&r" (tmp)
+	: "r" (cache_policies[i].mair), "i" (MT_NORMAL * 8));
+
+	/*
+	 * Modify TCR PTW cacheability attributes.
+	 */
+	asm volatile(
+	"	mrs	%0, tcr_el1\n"
+	"	bic	%0, %0, %2\n"
+	"	orr	%0, %0, %1\n"
+	"	msr	tcr_el1, %0\n"
+	"	isb\n"
+	: "=&r" (tmp)
+	: "r" (cache_policies[i].tcr), "r" (TCR_IRGN_MASK | TCR_ORGN_MASK));
+
+	flush_cache_all();
+
+	return 0;
+}
+early_param("cachepolicy", early_cachepolicy);
 
 pgprot_t phys_mem_access_prot(struct file *file, unsigned long pfn,
 			      unsigned long size, pgprot_t vma_prot)
@@ -276,10 +348,10 @@ static void __init alloc_init_pud(pgd_t *pgd, unsigned long addr,
 		/*
 		 * For 4K granule only, attempt to put down a 1GB block
 		 */
-		if (use_1G_block(addr, next, phys)) {
+		if (!map_io && (PAGE_SHIFT == 12) &&
+		    ((addr | next | phys) & ~PUD_MASK) == 0) {
 			pud_t old_pud = *pud;
-			set_pud(pud, __pud(phys |
-					   pgprot_val(mk_sect_prot(prot))));
+			set_pud(pud, __pud(phys | PROT_SECT_NORMAL_EXEC));
 
 			/*
 			 * If we have an old value for a pud, it will
@@ -289,15 +361,12 @@ static void __init alloc_init_pud(pgd_t *pgd, unsigned long addr,
 			 * Look up the old pmd table and free it.
 			 */
 			if (!pud_none(old_pud)) {
+				phys_addr_t table = __pa(pmd_offset(&old_pud, 0));
+				memblock_free(table, PAGE_SIZE);
 				flush_tlb_all();
-				if (pud_table(old_pud)) {
-					phys_addr_t table = __pa(pmd_offset(&old_pud, 0));
-					if (!WARN_ON_ONCE(slab_is_available()))
-						memblock_free(table, PAGE_SIZE);
-				}
 			}
 		} else {
-			alloc_init_pmd(mm, pud, addr, next, phys, prot, alloc);
+			alloc_init_pmd(pud, addr, next, phys, map_io);
 		}
 		phys += next - addr;
 	} while (pud++, addr = next, addr != end);
@@ -307,10 +376,9 @@ static void __init alloc_init_pud(pgd_t *pgd, unsigned long addr,
  * Create the page directory entries and any necessary page tables for the
  * mapping specified by 'md'.
  */
-static void  __create_mapping(struct mm_struct *mm, pgd_t *pgd,
-				    phys_addr_t phys, unsigned long virt,
-				    phys_addr_t size, pgprot_t prot,
-				    void *(*alloc)(unsigned long size))
+static void __init __create_mapping(pgd_t *pgd, phys_addr_t phys,
+				    unsigned long virt, phys_addr_t size,
+				    int map_io)
 {
 	unsigned long addr, length, end, next;
 
@@ -320,95 +388,31 @@ static void  __create_mapping(struct mm_struct *mm, pgd_t *pgd,
 	end = addr + length;
 	do {
 		next = pgd_addr_end(addr, end);
-		alloc_init_pud(mm, pgd, addr, next, phys, prot, alloc);
+		alloc_init_pud(pgd, addr, next, phys, map_io);
 		phys += next - addr;
 	} while (pgd++, addr = next, addr != end);
 }
 
-static void *late_alloc(unsigned long size)
-{
-	void *ptr;
-
-	BUG_ON(size > PAGE_SIZE);
-	ptr = (void *)__get_free_page(PGALLOC_GFP);
-	BUG_ON(!ptr);
-	return ptr;
-}
-
-static void __ref create_mapping(phys_addr_t phys, unsigned long virt,
-				  phys_addr_t size, pgprot_t prot)
+static void __init create_mapping(phys_addr_t phys, unsigned long virt,
+				  phys_addr_t size)
 {
 	if (virt < VMALLOC_START) {
 		pr_warn("BUG: not creating mapping for %pa at 0x%016lx - outside kernel range\n",
 			&phys, virt);
 		return;
 	}
-	__create_mapping(&init_mm, pgd_offset_k(virt & PAGE_MASK), phys, virt,
-			 size, prot, early_alloc);
+	__create_mapping(pgd_offset_k(virt & PAGE_MASK), phys, virt, size, 0);
 }
 
-void __init create_pgd_mapping(struct mm_struct *mm, phys_addr_t phys,
-			       unsigned long virt, phys_addr_t size,
-			       pgprot_t prot)
+void __init create_id_mapping(phys_addr_t addr, phys_addr_t size, int map_io)
 {
-	__create_mapping(mm, pgd_offset(mm, virt), phys, virt, size, prot,
-				late_alloc);
-}
-
-static void create_mapping_late(phys_addr_t phys, unsigned long virt,
-				  phys_addr_t size, pgprot_t prot)
-{
-	if (virt < VMALLOC_START) {
-		pr_warn("BUG: not creating mapping for %pa at 0x%016lx - outside kernel range\n",
-			&phys, virt);
+	if ((addr >> PGDIR_SHIFT) >= ARRAY_SIZE(idmap_pg_dir)) {
+		pr_warn("BUG: not creating id mapping for %pa\n", &addr);
 		return;
 	}
-
-	return __create_mapping(&init_mm, pgd_offset_k(virt & PAGE_MASK),
-				phys, virt, size, prot, late_alloc);
+	__create_mapping(&idmap_pg_dir[pgd_index(addr)],
+			 addr, addr, size, map_io);
 }
-
-#ifdef CONFIG_DEBUG_RODATA
-static void __init __map_memblock(phys_addr_t start, phys_addr_t end)
-{
-	/*
-	 * Set up the executable regions using the existing section mappings
-	 * for now. This will get more fine grained later once all memory
-	 * is mapped
-	 */
-	unsigned long kernel_x_start = round_down(__pa(_stext), SECTION_SIZE);
-	unsigned long kernel_x_end = round_up(__pa(__init_end), SECTION_SIZE);
-
-	if (end < kernel_x_start) {
-		create_mapping(start, __phys_to_virt(start),
-			end - start, PAGE_KERNEL);
-	} else if (start >= kernel_x_end) {
-		create_mapping(start, __phys_to_virt(start),
-			end - start, PAGE_KERNEL);
-	} else {
-		if (start < kernel_x_start)
-			create_mapping(start, __phys_to_virt(start),
-				kernel_x_start - start,
-				PAGE_KERNEL);
-		create_mapping(kernel_x_start,
-				__phys_to_virt(kernel_x_start),
-				kernel_x_end - kernel_x_start,
-				PAGE_KERNEL_EXEC);
-		if (kernel_x_end < end)
-			create_mapping(kernel_x_end,
-				__phys_to_virt(kernel_x_end),
-				end - kernel_x_end,
-				PAGE_KERNEL);
-	}
-
-}
-#else
-static void __init __map_memblock(phys_addr_t start, phys_addr_t end)
-{
-	create_mapping(start, __phys_to_virt(start), end - start,
-			PAGE_KERNEL_EXEC);
-}
-#endif
 
 static void __init map_mem(void)
 {

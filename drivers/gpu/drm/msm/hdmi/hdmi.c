@@ -1,5 +1,4 @@
 /*
- * Copyright (c) 2014 The Linux Foundation. All rights reserved.
  * Copyright (C) 2013 Red Hat
  * Author: Rob Clark <robdclark@gmail.com>
  *
@@ -120,12 +119,7 @@ struct hdmi *hdmi_init(struct drm_device *dev, struct drm_encoder *encoder)
 		goto fail;
 	}
 
-	hdmi->hpd_regs = devm_kzalloc(&pdev->dev, sizeof(hdmi->hpd_regs[0]) *
-			config->hpd_reg_cnt, GFP_KERNEL);
-	if (!hdmi->hpd_regs) {
-		ret = -ENOMEM;
-		goto fail;
-	}
+	BUG_ON(config->hpd_reg_cnt > ARRAY_SIZE(hdmi->hpd_regs));
 	for (i = 0; i < config->hpd_reg_cnt; i++) {
 		struct regulator *reg;
 
@@ -141,12 +135,7 @@ struct hdmi *hdmi_init(struct drm_device *dev, struct drm_encoder *encoder)
 		hdmi->hpd_regs[i] = reg;
 	}
 
-	hdmi->pwr_regs = devm_kzalloc(&pdev->dev, sizeof(hdmi->pwr_regs[0]) *
-			config->pwr_reg_cnt, GFP_KERNEL);
-	if (!hdmi->pwr_regs) {
-		ret = -ENOMEM;
-		goto fail;
-	}
+	BUG_ON(config->pwr_reg_cnt > ARRAY_SIZE(hdmi->pwr_regs));
 	for (i = 0; i < config->pwr_reg_cnt; i++) {
 		struct regulator *reg;
 
@@ -162,12 +151,7 @@ struct hdmi *hdmi_init(struct drm_device *dev, struct drm_encoder *encoder)
 		hdmi->pwr_regs[i] = reg;
 	}
 
-	hdmi->hpd_clks = devm_kzalloc(&pdev->dev, sizeof(hdmi->hpd_clks[0]) *
-			config->hpd_clk_cnt, GFP_KERNEL);
-	if (!hdmi->hpd_clks) {
-		ret = -ENOMEM;
-		goto fail;
-	}
+	BUG_ON(config->hpd_clk_cnt > ARRAY_SIZE(hdmi->hpd_clks));
 	for (i = 0; i < config->hpd_clk_cnt; i++) {
 		struct clk *clk;
 
@@ -182,12 +166,7 @@ struct hdmi *hdmi_init(struct drm_device *dev, struct drm_encoder *encoder)
 		hdmi->hpd_clks[i] = clk;
 	}
 
-	hdmi->pwr_clks = devm_kzalloc(&pdev->dev, sizeof(hdmi->pwr_clks[0]) *
-			config->pwr_clk_cnt, GFP_KERNEL);
-	if (!hdmi->pwr_clks) {
-		ret = -ENOMEM;
-		goto fail;
-	}
+	BUG_ON(config->pwr_clk_cnt > ARRAY_SIZE(hdmi->pwr_clks));
 	for (i = 0; i < config->pwr_clk_cnt; i++) {
 		struct clk *clk;
 
@@ -278,57 +257,6 @@ static void set_hdmi_pdev(struct drm_device *dev,
 	struct msm_drm_private *priv = dev->dev_private;
 	priv->hdmi_pdev = pdev;
 }
-
-#define HDMI_CFG(item, entry) \
-	.item ## _names = item ##_names_ ## entry, \
-	.item ## _cnt   = ARRAY_SIZE(item ## _names_ ## entry)
-
-static struct hdmi_platform_config hdmi_tx_8660_config = {
-		.phy_init = hdmi_phy_8x60_init,
-};
-
-static const char *hpd_reg_names_8960[] = {"core-vdda", "hdmi-mux"};
-static const char *hpd_clk_names_8960[] = {"core_clk", "master_iface_clk", "slave_iface_clk"};
-
-static struct hdmi_platform_config hdmi_tx_8960_config = {
-		.phy_init = hdmi_phy_8960_init,
-		HDMI_CFG(hpd_reg, 8960),
-		HDMI_CFG(hpd_clk, 8960),
-};
-
-static const char *pwr_reg_names_8x74[] = {"core-vdda", "core-vcc"};
-static const char *hpd_reg_names_8x74[] = {"hpd-gdsc", "hpd-5v"};
-static const char *pwr_clk_names_8x74[] = {"extp_clk", "alt_iface_clk"};
-static const char *hpd_clk_names_8x74[] = {"iface_clk", "core_clk", "mdp_core_clk"};
-static unsigned long hpd_clk_freq_8x74[] = {0, 19200000, 0};
-
-static struct hdmi_platform_config hdmi_tx_8074_config = {
-		.phy_init = hdmi_phy_8x74_init,
-		HDMI_CFG(pwr_reg, 8x74),
-		HDMI_CFG(hpd_reg, 8x74),
-		HDMI_CFG(pwr_clk, 8x74),
-		HDMI_CFG(hpd_clk, 8x74),
-		.hpd_freq      = hpd_clk_freq_8x74,
-};
-
-static const char *hpd_reg_names_8084[] = {"hpd-gdsc", "hpd-5v", "hpd-5v-en"};
-
-static struct hdmi_platform_config hdmi_tx_8084_config = {
-		.phy_init = hdmi_phy_8x74_init,
-		HDMI_CFG(pwr_reg, 8x74),
-		HDMI_CFG(hpd_reg, 8084),
-		HDMI_CFG(pwr_clk, 8x74),
-		HDMI_CFG(hpd_clk, 8x74),
-		.hpd_freq      = hpd_clk_freq_8x74,
-};
-
-static const struct of_device_id dt_match[] = {
-	{ .compatible = "qcom,hdmi-tx-8084", .data = &hdmi_tx_8084_config },
-	{ .compatible = "qcom,hdmi-tx-8074", .data = &hdmi_tx_8074_config },
-	{ .compatible = "qcom,hdmi-tx-8960", .data = &hdmi_tx_8960_config },
-	{ .compatible = "qcom,hdmi-tx-8660", .data = &hdmi_tx_8660_config },
-	{}
-};
 
 #ifdef CONFIG_OF
 static int get_gpio(struct device *dev, struct device_node *of_node, const char *name)
@@ -466,6 +394,13 @@ static int hdmi_dev_remove(struct platform_device *pdev)
 	component_del(&pdev->dev, &hdmi_ops);
 	return 0;
 }
+
+static const struct of_device_id dt_match[] = {
+	{ .compatible = "qcom,hdmi-tx-8074" },
+	{ .compatible = "qcom,hdmi-tx-8960" },
+	{ .compatible = "qcom,hdmi-tx-8660" },
+	{}
+};
 
 static struct platform_driver hdmi_driver = {
 	.probe = hdmi_dev_probe,

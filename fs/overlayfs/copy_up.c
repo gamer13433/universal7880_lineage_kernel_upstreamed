@@ -191,6 +191,7 @@ int ovl_set_attr(struct dentry *upperdentry, struct kstat *stat)
 		ovl_set_timestamps(upperdentry, stat);
 
 	return err;
+
 }
 
 static int ovl_copy_up_locked(struct dentry *workdir, struct dentry *upperdir,
@@ -384,7 +385,7 @@ int ovl_copy_up(struct dentry *dentry)
 		struct kstat stat;
 		enum ovl_path_type type = ovl_path_type(dentry);
 
-		if (OVL_TYPE_UPPER(type))
+		if (type != OVL_PATH_LOWER)
 			break;
 
 		next = dget(dentry);
@@ -393,7 +394,7 @@ int ovl_copy_up(struct dentry *dentry)
 			parent = dget_parent(next);
 
 			type = ovl_path_type(parent);
-			if (OVL_TYPE_UPPER(type))
+			if (type != OVL_PATH_LOWER)
 				break;
 
 			dput(next);

@@ -12,11 +12,8 @@
  */
 
 /dts-v1/;
-#include "sun6i-a31.dtsi"
-#include "sunxi-common-regulators.dtsi"
-
-#include <dt-bindings/gpio/gpio.h>
-#include <dt-bindings/pinctrl/sun4i-a10.h>
+/include/ "sun6i-a31.dtsi"
+/include/ "sunxi-common-regulators.dtsi"
 
 / {
 	model = "WITS A31 Colombus Evaluation Board";
@@ -32,7 +29,7 @@
 			pinctrl-0 = <&mmc0_pins_a>, <&mmc0_cd_pin_colombus>;
 			vmmc-supply = <&reg_vcc3v0>;
 			bus-width = <4>;
-			cd-gpios = <&pio 0 8 GPIO_ACTIVE_HIGH>; /* PA8 */
+			cd-gpios = <&pio 0 8 0>; /* PA8 */
 			cd-inverted;
 			status = "okay";
 		};
@@ -48,21 +45,21 @@
 
 		pio: pinctrl@01c20800 {
 			mmc0_pins_a: mmc0@0 {
-				allwinner,pull = <SUN4I_PINCTRL_PULL_UP>;
+				allwinner,pull = <1>;
 			};
 
 			mmc0_cd_pin_colombus: mmc0_cd_pin@0 {
 				allwinner,pins = "PA8";
 				allwinner,function = "gpio_in";
-				allwinner,drive = <SUN4I_PINCTRL_10_MA>;
-				allwinner,pull = <SUN4I_PINCTRL_PULL_UP>;
+				allwinner,drive = <0>;
+				allwinner,pull = <1>;
 			};
 
 			usb2_vbus_pin_colombus: usb2_vbus_pin@0 {
 				allwinner,pins = "PH24";
 				allwinner,function = "gpio_out";
-				allwinner,drive = <SUN4I_PINCTRL_10_MA>;
-				allwinner,pull = <SUN4I_PINCTRL_NO_PULL>;
+				allwinner,drive = <0>;
+				allwinner,pull = <0>;
 			};
 		};
 
@@ -94,7 +91,7 @@
 	reg_usb2_vbus: usb2-vbus {
 		pinctrl-names = "default";
 		pinctrl-0 = <&usb2_vbus_pin_colombus>;
-		gpio = <&pio 7 24 GPIO_ACTIVE_HIGH>;
+		gpio = <&pio 7 24 0>;
 		status = "okay";
 	};
 };

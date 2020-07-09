@@ -307,13 +307,18 @@ static int vvp_io_rw_lock(const struct lu_env *env, struct cl_io *io,
 static int vvp_io_read_lock(const struct lu_env *env,
 			    const struct cl_io_slice *ios)
 {
-	struct cl_io	 *io = ios->cis_io;
-	struct cl_io_rw_common *rd = &io->u.ci_rd.rd;
+	struct cl_io	 *io  = ios->cis_io;
+	struct ll_inode_info *lli = ll_i2info(ccc_object_inode(io->ci_obj));
 	int result;
 
-	result = vvp_io_rw_lock(env, io, CLM_READ, rd->crw_pos,
-				rd->crw_pos + rd->crw_count - 1);
-
+	/* XXX: Layer violation, we shouldn't see lsm at llite level. */
+	if (lli->lli_has_smd) /* lsm-less file doesn't need to lock */
+		result = vvp_io_rw_lock(env, io, CLM_READ,
+					io->u.ci_rd.rd.crw_pos,
+					io->u.ci_rd.rd.crw_pos +
+					io->u.ci_rd.rd.crw_count - 1);
+	else
+		result = 0;
 	return result;
 }
 

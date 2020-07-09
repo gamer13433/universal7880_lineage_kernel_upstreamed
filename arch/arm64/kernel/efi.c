@@ -47,33 +47,30 @@ static int __init is_normal_ram(efi_memory_desc_t *md)
 	return 0;
 }
 
-/*
- * Translate a EFI virtual address into a physical address: this is necessary,
- * as some data members of the EFI system table are virtually remapped after
- * SetVirtualAddressMap() has been called.
- */
-static phys_addr_t efi_to_phys(unsigned long addr)
+static void __init efi_setup_idmap(void)
 {
+	struct memblock_region *r;
 	efi_memory_desc_t *md;
+	u64 paddr, npages, size;
 
+	for_each_memblock(memory, r)
+		create_id_mapping(r->base, r->size, 0);
+
+	/* map runtime io spaces */
 	for_each_efi_memory_desc(&memmap, md) {
-		if (!(md->attribute & EFI_MEMORY_RUNTIME))
+		if (!(md->attribute & EFI_MEMORY_RUNTIME) || is_normal_ram(md))
 			continue;
-		if (md->virt_addr == 0)
-			/* no virtual mapping has been installed by the stub */
-			break;
-		if (md->virt_addr <= addr &&
-		    (addr - md->virt_addr) < (md->num_pages << EFI_PAGE_SHIFT))
-			return md->phys_addr + addr - md->virt_addr;
+		paddr = md->phys_addr;
+		npages = md->num_pages;
+		memrange_efi_to_native(&paddr, &npages);
+		size = npages << PAGE_SHIFT;
+		create_id_mapping(paddr, size, 1);
 	}
-	return addr;
 }
 
 static int __init uefi_init(void)
 {
 	efi_char16_t *c16;
-	void *config_tables;
-	u64 table_size;
 	char vendor[100] = "unknown";
 	int i, retval;
 
@@ -101,7 +98,7 @@ static int __init uefi_init(void)
 			efi.systab->hdr.revision & 0xffff);
 
 	/* Show what we know for posterity */
-	c16 = early_memremap(efi_to_phys(efi.systab->fw_vendor),
+	c16 = early_memremap(efi.systab->fw_vendor,
 			     sizeof(vendor));
 	if (c16) {
 		for (i = 0; i < (int) sizeof(vendor) - 1 && *c16; ++i)
@@ -167,7 +164,9 @@ static __init void reserve_regions(void)
 		if (is_normal_ram(md))
 			early_init_dt_add_memory_arch(paddr, size);
 
-		if (is_reserve_region(md)) {
+		if (is_reserve_region(md) ||
+		    md->type == EFI_BOOT_SERVICES_CODE ||
+		    md->type == EFI_BOOT_SERVICES_DATA) {
 			memblock_reserve(paddr, size);
 			if (uefi_debug)
 				pr_cont("*");
@@ -178,6 +177,123 @@ static __init void reserve_regions(void)
 	}
 
 	set_bit(EFI_MEMMAP, &efi.flags);
+}
+
+
+static u64 __init free_one_region(u64 start, u64 end)
+{
+	u64 size = end - start;
+
+	if (uefi_debug)
+		pr_info("  EFI freeing: 0x%012llx-0x%012llx\n",	start, end - 1);
+
+	free_bootmem_late(start, size);
+	return size;
+}
+
+static u64 __init free_region(u64 start, u64 end)
+{
+	u64 map_start, map_end, total = 0;
+
+	if (end <= start)
+		return total;
+
+	map_start = (u64)memmap.phys_map;
+	map_end = PAGE_ALIGN(map_start + (memmap.map_end - memmap.map));
+	map_start &= PAGE_MASK;
+
+	if (start < map_end && end > map_start) {
+		/* region overlaps UEFI memmap */
+		if (start < map_start)
+			total += free_one_region(start, map_start);
+
+		if (map_end < end)
+			total += free_one_region(map_end, end);
+	} else
+		total += free_one_region(start, end);
+
+	return total;
+}
+
+static void __init free_boot_services(void)
+{
+	u64 total_freed = 0;
+	u64 keep_end, free_start, free_end;
+	efi_memory_desc_t *md;
+
+	/*
+	 * If kernel uses larger pages than UEFI, we have to be careful
+	 * not to inadvertantly free memory we want to keep if there is
+	 * overlap at the kernel page size alignment. We do not want to
+	 * free is_reserve_region() memory nor the UEFI memmap itself.
+	 *
+	 * The memory map is sorted, so we keep track of the end of
+	 * any previous region we want to keep, remember any region
+	 * we want to free and defer freeing it until we encounter
+	 * the next region we want to keep. This way, before freeing
+	 * it, we can clip it as needed to avoid freeing memory we
+	 * want to keep for UEFI.
+	 */
+
+	keep_end = 0;
+	free_start = 0;
+
+	for_each_efi_memory_desc(&memmap, md) {
+		u64 paddr, npages, size;
+
+		if (is_reserve_region(md)) {
+			/*
+			 * We don't want to free any memory from this region.
+			 */
+			if (free_start) {
+				/* adjust free_end then free region */
+				if (free_end > md->phys_addr)
+					free_end -= PAGE_SIZE;
+				total_freed += free_region(free_start, free_end);
+				free_start = 0;
+			}
+			keep_end = md->phys_addr + (md->num_pages << EFI_PAGE_SHIFT);
+			continue;
+		}
+
+		if (md->type != EFI_BOOT_SERVICES_CODE &&
+		    md->type != EFI_BOOT_SERVICES_DATA) {
+			/* no need to free this region */
+			continue;
+		}
+
+		/*
+		 * We want to free memory from this region.
+		 */
+		paddr = md->phys_addr;
+		npages = md->num_pages;
+		memrange_efi_to_native(&paddr, &npages);
+		size = npages << PAGE_SHIFT;
+
+		if (free_start) {
+			if (paddr <= free_end)
+				free_end = paddr + size;
+			else {
+				total_freed += free_region(free_start, free_end);
+				free_start = paddr;
+				free_end = paddr + size;
+			}
+		} else {
+			free_start = paddr;
+			free_end = paddr + size;
+		}
+		if (free_start < keep_end) {
+			free_start += PAGE_SIZE;
+			if (free_start >= free_end)
+				free_start = 0;
+		}
+	}
+	if (free_start)
+		total_freed += free_region(free_start, free_end);
+
+	if (total_freed)
+		pr_info("Freed 0x%llx bytes of EFI boot services memory",
+			total_freed);
 }
 
 void __init efi_init(void)

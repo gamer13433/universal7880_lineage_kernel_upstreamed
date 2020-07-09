@@ -26,6 +26,11 @@
  * Device Access
  */
 
+static inline u32 vsp1_hsit_read(struct vsp1_hsit *hsit, u32 reg)
+{
+	return vsp1_read(hsit->entity.vsp1, reg);
+}
+
 static inline void vsp1_hsit_write(struct vsp1_hsit *hsit, u32 reg, u32 data)
 {
 	vsp1_write(hsit->entity.vsp1, reg, data);

@@ -454,6 +454,19 @@ check_scsi_name:
 }
 EXPORT_SYMBOL(spc_emulate_evpd_83);
 
+static bool
+spc_check_dev_wce(struct se_device *dev)
+{
+	bool wce = false;
+
+	if (dev->transport->get_write_cache)
+		wce = dev->transport->get_write_cache(dev);
+	else if (dev->dev_attrib.emulate_write_cache > 0)
+		wce = true;
+
+	return wce;
+}
+
 /* Extended INQUIRY Data VPD Page */
 static sense_reason_t
 spc_emulate_evpd_86(struct se_cmd *cmd, unsigned char *buf)
@@ -477,7 +490,7 @@ spc_emulate_evpd_86(struct se_cmd *cmd, unsigned char *buf)
 	buf[5] = 0x07;
 
 	/* If WriteCache emulation is enabled, set V_SUP */
-	if (se_dev_check_wce(dev))
+	if (spc_check_dev_wce(dev))
 		buf[6] = 0x01;
 	/* If an LBA map is present set R_SUP */
 	spin_lock(&cmd->se_dev->t10_alua.lba_map_lock);
@@ -634,7 +647,7 @@ spc_emulate_evpd_b2(struct se_cmd *cmd, unsigned char *buf)
 	 * support the use of the WRITE SAME (16) command to unmap LBAs.
 	 */
 	if (dev->dev_attrib.emulate_tpws != 0)
-		buf[5] |= 0x40 | 0x20;
+		buf[5] |= 0x40;
 
 	return 0;
 }
@@ -884,7 +897,7 @@ static int spc_modesense_caching(struct se_cmd *cmd, u8 pc, u8 *p)
 	if (pc == 1)
 		goto out;
 
-	if (se_dev_check_wce(dev))
+	if (spc_check_dev_wce(dev))
 		p[2] = 0x04; /* Write Cache Enable */
 	p[12] = 0x20; /* Disabled Read Ahead */
 
@@ -996,7 +1009,7 @@ static sense_reason_t spc_emulate_modesense(struct se_cmd *cmd)
 	     (cmd->se_deve->lun_flags & TRANSPORT_LUNFLAGS_READ_ONLY)))
 		spc_modesense_write_protect(&buf[length], type);
 
-	if ((se_dev_check_wce(dev)) &&
+	if ((spc_check_dev_wce(dev)) &&
 	    (dev->dev_attrib.emulate_fua_write > 0))
 		spc_modesense_dpofua(&buf[length], type);
 

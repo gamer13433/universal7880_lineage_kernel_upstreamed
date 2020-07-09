@@ -26,6 +26,8 @@
 #ifndef __VISORCHIPSET_UMODE_H
 #define __VISORCHIPSET_UMODE_H
 
+
+
 /** The user-mode program can access the control channel buffer directly
  *  via this memory map.
  */

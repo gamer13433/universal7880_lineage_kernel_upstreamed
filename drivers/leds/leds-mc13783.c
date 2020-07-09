@@ -134,7 +134,9 @@ static struct mc13xxx_leds_platform_data __init *mc13xxx_led_probe_dt(
 	if (!pdata)
 		return ERR_PTR(-ENOMEM);
 
-	parent = of_get_child_by_name(dev->parent->of_node, "leds");
+	of_node_get(dev->parent->of_node);
+
+	parent = of_find_node_by_name(dev->parent->of_node, "leds");
 	if (!parent)
 		goto out_node_put;
 

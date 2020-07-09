@@ -91,7 +91,7 @@ static void sysrq_handle_loglevel(int key)
 
 	i = key - '0';
 	console_loglevel = CONSOLE_LOGLEVEL_DEFAULT;
-	pr_info("Loglevel set to %d\n", i);
+	printk("Loglevel set to %d\n", i);
 	console_loglevel = i;
 }
 static struct sysrq_key_op sysrq_loglevel_op = {
@@ -221,7 +221,7 @@ static void showacpu(void *dummy)
 		return;
 
 	spin_lock_irqsave(&show_lock, flags);
-	pr_info("CPU%d:\n", smp_processor_id());
+	printk(KERN_INFO "CPU%d:\n", smp_processor_id());
 	show_stack(NULL, NULL);
 	spin_unlock_irqrestore(&show_lock, flags);
 }
@@ -244,7 +244,7 @@ static void sysrq_handle_showallcpus(int key)
 		struct pt_regs *regs = get_irq_regs();
 
 		if (regs) {
-			pr_info("CPU%d:\n", smp_processor_id());
+			printk(KERN_INFO "CPU%d:\n", smp_processor_id());
 			show_regs(regs);
 		}
 		schedule_work(&sysrq_showallcpus);
@@ -356,9 +356,8 @@ static struct sysrq_key_op sysrq_term_op = {
 
 static void moom_callback(struct work_struct *ignored)
 {
-	if (!out_of_memory(node_zonelist(first_memory_node, GFP_KERNEL),
-			   GFP_KERNEL, 0, NULL, true))
-		pr_info("OOM request ignored because killer is disabled\n");
+	out_of_memory(node_zonelist(first_memory_node, GFP_KERNEL), GFP_KERNEL,
+		      0, NULL, true);
 }
 
 static DECLARE_WORK(moom_work, moom_callback);
@@ -524,7 +523,7 @@ void __handle_sysrq(int key, bool check_mask)
 	 */
 	orig_log_level = console_loglevel;
 	console_loglevel = CONSOLE_LOGLEVEL_DEFAULT;
-	pr_info("SysRq : ");
+	printk(KERN_INFO "SysRq : ");
 
         op_p = __sysrq_get_key_op(key);
         if (op_p) {
@@ -533,14 +532,14 @@ void __handle_sysrq(int key, bool check_mask)
 		 * should not) and is the invoked operation enabled?
 		 */
 		if (!check_mask || sysrq_on_mask(op_p->enable_mask)) {
-			pr_cont("%s\n", op_p->action_msg);
+			printk("%s\n", op_p->action_msg);
 			console_loglevel = orig_log_level;
 			op_p->handler(key);
 		} else {
-			pr_cont("This sysrq operation is disabled.\n");
+			printk("This sysrq operation is disabled.\n");
 		}
 	} else {
-		pr_cont("HELP : ");
+		printk("HELP : ");
 		/* Only print the help msg once per handler */
 		for (i = 0; i < ARRAY_SIZE(sysrq_key_table); i++) {
 			if (sysrq_key_table[i]) {
@@ -551,10 +550,10 @@ void __handle_sysrq(int key, bool check_mask)
 					;
 				if (j != i)
 					continue;
-				pr_cont("%s ", sysrq_key_table[i]->help_msg);
+				printk("%s ", sysrq_key_table[i]->help_msg);
 			}
 		}
-		pr_cont("\n");
+		printk("\n");
 		console_loglevel = orig_log_level;
 	}
 	rcu_read_unlock();

@@ -3,7 +3,7 @@
 /*
  *	mcf.c -- Freescale ColdFire UART driver
  *
- *	(C) Copyright 2003-2007, Greg Ungerer <gerg@uclinux.org>
+ *	(C) Copyright 2003-2007, Greg Ungerer <gerg@snapgear.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -199,6 +199,7 @@ static void mcf_shutdown(struct uart_port *port)
 static void mcf_set_termios(struct uart_port *port, struct ktermios *termios,
 	struct ktermios *old)
 {
+	struct mcf_uart *pp = container_of(port, struct mcf_uart, port);
 	unsigned long flags;
 	unsigned int baud, baudclk;
 #if defined(CONFIG_M5272)
@@ -657,7 +658,6 @@ static int mcf_probe(struct platform_device *pdev)
 		port->mapbase = platp[i].mapbase;
 		port->membase = (platp[i].membase) ? platp[i].membase :
 			(unsigned char __iomem *) platp[i].mapbase;
-		port->dev = &pdev->dev;
 		port->iotype = SERIAL_IO_MEM;
 		port->irq = platp[i].irq;
 		port->uartclk = MCF_BUSCLK;
@@ -729,7 +729,7 @@ static void __exit mcf_exit(void)
 module_init(mcf_init);
 module_exit(mcf_exit);
 
-MODULE_AUTHOR("Greg Ungerer <gerg@uclinux.org>");
+MODULE_AUTHOR("Greg Ungerer <gerg@snapgear.com>");
 MODULE_DESCRIPTION("Freescale ColdFire UART driver");
 MODULE_LICENSE("GPL");
 MODULE_ALIAS("platform:mcfuart");

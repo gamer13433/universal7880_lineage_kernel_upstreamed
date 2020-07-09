@@ -49,14 +49,14 @@ static u32 calc_residency(struct drm_device *dev, const u32 reg)
 
 	/* On VLV and CHV, residency time is in CZ units rather than 1.28us */
 	if (IS_VALLEYVIEW(dev)) {
-		u32 clk_reg, czcount_30ns;
+		u32 reg, czcount_30ns;
 
 		if (IS_CHERRYVIEW(dev))
-			clk_reg = CHV_CLK_CTL1;
+			reg = CHV_CLK_CTL1;
 		else
-			clk_reg = VLV_CLK_CTL2;
+			reg = VLV_CLK_CTL2;
 
-		czcount_30ns = I915_READ(clk_reg) >> CLK_CTL2_CZCOUNT_30NS_SHIFT;
+		czcount_30ns = I915_READ(reg) >> CLK_CTL2_CZCOUNT_30NS_SHIFT;
 
 		if (!czcount_30ns) {
 			WARN(!czcount_30ns, "bogus CZ count value");
@@ -116,6 +116,8 @@ show_rc6p_ms(struct device *kdev, struct device_attribute *attr, char *buf)
 {
 	struct drm_minor *dminor = dev_to_drm_minor(kdev);
 	u32 rc6p_residency = calc_residency(dminor->dev, GEN6_GT_GFX_RC6p);
+	if (IS_VALLEYVIEW(dminor->dev))
+		rc6p_residency = 0;
 	return snprintf(buf, PAGE_SIZE, "%u\n", rc6p_residency);
 }
 
@@ -124,6 +126,8 @@ show_rc6pp_ms(struct device *kdev, struct device_attribute *attr, char *buf)
 {
 	struct drm_minor *dminor = dev_to_drm_minor(kdev);
 	u32 rc6pp_residency = calc_residency(dminor->dev, GEN6_GT_GFX_RC6pp);
+	if (IS_VALLEYVIEW(dminor->dev))
+		rc6pp_residency = 0;
 	return snprintf(buf, PAGE_SIZE, "%u\n", rc6pp_residency);
 }
 
@@ -272,7 +276,7 @@ static struct bin_attribute dpf_attrs_1 = {
 	.private = (void *)1
 };
 
-static ssize_t gt_act_freq_mhz_show(struct device *kdev,
+static ssize_t gt_cur_freq_mhz_show(struct device *kdev,
 				    struct device_attribute *attr, char *buf)
 {
 	struct drm_minor *minor = dev_to_drm_minor(kdev);
@@ -288,36 +292,10 @@ static ssize_t gt_act_freq_mhz_show(struct device *kdev,
 	if (IS_VALLEYVIEW(dev_priv->dev)) {
 		u32 freq;
 		freq = vlv_punit_read(dev_priv, PUNIT_REG_GPU_FREQ_STS);
-		ret = intel_gpu_freq(dev_priv, (freq >> 8) & 0xff);
+		ret = vlv_gpu_freq(dev_priv, (freq >> 8) & 0xff);
 	} else {
-		u32 rpstat = I915_READ(GEN6_RPSTAT1);
-		if (IS_HASWELL(dev_priv) || IS_BROADWELL(dev_priv))
-			ret = (rpstat & HSW_CAGF_MASK) >> HSW_CAGF_SHIFT;
-		else
-			ret = (rpstat & GEN6_CAGF_MASK) >> GEN6_CAGF_SHIFT;
-		ret = intel_gpu_freq(dev_priv, ret);
+		ret = dev_priv->rps.cur_freq * GT_FREQUENCY_MULTIPLIER;
 	}
-	mutex_unlock(&dev_priv->rps.hw_lock);
-
-	intel_runtime_pm_put(dev_priv);
-
-	return snprintf(buf, PAGE_SIZE, "%d\n", ret);
-}
-
-static ssize_t gt_cur_freq_mhz_show(struct device *kdev,
-				    struct device_attribute *attr, char *buf)
-{
-	struct drm_minor *minor = dev_to_drm_minor(kdev);
-	struct drm_device *dev = minor->dev;
-	struct drm_i915_private *dev_priv = dev->dev_private;
-	int ret;
-
-	flush_delayed_work(&dev_priv->rps.delayed_resume_work);
-
-	intel_runtime_pm_get(dev_priv);
-
-	mutex_lock(&dev_priv->rps.hw_lock);
-	ret = intel_gpu_freq(dev_priv, dev_priv->rps.cur_freq);
 	mutex_unlock(&dev_priv->rps.hw_lock);
 
 	intel_runtime_pm_put(dev_priv);
@@ -332,9 +310,8 @@ static ssize_t vlv_rpe_freq_mhz_show(struct device *kdev,
 	struct drm_device *dev = minor->dev;
 	struct drm_i915_private *dev_priv = dev->dev_private;
 
-	return snprintf(buf, PAGE_SIZE,
-			"%d\n",
-			intel_gpu_freq(dev_priv, dev_priv->rps.efficient_freq));
+	return snprintf(buf, PAGE_SIZE, "%d\n",
+			vlv_gpu_freq(dev_priv, dev_priv->rps.efficient_freq));
 }
 
 static ssize_t gt_max_freq_mhz_show(struct device *kdev, struct device_attribute *attr, char *buf)
@@ -347,7 +324,10 @@ static ssize_t gt_max_freq_mhz_show(struct device *kdev, struct device_attribute
 	flush_delayed_work(&dev_priv->rps.delayed_resume_work);
 
 	mutex_lock(&dev_priv->rps.hw_lock);
-	ret = intel_gpu_freq(dev_priv, dev_priv->rps.max_freq_softlimit);
+	if (IS_VALLEYVIEW(dev_priv->dev))
+		ret = vlv_gpu_freq(dev_priv, dev_priv->rps.max_freq_softlimit);
+	else
+		ret = dev_priv->rps.max_freq_softlimit * GT_FREQUENCY_MULTIPLIER;
 	mutex_unlock(&dev_priv->rps.hw_lock);
 
 	return snprintf(buf, PAGE_SIZE, "%d\n", ret);
@@ -371,7 +351,10 @@ static ssize_t gt_max_freq_mhz_store(struct device *kdev,
 
 	mutex_lock(&dev_priv->rps.hw_lock);
 
-	val = intel_freq_opcode(dev_priv, val);
+	if (IS_VALLEYVIEW(dev_priv->dev))
+		val = vlv_freq_opcode(dev_priv, val);
+	else
+		val /= GT_FREQUENCY_MULTIPLIER;
 
 	if (val < dev_priv->rps.min_freq ||
 	    val > dev_priv->rps.max_freq ||
@@ -382,21 +365,21 @@ static ssize_t gt_max_freq_mhz_store(struct device *kdev,
 
 	if (val > dev_priv->rps.rp0_freq)
 		DRM_DEBUG("User requested overclocking to %d\n",
-			  intel_gpu_freq(dev_priv, val));
+			  val * GT_FREQUENCY_MULTIPLIER);
 
 	dev_priv->rps.max_freq_softlimit = val;
 
-	val = clamp_t(int, dev_priv->rps.cur_freq,
-		      dev_priv->rps.min_freq_softlimit,
-		      dev_priv->rps.max_freq_softlimit);
-
-	/* We still need *_set_rps to process the new max_delay and
-	 * update the interrupt limits and PMINTRMSK even though
-	 * frequency request may be unchanged. */
-	if (IS_VALLEYVIEW(dev))
-		valleyview_set_rps(dev, val);
-	else
-		gen6_set_rps(dev, val);
+	if (dev_priv->rps.cur_freq > val) {
+		if (IS_VALLEYVIEW(dev))
+			valleyview_set_rps(dev, val);
+		else
+			gen6_set_rps(dev, val);
+	} else if (!IS_VALLEYVIEW(dev)) {
+		/* We still need gen6_set_rps to process the new max_delay and
+		 * update the interrupt limits even though frequency request is
+		 * unchanged. */
+		gen6_set_rps(dev, dev_priv->rps.cur_freq);
+	}
 
 	mutex_unlock(&dev_priv->rps.hw_lock);
 
@@ -413,7 +396,10 @@ static ssize_t gt_min_freq_mhz_show(struct device *kdev, struct device_attribute
 	flush_delayed_work(&dev_priv->rps.delayed_resume_work);
 
 	mutex_lock(&dev_priv->rps.hw_lock);
-	ret = intel_gpu_freq(dev_priv, dev_priv->rps.min_freq_softlimit);
+	if (IS_VALLEYVIEW(dev_priv->dev))
+		ret = vlv_gpu_freq(dev_priv, dev_priv->rps.min_freq_softlimit);
+	else
+		ret = dev_priv->rps.min_freq_softlimit * GT_FREQUENCY_MULTIPLIER;
 	mutex_unlock(&dev_priv->rps.hw_lock);
 
 	return snprintf(buf, PAGE_SIZE, "%d\n", ret);
@@ -437,7 +423,10 @@ static ssize_t gt_min_freq_mhz_store(struct device *kdev,
 
 	mutex_lock(&dev_priv->rps.hw_lock);
 
-	val = intel_freq_opcode(dev_priv, val);
+	if (IS_VALLEYVIEW(dev))
+		val = vlv_freq_opcode(dev_priv, val);
+	else
+		val /= GT_FREQUENCY_MULTIPLIER;
 
 	if (val < dev_priv->rps.min_freq ||
 	    val > dev_priv->rps.max_freq ||
@@ -448,17 +437,17 @@ static ssize_t gt_min_freq_mhz_store(struct device *kdev,
 
 	dev_priv->rps.min_freq_softlimit = val;
 
-	val = clamp_t(int, dev_priv->rps.cur_freq,
-		      dev_priv->rps.min_freq_softlimit,
-		      dev_priv->rps.max_freq_softlimit);
-
-	/* We still need *_set_rps to process the new min_delay and
-	 * update the interrupt limits and PMINTRMSK even though
-	 * frequency request may be unchanged. */
-	if (IS_VALLEYVIEW(dev))
-		valleyview_set_rps(dev, val);
-	else
-		gen6_set_rps(dev, val);
+	if (dev_priv->rps.cur_freq < val) {
+		if (IS_VALLEYVIEW(dev))
+			valleyview_set_rps(dev, val);
+		else
+			gen6_set_rps(dev, val);
+	} else if (!IS_VALLEYVIEW(dev)) {
+		/* We still need gen6_set_rps to process the new min_delay and
+		 * update the interrupt limits even though frequency request is
+		 * unchanged. */
+		gen6_set_rps(dev, dev_priv->rps.cur_freq);
+	}
 
 	mutex_unlock(&dev_priv->rps.hw_lock);
 
@@ -466,7 +455,6 @@ static ssize_t gt_min_freq_mhz_store(struct device *kdev,
 
 }
 
-static DEVICE_ATTR(gt_act_freq_mhz, S_IRUGO, gt_act_freq_mhz_show, NULL);
 static DEVICE_ATTR(gt_cur_freq_mhz, S_IRUGO, gt_cur_freq_mhz_show, NULL);
 static DEVICE_ATTR(gt_max_freq_mhz, S_IRUGO | S_IWUSR, gt_max_freq_mhz_show, gt_max_freq_mhz_store);
 static DEVICE_ATTR(gt_min_freq_mhz, S_IRUGO | S_IWUSR, gt_min_freq_mhz_show, gt_min_freq_mhz_store);
@@ -497,22 +485,19 @@ static ssize_t gt_rp_mhz_show(struct device *kdev, struct device_attribute *attr
 
 	if (attr == &dev_attr_gt_RP0_freq_mhz) {
 		if (IS_VALLEYVIEW(dev))
-			val = intel_gpu_freq(dev_priv, dev_priv->rps.rp0_freq);
+			val = vlv_gpu_freq(dev_priv, dev_priv->rps.rp0_freq);
 		else
-			val = intel_gpu_freq(dev_priv,
-					     ((rp_state_cap & 0x0000ff) >> 0));
+			val = ((rp_state_cap & 0x0000ff) >> 0) * GT_FREQUENCY_MULTIPLIER;
 	} else if (attr == &dev_attr_gt_RP1_freq_mhz) {
 		if (IS_VALLEYVIEW(dev))
-			val = intel_gpu_freq(dev_priv, dev_priv->rps.rp1_freq);
+			val = vlv_gpu_freq(dev_priv, dev_priv->rps.rp1_freq);
 		else
-			val = intel_gpu_freq(dev_priv,
-					     ((rp_state_cap & 0x00ff00) >> 8));
+			val = ((rp_state_cap & 0x00ff00) >> 8) * GT_FREQUENCY_MULTIPLIER;
 	} else if (attr == &dev_attr_gt_RPn_freq_mhz) {
 		if (IS_VALLEYVIEW(dev))
-			val = intel_gpu_freq(dev_priv, dev_priv->rps.min_freq);
+			val = vlv_gpu_freq(dev_priv, dev_priv->rps.min_freq);
 		else
-			val = intel_gpu_freq(dev_priv,
-					     ((rp_state_cap & 0xff0000) >> 16));
+			val = ((rp_state_cap & 0xff0000) >> 16) * GT_FREQUENCY_MULTIPLIER;
 	} else {
 		BUG();
 	}
@@ -520,7 +505,6 @@ static ssize_t gt_rp_mhz_show(struct device *kdev, struct device_attribute *attr
 }
 
 static const struct attribute *gen6_attrs[] = {
-	&dev_attr_gt_act_freq_mhz.attr,
 	&dev_attr_gt_cur_freq_mhz.attr,
 	&dev_attr_gt_max_freq_mhz.attr,
 	&dev_attr_gt_min_freq_mhz.attr,
@@ -531,7 +515,6 @@ static const struct attribute *gen6_attrs[] = {
 };
 
 static const struct attribute *vlv_attrs[] = {
-	&dev_attr_gt_act_freq_mhz.attr,
 	&dev_attr_gt_cur_freq_mhz.attr,
 	&dev_attr_gt_max_freq_mhz.attr,
 	&dev_attr_gt_min_freq_mhz.attr,

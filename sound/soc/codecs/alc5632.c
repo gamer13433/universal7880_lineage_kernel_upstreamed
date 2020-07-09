@@ -116,20 +116,18 @@ static inline int alc5632_reset(struct regmap *map)
 static int amp_mixer_event(struct snd_soc_dapm_widget *w,
 	struct snd_kcontrol *kcontrol, int event)
 {
-	struct snd_soc_codec *codec = snd_soc_dapm_to_codec(w->dapm);
-
 	/* to power-on/off class-d amp generators/speaker */
 	/* need to write to 'index-46h' register :        */
 	/* so write index num (here 0x46) to reg 0x6a     */
 	/* and then 0xffff/0 to reg 0x6c                  */
-	snd_soc_write(codec, ALC5632_HID_CTRL_INDEX, 0x46);
+	snd_soc_write(w->codec, ALC5632_HID_CTRL_INDEX, 0x46);
 
 	switch (event) {
 	case SND_SOC_DAPM_PRE_PMU:
-		snd_soc_write(codec, ALC5632_HID_CTRL_DATA, 0xFFFF);
+		snd_soc_write(w->codec, ALC5632_HID_CTRL_DATA, 0xFFFF);
 		break;
 	case SND_SOC_DAPM_POST_PMD:
-		snd_soc_write(codec, ALC5632_HID_CTRL_DATA, 0);
+		snd_soc_write(w->codec, ALC5632_HID_CTRL_DATA, 0);
 		break;
 	}
 
@@ -1086,7 +1084,7 @@ static int alc5632_remove(struct snd_soc_codec *codec)
 	return 0;
 }
 
-static const struct snd_soc_codec_driver soc_codec_device_alc5632 = {
+static struct snd_soc_codec_driver soc_codec_device_alc5632 = {
 	.probe = alc5632_probe,
 	.remove = alc5632_remove,
 	.suspend = alc5632_suspend,
@@ -1100,7 +1098,7 @@ static const struct snd_soc_codec_driver soc_codec_device_alc5632 = {
 	.num_dapm_routes = ARRAY_SIZE(alc5632_dapm_routes),
 };
 
-static const struct regmap_config alc5632_regmap = {
+static struct regmap_config alc5632_regmap = {
 	.reg_bits = 8,
 	.val_bits = 16,
 

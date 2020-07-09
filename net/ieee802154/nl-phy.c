@@ -67,8 +67,7 @@ static int ieee802154_nl_fill_phy(struct sk_buff *msg, u32 portid,
 		goto nla_put_failure;
 	mutex_unlock(&phy->pib_lock);
 	kfree(buf);
-	genlmsg_end(msg, hdr);
-	return 0;
+	return genlmsg_end(msg, hdr);
 
 nla_put_failure:
 	mutex_unlock(&phy->pib_lock);

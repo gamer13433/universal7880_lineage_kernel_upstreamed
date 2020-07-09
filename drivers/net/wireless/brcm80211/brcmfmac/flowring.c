@@ -25,7 +25,6 @@
 #include "proto.h"
 #include "flowring.h"
 #include "msgbuf.h"
-#include "common.h"
 
 
 #define BRCMF_FLOWRING_HIGH		1024
@@ -34,6 +33,9 @@
 
 #define BRCMF_FLOWRING_HASH_AP(da, fifo, ifidx) (da[5] + fifo + ifidx * 16)
 #define BRCMF_FLOWRING_HASH_STA(fifo, ifidx) (fifo + ifidx * 16)
+
+static const u8 ALLZEROMAC[ETH_ALEN] = { 0, 0, 0, 0, 0, 0 };
+static const u8 ALLFFMAC[ETH_ALEN] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
 
 static const u8 brcmf_flowring_prio2fifo[] = {
 	1,
@@ -135,7 +137,7 @@ u32 brcmf_flowring_create(struct brcmf_flowring *flow, u8 da[ETH_ALEN],
 	hash = flow->hash;
 	for (i = 0; i < BRCMF_FLOWRING_HASHSIZE; i++) {
 		if ((hash[hash_idx].ifidx == BRCMF_FLOWRING_INVALID_IFIDX) &&
-		    (is_zero_ether_addr(hash[hash_idx].mac))) {
+		    (memcmp(hash[hash_idx].mac, ALLZEROMAC, ETH_ALEN) == 0)) {
 			found = true;
 			break;
 		}

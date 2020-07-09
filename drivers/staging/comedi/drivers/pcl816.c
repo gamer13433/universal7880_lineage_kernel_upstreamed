@@ -33,14 +33,14 @@ Configuration Options:
 */
 
 #include <linux/module.h>
+#include "../comedidev.h"
+
 #include <linux/gfp.h>
 #include <linux/delay.h>
 #include <linux/io.h>
 #include <linux/interrupt.h>
+#include <asm/dma.h>
 
-#include "../comedidev.h"
-
-#include "comedi_isadma.h"
 #include "comedi_fc.h"
 #include "8253.h"
 
@@ -328,10 +328,9 @@ static irqreturn_t pcl816_interrupt(int irq, void *d)
 	struct comedi_device *dev = d;
 	struct comedi_subdevice *s = dev->read_subdev;
 	struct pcl816_private *devpriv = dev->private;
-	struct comedi_isadma *dma = devpriv->dma;
-	struct comedi_isadma_desc *desc = &dma->desc[dma->cur_dma];
-	unsigned int nsamples;
+	unsigned short *ptr;
 	unsigned int bufptr;
+	unsigned int len;
 
 	if (!dev->attached || !devpriv->ai_cmd_running) {
 		pcl816_ai_clear_eoc(dev);
@@ -344,16 +343,15 @@ static irqreturn_t pcl816_interrupt(int irq, void *d)
 		return IRQ_HANDLED;
 	}
 
-	nsamples = comedi_bytes_to_samples(s, desc->size) -
-		   devpriv->ai_poll_ptr;
+	ptr = (unsigned short *)devpriv->dmabuf[devpriv->next_dma_buf];
+
+	pcl816_ai_setup_next_dma(dev, s);
+
+	len = (devpriv->hwdmasize >> 1) - devpriv->ai_poll_ptr;
 	bufptr = devpriv->ai_poll_ptr;
 	devpriv->ai_poll_ptr = 0;
 
-	/* restart dma with the next buffer */
-	dma->cur_dma = 1 - dma->cur_dma;
-	pcl816_ai_setup_dma(dev, s, nsamples);
-
-	transfer_from_dma_buf(dev, s, desc->virt_addr, bufptr, nsamples);
+	transfer_from_dma_buf(dev, s, ptr, bufptr, len);
 
 	pcl816_ai_clear_eoc(dev);
 
@@ -495,7 +493,6 @@ static int pcl816_ai_cmdtest(struct comedi_device *dev,
 static int pcl816_ai_cmd(struct comedi_device *dev, struct comedi_subdevice *s)
 {
 	struct pcl816_private *devpriv = dev->private;
-	struct comedi_isadma *dma = devpriv->dma;
 	struct comedi_cmd *cmd = &s->async->cmd;
 	unsigned int ctrl;
 	unsigned int seglen;
@@ -517,9 +514,7 @@ static int pcl816_ai_cmd(struct comedi_device *dev, struct comedi_subdevice *s)
 	devpriv->ai_poll_ptr = 0;
 	devpriv->ai_cmd_canceled = 0;
 
-	/* setup and enable dma for the first buffer */
-	dma->cur_dma = 0;
-	pcl816_ai_setup_dma(dev, s, 0);
+	pcl816_ai_setup_dma(dev, s);
 
 	pcl816_start_pacer(dev, true);
 
@@ -530,8 +525,7 @@ static int pcl816_ai_cmd(struct comedi_device *dev, struct comedi_subdevice *s)
 		ctrl |= PCL816_CTRL_EXT_TRIG;
 
 	outb(ctrl, dev->iobase + PCL816_CTRL_REG);
-	outb((dma->chan << 4) | dev->irq,
-	     dev->iobase + PCL816_STATUS_REG);
+	outb((devpriv->dma << 4) | dev->irq, dev->iobase + PCL816_STATUS_REG);
 
 	return 0;
 }
@@ -675,44 +669,13 @@ static void pcl816_reset(struct comedi_device *dev)
 	outb(0, dev->iobase + PCL816_DO_DI_MSB_REG);
 }
 
-static void pcl816_alloc_irq_and_dma(struct comedi_device *dev,
-				     struct comedi_devconfig *it)
-{
-	struct pcl816_private *devpriv = dev->private;
-	unsigned int irq_num = it->options[1];
-	unsigned int dma_chan = it->options[2];
-
-	/* only IRQs 2-7 and DMA channels 3 and 1 are valid */
-	if (!(irq_num >= 2 && irq_num <= 7) ||
-	    !(dma_chan == 3 || dma_chan == 1))
-		return;
-
-	if (request_irq(irq_num, pcl816_interrupt, 0, dev->board_name, dev))
-		return;
-
-	/* DMA uses two 16K buffers */
-	devpriv->dma = comedi_isadma_alloc(dev, 2, dma_chan, dma_chan,
-					   PAGE_SIZE * 4, COMEDI_ISADMA_READ);
-	if (!devpriv->dma)
-		free_irq(irq_num, dev);
-	else
-		dev->irq = irq_num;
-}
-
-static void pcl816_free_dma(struct comedi_device *dev)
-{
-	struct pcl816_private *devpriv = dev->private;
-
-	if (devpriv)
-		comedi_isadma_free(devpriv->dma);
-}
-
 static int pcl816_attach(struct comedi_device *dev, struct comedi_devconfig *it)
 {
 	const struct pcl816_board *board = dev->board_ptr;
 	struct pcl816_private *devpriv;
 	struct comedi_subdevice *s;
 	int ret;
+	int i;
 
 	devpriv = comedi_alloc_devpriv(dev, sizeof(*devpriv));
 	if (!devpriv)
@@ -722,8 +685,39 @@ static int pcl816_attach(struct comedi_device *dev, struct comedi_devconfig *it)
 	if (ret)
 		return ret;
 
-	/* an IRQ and DMA are required to support async commands */
-	pcl816_alloc_irq_and_dma(dev, it);
+	/* we can use IRQ 2-7 for async command support */
+	if (it->options[1] >= 2 && it->options[1] <= 7) {
+		ret = request_irq(it->options[1], pcl816_interrupt, 0,
+				  dev->board_name, dev);
+		if (ret == 0)
+			dev->irq = it->options[1];
+	}
+
+	/* we need an IRQ to do DMA on channel 3 or 1 */
+	if (dev->irq && (it->options[2] == 3 || it->options[2] == 1)) {
+		ret = request_dma(it->options[2], dev->board_name);
+		if (ret) {
+			dev_err(dev->class_dev,
+				"unable to request DMA channel %d\n",
+				it->options[2]);
+			return -EBUSY;
+		}
+		devpriv->dma = it->options[2];
+
+		devpriv->dmapages = 2;	/* we need 16KB */
+		devpriv->hwdmasize = (1 << devpriv->dmapages) * PAGE_SIZE;
+
+		for (i = 0; i < 2; i++) {
+			unsigned long dmabuf;
+
+			dmabuf = __get_dma_pages(GFP_KERNEL, devpriv->dmapages);
+			if (!dmabuf)
+				return -ENOMEM;
+
+			devpriv->dmabuf[i] = dmabuf;
+			devpriv->hwdmaptr[i] = virt_to_bus((void *)dmabuf);
+		}
+	}
 
 	ret = comedi_alloc_subdevices(dev, 4);
 	if (ret)
@@ -736,7 +730,7 @@ static int pcl816_attach(struct comedi_device *dev, struct comedi_devconfig *it)
 	s->maxdata	= board->ai_maxdata;
 	s->range_table	= &range_pcl816;
 	s->insn_read	= pcl816_ai_insn_read;
-	if (dev->irq) {
+	if (devpriv->dma) {
 		dev->read_subdev = s;
 		s->subdev_flags	|= SDF_CMD_READ;
 		s->len_chanlist	= board->ai_chanlist;
@@ -782,11 +776,18 @@ static int pcl816_attach(struct comedi_device *dev, struct comedi_devconfig *it)
 
 static void pcl816_detach(struct comedi_device *dev)
 {
+	struct pcl816_private *devpriv = dev->private;
+
 	if (dev->private) {
 		pcl816_ai_cancel(dev, dev->read_subdev);
 		pcl816_reset(dev);
+		if (devpriv->dma)
+			free_dma(devpriv->dma);
+		if (devpriv->dmabuf[0])
+			free_pages(devpriv->dmabuf[0], devpriv->dmapages);
+		if (devpriv->dmabuf[1])
+			free_pages(devpriv->dmabuf[1], devpriv->dmapages);
 	}
-	pcl816_free_dma(dev);
 	comedi_legacy_detach(dev);
 }
 

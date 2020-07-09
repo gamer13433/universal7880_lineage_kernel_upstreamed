@@ -106,7 +106,7 @@ static int __init smp_iic_probe(void)
 {
 	iic_request_IPIs();
 
-	return num_possible_cpus();
+	return cpumask_weight(cpu_possible_mask);
 }
 
 static void smp_cell_setup_cpu(int cpu)

@@ -374,9 +374,23 @@ static int fec_ptp_adjtime(struct ptp_clock_info *ptp, s64 delta)
 	struct fec_enet_private *fep =
 	    container_of(ptp, struct fec_enet_private, ptp_caps);
 	unsigned long flags;
+	u64 now;
+	u32 counter;
 
 	spin_lock_irqsave(&fep->tmreg_lock, flags);
-	timecounter_adjtime(&fep->tc, delta);
+
+	now = timecounter_read(&fep->tc);
+	now += delta;
+
+	/* Get the timer value based on adjusted timestamp.
+	 * Update the counter with the masked value.
+	 */
+	counter = now & fep->cc.mask;
+	writel(counter, fep->hwp + FEC_ATIME);
+
+	/* reset the timecounter */
+	timecounter_init(&fep->tc, &fep->cc, now);
+
 	spin_unlock_irqrestore(&fep->tmreg_lock, flags);
 
 	return 0;

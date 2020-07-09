@@ -668,8 +668,11 @@ int open_check_o_direct(struct file *f)
 {
 	/* NB: we're sure to have correct a_ops only after f_op->open */
 	if (f->f_flags & O_DIRECT) {
-		if (!f->f_mapping->a_ops || !f->f_mapping->a_ops->direct_IO)
+		if (!f->f_mapping->a_ops ||
+		    ((!f->f_mapping->a_ops->direct_IO) &&
+		    (!f->f_mapping->a_ops->get_xip_mem))) {
 			return -EINVAL;
+		}
 	}
 	return 0;
 }
@@ -969,14 +972,8 @@ struct file *file_open_name(struct filename *name, int flags, umode_t mode)
  */
 struct file *filp_open(const char *filename, int flags, umode_t mode)
 {
-	struct filename *name = getname_kernel(filename);
-	struct file *file = ERR_CAST(name);
-	
-	if (!IS_ERR(name)) {
-		file = file_open_name(name, flags, mode);
-		putname(name);
-	}
-	return file;
+	struct filename name = {.name = filename};
+	return file_open_name(&name, flags, mode);
 }
 EXPORT_SYMBOL(filp_open);
 

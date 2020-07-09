@@ -47,11 +47,9 @@ struct table_instance {
 
 struct flow_table {
 	struct table_instance __rcu *ti;
-	struct table_instance __rcu *ufid_ti;
 	struct list_head mask_list;
 	unsigned long last_rehash;
 	unsigned int count;
-	unsigned int ufid_count;
 };
 
 extern struct kmem_cache *flow_stats_cache;

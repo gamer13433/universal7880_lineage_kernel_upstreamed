@@ -18,15 +18,19 @@
 
 enum int3400_thermal_uuid {
 	INT3400_THERMAL_PASSIVE_1,
+	INT3400_THERMAL_PASSIVE_2,
 	INT3400_THERMAL_ACTIVE,
 	INT3400_THERMAL_CRITICAL,
+	INT3400_THERMAL_COOLING_MODE,
 	INT3400_THERMAL_MAXIMUM_UUID,
 };
 
 static u8 *int3400_thermal_uuids[INT3400_THERMAL_MAXIMUM_UUID] = {
 	"42A441D6-AE6A-462b-A84B-4A8CE79027D3",
+	"9E04115A-AE87-4D1C-9500-0F3E340BFE75",
 	"3A95C389-E4B8-4629-A526-C52C88626BAE",
 	"97C68AE7-15FA-499c-B8C9-5DA81D606E0A",
+	"16CAF1B7-DD38-40ed-B1C1-1B8A1913D531",
 };
 
 struct int3400_thermal_priv {
@@ -194,12 +198,13 @@ static int int3400_thermal_probe(struct platform_device *pdev)
 	result = acpi_parse_art(priv->adev->handle, &priv->art_count,
 				&priv->arts, true);
 	if (result)
-		dev_dbg(&pdev->dev, "_ART table parsing error\n");
+		goto free_priv;
+
 
 	result = acpi_parse_trt(priv->adev->handle, &priv->trt_count,
 				&priv->trts, true);
 	if (result)
-		dev_dbg(&pdev->dev, "_TRT table parsing error\n");
+		goto free_art;
 
 	platform_set_drvdata(pdev, priv);
 
@@ -212,7 +217,7 @@ static int int3400_thermal_probe(struct platform_device *pdev)
 						&int3400_thermal_params, 0, 0);
 	if (IS_ERR(priv->thermal)) {
 		result = PTR_ERR(priv->thermal);
-		goto free_art_trt;
+		goto free_trt;
 	}
 
 	priv->rel_misc_dev_res = acpi_thermal_rel_misc_device_add(

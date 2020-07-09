@@ -12,7 +12,6 @@
  * published by the Free Software Foundation.
  */
 
-#include <linux/spinlock.h>
 #include <linux/delay.h>
 #include <linux/dma-mapping.h>
 #include <linux/platform_device.h>
@@ -602,9 +601,7 @@ static int sdhci_s3c_probe(struct platform_device *pdev)
 	pm_runtime_use_autosuspend(&pdev->dev);
 	pm_suspend_ignore_children(&pdev->dev, 1);
 
-	ret = mmc_of_parse(host->mmc);
-	if (ret)
-		goto err_req_regs;
+	mmc_of_parse(host->mmc);
 
 	ret = sdhci_add_host(host);
 	if (ret) {

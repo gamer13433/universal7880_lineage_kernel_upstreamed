@@ -261,7 +261,6 @@ static int softing_handle_1(struct softing *card)
 				++priv->can.can_stats.error_passive;
 			else if (can_state == CAN_STATE_BUS_OFF) {
 				/* this calls can_close_cleanup() */
-				++priv->can.can_stats.bus_off;
 				can_bus_off(netdev);
 				netif_stop_queue(netdev);
 			}

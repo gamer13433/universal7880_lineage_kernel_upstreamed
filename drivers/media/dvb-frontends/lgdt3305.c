@@ -236,13 +236,12 @@ static inline int lgdt3305_mpeg_mode(struct lgdt3305_state *state,
 	return lgdt3305_set_reg_bit(state, LGDT3305_TP_CTRL_1, 5, mode);
 }
 
-static int lgdt3305_mpeg_mode_polarity(struct lgdt3305_state *state)
+static int lgdt3305_mpeg_mode_polarity(struct lgdt3305_state *state,
+				       enum lgdt3305_tp_clock_edge edge,
+				       enum lgdt3305_tp_valid_polarity valid)
 {
 	u8 val;
 	int ret;
-	enum lgdt3305_tp_clock_edge edge = state->cfg->tpclk_edge;
-	enum lgdt3305_tp_clock_mode mode = state->cfg->tpclk_mode;
-	enum lgdt3305_tp_valid_polarity valid = state->cfg->tpvalid_polarity;
 
 	lg_dbg("edge = %d, valid = %d\n", edge, valid);
 
@@ -254,8 +253,6 @@ static int lgdt3305_mpeg_mode_polarity(struct lgdt3305_state *state)
 
 	if (edge)
 		val |= 0x08;
-	if (mode)
-		val |= 0x40;
 	if (valid)
 		val |= 0x01;
 
@@ -743,7 +740,9 @@ static int lgdt3304_set_parameters(struct dvb_frontend *fe)
 		goto fail;
 
 	/* lgdt3305_mpeg_mode_polarity calls lgdt3305_soft_reset */
-	ret = lgdt3305_mpeg_mode_polarity(state);
+	ret = lgdt3305_mpeg_mode_polarity(state,
+					  state->cfg->tpclk_edge,
+					  state->cfg->tpvalid_polarity);
 fail:
 	return ret;
 }
@@ -807,7 +806,9 @@ static int lgdt3305_set_parameters(struct dvb_frontend *fe)
 		goto fail;
 
 	/* lgdt3305_mpeg_mode_polarity calls lgdt3305_soft_reset */
-	ret = lgdt3305_mpeg_mode_polarity(state);
+	ret = lgdt3305_mpeg_mode_polarity(state,
+					  state->cfg->tpclk_edge,
+					  state->cfg->tpvalid_polarity);
 fail:
 	return ret;
 }
@@ -1214,3 +1215,9 @@ MODULE_DESCRIPTION("LG Electronics LGDT3304/5 ATSC/QAM-B Demodulator Driver");
 MODULE_AUTHOR("Michael Krufky <mkrufky@linuxtv.org>");
 MODULE_LICENSE("GPL");
 MODULE_VERSION("0.2");
+
+/*
+ * Local variables:
+ * c-basic-offset: 8
+ * End:
+ */

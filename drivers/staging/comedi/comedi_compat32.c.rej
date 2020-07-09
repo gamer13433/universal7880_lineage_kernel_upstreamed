@@ -1,0 +1,19 @@
+--- drivers/staging/comedi/comedi_compat32.c
++++ drivers/staging/comedi/comedi_compat32.c
+@@ -271,15 +271,7 @@ static int compat_cmd(struct file *file, unsigned long arg)
+ 	if (rc)
+ 		return rc;
+ 
+-	rc = translated_ioctl(file, COMEDI_CMD, (unsigned long)cmd);
+-	if (rc == -EAGAIN) {
+-		/* Special case: copy cmd back to user. */
+-		err = put_compat_cmd(cmd32, cmd);
+-		if (err)
+-			rc = err;
+-	}
+-
+-	return rc;
++	return translated_ioctl(file, COMEDI_CMD, (unsigned long)cmd);
+ }
+ 
+ /* Handle 32-bit COMEDI_CMDTEST ioctl. */

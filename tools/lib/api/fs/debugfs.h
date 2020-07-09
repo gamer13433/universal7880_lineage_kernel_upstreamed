@@ -26,7 +26,4 @@ char *debugfs_mount(const char *mountpoint);
 
 extern char debugfs_mountpoint[];
 
-int debugfs__strerror_open(int err, char *buf, size_t size, const char *filename);
-int debugfs__strerror_open_tp(int err, char *buf, size_t size, const char *sys, const char *name);
-
 #endif /* __API_DEBUGFS_H__ */

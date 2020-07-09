@@ -250,7 +250,6 @@ static struct wlcore_conf wl12xx_conf = {
 		.keep_alive_interval         = 55000,
 		.max_listen_interval         = 20,
 		.sta_sleep_auth              = WL1271_PSM_ILLEGAL,
-		.suspend_rx_ba_activity      = 0,
 	},
 	.itrim = {
 		.enable = false,
@@ -1729,9 +1728,6 @@ static struct wlcore_ops wl12xx_ops = {
 	.convert_hwaddr		= wl12xx_convert_hwaddr,
 	.lnk_high_prio		= wl12xx_lnk_high_prio,
 	.lnk_low_prio		= wl12xx_lnk_low_prio,
-	.interrupt_notify	= NULL,
-	.rx_ba_filter		= NULL,
-	.ap_sleep		= NULL,
 };
 
 static struct ieee80211_sta_ht_cap wl12xx_ht_cap = {

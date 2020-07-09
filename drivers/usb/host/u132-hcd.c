@@ -2590,15 +2590,15 @@ static int u132_roothub_descriptor(struct u132 *u132,
 	desc->bNbrPorts = u132->num_ports;
 	temp = 1 + (u132->num_ports / 8);
 	desc->bDescLength = 7 + 2 * temp;
-	temp = HUB_CHAR_COMMON_LPSM | HUB_CHAR_COMMON_OCPM;
+	temp = 0;
 	if (rh_a & RH_A_NPS)
-		temp |= HUB_CHAR_NO_LPSM;
+		temp |= 0x0002;
 	if (rh_a & RH_A_PSM)
-		temp |= HUB_CHAR_INDV_PORT_LPSM;
+		temp |= 0x0001;
 	if (rh_a & RH_A_NOCP)
-		temp |= HUB_CHAR_NO_OCPM;
+		temp |= 0x0010;
 	else if (rh_a & RH_A_OCPM)
-		temp |= HUB_CHAR_INDV_PORT_OCPM;
+		temp |= 0x0008;
 	desc->wHubCharacteristics = cpu_to_le16(temp);
 	retval = u132_read_pcimem(u132, roothub.b, &rh_b);
 	if (retval)

@@ -25,7 +25,6 @@ enum {
 	NDA_VNI,
 	NDA_IFINDEX,
 	NDA_MASTER,
-	NDA_LINK_NETNSID,
 	__NDA_MAX
 };
 

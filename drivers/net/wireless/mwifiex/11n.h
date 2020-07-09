@@ -126,9 +126,7 @@ static inline u8 mwifiex_space_avail_for_new_ba_stream(
 {
 	struct mwifiex_private *priv;
 	u8 i;
-	u32 ba_stream_num = 0, ba_stream_max;
-
-	ba_stream_max = MWIFIEX_MAX_TX_BASTREAM_SUPPORTED;
+	u32 ba_stream_num = 0;
 
 	for (i = 0; i < adapter->priv_num; i++) {
 		priv = adapter->priv[i];
@@ -137,14 +135,8 @@ static inline u8 mwifiex_space_avail_for_new_ba_stream(
 				&priv->tx_ba_stream_tbl_ptr);
 	}
 
-	if (adapter->fw_api_ver == MWIFIEX_FW_V15) {
-		ba_stream_max =
-			       GETSUPP_TXBASTREAMS(adapter->hw_dot_11n_dev_cap);
-		if (!ba_stream_max)
-			ba_stream_max = MWIFIEX_MAX_TX_BASTREAM_SUPPORTED;
-	}
-
-	return ((ba_stream_num < ba_stream_max) ? true : false);
+	return ((ba_stream_num <
+		 MWIFIEX_MAX_TX_BASTREAM_SUPPORTED) ? true : false);
 }
 
 /*

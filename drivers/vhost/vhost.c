@@ -1130,7 +1130,6 @@ static int get_indirect(struct vhost_virtqueue *vq,
 		vq_err(vq, "Translation failure %d in indirect.\n", ret);
 		return ret;
 	}
-	iov_iter_init(&from, READ, vq->indirect, ret, len);
 
 	/* We will use the result as an address to read from, so most
 	 * architectures only need a compiler barrier here. */
@@ -1153,8 +1152,8 @@ static int get_indirect(struct vhost_virtqueue *vq,
 			       i, count);
 			return -EINVAL;
 		}
-		if (unlikely(copy_from_iter(&desc, sizeof(desc), &from) !=
-			     sizeof(desc))) {
+		if (unlikely(memcpy_fromiovec((unsigned char *)&desc,
+					      vq->indirect, sizeof desc))) {
 			vq_err(vq, "Failed indirect descriptor: idx %d, %zx\n",
 			       i, (size_t)indirect->addr + i * sizeof desc);
 			return -EINVAL;

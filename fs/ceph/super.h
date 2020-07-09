@@ -665,8 +665,7 @@ extern void ceph_get_snap_realm(struct ceph_mds_client *mdsc,
 extern void ceph_put_snap_realm(struct ceph_mds_client *mdsc,
 				struct ceph_snap_realm *realm);
 extern int ceph_update_snap_trace(struct ceph_mds_client *m,
-				  void *p, void *e, bool deletion,
-				  struct ceph_snap_realm **realm_ret);
+				  void *p, void *e, bool deletion);
 extern void ceph_handle_snap(struct ceph_mds_client *mdsc,
 			     struct ceph_mds_session *session,
 			     struct ceph_msg *msg);
@@ -856,9 +855,7 @@ extern int ceph_release(struct inode *inode, struct file *filp);
 
 /* dir.c */
 extern const struct file_operations ceph_dir_fops;
-extern const struct file_operations ceph_snapdir_fops;
 extern const struct inode_operations ceph_dir_iops;
-extern const struct inode_operations ceph_snapdir_iops;
 extern const struct dentry_operations ceph_dentry_ops, ceph_snap_dentry_ops,
 	ceph_snapdir_dentry_ops;
 

@@ -84,8 +84,8 @@
 #include <linux/isapnp.h>
 #include <linux/module.h>
 #include <linux/delay.h>
-#include <linux/io.h>
 
+#include <asm/io.h>
 #include <asm/dma.h>
 #include <sound/core.h>
 #include <sound/control.h>
@@ -1680,13 +1680,16 @@ static struct snd_pcm_ops snd_es18xx_capture_ops = {
 	.pointer =	snd_es18xx_capture_pointer,
 };
 
-static int snd_es18xx_pcm(struct snd_card *card, int device)
+static int snd_es18xx_pcm(struct snd_card *card, int device,
+			  struct snd_pcm **rpcm)
 {
 	struct snd_es18xx *chip = card->private_data;
         struct snd_pcm *pcm;
 	char str[16];
 	int err;
 
+	if (rpcm)
+		*rpcm = NULL;
 	sprintf(str, "ES%x", chip->version);
 	if (chip->caps & ES18XX_PCM2)
 		err = snd_pcm_new(card, str, device, 2, 1, &pcm);
@@ -1712,6 +1715,9 @@ static int snd_es18xx_pcm(struct snd_card *card, int device)
 					      snd_dma_isa_data(),
 					      64*1024,
 					      chip->dma1 > 3 || chip->dma2 > 3 ? 128*1024 : 64*1024);
+
+        if (rpcm)
+        	*rpcm = pcm;
 	return 0;
 }
 
@@ -2132,7 +2138,7 @@ static int snd_audiodrive_probe(struct snd_card *card, int dev)
 			chip->port,
 			irq[dev], dma1[dev]);
 
-	err = snd_es18xx_pcm(card, 0);
+	err = snd_es18xx_pcm(card, 0, NULL);
 	if (err < 0)
 		return err;
 

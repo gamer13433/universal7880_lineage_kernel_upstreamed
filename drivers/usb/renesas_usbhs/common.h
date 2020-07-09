@@ -17,7 +17,6 @@
 #ifndef RENESAS_USB_DRIVER_H
 #define RENESAS_USB_DRIVER_H
 
-#include <linux/extcon.h>
 #include <linux/platform_device.h>
 #include <linux/usb/renesas_usbhs.h>
 
@@ -250,8 +249,6 @@ struct usbhs_priv {
 
 	struct delayed_work notify_hotplug_work;
 	struct platform_device *pdev;
-
-	struct extcon_dev *edev;
 
 	spinlock_t		lock;
 

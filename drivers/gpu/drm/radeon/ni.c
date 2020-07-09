@@ -27,7 +27,6 @@
 #include <drm/drmP.h>
 #include "radeon.h"
 #include "radeon_asic.h"
-#include "radeon_audio.h"
 #include <drm/radeon_drm.h>
 #include "nid.h"
 #include "atom.h"
@@ -962,8 +961,6 @@ static void cayman_gpu_init(struct radeon_device *rdev)
 	}
 
 	WREG32(GRBM_CNTL, GRBM_READ_TIMEOUT(0xff));
-	WREG32(SRBM_INT_CNTL, 0x1);
-	WREG32(SRBM_INT_ACK, 0x1);
 
 	evergreen_fix_pci_max_read_req_size(rdev);
 
@@ -2100,9 +2097,15 @@ static int cayman_startup(struct radeon_device *rdev)
 		return r;
 	}
 
-	r = radeon_audio_init(rdev);
-	if (r)
-		return r;
+	if (ASIC_IS_DCE6(rdev)) {
+		r = dce6_audio_init(rdev);
+		if (r)
+			return r;
+	} else {
+		r = r600_audio_init(rdev);
+		if (r)
+			return r;
+	}
 
 	return 0;
 }
@@ -2137,7 +2140,10 @@ int cayman_resume(struct radeon_device *rdev)
 int cayman_suspend(struct radeon_device *rdev)
 {
 	radeon_pm_suspend(rdev);
-	radeon_audio_fini(rdev);
+	if (ASIC_IS_DCE6(rdev))
+		dce6_audio_fini(rdev);
+	else
+		r600_audio_fini(rdev);
 	radeon_vm_manager_fini(rdev);
 	cayman_cp_enable(rdev, false);
 	cayman_dma_stop(rdev);

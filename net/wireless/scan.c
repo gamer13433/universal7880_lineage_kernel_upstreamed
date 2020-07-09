@@ -257,7 +257,7 @@ void __cfg80211_sched_scan_results(struct work_struct *wk)
 
 	rtnl_lock();
 
-	request = rtnl_dereference(rdev->sched_scan_req);
+	request = rdev->sched_scan_req;
 
 	/* we don't have sched_scan_req anymore if the scan is stopping */
 	if (request) {
@@ -279,8 +279,7 @@ void cfg80211_sched_scan_results(struct wiphy *wiphy)
 {
 	trace_cfg80211_sched_scan_results(wiphy);
 	/* ignore if we're not scanning */
-
-	if (rcu_access_pointer(wiphy_to_rdev(wiphy)->sched_scan_req))
+	if (wiphy_to_rdev(wiphy)->sched_scan_req)
 		queue_work(cfg80211_wq,
 			   &wiphy_to_rdev(wiphy)->sched_scan_results_wk);
 }
@@ -309,7 +308,6 @@ EXPORT_SYMBOL(cfg80211_sched_scan_stopped);
 int __cfg80211_stop_sched_scan(struct cfg80211_registered_device *rdev,
 			       bool driver_initiated)
 {
-	struct cfg80211_sched_scan_request *sched_scan_req;
 	struct net_device *dev;
 
 	ASSERT_RTNL();
@@ -317,8 +315,7 @@ int __cfg80211_stop_sched_scan(struct cfg80211_registered_device *rdev,
 	if (!rdev->sched_scan_req)
 		return -ENOENT;
 
-	sched_scan_req = rtnl_dereference(rdev->sched_scan_req);
-	dev = sched_scan_req->dev;
+	dev = rdev->sched_scan_req->dev;
 
 	if (!driver_initiated) {
 		int err = rdev_sched_scan_stop(rdev, dev);
@@ -328,8 +325,8 @@ int __cfg80211_stop_sched_scan(struct cfg80211_registered_device *rdev,
 
 	nl80211_send_sched_scan(rdev, dev, NL80211_CMD_SCHED_SCAN_STOPPED);
 
-	RCU_INIT_POINTER(rdev->sched_scan_req, NULL);
-	kfree_rcu(sched_scan_req, rcu_head);
+	kfree(rdev->sched_scan_req);
+	rdev->sched_scan_req = NULL;
 
 	return 0;
 }

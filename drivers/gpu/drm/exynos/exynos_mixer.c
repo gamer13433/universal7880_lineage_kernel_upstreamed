@@ -57,7 +57,6 @@ struct hdmi_win_data {
 	unsigned int		fb_x;
 	unsigned int		fb_y;
 	unsigned int		fb_width;
-	unsigned int		fb_pitch;
 	unsigned int		fb_height;
 	unsigned int		src_width;
 	unsigned int		src_height;
@@ -75,7 +74,6 @@ struct mixer_resources {
 	spinlock_t		reg_slock;
 	struct clk		*mixer;
 	struct clk		*vp;
-	struct clk		*hdmi;
 	struct clk		*sclk_mixer;
 	struct clk		*sclk_hdmi;
 	struct clk		*mout_mixer;
@@ -415,6 +413,8 @@ static void vp_video_buffer(struct mixer_context *ctx, int win)
 	win_data = &ctx->win_data[win];
 
 	switch (win_data->pixel_format) {
+	case DRM_FORMAT_NV12MT:
+		tiled_mode = true;
 	case DRM_FORMAT_NV12:
 		crcb_mode = false;
 		buf_num = 2;
@@ -440,7 +440,7 @@ static void vp_video_buffer(struct mixer_context *ctx, int win)
 	} else {
 		luma_addr[0] = win_data->dma_addr;
 		chroma_addr[0] = win_data->dma_addr
-			+ (win_data->fb_pitch * win_data->fb_height);
+			+ (win_data->fb_width * win_data->fb_height);
 	}
 
 	if (win_data->scan_flags & DRM_MODE_FLAG_INTERLACE) {
@@ -449,8 +449,8 @@ static void vp_video_buffer(struct mixer_context *ctx, int win)
 			luma_addr[1] = luma_addr[0] + 0x40;
 			chroma_addr[1] = chroma_addr[0] + 0x40;
 		} else {
-			luma_addr[1] = luma_addr[0] + win_data->fb_pitch;
-			chroma_addr[1] = chroma_addr[0] + win_data->fb_pitch;
+			luma_addr[1] = luma_addr[0] + win_data->fb_width;
+			chroma_addr[1] = chroma_addr[0] + win_data->fb_width;
 		}
 	} else {
 		ctx->interlace = false;
@@ -471,10 +471,10 @@ static void vp_video_buffer(struct mixer_context *ctx, int win)
 	vp_reg_writemask(res, VP_MODE, val, VP_MODE_FMT_MASK);
 
 	/* setting size of input image */
-	vp_reg_write(res, VP_IMG_SIZE_Y, VP_IMG_HSIZE(win_data->fb_pitch) |
+	vp_reg_write(res, VP_IMG_SIZE_Y, VP_IMG_HSIZE(win_data->fb_width) |
 		VP_IMG_VSIZE(win_data->fb_height));
 	/* chroma height has to reduced by 2 to avoid chroma distorions */
-	vp_reg_write(res, VP_IMG_SIZE_C, VP_IMG_HSIZE(win_data->fb_pitch) |
+	vp_reg_write(res, VP_IMG_SIZE_C, VP_IMG_HSIZE(win_data->fb_width) |
 		VP_IMG_VSIZE(win_data->fb_height / 2));
 
 	vp_reg_write(res, VP_SRC_WIDTH, win_data->src_width);
@@ -561,7 +561,7 @@ static void mixer_graph_buffer(struct mixer_context *ctx, int win)
 	/* converting dma address base and source offset */
 	dma_addr = win_data->dma_addr
 		+ (win_data->fb_x * win_data->bpp >> 3)
-		+ (win_data->fb_y * win_data->fb_pitch);
+		+ (win_data->fb_y * win_data->fb_width * win_data->bpp >> 3);
 	src_x_offset = 0;
 	src_y_offset = 0;
 
@@ -578,14 +578,13 @@ static void mixer_graph_buffer(struct mixer_context *ctx, int win)
 		MXR_GRP_CFG_FORMAT_VAL(fmt), MXR_GRP_CFG_FORMAT_MASK);
 
 	/* setup geometry */
-	mixer_reg_write(res, MXR_GRAPHIC_SPAN(win),
-			win_data->fb_pitch / (win_data->bpp >> 3));
+	mixer_reg_write(res, MXR_GRAPHIC_SPAN(win), win_data->fb_width);
 
 	/* setup display size */
 	if (ctx->mxr_ver == MXR_VER_128_0_0_184 &&
 		win == MIXER_DEFAULT_WIN) {
-		val  = MXR_MXR_RES_HEIGHT(win_data->mode_height);
-		val |= MXR_MXR_RES_WIDTH(win_data->mode_width);
+		val  = MXR_MXR_RES_HEIGHT(win_data->fb_height);
+		val |= MXR_MXR_RES_WIDTH(win_data->fb_width);
 		mixer_reg_write(res, MXR_RESOLUTION, val);
 	}
 
@@ -769,12 +768,6 @@ static int mixer_resources_init(struct mixer_context *mixer_ctx)
 	if (IS_ERR(mixer_res->mixer)) {
 		dev_err(dev, "failed to get clock 'mixer'\n");
 		return -ENODEV;
-	}
-
-	mixer_res->hdmi = devm_clk_get(dev, "hdmi");
-	if (IS_ERR(mixer_res->hdmi)) {
-		dev_err(dev, "failed to get clock 'hdmi'\n");
-		return PTR_ERR(mixer_res->hdmi);
 	}
 
 	mixer_res->sclk_hdmi = devm_clk_get(dev, "sclk_hdmi");
@@ -1098,7 +1091,6 @@ static void mixer_poweron(struct exynos_drm_manager *mgr)
 	pm_runtime_get_sync(ctx->dev);
 
 	clk_prepare_enable(res->mixer);
-	clk_prepare_enable(res->hdmi);
 	if (ctx->vp_enabled) {
 		clk_prepare_enable(res->vp);
 		if (ctx->has_sclk)
@@ -1130,7 +1122,7 @@ static void mixer_poweroff(struct exynos_drm_manager *mgr)
 	mutex_unlock(&ctx->mixer_mutex);
 
 	mixer_stop(ctx);
-	mixer_window_suspend(ctx);
+	mixer_window_suspend(mgr);
 
 	ctx->int_en = mixer_reg_read(res, MXR_INT_EN);
 
@@ -1138,7 +1130,6 @@ static void mixer_poweroff(struct exynos_drm_manager *mgr)
 	ctx->powered = false;
 	mutex_unlock(&ctx->mixer_mutex);
 
-	clk_disable_unprepare(res->hdmi);
 	clk_disable_unprepare(res->mixer);
 	if (ctx->vp_enabled) {
 		clk_disable_unprepare(res->vp);
@@ -1149,16 +1140,16 @@ static void mixer_poweroff(struct exynos_drm_manager *mgr)
 	pm_runtime_put_sync(ctx->dev);
 }
 
-static void mixer_dpms(struct exynos_drm_crtc *crtc, int mode)
+static void mixer_dpms(struct exynos_drm_manager *mgr, int mode)
 {
 	switch (mode) {
 	case DRM_MODE_DPMS_ON:
-		mixer_poweron(crtc->ctx);
+		mixer_poweron(mgr);
 		break;
 	case DRM_MODE_DPMS_STANDBY:
 	case DRM_MODE_DPMS_SUSPEND:
 	case DRM_MODE_DPMS_OFF:
-		mixer_poweroff(crtc->ctx);
+		mixer_poweroff(mgr);
 		break;
 	default:
 		DRM_DEBUG_KMS("unknown dpms mode: %d\n", mode);
@@ -1186,7 +1177,7 @@ int mixer_check_mode(struct drm_display_mode *mode)
 	return -EINVAL;
 }
 
-static struct exynos_drm_crtc_ops mixer_crtc_ops = {
+static struct exynos_drm_manager_ops mixer_manager_ops = {
 	.dpms			= mixer_dpms,
 	.enable_vblank		= mixer_enable_vblank,
 	.disable_vblank		= mixer_disable_vblank,

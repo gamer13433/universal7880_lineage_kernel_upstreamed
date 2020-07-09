@@ -350,11 +350,6 @@ static void replenish_dl_entity(struct sched_dl_entity *dl_se,
 		dl_se->deadline = rq_clock(rq) + pi_se->dl_deadline;
 		dl_se->runtime = pi_se->dl_runtime;
 	}
-
-	if (dl_se->dl_yielded)
-		dl_se->dl_yielded = 0;
-	if (dl_se->dl_throttled)
-		dl_se->dl_throttled = 0;
 }
 
 /*
@@ -511,10 +506,16 @@ static enum hrtimer_restart dl_task_timer(struct hrtimer *timer)
 						     struct sched_dl_entity,
 						     dl_timer);
 	struct task_struct *p = dl_task_of(dl_se);
-	unsigned long flags;
 	struct rq *rq;
+again:
+	rq = task_rq(p);
+	raw_spin_lock(&rq->lock);
 
-	rq = task_rq_lock(current, &flags);
+	if (rq != task_rq(p)) {
+		/* Task was moved, retrying. */
+		raw_spin_unlock(&rq->lock);
+		goto again;
+	}
 
 	/*
 	 * We need to take care of several possible races here:
@@ -535,41 +536,25 @@ static enum hrtimer_restart dl_task_timer(struct hrtimer *timer)
 
 	sched_clock_tick();
 	update_rq_clock(rq);
-
-	/*
-	 * If the throttle happened during sched-out; like:
-	 *
-	 *   schedule()
-	 *     deactivate_task()
-	 *       dequeue_task_dl()
-	 *         update_curr_dl()
-	 *           start_dl_timer()
-	 *         __dequeue_task_dl()
-	 *     prev->on_rq = 0;
-	 *
-	 * We can be both throttled and !queued. Replenish the counter
-	 * but do not enqueue -- wait for our wakeup to do that.
-	 */
-	if (!task_on_rq_queued(p)) {
-		replenish_dl_entity(dl_se, dl_se);
-		goto unlock;
-	}
-
-	enqueue_task_dl(rq, p, ENQUEUE_REPLENISH);
-	if (dl_task(rq->curr))
-		check_preempt_curr_dl(rq, p, 0);
-	else
-		resched_curr(rq);
+	dl_se->dl_throttled = 0;
+	dl_se->dl_yielded = 0;
+	if (task_on_rq_queued(p)) {
+		enqueue_task_dl(rq, p, ENQUEUE_REPLENISH);
+		if (dl_task(rq->curr))
+			check_preempt_curr_dl(rq, p, 0);
+		else
+			resched_curr(rq);
 #ifdef CONFIG_SMP
-	/*
-	 * Queueing this task back might have overloaded rq,
-	 * check if we need to kick someone away.
-	 */
-	if (has_pushable_dl_tasks(rq))
-		push_dl_task(rq);
+		/*
+		 * Queueing this task back might have overloaded rq,
+		 * check if we need to kick someone away.
+		 */
+		if (has_pushable_dl_tasks(rq))
+			push_dl_task(rq);
 #endif
+	}
 unlock:
-	task_rq_unlock(rq, current, &flags);
+	raw_spin_unlock(&rq->lock);
 
 	return HRTIMER_NORESTART;
 }
@@ -633,9 +618,10 @@ static void update_curr_dl(struct rq *rq)
 
 	dl_se->runtime -= delta_exec;
 	if (dl_runtime_exceeded(rq, dl_se)) {
-		dl_se->dl_throttled = 1;
 		__dequeue_task_dl(rq, curr, 0);
-		if (unlikely(!start_dl_timer(dl_se, curr->dl.dl_boosted)))
+		if (likely(start_dl_timer(dl_se, curr->dl.dl_boosted)))
+			dl_se->dl_throttled = 1;
+		else
 			enqueue_task_dl(rq, curr, ENQUEUE_REPLENISH);
 
 		if (!is_leftmost(curr, &rq->dl))
@@ -872,7 +858,7 @@ static void enqueue_task_dl(struct rq *rq, struct task_struct *p, int flags)
 	 * its rq, the bandwidth timer callback (which clearly has not
 	 * run yet) will take care of this.
 	 */
-	if (p->dl.dl_throttled && !(flags & ENQUEUE_REPLENISH))
+	if (p->dl.dl_throttled)
 		return;
 
 	enqueue_dl_entity(&p->dl, pi_se, flags);
@@ -917,7 +903,6 @@ static void yield_task_dl(struct rq *rq)
 		rq->curr->dl.dl_yielded = 1;
 		p->dl.runtime = 0;
 	}
-	update_rq_clock(rq);
 	update_curr_dl(rq);
 }
 
@@ -1185,6 +1170,9 @@ static int find_later_rq(struct task_struct *task)
 	 * We have to consider system topology and task affinity
 	 * first, then we can look for a suitable cpu.
 	 */
+	cpumask_copy(later_mask, task_rq(task)->rd->span);
+	cpumask_and(later_mask, later_mask, cpu_active_mask);
+	cpumask_and(later_mask, later_mask, &task->cpus_allowed);
 	best_cpu = cpudl_find(&task_rq(task)->rd->cpudl,
 			task, later_mask);
 	if (best_cpu == -1)
@@ -1557,7 +1545,6 @@ static void rq_online_dl(struct rq *rq)
 	if (rq->dl.overloaded)
 		dl_set_overload(rq);
 
-	cpudl_set_freecpu(&rq->rd->cpudl, rq->cpu);
 	if (rq->dl.dl_nr_running > 0)
 		cpudl_set(&rq->rd->cpudl, rq->cpu, rq->dl.earliest_dl.curr, 1);
 }
@@ -1569,7 +1556,6 @@ static void rq_offline_dl(struct rq *rq)
 		dl_clear_overload(rq);
 
 	cpudl_set(&rq->rd->cpudl, rq->cpu, 0, 0);
-	cpudl_clear_freecpu(&rq->rd->cpudl, rq->cpu);
 }
 
 void init_sched_dl_class(void)

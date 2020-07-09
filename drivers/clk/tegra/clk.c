@@ -302,13 +302,10 @@ struct clk ** __init tegra_lookup_dt_id(int clk_id,
 
 tegra_clk_apply_init_table_func tegra_clk_apply_init_table;
 
-static int __init tegra_clocks_apply_init_table(void)
+void __init tegra_clocks_apply_init_table(void)
 {
 	if (!tegra_clk_apply_init_table)
-		return 0;
+		return;
 
 	tegra_clk_apply_init_table();
-
-	return 0;
 }
-arch_initcall(tegra_clocks_apply_init_table);

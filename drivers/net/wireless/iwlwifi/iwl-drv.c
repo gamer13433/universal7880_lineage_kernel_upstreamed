@@ -87,8 +87,21 @@
  *
  ******************************************************************************/
 
+/*
+ * module name, copyright, version, etc.
+ */
 #define DRV_DESCRIPTION	"Intel(R) Wireless WiFi driver for Linux"
+
+#ifdef CONFIG_IWLWIFI_DEBUG
+#define VD "d"
+#else
+#define VD
+#endif
+
+#define DRV_VERSION     IWLWIFI_VERSION VD
+
 MODULE_DESCRIPTION(DRV_DESCRIPTION);
+MODULE_VERSION(DRV_VERSION);
 MODULE_AUTHOR(DRV_COPYRIGHT " " DRV_AUTHOR);
 MODULE_LICENSE("GPL");
 
@@ -836,12 +849,6 @@ static int iwl_parse_tlv_firmware(struct iwl_drv *drv,
 			capa->n_scan_channels =
 				le32_to_cpup((__le32 *)tlv_data);
 			break;
-		case IWL_UCODE_TLV_SDIO_ADMA_ADDR:
-			if (tlv_len != sizeof(u32))
-				goto invalid_tlv_len;
-			drv->fw.sdio_adma_addr =
-				le32_to_cpup((__le32 *)tlv_data);
-			break;
 		default:
 			IWL_DEBUG_INFO(drv, "unknown TLV: %d\n", tlv_type);
 			break;
@@ -1266,7 +1273,7 @@ struct iwl_mod_params iwlwifi_mod_params = {
 	.restart_fw = true,
 	.bt_coex_active = true,
 	.power_level = IWL_POWER_INDEX_1,
-	.d0i3_disable = true,
+	.wd_disable = true,
 #ifndef CONFIG_IWLWIFI_UAPSD
 	.uapsd_disable = true,
 #endif /* CONFIG_IWLWIFI_UAPSD */
@@ -1329,7 +1336,7 @@ static int __init iwl_drv_init(void)
 	for (i = 0; i < ARRAY_SIZE(iwlwifi_opmode_table); i++)
 		INIT_LIST_HEAD(&iwlwifi_opmode_table[i].drv);
 
-	pr_info(DRV_DESCRIPTION "\n");
+	pr_info(DRV_DESCRIPTION ", " DRV_VERSION "\n");
 	pr_info(DRV_COPYRIGHT "\n");
 
 #ifdef CONFIG_IWLWIFI_DEBUGFS
@@ -1376,15 +1383,15 @@ module_param_named(antenna_coupling, iwlwifi_mod_params.ant_coupling,
 MODULE_PARM_DESC(antenna_coupling,
 		 "specify antenna coupling in dB (default: 0 dB)");
 
+module_param_named(wd_disable, iwlwifi_mod_params.wd_disable, int, S_IRUGO);
+MODULE_PARM_DESC(wd_disable,
+		"Disable stuck queue watchdog timer 0=system default, 1=disable (default: 1)");
+
 module_param_named(nvm_file, iwlwifi_mod_params.nvm_file, charp, S_IRUGO);
 MODULE_PARM_DESC(nvm_file, "NVM file name");
 
-module_param_named(d0i3_disable, iwlwifi_mod_params.d0i3_disable,
-		   bool, S_IRUGO);
-MODULE_PARM_DESC(d0i3_disable, "disable d0i3 functionality (default: Y)");
-
 module_param_named(uapsd_disable, iwlwifi_mod_params.uapsd_disable,
-		   bool, S_IRUGO | S_IWUSR);
+		   bool, S_IRUGO);
 #ifdef CONFIG_IWLWIFI_UAPSD
 MODULE_PARM_DESC(uapsd_disable, "disable U-APSD functionality (default: N)");
 #else

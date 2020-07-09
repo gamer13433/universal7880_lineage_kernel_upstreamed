@@ -59,16 +59,6 @@
 #define T5FW_VERSION_MICRO 0x1B
 #define T5FW_VERSION_BUILD 0x00
 
-#define T4FW_VERSION_MAJOR 0x01
-#define T4FW_VERSION_MINOR 0x0C
-#define T4FW_VERSION_MICRO 0x19
-#define T4FW_VERSION_BUILD 0x00
-
-#define T5FW_VERSION_MAJOR 0x01
-#define T5FW_VERSION_MINOR 0x0C
-#define T5FW_VERSION_MICRO 0x19
-#define T5FW_VERSION_BUILD 0x00
-
 #define CH_WARN(adap, fmt, ...) dev_warn(adap->pdev_dev, fmt, ## __VA_ARGS__)
 
 enum {

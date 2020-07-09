@@ -35,12 +35,6 @@ bool f2fs_may_inline(struct inode *inode)
 	return true;
 }
 
-static void truncate_inline_data(struct page *ipage)
-{
-	f2fs_wait_on_page_writeback(ipage, NODE);
-	memset(inline_data_addr(ipage), 0, MAX_INLINE_DATA);
-}
-
 int f2fs_read_inline_data(struct inode *inode, struct page *page)
 {
 	struct page *ipage;

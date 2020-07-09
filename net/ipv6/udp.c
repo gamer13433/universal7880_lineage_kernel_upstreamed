@@ -892,7 +892,7 @@ int __udp6_lib_rcv(struct sk_buff *skb, struct udp_table *udptable,
 			goto csum_error;
 		}
 
-		if (inet_get_convert_csum(sk) && uh->check && !IS_UDPLITE(sk))
+		if (udp_sk(sk)->convert_csum && uh->check && !IS_UDPLITE(sk))
 			skb_checksum_try_convert(skb, IPPROTO_UDP, uh->check,
 						 ip6_compute_pseudo);
 
@@ -976,10 +976,9 @@ static void udp6_hwcsum_outgoing(struct sock *sk, struct sk_buff *skb,
 {
 	unsigned int offset;
 	struct udphdr *uh = udp_hdr(skb);
-	struct sk_buff *frags = skb_shinfo(skb)->frag_list;
 	__wsum csum = 0;
 
-	if (!frags) {
+	if (skb_queue_len(&sk->sk_write_queue) == 1) {
 		/* Only one fragment on the socket.  */
 		skb->csum_start = skb_transport_header(skb) - skb->head;
 		skb->csum_offset = offsetof(struct udphdr, check);
@@ -995,9 +994,9 @@ static void udp6_hwcsum_outgoing(struct sock *sk, struct sk_buff *skb,
 
 		skb->ip_summed = CHECKSUM_NONE;
 
-		do {
-			csum = csum_add(csum, frags->csum);
-		} while ((frags = frags->next));
+		skb_queue_walk(&sk->sk_write_queue, skb) {
+			csum = csum_add(csum, skb->csum);
+		}
 
 		uh->check = csum_ipv6_magic(saddr, daddr, len, IPPROTO_UDP,
 					    csum);
@@ -1036,28 +1035,29 @@ static int udp_v6_push_pending_frames(struct sock *sk)
 	uh = udp_hdr(skb);
 	uh->source = fl6->fl6_sport;
 	uh->dest = fl6->fl6_dport;
-	uh->len = htons(len);
+	uh->len = htons(up->len);
 	uh->check = 0;
 
 	if (is_udplite)
-		csum = udplite_csum(skb);
-	else if (udp_sk(sk)->no_check6_tx) {   /* UDP csum disabled */
+		csum = udplite_csum_outgoing(sk, skb);
+	else if (up->no_check6_tx) {   /* UDP csum disabled */
 		skb->ip_summed = CHECKSUM_NONE;
 		goto send;
 	} else if (skb->ip_summed == CHECKSUM_PARTIAL) { /* UDP hardware csum */
-		udp6_hwcsum_outgoing(sk, skb, &fl6->saddr, &fl6->daddr, len);
+		udp6_hwcsum_outgoing(sk, skb, &fl6->saddr, &fl6->daddr,
+				     up->len);
 		goto send;
 	} else
-		csum = udp_csum(skb);
+		csum = udp_csum_outgoing(sk, skb);
 
 	/* add protocol-dependent pseudo-header */
 	uh->check = csum_ipv6_magic(&fl6->saddr, &fl6->daddr,
-				    len, fl6->flowi6_proto, csum);
+				    up->len, fl6->flowi6_proto, csum);
 	if (uh->check == 0)
 		uh->check = CSUM_MANGLED_0;
 
 send:
-	err = ip6_send_skb(skb);
+	err = ip6_push_pending_frames(sk);
 	if (err) {
 		if (err == -ENOBUFS && !inet6_sk(sk)->recverr) {
 			UDP6_INC_STATS_USER(sock_net(sk),
@@ -1067,30 +1067,6 @@ send:
 	} else
 		UDP6_INC_STATS_USER(sock_net(sk),
 				    UDP_MIB_OUTDATAGRAMS, is_udplite);
-	return err;
-}
-
-static int udp_v6_push_pending_frames(struct sock *sk)
-{
-	struct sk_buff *skb;
-	struct udp_sock  *up = udp_sk(sk);
-	struct flowi6 fl6;
-	int err = 0;
-
-	if (up->pending == AF_INET)
-		return udp_push_pending_frames(sk);
-
-	/* ip6_finish_skb will release the cork, so make a copy of
-	 * fl6 here.
-	 */
-	fl6 = inet_sk(sk)->cork.fl.u.ip6;
-
-	skb = ip6_finish_skb(sk);
-	if (!skb)
-		goto out;
-
-	err = udp_v6_send_skb(skb, &fl6);
-
 out:
 	up->len = 0;
 	up->pending = 0;
@@ -1173,7 +1149,6 @@ do_udp_sendmsg:
 	if (len > INT_MAX - sizeof(struct udphdr))
 		return -EMSGSIZE;
 
-	getfrag  =  is_udplite ?  udplite_getfrag : ip_generic_getfrag;
 	if (up->pending) {
 		/*
 		 * There are pending frames.
@@ -1305,20 +1280,6 @@ do_udp_sendmsg:
 		goto do_confirm;
 back_from_confirm:
 
-	/* Lockless fast path for the non-corking case */
-	if (!corkreq) {
-		struct sk_buff *skb;
-
-		skb = ip6_make_skb(sk, getfrag, msg, ulen,
-				   sizeof(struct udphdr), hlimit, tclass, opt,
-				   &fl6, (struct rt6_info *)dst,
-				   msg->msg_flags, dontfrag);
-		err = PTR_ERR(skb);
-		if (!IS_ERR_OR_NULL(skb))
-			err = udp_v6_send_skb(skb, &fl6);
-		goto release_dst;
-	}
-
 	lock_sock(sk);
 	if (unlikely(up->pending)) {
 		/* The socket is already corked while preparing it. */
@@ -1348,11 +1309,6 @@ do_append_data:
 	else if (unlikely(skb_queue_empty(&sk->sk_write_queue)))
 		up->pending = 0;
 
-	if (err > 0)
-		err = np->recverr ? net_xmit_errno(err) : 0;
-	release_sock(sk);
-
-release_dst:
 	if (dst) {
 		if (connected) {
 			ip6_dst_store(sk, dst,
@@ -1369,6 +1325,9 @@ release_dst:
 		dst = NULL;
 	}
 
+	if (err > 0)
+		err = np->recverr ? net_xmit_errno(err) : 0;
+	release_sock(sk);
 out:
 	dst_release(dst);
 	fl6_sock_release(flowlabel);

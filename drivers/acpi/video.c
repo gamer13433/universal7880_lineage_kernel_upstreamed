@@ -505,33 +505,6 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
 		DMI_MATCH(DMI_PRODUCT_NAME, "HP ENVY 15 Notebook PC"),
 		},
 	},
-	{
-	 /* https://bugzilla.redhat.com/show_bug.cgi?id=1186097 */
-	 .callback = video_disable_native_backlight,
-	 .ident = "SAMSUNG 3570R/370R/470R/450R/510R/4450RV",
-	 .matches = {
-		DMI_MATCH(DMI_SYS_VENDOR, "SAMSUNG ELECTRONICS CO., LTD."),
-		DMI_MATCH(DMI_PRODUCT_NAME, "3570R/370R/470R/450R/510R/4450RV"),
-		},
-	},
-	{
-	 /* https://bugzilla.redhat.com/show_bug.cgi?id=1094948 */
-	 .callback = video_disable_native_backlight,
-	 .ident = "SAMSUNG 730U3E/740U3E",
-	 .matches = {
-		DMI_MATCH(DMI_SYS_VENDOR, "SAMSUNG ELECTRONICS CO., LTD."),
-		DMI_MATCH(DMI_PRODUCT_NAME, "730U3E/740U3E"),
-		},
-	},
-	{
-	 /* https://bugs.freedesktop.org/show_bug.cgi?id=87286 */
-	 .callback = video_disable_native_backlight,
-	 .ident = "SAMSUNG 900X3C/900X3D/900X3E/900X4C/900X4D",
-	 .matches = {
-		DMI_MATCH(DMI_SYS_VENDOR, "SAMSUNG ELECTRONICS CO., LTD."),
-		DMI_MATCH(DMI_PRODUCT_NAME, "900X3C/900X3D/900X3E/900X4C/900X4D"),
-		},
-	},
 
 	{
 	 .callback = video_disable_native_backlight,
@@ -2085,8 +2058,7 @@ static int __init intel_opregion_present(void)
 
 int acpi_video_register(void)
 {
-	int ret;
-
+	int result = 0;
 	if (register_count) {
 		/*
 		 * if the function of acpi_video_register is already called,
@@ -2098,9 +2070,9 @@ int acpi_video_register(void)
 	mutex_init(&video_list_lock);
 	INIT_LIST_HEAD(&video_bus_head);
 
-	ret = acpi_bus_register_driver(&acpi_video_bus);
-	if (ret)
-		return ret;
+	result = acpi_bus_register_driver(&acpi_video_bus);
+	if (result < 0)
+		return -ENODEV;
 
 	/*
 	 * When the acpi_video_bus is loaded successfully, increase

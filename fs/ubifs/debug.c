@@ -2032,8 +2032,6 @@ static int check_leaf(struct ubifs_info *c, struct ubifs_zbranch *zbr,
 		long long blk_offs;
 		struct ubifs_data_node *dn = node;
 
-		ubifs_assert(zbr->len >= UBIFS_DATA_NODE_SZ);
-
 		/*
 		 * Search the inode node this data node belongs to and insert
 		 * it to the RB-tree of inodes.
@@ -2061,8 +2059,6 @@ static int check_leaf(struct ubifs_info *c, struct ubifs_zbranch *zbr,
 		int nlen;
 		struct ubifs_dent_node *dent = node;
 		struct fsck_inode *fscki1;
-
-		ubifs_assert(zbr->len >= UBIFS_DENT_NODE_SZ);
 
 		err = ubifs_validate_entry(c, dent);
 		if (err)

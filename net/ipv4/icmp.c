@@ -205,7 +205,7 @@ static const struct icmp_control icmp_pointers[NR_ICMP_TYPES+1];
  */
 static struct sock *icmp_sk(struct net *net)
 {
-	return *this_cpu_ptr(net->ipv4.icmp_sk);
+	return net->ipv4.icmp_sk[smp_processor_id()];
 }
 
 static inline struct sock *icmp_xmit_lock(struct net *net)
@@ -1129,8 +1129,8 @@ static void __net_exit icmp_sk_exit(struct net *net)
 	int i;
 
 	for_each_possible_cpu(i)
-		inet_ctl_sock_destroy(*per_cpu_ptr(net->ipv4.icmp_sk, i));
-	free_percpu(net->ipv4.icmp_sk);
+		inet_ctl_sock_destroy(net->ipv4.icmp_sk[i]);
+	kfree(net->ipv4.icmp_sk);
 	net->ipv4.icmp_sk = NULL;
 }
 
@@ -1138,8 +1138,9 @@ static int __net_init icmp_sk_init(struct net *net)
 {
 	int i, err;
 
-	net->ipv4.icmp_sk = alloc_percpu(struct sock *);
-	if (!net->ipv4.icmp_sk)
+	net->ipv4.icmp_sk =
+		kzalloc(nr_cpu_ids * sizeof(struct sock *), GFP_KERNEL);
+	if (net->ipv4.icmp_sk == NULL)
 		return -ENOMEM;
 
 	for_each_possible_cpu(i) {
@@ -1150,7 +1151,7 @@ static int __net_init icmp_sk_init(struct net *net)
 		if (err < 0)
 			goto fail;
 
-		*per_cpu_ptr(net->ipv4.icmp_sk, i) = sk;
+		net->ipv4.icmp_sk[i] = sk;
 
 		/* Enough space for 2 64K ICMP packets, including
 		 * sk_buff/skb_shared_info struct overhead.
@@ -1191,8 +1192,8 @@ static int __net_init icmp_sk_init(struct net *net)
 
 fail:
 	for_each_possible_cpu(i)
-		inet_ctl_sock_destroy(*per_cpu_ptr(net->ipv4.icmp_sk, i));
-	free_percpu(net->ipv4.icmp_sk);
+		inet_ctl_sock_destroy(net->ipv4.icmp_sk[i]);
+	kfree(net->ipv4.icmp_sk);
 	return err;
 }
 

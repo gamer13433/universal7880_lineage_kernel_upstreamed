@@ -1196,7 +1196,7 @@ __be32 inet_select_addr(const struct net_device *dev, __be32 dst, int scope)
 no_in_dev:
 
 	/* Not loopback addresses on loopback should be preferred
-	   in this case. It is important that lo is the first interface
+	   in this case. It is importnat that lo is the first interface
 	   in dev_base list.
 	 */
 	for_each_netdev_rcu(net, dev) {
@@ -1532,8 +1532,7 @@ static int inet_fill_ifaddr(struct sk_buff *skb, struct in_ifaddr *ifa,
 			  preferred, valid))
 		goto nla_put_failure;
 
-	nlmsg_end(skb, nlh);
-	return 0;
+	return nlmsg_end(skb, nlh);
 
 nla_put_failure:
 	nlmsg_cancel(skb, nlh);
@@ -1577,7 +1576,7 @@ static int inet_dump_ifaddr(struct sk_buff *skb, struct netlink_callback *cb)
 				if (inet_fill_ifaddr(skb, ifa,
 					     NETLINK_CB(cb->skb).portid,
 					     cb->nlh->nlmsg_seq,
-					     RTM_NEWADDR, NLM_F_MULTI) < 0) {
+					     RTM_NEWADDR, NLM_F_MULTI) <= 0) {
 					rcu_read_unlock();
 					goto done;
 				}
@@ -1760,8 +1759,7 @@ static int inet_netconf_fill_devconf(struct sk_buff *skb, int ifindex,
 			IPV4_DEVCONF(*devconf, PROXY_ARP)) < 0)
 		goto nla_put_failure;
 
-	nlmsg_end(skb, nlh);
-	return 0;
+	return nlmsg_end(skb, nlh);
 
 nla_put_failure:
 	nlmsg_cancel(skb, nlh);
@@ -1893,7 +1891,7 @@ static int inet_netconf_dump_devconf(struct sk_buff *skb,
 						      cb->nlh->nlmsg_seq,
 						      RTM_NEWNETCONF,
 						      NLM_F_MULTI,
-						      -1) < 0) {
+						      -1) <= 0) {
 				rcu_read_unlock();
 				goto done;
 			}
@@ -1909,7 +1907,7 @@ cont:
 					      NETLINK_CB(cb->skb).portid,
 					      cb->nlh->nlmsg_seq,
 					      RTM_NEWNETCONF, NLM_F_MULTI,
-					      -1) < 0)
+					      -1) <= 0)
 			goto done;
 		else
 			h++;
@@ -1920,7 +1918,7 @@ cont:
 					      NETLINK_CB(cb->skb).portid,
 					      cb->nlh->nlmsg_seq,
 					      RTM_NEWNETCONF, NLM_F_MULTI,
-					      -1) < 0)
+					      -1) <= 0)
 			goto done;
 		else
 			h++;
@@ -2332,7 +2330,7 @@ static __net_initdata struct pernet_operations devinet_ops = {
 	.exit = devinet_exit_net,
 };
 
-static struct rtnl_af_ops inet_af_ops __read_mostly = {
+static struct rtnl_af_ops inet_af_ops = {
 	.family		  = AF_INET,
 	.fill_link_af	  = inet_fill_link_af,
 	.get_link_af_size = inet_get_link_af_size,

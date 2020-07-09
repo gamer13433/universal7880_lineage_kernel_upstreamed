@@ -164,20 +164,6 @@ void rpc_count_iostats(const struct rpc_task *task, struct rpc_iostats *stats)
 	delta = ktime_sub(ktime_get(), task->tk_start);
 	op_metrics->om_execute = ktime_add(op_metrics->om_execute, delta);
 }
-EXPORT_SYMBOL_GPL(rpc_count_iostats_metrics);
-
-/**
- * rpc_count_iostats - tally up per-task stats
- * @task: completed rpc_task
- * @stats: array of stat structures
- *
- * Uses the statidx from @task
- */
-void rpc_count_iostats(const struct rpc_task *task, struct rpc_iostats *stats)
-{
-	rpc_count_iostats_metrics(task,
-				  &stats[task->tk_msg.rpc_proc->p_statidx]);
-}
 EXPORT_SYMBOL_GPL(rpc_count_iostats);
 
 static void _print_name(struct seq_file *seq, unsigned int op,

@@ -12,29 +12,9 @@
 #include <linux/hugetlb.h>
 #include <linux/vmalloc.h>
 
-#include <asm/sections.h>
 #include <asm/uaccess.h>
 
 #include "internal.h"
-
-static inline int is_kernel_rodata(unsigned long addr)
-{
-	return addr >= (unsigned long)__start_rodata &&
-		addr < (unsigned long)__end_rodata;
-}
-
-/**
- * kfree_const - conditionally free memory
- * @x: pointer to the memory
- *
- * Function calls kfree only if @x is not in .rodata section.
- */
-void kfree_const(const void *x)
-{
-	if (!is_kernel_rodata((unsigned long)x))
-		kfree(x);
-}
-EXPORT_SYMBOL(kfree_const);
 
 /**
  * kstrdup - allocate space for and copy an existing string
@@ -56,24 +36,6 @@ char *kstrdup(const char *s, gfp_t gfp)
 	return buf;
 }
 EXPORT_SYMBOL(kstrdup);
-
-/**
- * kstrdup_const - conditionally duplicate an existing const string
- * @s: the string to duplicate
- * @gfp: the GFP mask used in the kmalloc() call when allocating memory
- *
- * Function returns source string if it is in .rodata section otherwise it
- * fallbacks to kstrdup.
- * Strings allocated by kstrdup_const should be freed by kfree_const.
- */
-const char *kstrdup_const(const char *s, gfp_t gfp)
-{
-	if (is_kernel_rodata((unsigned long)s))
-		return s;
-
-	return kstrdup(s, gfp);
-}
-EXPORT_SYMBOL(kstrdup_const);
 
 /**
  * kstrndup - allocate space for and copy an existing string
@@ -278,8 +240,14 @@ int __weak get_user_pages_fast(unsigned long start,
 				int nr_pages, int write, struct page **pages)
 {
 	struct mm_struct *mm = current->mm;
-	return get_user_pages_unlocked(current, mm, start, nr_pages,
-				       write, 0, pages);
+	int ret;
+
+	down_read(&mm->mmap_sem);
+	ret = get_user_pages(current, mm, start, nr_pages,
+					write, 0, pages, NULL);
+	up_read(&mm->mmap_sem);
+
+	return ret;
 }
 EXPORT_SYMBOL_GPL(get_user_pages_fast);
 

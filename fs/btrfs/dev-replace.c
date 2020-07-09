@@ -439,9 +439,18 @@ leave:
  */
 static void btrfs_rm_dev_replace_blocked(struct btrfs_fs_info *fs_info)
 {
+	s64 writers;
+	DEFINE_WAIT(wait);
+
 	set_bit(BTRFS_FS_STATE_DEV_REPLACING, &fs_info->fs_state);
-	wait_event(fs_info->replace_wait, !percpu_counter_sum(
-		   &fs_info->bio_counter));
+	do {
+		prepare_to_wait(&fs_info->replace_wait, &wait,
+				TASK_UNINTERRUPTIBLE);
+		writers = percpu_counter_sum(&fs_info->bio_counter);
+		if (writers)
+			schedule();
+		finish_wait(&fs_info->replace_wait, &wait);
+	} while (writers);
 }
 
 /*
@@ -921,15 +930,15 @@ void btrfs_bio_counter_dec(struct btrfs_fs_info *fs_info)
 
 void btrfs_bio_counter_inc_blocked(struct btrfs_fs_info *fs_info)
 {
-	while (1) {
-		percpu_counter_inc(&fs_info->bio_counter);
-		if (likely(!test_bit(BTRFS_FS_STATE_DEV_REPLACING,
-				     &fs_info->fs_state)))
-			break;
-
+	DEFINE_WAIT(wait);
+again:
+	percpu_counter_inc(&fs_info->bio_counter);
+	if (test_bit(BTRFS_FS_STATE_DEV_REPLACING, &fs_info->fs_state)) {
 		btrfs_bio_counter_dec(fs_info);
 		wait_event(fs_info->replace_wait,
 			   !test_bit(BTRFS_FS_STATE_DEV_REPLACING,
 				     &fs_info->fs_state));
+		goto again;
 	}
+
 }

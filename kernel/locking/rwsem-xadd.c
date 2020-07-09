@@ -242,7 +242,8 @@ struct rw_semaphore __sched *rwsem_down_read_failed(struct rw_semaphore *sem)
 		schedule();
 	}
 
-	__set_task_state(tsk, TASK_RUNNING);
+	tsk->state = TASK_RUNNING;
+
 	return sem;
 }
 EXPORT_SYMBOL(rwsem_down_read_failed);

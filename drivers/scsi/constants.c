@@ -31,6 +31,7 @@
 
 
 
+#ifdef CONFIG_SCSI_CONSTANTS
 static const char * cdb_byte0_names[] = {
 /* 00-03 */ "Test Unit Ready", "Rezero Unit/Rewind", NULL, "Request Sense",
 /* 04-07 */ "Format Unit/Medium", "Read Block Limits", NULL,
@@ -476,7 +477,7 @@ struct error_info {
 
 /*
  * The canonical list of T10 Additional Sense Codes is available at:
- * http://www.t10.org/lists/asc-num.txt [most recent: 20141221]
+ * http://www.t10.org/lists/asc-num.txt [most recent: 20130605]
  */
 
 static const struct error_info additional[] =
@@ -505,7 +506,6 @@ static const struct error_info additional[] =
 	{0x001E, "Conflicting SA creation request"},
 	{0x001F, "Logical unit transitioning to another power condition"},
 	{0x0020, "Extended copy information available"},
-	{0x0021, "Atomic command aborted due to ACA"},
 
 	{0x0100, "No index/sector signal"},
 
@@ -531,7 +531,6 @@ static const struct error_info additional[] =
 	{0x040C, "Logical unit not accessible, target port in unavailable "
 	 "state"},
 	{0x040D, "Logical unit not ready, structure check required"},
-	{0x040E, "Logical unit not ready, security session in progress"},
 	{0x0410, "Logical unit not ready, auxiliary memory not accessible"},
 	{0x0411, "Logical unit not ready, notify (enable spinup) required"},
 	{0x0412, "Logical unit not ready, offline"},
@@ -548,11 +547,6 @@ static const struct error_info additional[] =
 	{0x041C, "Logical unit not ready, additional power use not yet "
 	 "granted"},
 	{0x041D, "Logical unit not ready, configuration in progress"},
-	{0x041E, "Logical unit not ready, microcode activation required"},
-	{0x041F, "Logical unit not ready, microcode download required"},
-	{0x0420, "Logical unit not ready, logical unit reset required"},
-	{0x0421, "Logical unit not ready, hard reset required"},
-	{0x0422, "Logical unit not ready, power cycle required"},
 
 	{0x0500, "Logical unit does not respond to selection"},
 
@@ -571,7 +565,6 @@ static const struct error_info additional[] =
 	{0x0902, "Focus servo failure"},
 	{0x0903, "Spindle servo failure"},
 	{0x0904, "Head select fault"},
-	{0x0905, "Vibration induced tracking error"},
 
 	{0x0A00, "Error log overflow"},
 
@@ -602,7 +595,6 @@ static const struct error_info additional[] =
 	{0x0C0D, "Write error - not enough unsolicited data"},
 	{0x0C0E, "Multiple write errors"},
 	{0x0C0F, "Defects in error window"},
-	{0x0C10, "Incomplete multiple atomic write operations"},
 
 	{0x0D00, "Error detected by third party temporary initiator"},
 	{0x0D01, "Third party device failure"},
@@ -728,10 +720,6 @@ static const struct error_info additional[] =
 	{0x2101, "Invalid element address"},
 	{0x2102, "Invalid address for write"},
 	{0x2103, "Invalid write crossing layer jump"},
-	{0x2104, "Unaligned write command"},
-	{0x2105, "Write boundary violation"},
-	{0x2106, "Attempt to read invalid data"},
-	{0x2107, "Read boundary violation"},
 
 	{0x2200, "Illegal function (use 20 00, 24 00, or 26 00)"},
 
@@ -788,7 +776,6 @@ static const struct error_info additional[] =
 	{0x2705, "Permanent write protect"},
 	{0x2706, "Conditional write protect"},
 	{0x2707, "Space allocation failed write protect"},
-	{0x2708, "Zone is read only"},
 
 	{0x2800, "Not ready to ready change, medium may have changed"},
 	{0x2801, "Import or export element accessed"},
@@ -841,15 +828,10 @@ static const struct error_info additional[] =
 	{0x2C0A, "Partition or collection contains user objects"},
 	{0x2C0B, "Not reserved"},
 	{0x2C0C, "Orwrite generation does not match"},
-	{0x2C0D, "Reset write pointer not allowed"},
-	{0x2C0E, "Zone is offline"},
 
 	{0x2D00, "Overwrite error on update in place"},
 
 	{0x2E00, "Insufficient time for operation"},
-	{0x2E01, "Command timeout before processing"},
-	{0x2E02, "Command timeout during processing"},
-	{0x2E03, "Command timeout during processing due to error recovery"},
 
 	{0x2F00, "Commands cleared by another initiator"},
 	{0x2F01, "Commands cleared by power loss notification"},
@@ -971,7 +953,6 @@ static const struct error_info additional[] =
 	{0x3F13, "iSCSI IP address removed"},
 	{0x3F14, "iSCSI IP address changed"},
 	{0x3F15, "Inspect referrals sense descriptors"},
-	{0x3F16, "Microcode has been changed without reset"},
 /*
  *	{0x40NN, "Ram failure"},
  *	{0x40NN, "Diagnostic failure on component nn"},
@@ -1050,11 +1031,6 @@ static const struct error_info additional[] =
 	{0x5306, "Volume identifier missing"},
 	{0x5307, "Duplicate volume identifier"},
 	{0x5308, "Element status unknown"},
-	{0x5309, "Data transfer device error - load failed"},
-	{0x530a, "Data transfer device error - unload failed"},
-	{0x530b, "Data transfer device error - unload missing"},
-	{0x530c, "Data transfer device error - eject failed"},
-	{0x530d, "Data transfer device error - library communication failed"},
 
 	{0x5400, "Scsi to host system interface failure"},
 
@@ -1072,7 +1048,6 @@ static const struct error_info additional[] =
 	{0x550B, "Insufficient power for operation"},
 	{0x550C, "Insufficient resources to create rod"},
 	{0x550D, "Insufficient resources to create rod token"},
-	{0x550E, "Insufficient zone resources"},
 
 	{0x5700, "Unable to recover table-of-contents"},
 
@@ -1356,12 +1331,15 @@ static const char * const snstext[] = {
 	"Completed",	    /* F: command completed sense data reported,
 				  may occur for successful command */
 };
+#endif
 
 /* Get sense key string or NULL if not available */
 const char *
 scsi_sense_key_string(unsigned char key) {
+#ifdef CONFIG_SCSI_CONSTANTS
 	if (key <= 0xE)
 		return snstext[key];
+#endif
 	return NULL;
 }
 EXPORT_SYMBOL(scsi_sense_key_string);

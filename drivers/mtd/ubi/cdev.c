@@ -86,15 +86,13 @@ static void revoke_exclusive(struct ubi_volume_desc *desc, int mode)
 	struct ubi_volume *vol = desc->vol;
 
 	spin_lock(&vol->ubi->volumes_lock);
-	ubi_assert(vol->readers == 0 && vol->writers == 0 && vol->metaonly == 0);
+	ubi_assert(vol->readers == 0 && vol->writers == 0);
 	ubi_assert(vol->exclusive == 1 && desc->mode == UBI_EXCLUSIVE);
 	vol->exclusive = 0;
 	if (mode == UBI_READONLY)
 		vol->readers = 1;
 	else if (mode == UBI_READWRITE)
 		vol->writers = 1;
-	else if (mode == UBI_METAONLY)
-		vol->metaonly = 1;
 	else
 		vol->exclusive = 1;
 	spin_unlock(&vol->ubi->volumes_lock);
@@ -735,7 +733,7 @@ static int rename_volumes(struct ubi_device *ubi,
 			goto out_free;
 		}
 
-		re->desc = ubi_open_volume(ubi->ubi_num, vol_id, UBI_METAONLY);
+		re->desc = ubi_open_volume(ubi->ubi_num, vol_id, UBI_READWRITE);
 		if (IS_ERR(re->desc)) {
 			err = PTR_ERR(re->desc);
 			ubi_err("cannot open volume %d, error %d", vol_id, err);

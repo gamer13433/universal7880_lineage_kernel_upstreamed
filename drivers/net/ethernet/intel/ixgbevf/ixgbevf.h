@@ -43,13 +43,6 @@
 #define BP_EXTENDED_STATS
 #endif
 
-#define IXGBE_MAX_TXD_PWR	14
-#define IXGBE_MAX_DATA_PER_TXD	BIT(IXGBE_MAX_TXD_PWR)
-
-/* Tx Descriptors needed, worst case */
-#define TXD_USE_COUNT(S) DIV_ROUND_UP((S), IXGBE_MAX_DATA_PER_TXD)
-#define DESC_NEEDED (MAX_SKB_FRAGS + 4)
-
 /* wrapper around a pointer to a socket buffer,
  * so a DMA handle can be stored along with the buffer */
 struct ixgbevf_tx_buffer {
@@ -92,18 +85,6 @@ struct ixgbevf_rx_queue_stats {
 	u64 csum_err;
 };
 
-enum ixgbevf_ring_state_t {
-	__IXGBEVF_TX_DETECT_HANG,
-	__IXGBEVF_HANG_CHECK_ARMED,
-};
-
-#define check_for_tx_hang(ring) \
-	test_bit(__IXGBEVF_TX_DETECT_HANG, &(ring)->state)
-#define set_check_for_tx_hang(ring) \
-	set_bit(__IXGBEVF_TX_DETECT_HANG, &(ring)->state)
-#define clear_check_for_tx_hang(ring) \
-	clear_bit(__IXGBEVF_TX_DETECT_HANG, &(ring)->state)
-
 struct ixgbevf_ring {
 	struct ixgbevf_ring *next;
 	struct net_device *netdev;
@@ -119,7 +100,7 @@ struct ixgbevf_ring {
 		struct ixgbevf_tx_buffer *tx_buffer_info;
 		struct ixgbevf_rx_buffer *rx_buffer_info;
 	};
-	unsigned long state;
+
 	struct ixgbevf_stats stats;
 	struct u64_stats_sync syncp;
 	union {
@@ -143,7 +124,6 @@ struct ixgbevf_ring {
 
 #define MAX_RX_QUEUES IXGBE_VF_MAX_RX_QUEUES
 #define MAX_TX_QUEUES IXGBE_VF_MAX_TX_QUEUES
-#define IXGBEVF_MAX_RSS_QUEUES 2
 
 #define IXGBEVF_DEFAULT_TXD   1024
 #define IXGBEVF_DEFAULT_RXD   512
@@ -429,11 +409,9 @@ struct ixgbevf_adapter {
 	u32 link_speed;
 	bool link_up;
 
-	struct timer_list service_timer;
-	struct work_struct service_task;
-
 	spinlock_t mbx_lock;
-	unsigned long last_reset;
+
+	struct work_struct watchdog_task;
 };
 
 enum ixbgevf_state_t {
@@ -442,8 +420,7 @@ enum ixbgevf_state_t {
 	__IXGBEVF_DOWN,
 	__IXGBEVF_DISABLED,
 	__IXGBEVF_REMOVING,
-	__IXGBEVF_SERVICE_SCHED,
-	__IXGBEVF_SERVICE_INITED,
+	__IXGBEVF_WORK_INIT,
 };
 
 struct ixgbevf_cb {

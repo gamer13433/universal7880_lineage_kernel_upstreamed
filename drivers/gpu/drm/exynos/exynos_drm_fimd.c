@@ -136,7 +136,6 @@ struct fimd_win_data {
 	unsigned int		ovl_height;
 	unsigned int		fb_width;
 	unsigned int		fb_height;
-	unsigned int		fb_pitch;
 	unsigned int		bpp;
 	unsigned int		pixel_format;
 	dma_addr_t		dma_addr;
@@ -303,7 +302,7 @@ static u32 fimd_calc_clkdiv(struct fimd_context *ctx,
 	return (clkdiv < 0x100) ? clkdiv : 0xff;
 }
 
-static bool fimd_mode_fixup(struct exynos_drm_crtc *crtc,
+static bool fimd_mode_fixup(struct exynos_drm_manager *mgr,
 		const struct drm_display_mode *mode,
 		struct drm_display_mode *adjusted_mode)
 {
@@ -509,7 +508,7 @@ static void fimd_win_mode_set(struct exynos_drm_manager *mgr,
 			win_data->ovl_width, win_data->ovl_height);
 	DRM_DEBUG_KMS("paddr = 0x%lx\n", (unsigned long)win_data->dma_addr);
 	DRM_DEBUG_KMS("fb_width = %d, crtc_width = %d\n",
-			plane->fb_width, plane->crtc_width);
+			overlay->fb_width, overlay->crtc_width);
 }
 
 static void fimd_win_set_pixfmt(struct fimd_context *ctx, unsigned int win)
@@ -569,8 +568,8 @@ static void fimd_win_set_pixfmt(struct fimd_context *ctx, unsigned int win)
 	/*
 	 * In case of exynos, setting dma-burst to 16Word causes permanent
 	 * tearing for very small buffers, e.g. cursor buffer. Burst Mode
-	 * switching which is based on plane size is not recommended as
-	 * plane size varies alot towards the end of the screen and rapid
+	 * switching which is based on overlay size is not recommended as
+	 * overlay size varies alot towards the end of the screen and rapid
 	 * movement causes unstable DMA which results into iommu crash/tear.
 	 */
 
@@ -666,7 +665,7 @@ static void fimd_win_commit(struct exynos_drm_manager *mgr, int zpos)
 	writel(val, ctx->regs + VIDWx_BUF_START(win, 0));
 
 	/* buffer end address */
-	size = win_data->fb_pitch * win_data->ovl_height * (win_data->bpp >> 3);
+	size = win_data->fb_width * win_data->ovl_height * (win_data->bpp >> 3);
 	val = (unsigned long)(win_data->dma_addr + size);
 	writel(val, ctx->regs + VIDWx_BUF_END(win, 0));
 
@@ -863,16 +862,16 @@ static int fimd_poweron(struct exynos_drm_manager *mgr)
 
 	/* if vblank was enabled status, enable it again. */
 	if (test_and_clear_bit(0, &ctx->irq_flags)) {
-		ret = fimd_enable_vblank(ctx->crtc);
+		ret = fimd_enable_vblank(mgr);
 		if (ret) {
 			DRM_ERROR("Failed to re-enable vblank [%d]\n", ret);
 			goto enable_vblank_err;
 		}
 	}
 
-	fimd_window_resume(ctx);
+	fimd_window_resume(mgr);
 
-	fimd_apply(ctx);
+	fimd_apply(mgr);
 
 	return 0;
 
@@ -897,7 +896,7 @@ static int fimd_poweroff(struct exynos_drm_manager *mgr)
 	 * suspend that connector. Otherwise we might try to scan from
 	 * a destroyed buffer later.
 	 */
-	fimd_window_suspend(ctx);
+	fimd_window_suspend(mgr);
 
 	clk_disable_unprepare(ctx->lcd_clk);
 	clk_disable_unprepare(ctx->bus_clk);
@@ -908,18 +907,18 @@ static int fimd_poweroff(struct exynos_drm_manager *mgr)
 	return 0;
 }
 
-static void fimd_dpms(struct exynos_drm_crtc *crtc, int mode)
+static void fimd_dpms(struct exynos_drm_manager *mgr, int mode)
 {
 	DRM_DEBUG_KMS("%s, %d\n", __FILE__, mode);
 
 	switch (mode) {
 	case DRM_MODE_DPMS_ON:
-		fimd_poweron(crtc->ctx);
+		fimd_poweron(mgr);
 		break;
 	case DRM_MODE_DPMS_STANDBY:
 	case DRM_MODE_DPMS_SUSPEND:
 	case DRM_MODE_DPMS_OFF:
-		fimd_poweroff(crtc->ctx);
+		fimd_poweroff(mgr);
 		break;
 	default:
 		DRM_DEBUG_KMS("unspecified mode %d\n", mode);
@@ -979,9 +978,10 @@ static void fimd_te_handler(struct exynos_drm_manager *mgr)
 	}
 }
 
-static struct exynos_drm_crtc_ops fimd_crtc_ops = {
+static struct exynos_drm_manager_ops fimd_manager_ops = {
 	.dpms = fimd_dpms,
 	.mode_fixup = fimd_mode_fixup,
+	.mode_set = fimd_mode_set,
 	.commit = fimd_commit,
 	.enable_vblank = fimd_enable_vblank,
 	.disable_vblank = fimd_disable_vblank,
@@ -1077,7 +1077,7 @@ static int fimd_probe(struct platform_device *pdev)
 	struct fimd_context *ctx;
 	struct device_node *i80_if_timings;
 	struct resource *res;
-	int ret;
+	int ret = -EINVAL;
 
 	ret = exynos_drm_component_add(&pdev->dev, EXYNOS_DEVICE_TYPE_CRTC,
 					fimd_manager.type);

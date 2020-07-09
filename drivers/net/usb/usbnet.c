@@ -160,19 +160,20 @@ EXPORT_SYMBOL_GPL(usbnet_get_endpoints);
 
 int usbnet_get_ethernet_addr(struct usbnet *dev, int iMACAddress)
 {
-	int 		tmp = -1, ret;
+	int 		tmp, i;
 	unsigned char	buf [13];
 
-	ret = usb_string(dev->udev, iMACAddress, buf, sizeof buf);
-	if (ret == 12)
-		tmp = hex2bin(dev->net->dev_addr, buf, 6);
-	if (tmp < 0) {
+	tmp = usb_string(dev->udev, iMACAddress, buf, sizeof buf);
+	if (tmp != 12) {
 		dev_dbg(&dev->udev->dev,
 			"bad MAC string %d fetch, %d\n", iMACAddress, tmp);
-		if (ret >= 0)
-			ret = -EINVAL;
-		return ret;
+		if (tmp >= 0)
+			tmp = -EINVAL;
+		return tmp;
 	}
+	for (i = tmp = 0; i < 6; i++, tmp += 2)
+		dev->net->dev_addr [i] =
+			(hex_to_bin(buf[tmp]) << 4) + hex_to_bin(buf[tmp + 1]);
 	return 0;
 }
 EXPORT_SYMBOL_GPL(usbnet_get_ethernet_addr);

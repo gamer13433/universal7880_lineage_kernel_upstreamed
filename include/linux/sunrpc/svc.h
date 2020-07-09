@@ -109,7 +109,7 @@ struct svc_serv {
  * We use sv_nrthreads as a reference count.  svc_destroy() drops
  * this refcount, so we need to bump it up around operations that
  * change the number of threads.  Horrible, but there it is.
- * Should be called with the "service mutex" held.
+ * Should be called with the BKL held.
  */
 static inline void svc_get(struct svc_serv *serv)
 {

@@ -25,7 +25,6 @@
 #include <linux/interrupt.h>
 #include <linux/pci.h>
 #include <linux/module.h>
-#include <linux/io.h>
 
 #include <sound/core.h>
 #include <sound/control.h>
@@ -35,6 +34,7 @@
 #include <sound/initval.h>
 
 #include <asm/current.h>
+#include <asm/io.h>
 
 static int index[SNDRV_CARDS] = SNDRV_DEFAULT_IDX;	/* Index 0-MAX */
 static char *id[SNDRV_CARDS] = SNDRV_DEFAULT_STR;	/* ID for this card */
@@ -1778,7 +1778,8 @@ static int snd_rme9652_free(struct snd_rme9652 *rme9652)
 
 	if (rme9652->irq >= 0)
 		free_irq(rme9652->irq, (void *)rme9652);
-	iounmap(rme9652->iobase);
+	if (rme9652->iobase)
+		iounmap(rme9652->iobase);
 	if (rme9652->port)
 		pci_release_regions(rme9652->pci);
 

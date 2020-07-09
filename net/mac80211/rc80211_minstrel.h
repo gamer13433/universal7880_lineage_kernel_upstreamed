@@ -33,8 +33,8 @@ minstrel_ewma(int old, int new, int weight)
 
 struct minstrel_rate_stats {
 	/* current / last sampling period attempts/success counters */
-	u16 attempts, last_attempts;
-	u16 success, last_success;
+	unsigned int attempts, last_attempts;
+	unsigned int success, last_success;
 
 	/* total attempts/success counters */
 	u64 att_hist, succ_hist;
@@ -46,8 +46,8 @@ struct minstrel_rate_stats {
 	unsigned int cur_prob, probability;
 
 	/* maximum retry counts */
-	u8 retry_count;
-	u8 retry_count_rtscts;
+	unsigned int retry_count;
+	unsigned int retry_count_rtscts;
 
 	u8 sample_skipped;
 	bool retry_updated;
@@ -55,15 +55,14 @@ struct minstrel_rate_stats {
 
 struct minstrel_rate {
 	int bitrate;
-
-	s8 rix;
-	u8 retry_count_cts;
-	u8 adjusted_retry_count;
+	int rix;
 
 	unsigned int perfect_tx_time;
 	unsigned int ack_time;
 
 	int sample_limit;
+	unsigned int retry_count_cts;
+	unsigned int adjusted_retry_count;
 
 	struct minstrel_rate_stats stats;
 };

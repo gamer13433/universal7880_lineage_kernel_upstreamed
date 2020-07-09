@@ -2,6 +2,7 @@
 CFLAGS_trace.o				:= -I$(src)
 
 ccflags-$(CONFIG_USB_DWC3_DEBUG)	:= -DDEBUG
+ccflags-$(CONFIG_USB_DWC3_VERBOSE)	+= -DVERBOSE_DEBUG
 
 obj-$(CONFIG_USB_DWC3)			+= dwc3.o
 

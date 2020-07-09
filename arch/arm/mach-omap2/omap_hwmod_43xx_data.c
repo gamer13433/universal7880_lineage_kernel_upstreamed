@@ -467,7 +467,6 @@ static struct omap_hwmod am43xx_dss_dispc_hwmod = {
 		},
 	},
 	.dev_attr	= &am43xx_dss_dispc_dev_attr,
-	.parent_hwmod	= &am43xx_dss_core_hwmod,
 };
 
 /* rfbi */
@@ -482,7 +481,6 @@ static struct omap_hwmod am43xx_dss_rfbi_hwmod = {
 			.clkctrl_offs = AM43XX_CM_PER_DSS_CLKCTRL_OFFSET,
 		},
 	},
-	.parent_hwmod	= &am43xx_dss_core_hwmod,
 };
 
 /* Interfaces */

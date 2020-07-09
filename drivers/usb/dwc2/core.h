@@ -108,7 +108,7 @@ struct s3c_hsotg_req;
  * @halted: Set if the endpoint has been halted.
  * @periodic: Set if this is a periodic ep, such as Interrupt
  * @isochronous: Set if this is a isochronous ep
- * @send_zlp: Set if we need to send a zero-length packet.
+ * @sent_zlp: Set if we've sent a zero-length packet.
  * @total_data: The total number of data bytes done.
  * @fifo_size: The size of the FIFO (for periodic IN endpoints)
  * @fifo_load: The amount of data loaded into the FIFO (periodic IN)
@@ -149,7 +149,7 @@ struct s3c_hsotg_ep {
 	unsigned int            halted:1;
 	unsigned int            periodic:1;
 	unsigned int            isochronous:1;
-	unsigned int            send_zlp:1;
+	unsigned int            sent_zlp:1;
 
 	char                    name[10];
 };
@@ -219,12 +219,14 @@ struct s3c_hsotg {
  * struct s3c_hsotg_req - data transfer request
  * @req: The USB gadget request
  * @queue: The list of requests for the endpoint this is queued for.
- * @saved_req_buf: variable to save req.buf when bounce buffers are used.
+ * @in_progress: Has already had size/packets written to core
+ * @mapped: DMA buffer for this request has been mapped via dma_map_single().
  */
 struct s3c_hsotg_req {
 	struct usb_request      req;
 	struct list_head        queue;
-	void *saved_req_buf;
+	unsigned char           in_progress;
+	unsigned char           mapped;
 };
 
 #define call_gadget(_hs, _entry) \
@@ -246,22 +248,6 @@ enum dwc2_lx_state {
 	DWC2_L1,	/* LPM sleep state */
 	DWC2_L2,	/* USB suspend state */
 	DWC2_L3,	/* Off state */
-};
-
-/*
- * Gadget periodic tx fifo sizes as used by legacy driver
- * EP0 is not included
- */
-#define DWC2_G_P_LEGACY_TX_FIFO_SIZE {256, 256, 256, 256, 768, 768, 768, \
-					   768, 0, 0, 0, 0, 0, 0, 0}
-
-/* Gadget ep0 states */
-enum dwc2_ep0_state {
-	DWC2_EP0_SETUP,
-	DWC2_EP0_DATA_IN,
-	DWC2_EP0_DATA_OUT,
-	DWC2_EP0_STATUS_IN,
-	DWC2_EP0_STATUS_OUT,
 };
 
 /**
@@ -452,7 +438,7 @@ struct dwc2_core_params {
  * @power_optimized     Are power optimizations enabled?
  * @num_dev_ep          Number of device endpoints available
  * @num_dev_perio_in_ep Number of device periodic IN endpoints
- *                      available
+ *                      avaialable
  * @dev_token_q_depth   Device Mode IN Token Sequence Learning Queue
  *                      Depth
  *                       0 to 30
@@ -504,9 +490,6 @@ struct dwc2_hw_params {
 	unsigned utmi_phy_data_width:2;
 	u32 snpsid;
 };
-
-/* Size of control and EP0 buffers */
-#define DWC2_CTRL_BUFF_SIZE 8
 
 /**
  * struct dwc2_hsotg - Holds the state of the driver, including the non-periodic

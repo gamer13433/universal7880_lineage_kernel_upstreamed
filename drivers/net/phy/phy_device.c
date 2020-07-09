@@ -699,7 +699,6 @@ int phy_suspend(struct phy_device *phydev)
 {
 	struct phy_driver *phydrv = to_phy_driver(phydev->dev.driver);
 	struct ethtool_wolinfo wol = { .cmd = ETHTOOL_GWOL };
-	int ret = 0;
 
 	/* If the device has WOL enabled, we cannot suspend the PHY */
 	phy_ethtool_get_wol(phydev, &wol);
@@ -707,31 +706,18 @@ int phy_suspend(struct phy_device *phydev)
 		return -EBUSY;
 
 	if (phydrv->suspend)
-		ret = phydrv->suspend(phydev);
-
-	if (ret)
-		return ret;
-
-	phydev->suspended = true;
-
-	return ret;
+		return phydrv->suspend(phydev);
+	return 0;
 }
 EXPORT_SYMBOL(phy_suspend);
 
 int phy_resume(struct phy_device *phydev)
 {
 	struct phy_driver *phydrv = to_phy_driver(phydev->dev.driver);
-	int ret = 0;
 
 	if (phydrv->resume)
-		ret = phydrv->resume(phydev);
-
-	if (ret)
-		return ret;
-
-	phydev->suspended = false;
-
-	return ret;
+		return phydrv->resume(phydev);
+	return 0;
 }
 EXPORT_SYMBOL(phy_resume);
 

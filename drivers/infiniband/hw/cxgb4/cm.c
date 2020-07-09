@@ -235,19 +235,19 @@ static void release_tid(struct c4iw_rdev *rdev, u32 hwtid, struct sk_buff *skb)
 
 static void set_emss(struct c4iw_ep *ep, u16 opt)
 {
-	ep->emss = ep->com.dev->rdev.lldi.mtus[TCPOPT_MSS_G(opt)] -
+	ep->emss = ep->com.dev->rdev.lldi.mtus[GET_TCPOPT_MSS(opt)] -
 		   ((AF_INET == ep->com.remote_addr.ss_family) ?
 		    sizeof(struct iphdr) : sizeof(struct ipv6hdr)) -
 		   sizeof(struct tcphdr);
 	ep->mss = ep->emss;
-	if (TCPOPT_TSTAMP_G(opt))
+	if (GET_TCPOPT_TSTAMP(opt))
 		ep->emss -= round_up(TCPOLEN_TIMESTAMP, 4);
 	if (ep->emss < 128)
 		ep->emss = 128;
 	if (ep->emss & 7)
 		PDBG("Warning: misaligned mtu idx %u mss %u emss=%u\n",
-		     TCPOPT_MSS_G(opt), ep->mss, ep->emss);
-	PDBG("%s mss_idx %u mss %u emss=%u\n", __func__, TCPOPT_MSS_G(opt),
+		     GET_TCPOPT_MSS(opt), ep->mss, ep->emss);
+	PDBG("%s mss_idx %u mss %u emss=%u\n", __func__, GET_TCPOPT_MSS(opt),
 	     ep->mss, ep->emss);
 }
 
@@ -1042,7 +1042,7 @@ static int act_establish(struct c4iw_dev *dev, struct sk_buff *skb)
 	struct c4iw_ep *ep;
 	struct cpl_act_establish *req = cplhdr(skb);
 	unsigned int tid = GET_TID(req);
-	unsigned int atid = TID_TID_G(ntohl(req->tos_atid));
+	unsigned int atid = GET_TID_TID(ntohl(req->tos_atid));
 	struct tid_info *t = dev->rdev.lldi.tids;
 
 	ep = lookup_atid(t, atid);
@@ -2022,10 +2022,10 @@ static int act_open_rpl(struct c4iw_dev *dev, struct sk_buff *skb)
 {
 	struct c4iw_ep *ep;
 	struct cpl_act_open_rpl *rpl = cplhdr(skb);
-	unsigned int atid = TID_TID_G(AOPEN_ATID_G(
-				      ntohl(rpl->atid_status)));
+	unsigned int atid = GET_TID_TID(GET_AOPEN_ATID(
+					ntohl(rpl->atid_status)));
 	struct tid_info *t = dev->rdev.lldi.tids;
-	int status = AOPEN_STATUS_G(ntohl(rpl->atid_status));
+	int status = GET_AOPEN_STATUS(ntohl(rpl->atid_status));
 	struct sockaddr_in *la;
 	struct sockaddr_in *ra;
 	struct sockaddr_in6 *la6;
@@ -2063,7 +2063,7 @@ static int act_open_rpl(struct c4iw_dev *dev, struct sk_buff *skb)
 		if (ep->com.local_addr.ss_family == AF_INET &&
 		    dev->rdev.lldi.enable_fw_ofld_conn) {
 			send_fw_act_open_req(ep,
-					     TID_TID_G(AOPEN_ATID_G(
+					     GET_TID_TID(GET_AOPEN_ATID(
 					     ntohl(rpl->atid_status))));
 			return 0;
 		}
@@ -2244,8 +2244,8 @@ static void get_4tuple(struct cpl_pass_accept_req *req, int *iptype,
 		       __u8 *local_ip, __u8 *peer_ip,
 		       __be16 *local_port, __be16 *peer_port)
 {
-	int eth_len = ETH_HDR_LEN_G(be32_to_cpu(req->hdr_len));
-	int ip_len = IP_HDR_LEN_G(be32_to_cpu(req->hdr_len));
+	int eth_len = G_ETH_HDR_LEN(be32_to_cpu(req->hdr_len));
+	int ip_len = G_IP_HDR_LEN(be32_to_cpu(req->hdr_len));
 	struct iphdr *ip = (struct iphdr *)((u8 *)(req + 1) + eth_len);
 	struct ipv6hdr *ip6 = (struct ipv6hdr *)((u8 *)(req + 1) + eth_len);
 	struct tcphdr *tcp = (struct tcphdr *)
@@ -2276,7 +2276,7 @@ static int pass_accept_req(struct c4iw_dev *dev, struct sk_buff *skb)
 {
 	struct c4iw_ep *child_ep = NULL, *parent_ep;
 	struct cpl_pass_accept_req *req = cplhdr(skb);
-	unsigned int stid = PASS_OPEN_TID_G(ntohl(req->tos_stid));
+	unsigned int stid = GET_POPEN_TID(ntohl(req->tos_stid));
 	struct tid_info *t = dev->rdev.lldi.tids;
 	unsigned int hwtid = GET_TID(req);
 	struct dst_entry *dst;
@@ -2309,14 +2309,14 @@ static int pass_accept_req(struct c4iw_dev *dev, struct sk_buff *skb)
 		     ntohs(peer_port), peer_mss);
 		dst = find_route(dev, *(__be32 *)local_ip, *(__be32 *)peer_ip,
 				 local_port, peer_port,
-				 PASS_OPEN_TOS_G(ntohl(req->tos_stid)));
+				 GET_POPEN_TOS(ntohl(req->tos_stid)));
 	} else {
 		PDBG("%s parent ep %p hwtid %u laddr %pI6 raddr %pI6 lport %d rport %d peer_mss %d\n"
 		     , __func__, parent_ep, hwtid,
 		     local_ip, peer_ip, ntohs(local_port),
 		     ntohs(peer_port), peer_mss);
 		dst = find_route6(dev, local_ip, peer_ip, local_port, peer_port,
-				  PASS_OPEN_TOS_G(ntohl(req->tos_stid)),
+				  PASS_OPEN_TOS(ntohl(req->tos_stid)),
 				  ((struct sockaddr_in6 *)
 				  &parent_ep->com.local_addr)->sin6_scope_id);
 	}
@@ -2374,7 +2374,7 @@ static int pass_accept_req(struct c4iw_dev *dev, struct sk_buff *skb)
 	}
 	c4iw_get_ep(&parent_ep->com);
 	child_ep->parent_ep = parent_ep;
-	child_ep->tos = PASS_OPEN_TOS_G(ntohl(req->tos_stid));
+	child_ep->tos = GET_POPEN_TOS(ntohl(req->tos_stid));
 	child_ep->dst = dst;
 	child_ep->hwtid = hwtid;
 
@@ -3499,24 +3499,24 @@ static void build_cpl_pass_accept_req(struct sk_buff *skb, int stid , u8 tos)
 
 	req = (struct cpl_pass_accept_req *)__skb_push(skb, sizeof(*req));
 	memset(req, 0, sizeof(*req));
-	req->l2info = cpu_to_be16(SYN_INTF_V(intf) |
-			 SYN_MAC_IDX_V(RX_MACIDX_G(
+	req->l2info = cpu_to_be16(V_SYN_INTF(intf) |
+			 V_SYN_MAC_IDX(G_RX_MACIDX(
 			 (__force int) htonl(l2info))) |
-			 SYN_XACT_MATCH_F);
+			 F_SYN_XACT_MATCH);
 	eth_hdr_len = is_t4(dev->rdev.lldi.adapter_type) ?
-			    RX_ETHHDR_LEN_G((__force int)htonl(l2info)) :
-			    RX_T5_ETHHDR_LEN_G((__force int)htonl(l2info));
-	req->hdr_len = cpu_to_be32(SYN_RX_CHAN_V(RX_CHAN_G(
+			    G_RX_ETHHDR_LEN((__force int) htonl(l2info)) :
+			    G_RX_T5_ETHHDR_LEN((__force int) htonl(l2info));
+	req->hdr_len = cpu_to_be32(V_SYN_RX_CHAN(G_RX_CHAN(
 					(__force int) htonl(l2info))) |
-				   TCP_HDR_LEN_V(RX_TCPHDR_LEN_G(
+				   V_TCP_HDR_LEN(G_RX_TCPHDR_LEN(
 					(__force int) htons(hdr_len))) |
-				   IP_HDR_LEN_V(RX_IPHDR_LEN_G(
+				   V_IP_HDR_LEN(G_RX_IPHDR_LEN(
 					(__force int) htons(hdr_len))) |
-				   ETH_HDR_LEN_V(RX_ETHHDR_LEN_G(eth_hdr_len)));
+				   V_ETH_HDR_LEN(G_RX_ETHHDR_LEN(eth_hdr_len)));
 	req->vlan = (__force __be16) vlantag;
 	req->len = (__force __be16) len;
-	req->tos_stid = cpu_to_be32(PASS_OPEN_TID_V(stid) |
-				    PASS_OPEN_TOS_V(tos));
+	req->tos_stid = cpu_to_be32(PASS_OPEN_TID(stid) |
+				    PASS_OPEN_TOS(tos));
 	req->tcpopt.mss = htons(tmp_opt.mss_clamp);
 	if (tmp_opt.wscale_ok)
 		req->tcpopt.wsf = tmp_opt.snd_wscale;
@@ -3612,7 +3612,7 @@ static int rx_pkt(struct c4iw_dev *dev, struct sk_buff *skb)
 	struct neighbour *neigh;
 
 	/* Drop all non-SYN packets */
-	if (!(cpl->l2info & cpu_to_be32(RXF_SYN_F)))
+	if (!(cpl->l2info & cpu_to_be32(F_RXF_SYN)))
 		goto reject;
 
 	/*
@@ -3634,8 +3634,8 @@ static int rx_pkt(struct c4iw_dev *dev, struct sk_buff *skb)
 	}
 
 	eth_hdr_len = is_t4(dev->rdev.lldi.adapter_type) ?
-			    RX_ETHHDR_LEN_G(htonl(cpl->l2info)) :
-			    RX_T5_ETHHDR_LEN_G(htonl(cpl->l2info));
+			    G_RX_ETHHDR_LEN(htonl(cpl->l2info)) :
+			    G_RX_T5_ETHHDR_LEN(htonl(cpl->l2info));
 	if (eth_hdr_len == ETH_HLEN) {
 		eh = (struct ethhdr *)(req + 1);
 		iph = (struct iphdr *)(eh + 1);

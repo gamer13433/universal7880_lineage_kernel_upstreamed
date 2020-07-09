@@ -284,6 +284,32 @@ static void __init exynos_init_irq(void)
 
 static void __init exynos_dt_machine_init(void)
 {
+	struct device_node *i2c_np;
+	const char *i2c_compat = "samsung,s3c2440-i2c";
+	unsigned int tmp;
+	int id;
+
+	/*
+	 * Exynos5's legacy i2c controller and new high speed i2c
+	 * controller have muxed interrupt sources. By default the
+	 * interrupts for 4-channel HS-I2C controller are enabled.
+	 * If node for first four channels of legacy i2c controller
+	 * are available then re-configure the interrupts via the
+	 * system register.
+	 */
+	if (soc_is_exynos5()) {
+		for_each_compatible_node(i2c_np, NULL, i2c_compat) {
+			if (of_device_is_available(i2c_np)) {
+				id = of_alias_get_id(i2c_np, "i2c");
+				if (id < 4) {
+					tmp = readl(EXYNOS5_SYS_I2C_CFG);
+					writel(tmp & ~(0x1 << id),
+							EXYNOS5_SYS_I2C_CFG);
+				}
+			}
+		}
+	}
+
 	/*
 	 * This is called from smp_prepare_cpus if we've built for SMP, but
 	 * we still need to set it up for PM and firmware ops if not.
@@ -291,10 +317,6 @@ static void __init exynos_dt_machine_init(void)
 	if (!IS_ENABLED(CONFIG_SMP))
 		exynos_sysram_init();
 
-#ifdef CONFIG_ARM_EXYNOS_CPUIDLE
-	if (of_machine_is_compatible("samsung,exynos4210"))
-		exynos_cpuidle.dev.platform_data = &cpuidle_coupled_exynos_data;
-#endif
 	if (of_machine_is_compatible("samsung,exynos4210") ||
 			of_machine_is_compatible("samsung,exynos5250"))
 		platform_device_register(&exynos_cpuidle);
@@ -304,7 +326,7 @@ static void __init exynos_dt_machine_init(void)
 	of_platform_populate(NULL, of_default_bus_match_table, NULL, NULL);
 }
 
-static char const *const exynos_dt_compat[] __initconst = {
+static char const *exynos_dt_compat[] __initconst = {
 	"samsung,exynos3",
 	"samsung,exynos3250",
 	"samsung,exynos4",
@@ -327,7 +349,6 @@ static void __init exynos_reserve(void)
 		"samsung,mfc-v5",
 		"samsung,mfc-v6",
 		"samsung,mfc-v7",
-		"samsung,mfc-v8",
 	};
 
 	for (i = 0; i < ARRAY_SIZE(mfc_mem); i++)

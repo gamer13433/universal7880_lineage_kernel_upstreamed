@@ -466,8 +466,6 @@ static void ext3_put_super (struct super_block * sb)
 	}
 	sb->s_fs_info = NULL;
 	kfree(sbi->s_blockgroup_lock);
-	mutex_destroy(&sbi->s_orphan_lock);
-	mutex_destroy(&sbi->s_resize_lock);
 	kfree(sbi);
 }
 

@@ -39,7 +39,6 @@
 #include "t4vf_defs.h"
 
 #include "../cxgb4/t4_regs.h"
-#include "../cxgb4/t4_values.h"
 #include "../cxgb4/t4fw_api.h"
 
 /*
@@ -138,9 +137,9 @@ int t4vf_wr_mbox_core(struct adapter *adapter, const void *cmd, int size,
 	 * Loop trying to get ownership of the mailbox.  Return an error
 	 * if we can't gain ownership.
 	 */
-	v = MBOWNER_G(t4_read_reg(adapter, mbox_ctl));
+	v = MBOWNER_GET(t4_read_reg(adapter, mbox_ctl));
 	for (i = 0; v == MBOX_OWNER_NONE && i < 3; i++)
-		v = MBOWNER_G(t4_read_reg(adapter, mbox_ctl));
+		v = MBOWNER_GET(t4_read_reg(adapter, mbox_ctl));
 	if (v != MBOX_OWNER_DRV)
 		return v == MBOX_OWNER_FW ? -EBUSY : -ETIMEDOUT;
 
@@ -162,7 +161,7 @@ int t4vf_wr_mbox_core(struct adapter *adapter, const void *cmd, int size,
 	t4_read_reg(adapter, mbox_data);         /* flush write */
 
 	t4_write_reg(adapter, mbox_ctl,
-		     MBMSGVALID_F | MBOWNER_V(MBOX_OWNER_FW));
+		     MBMSGVALID | MBOWNER(MBOX_OWNER_FW));
 	t4_read_reg(adapter, mbox_ctl);          /* flush write */
 
 	/*
@@ -184,14 +183,14 @@ int t4vf_wr_mbox_core(struct adapter *adapter, const void *cmd, int size,
 		 * If we're the owner, see if this is the reply we wanted.
 		 */
 		v = t4_read_reg(adapter, mbox_ctl);
-		if (MBOWNER_G(v) == MBOX_OWNER_DRV) {
+		if (MBOWNER_GET(v) == MBOX_OWNER_DRV) {
 			/*
 			 * If the Message Valid bit isn't on, revoke ownership
 			 * of the mailbox and continue waiting for our reply.
 			 */
-			if ((v & MBMSGVALID_F) == 0) {
+			if ((v & MBMSGVALID) == 0) {
 				t4_write_reg(adapter, mbox_ctl,
-					     MBOWNER_V(MBOX_OWNER_NONE));
+					     MBOWNER(MBOX_OWNER_NONE));
 				continue;
 			}
 

@@ -1498,7 +1498,10 @@ static netdev_tx_t nsc_ircc_hard_xmit_fir(struct sk_buff *skb,
 		mtt = irda_get_mtt(skb);
 		if (mtt) {
 			/* Check how much time we have used already */
-			diff = ktime_us_delta(ktime_get(), self->stamp);
+			do_gettimeofday(&self->now);
+			diff = self->now.tv_usec - self->stamp.tv_usec;
+			if (diff < 0) 
+				diff += 1000000;
 			
 			/* Check if the mtt is larger than the time we have
 			 * already used by all the protocol processing
@@ -1865,7 +1868,7 @@ static int nsc_ircc_dma_receive_complete(struct nsc_ircc_cb *self, int iobase)
 			 * reduce the min turn time a bit since we will know
 			 * how much time we have used for protocol processing
 			 */
-			self->stamp = ktime_get();
+			do_gettimeofday(&self->stamp);
 
 			skb = dev_alloc_skb(len+1);
 			if (skb == NULL)  {

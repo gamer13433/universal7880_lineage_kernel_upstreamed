@@ -44,7 +44,6 @@
 #include <linux/interrupt.h>
 #include <linux/spinlock.h>
 #include <linux/dma-mapping.h>
-#include <linux/io.h>
 
 #include <sound/core.h>
 #include <sound/pcm.h>
@@ -53,6 +52,7 @@
 #include <sound/initval.h>
 #include <sound/info.h>
 
+#include <asm/io.h>
 #include <asm/hardware.h>
 #include <asm/parisc-device.h>
 
@@ -899,7 +899,9 @@ snd_harmony_free(struct snd_harmony *h)
 	if (h->irq >= 0)
 		free_irq(h->irq, h);
 
-	iounmap(h->iobase);
+	if (h->iobase)
+		iounmap(h->iobase);
+
 	kfree(h);
 	return 0;
 }

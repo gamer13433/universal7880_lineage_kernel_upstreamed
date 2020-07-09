@@ -292,6 +292,7 @@ static inline int mpipe_instance(struct net_device *dev)
  */
 static bool network_cpus_init(void)
 {
+	char buf[1024];
 	int rc;
 
 	if (network_cpus_string == NULL)
@@ -313,8 +314,8 @@ static bool network_cpus_init(void)
 		return false;
 	}
 
-	pr_info("Linux network CPUs: %*pbl\n",
-		cpumask_pr_args(&network_cpus_map));
+	cpulist_scnprintf(buf, sizeof(buf), &network_cpus_map);
+	pr_info("Linux network CPUs: %s\n", buf);
 	return true;
 }
 

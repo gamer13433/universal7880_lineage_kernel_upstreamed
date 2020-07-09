@@ -53,27 +53,7 @@ struct mem_cgroup_reclaim_cookie {
 	unsigned int generation;
 };
 
-enum mem_cgroup_events_index {
-	MEM_CGROUP_EVENTS_PGPGIN,	/* # of pages paged in */
-	MEM_CGROUP_EVENTS_PGPGOUT,	/* # of pages paged out */
-	MEM_CGROUP_EVENTS_PGFAULT,	/* # of page-faults */
-	MEM_CGROUP_EVENTS_PGMAJFAULT,	/* # of major page-faults */
-	MEM_CGROUP_EVENTS_NSTATS,
-	/* default hierarchy events */
-	MEMCG_LOW = MEM_CGROUP_EVENTS_NSTATS,
-	MEMCG_HIGH,
-	MEMCG_MAX,
-	MEMCG_OOM,
-	MEMCG_NR_EVENTS,
-};
-
 #ifdef CONFIG_MEMCG
-void mem_cgroup_events(struct mem_cgroup *memcg,
-		       enum mem_cgroup_events_index idx,
-		       unsigned int nr);
-
-bool mem_cgroup_low(struct mem_cgroup *root, struct mem_cgroup *memcg);
-
 int mem_cgroup_try_charge(struct page *page, struct mm_struct *mm,
 			  gfp_t gfp_mask, struct mem_cgroup **memcgp);
 void mem_cgroup_commit_charge(struct page *page, struct mem_cgroup *memcg,
@@ -123,7 +103,6 @@ void mem_cgroup_iter_break(struct mem_cgroup *, struct mem_cgroup *);
  * For memory reclaim.
  */
 int mem_cgroup_inactive_anon_is_low(struct lruvec *lruvec);
-bool mem_cgroup_lruvec_online(struct lruvec *lruvec);
 int mem_cgroup_select_victim_node(struct mem_cgroup *memcg);
 unsigned long mem_cgroup_get_lru_size(struct lruvec *lruvec, enum lru_list);
 void mem_cgroup_update_lru_size(struct lruvec *, enum lru_list, int);
@@ -201,18 +180,6 @@ void mem_cgroup_print_bad_page(struct page *page);
 #endif
 #else /* CONFIG_MEMCG */
 struct mem_cgroup;
-
-static inline void mem_cgroup_events(struct mem_cgroup *memcg,
-				     enum mem_cgroup_events_index idx,
-				     unsigned int nr)
-{
-}
-
-static inline bool mem_cgroup_low(struct mem_cgroup *root,
-				  struct mem_cgroup *memcg)
-{
-	return false;
-}
 
 static inline int mem_cgroup_try_charge(struct page *page, struct mm_struct *mm,
 					gfp_t gfp_mask,
@@ -304,11 +271,6 @@ static inline int
 mem_cgroup_inactive_anon_is_low(struct lruvec *lruvec)
 {
 	return 1;
-}
-
-static inline bool mem_cgroup_lruvec_online(struct lruvec *lruvec)
-{
-	return true;
 }
 
 static inline unsigned long
@@ -420,9 +382,7 @@ static inline void sock_release_memcg(struct sock *sk)
 #ifdef CONFIG_MEMCG_KMEM
 extern struct static_key memcg_kmem_enabled_key;
 
-extern int memcg_nr_cache_ids;
-extern void memcg_get_cache_ids(void);
-extern void memcg_put_cache_ids(void);
+extern int memcg_limited_groups_array_size;
 
 /*
  * Helper macro to loop through all memcg-specific caches. Callers must still
@@ -430,14 +390,12 @@ extern void memcg_put_cache_ids(void);
  * the slab_mutex must be held when looping through those caches
  */
 #define for_each_memcg_cache_index(_idx)	\
-	for ((_idx) = 0; (_idx) < memcg_nr_cache_ids; (_idx)++)
+	for ((_idx) = 0; (_idx) < memcg_limited_groups_array_size; (_idx)++)
 
 static inline bool memcg_kmem_enabled(void)
 {
 	return static_key_false(&memcg_kmem_enabled_key);
 }
-
-bool memcg_kmem_is_active(struct mem_cgroup *memcg);
 
 /*
  * In general, we'll do everything in our power to not incur in any overhead
@@ -558,23 +516,11 @@ memcg_kmem_get_cache(struct kmem_cache *cachep, gfp_t gfp)
 
 	return __memcg_kmem_get_cache(cachep, gfp);
 }
-
-static __always_inline struct mem_cgroup *mem_cgroup_from_kmem(void *ptr)
-{
-	if (!memcg_kmem_enabled())
-		return NULL;
-	return __mem_cgroup_from_kmem(ptr);
-}
 #else
 #define for_each_memcg_cache_index(_idx)	\
 	for (; NULL; )
 
 static inline bool memcg_kmem_enabled(void)
-{
-	return false;
-}
-
-static inline bool memcg_kmem_is_active(struct mem_cgroup *memcg)
 {
 	return false;
 }
@@ -599,23 +545,10 @@ static inline int memcg_cache_id(struct mem_cgroup *memcg)
 	return -1;
 }
 
-static inline void memcg_get_cache_ids(void)
-{
-}
-
-static inline void memcg_put_cache_ids(void)
-{
-}
-
 static inline struct kmem_cache *
 memcg_kmem_get_cache(struct kmem_cache *cachep, gfp_t gfp)
 {
 	return cachep;
-}
-
-static inline struct mem_cgroup *mem_cgroup_from_kmem(void *ptr)
-{
-	return NULL;
 }
 #endif /* CONFIG_MEMCG_KMEM */
 #endif /* _LINUX_MEMCONTROL_H */

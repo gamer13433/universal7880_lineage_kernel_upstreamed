@@ -72,6 +72,21 @@ static void ll_destroy_inode(struct inode *inode)
 	call_rcu(&inode->i_rcu, ll_inode_destroy_callback);
 }
 
+static int ll_init_inodecache(void)
+{
+	ll_inode_cachep = kmem_cache_create("lustre_inode_cache",
+					       sizeof(struct ll_inode_info),
+					       0, SLAB_HWCACHE_ALIGN, NULL);
+	if (ll_inode_cachep == NULL)
+		return -ENOMEM;
+	return 0;
+}
+
+static void ll_destroy_inodecache(void)
+{
+	kmem_cache_destroy(ll_inode_cachep);
+}
+
 /* exported operations */
 struct super_operations lustre_super_operations = {
 	.alloc_inode   = ll_alloc_inode,
@@ -89,10 +104,9 @@ void lustre_register_client_process_config(int (*cpc)(struct lustre_cfg *lcfg));
 
 static int __init init_lustre_lite(void)
 {
-	struct proc_dir_entry *entry;
-	lnet_process_id_t lnet_id;
-	struct timeval tv;
 	int i, rc, seed[2];
+	struct timeval tv;
+	lnet_process_id_t lnet_id;
 
 	CLASSERT(sizeof(LUSTRE_VOLATILE_HDR) == LUSTRE_VOLATILE_HDR_LEN + 1);
 
@@ -163,54 +177,20 @@ static int __init init_lustre_lite(void)
 	init_timer(&ll_capa_timer);
 	ll_capa_timer.function = ll_capa_timer_callback;
 	rc = ll_capa_thread_start();
-	if (rc != 0)
-		goto out_proc;
+	/*
+	 * XXX normal cleanup is needed here.
+	 */
+	if (rc == 0)
+		rc = vvp_global_init();
 
-	rc = vvp_global_init();
-	if (rc != 0)
-		goto out_capa;
-
-	rc = ll_xattr_init();
-	if (rc != 0)
-		goto out_vvp;
-
-	lustre_register_client_fill_super(ll_fill_super);
-	lustre_register_kill_super_cb(ll_kill_super);
-	lustre_register_client_process_config(ll_process_config);
-
-	return 0;
-
-out_vvp:
-	vvp_global_fini();
-out_capa:
-	del_timer(&ll_capa_timer);
-	ll_capa_thread_stop();
-out_proc:
-	lprocfs_remove(&proc_lustre_fs_root);
-out_cache:
-	if (ll_inode_cachep != NULL)
-		kmem_cache_destroy(ll_inode_cachep);
-
-	if (ll_file_data_slab != NULL)
-		kmem_cache_destroy(ll_file_data_slab);
-
-	if (ll_remote_perm_cachep != NULL)
-		kmem_cache_destroy(ll_remote_perm_cachep);
-
-	if (ll_rmtperm_hash_cachep != NULL)
-		kmem_cache_destroy(ll_rmtperm_hash_cachep);
+	if (rc == 0)
+		rc = ll_xattr_init();
 
 	return rc;
 }
 
 static void __exit exit_lustre_lite(void)
 {
-	lustre_register_client_fill_super(NULL);
-	lustre_register_kill_super_cb(NULL);
-	lustre_register_client_process_config(NULL);
-
-	lprocfs_remove(&proc_lustre_fs_root);
-
 	ll_xattr_fini();
 	vvp_global_fini();
 	del_timer(&ll_capa_timer);
@@ -219,12 +199,22 @@ static void __exit exit_lustre_lite(void)
 		 "client remaining capa count %d\n",
 		 capa_count[CAPA_SITE_CLIENT]);
 
-	kmem_cache_destroy(ll_inode_cachep);
+	lustre_register_client_fill_super(NULL);
+	lustre_register_kill_super_cb(NULL);
+
+	lustre_register_client_process_config(NULL);
+
+	ll_destroy_inodecache();
+
 	kmem_cache_destroy(ll_rmtperm_hash_cachep);
+	ll_rmtperm_hash_cachep = NULL;
 
 	kmem_cache_destroy(ll_remote_perm_cachep);
+	ll_remote_perm_cachep = NULL;
 
 	kmem_cache_destroy(ll_file_data_slab);
+	if (proc_lustre_fs_root && !IS_ERR(proc_lustre_fs_root))
+		lprocfs_remove(&proc_lustre_fs_root);
 }
 
 MODULE_AUTHOR("Sun Microsystems, Inc. <http://www.lustre.org/>");

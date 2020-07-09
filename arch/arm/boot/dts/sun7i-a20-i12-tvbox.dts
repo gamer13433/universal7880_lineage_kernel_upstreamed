@@ -10,12 +10,8 @@
  */
 
 /dts-v1/;
-#include "sun7i-a20.dtsi"
-#include "sunxi-common-regulators.dtsi"
-
-#include <dt-bindings/gpio/gpio.h>
-#include <dt-bindings/interrupt-controller/irq.h>
-#include <dt-bindings/pinctrl/sun4i-a10.h>
+/include/ "sun7i-a20.dtsi"
+/include/ "sunxi-common-regulators.dtsi"
 
 / {
 	model = "I12 / Q5 / QT840A A20 tvbox";
@@ -27,7 +23,7 @@
 			pinctrl-0 = <&mmc0_pins_a>, <&mmc0_cd_pin_reference_design>;
 			vmmc-supply = <&reg_vcc3v3>;
 			bus-width = <4>;
-			cd-gpios = <&pio 7 1 GPIO_ACTIVE_HIGH>; /* PH1 */
+			cd-gpios = <&pio 7 1 0>; /* PH1 */
 			cd-inverted;
 			status = "okay";
 		};
@@ -66,35 +62,35 @@
 		pinctrl@01c20800 {
 			mmc3_pins_a: mmc3@0 {
 				/* AP6210 / AP6330 requires pull-up */
-				allwinner,pull = <SUN4I_PINCTRL_PULL_UP>;
+				allwinner,pull = <1>;
 			};
 
 			vmmc3_pin_i12_tvbox: vmmc3_pin@0 {
 				allwinner,pins = "PH2";
 				allwinner,function = "gpio_out";
-				allwinner,drive = <SUN4I_PINCTRL_10_MA>;
-				allwinner,pull = <SUN4I_PINCTRL_NO_PULL>;
+				allwinner,drive = <0>;
+				allwinner,pull = <0>;
 			};
 
 			vmmc3_io_pin_i12_tvbox: vmmc3_io_pin@0 {
 				allwinner,pins = "PH12";
 				allwinner,function = "gpio_out";
-				allwinner,drive = <SUN4I_PINCTRL_10_MA>;
-				allwinner,pull = <SUN4I_PINCTRL_NO_PULL>;
+				allwinner,drive = <0>;
+				allwinner,pull = <0>;
 			};
 
 			gmac_power_pin_i12_tvbox: gmac_power_pin@0 {
 				allwinner,pins = "PH21";
 				allwinner,function = "gpio_out";
-				allwinner,drive = <SUN4I_PINCTRL_10_MA>;
-				allwinner,pull = <SUN4I_PINCTRL_NO_PULL>;
+				allwinner,drive = <0>;
+				allwinner,pull = <0>;
 			};
 
 			led_pins_i12_tvbox: led_pins@0 {
 				allwinner,pins = "PH9", "PH20";
 				allwinner,function = "gpio_out";
-				allwinner,drive = <SUN4I_PINCTRL_10_MA>;
-				allwinner,pull = <SUN4I_PINCTRL_NO_PULL>;
+				allwinner,drive = <0>;
+				allwinner,pull = <0>;
 			};
 		};
 
@@ -119,7 +115,7 @@
 				compatible = "x-powers,axp209";
 				reg = <0x34>;
 				interrupt-parent = <&nmi_intc>;
-				interrupts = <0 IRQ_TYPE_LEVEL_LOW>;
+				interrupts = <0 8>;
 
 				interrupt-controller;
 				#interrupt-cells = <1>;
@@ -147,12 +143,12 @@
 
 		red {
 			label = "i12_tvbox:red:usr";
-			gpios = <&pio 7 9 GPIO_ACTIVE_LOW>;
+			gpios = <&pio 7 9 1>;
 		};
 
 		blue {
 			label = "i12_tvbox:blue:usr";
-			gpios = <&pio 7 20 GPIO_ACTIVE_HIGH>;
+			gpios = <&pio 7 20 0>;
 		};
 	};
 
@@ -172,7 +168,7 @@
 		regulator-min-microvolt = <3300000>;
 		regulator-max-microvolt = <3300000>;
 		enable-active-high;
-		gpio = <&pio 7 2 GPIO_ACTIVE_HIGH>;
+		gpio = <&pio 7 2 0>;
 	};
 
 	reg_vmmc3_io: vmmc3-io {
@@ -185,7 +181,7 @@
 		/* This controls VCC-PI, must be always on! */
 		regulator-always-on;
 		enable-active-high;
-		gpio = <&pio 7 12 GPIO_ACTIVE_HIGH>;
+		gpio = <&pio 7 12 0>;
 	};
 
 	reg_gmac_3v3: gmac-3v3 {
@@ -197,6 +193,6 @@
 		regulator-max-microvolt = <3300000>;
 		startup-delay-us = <50000>;
 		enable-active-high;
-		gpio = <&pio 7 21 GPIO_ACTIVE_HIGH>;
+		gpio = <&pio 7 21 0>;
 	};
 };

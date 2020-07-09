@@ -55,9 +55,7 @@ static void update_general_status(struct f2fs_sb_info *sbi)
 	si->node_pages = NODE_MAPPING(sbi)->nrpages;
 	si->meta_pages = META_MAPPING(sbi)->nrpages;
 	si->nats = NM_I(sbi)->nat_cnt;
-	si->dirty_nats = NM_I(sbi)->dirty_nat_cnt;
-	si->sits = MAIN_SEGS(sbi);
-	si->dirty_sits = SIT_I(sbi)->dirty_sentries;
+	si->sits = SIT_I(sbi)->dirty_sentries;
 	si->fnids = NM_I(sbi)->fcnt;
 	si->bg_gc = sbi->bg_gc;
 	si->util_free = (int)(free_user_blocks(sbi) >> sbi->log_blocks_per_seg)
@@ -79,8 +77,6 @@ static void update_general_status(struct f2fs_sb_info *sbi)
 		si->segment_count[i] = sbi->segment_count[i];
 		si->block_count[i] = sbi->block_count[i];
 	}
-
-	si->inplace_count = atomic_read(&sbi->inplace_count);
 }
 
 /*
@@ -138,7 +134,6 @@ static void update_mem_info(struct f2fs_sb_info *sbi)
 	si->base_mem += MAIN_SEGS(sbi) * sizeof(struct seg_entry);
 	si->base_mem += f2fs_bitmap_size(MAIN_SEGS(sbi));
 	si->base_mem += 2 * SIT_VBLOCK_MAP_SIZE * MAIN_SEGS(sbi);
-	si->base_mem += SIT_VBLOCK_MAP_SIZE;
 	if (sbi->segs_per_sec > 1)
 		si->base_mem += MAIN_SECS(sbi) * sizeof(struct sec_entry);
 	si->base_mem += __bitmap_size(sbi, SIT_BITMAP);
@@ -274,7 +269,6 @@ static int stat_show(struct seq_file *s, void *v)
 		for (j = 0; j < si->util_free; j++)
 			seq_putc(s, '-');
 		seq_puts(s, "]\n\n");
-		seq_printf(s, "IPU: %u blocks\n", si->inplace_count);
 		seq_printf(s, "SSR: %u blocks in %u segments\n",
 			   si->block_count[SSR], si->segment_count[SSR]);
 		seq_printf(s, "LFS: %u blocks in %u segments\n",
@@ -287,14 +281,9 @@ static int stat_show(struct seq_file *s, void *v)
 
 		/* memory footprint */
 		update_mem_info(si->sbi);
-		seq_printf(s, "\nMemory: %u KB\n",
-			(si->base_mem + si->cache_mem + si->page_mem) >> 10);
-		seq_printf(s, "  - static: %u KB\n",
-				si->base_mem >> 10);
-		seq_printf(s, "  - cached: %u KB\n",
-				si->cache_mem >> 10);
-		seq_printf(s, "  - paged : %u KB\n",
-				si->page_mem >> 10);
+		seq_printf(s, "\nMemory: %u KB = static: %u + cached: %u\n",
+				(si->base_mem + si->cache_mem) >> 10,
+				si->base_mem >> 10, si->cache_mem >> 10);
 	}
 	mutex_unlock(&f2fs_stat_mutex);
 	return 0;

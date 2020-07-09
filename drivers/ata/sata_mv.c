@@ -4185,7 +4185,8 @@ err:
 			clk_disable_unprepare(hpriv->port_clks[port]);
 			clk_put(hpriv->port_clks[port]);
 		}
-		phy_power_off(hpriv->port_phys[port]);
+		if (hpriv->port_phys[port])
+			phy_power_off(hpriv->port_phys[port]);
 	}
 
 	return rc;
@@ -4215,7 +4216,8 @@ static int mv_platform_remove(struct platform_device *pdev)
 			clk_disable_unprepare(hpriv->port_clks[port]);
 			clk_put(hpriv->port_clks[port]);
 		}
-		phy_power_off(hpriv->port_phys[port]);
+		if (hpriv->port_phys[port])
+			phy_power_off(hpriv->port_phys[port]);
 	}
 	return 0;
 }

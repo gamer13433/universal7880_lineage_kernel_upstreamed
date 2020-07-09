@@ -117,21 +117,4 @@ void BBvAntennaDiversity(struct vnt_private *pDevice,
 void
 BBvClearAntDivSQ3Value(struct vnt_private *pDevice);
 
-/* timer for antenna diversity */
-
-void
-TimerSQ3CallBack(
-	unsigned long
-);
-
-void
-TimerState1CallBack(
-	unsigned long
-);
-
-void BBvAntennaDiversity(struct vnt_private *,
-			 unsigned char byRxRate, unsigned char bySQ3);
-void
-BBvClearAntDivSQ3Value(struct vnt_private *);
-
 #endif /* __BASEBAND_H__ */

@@ -1953,9 +1953,7 @@ static int smi_ipmb_proc_show(struct seq_file *m, void *v)
 	seq_printf(m, "%x", intf->channels[0].address);
 	for (i = 1; i < IPMI_MAX_CHANNELS; i++)
 		seq_printf(m, " %x", intf->channels[i].address);
-	seq_putc(m, '\n');
-
-	return seq_has_overflowed(m);
+	return seq_putc(m, '\n');
 }
 
 static int smi_ipmb_proc_open(struct inode *inode, struct file *file)
@@ -1974,11 +1972,9 @@ static int smi_version_proc_show(struct seq_file *m, void *v)
 {
 	ipmi_smi_t intf = m->private;
 
-	seq_printf(m, "%u.%u\n",
-		   ipmi_version_major(&intf->bmc->id),
-		   ipmi_version_minor(&intf->bmc->id));
-
-	return seq_has_overflowed(m);
+	return seq_printf(m, "%u.%u\n",
+		       ipmi_version_major(&intf->bmc->id),
+		       ipmi_version_minor(&intf->bmc->id));
 }
 
 static int smi_version_proc_open(struct inode *inode, struct file *file)
@@ -4211,6 +4207,7 @@ static void need_waiter(ipmi_smi_t intf)
 static atomic_t smi_msg_inuse_count = ATOMIC_INIT(0);
 static atomic_t recv_msg_inuse_count = ATOMIC_INIT(0);
 
+/* FIXME - convert these to slabs. */
 static void free_smi_msg(struct ipmi_smi_msg *msg)
 {
 	atomic_dec(&smi_msg_inuse_count);

@@ -97,7 +97,7 @@
  * New xmit() return, do_div and misc clean up by Stephen Hemminger
  * <shemminger@osdl.org> 040923
  *
- * Randy Dunlap fixed u64 printk compiler warning
+ * Randy Dunlap fixed u64 printk compiler waring
  *
  * Remove FCS from BW calculation.  Lennert Buytenhek <buytenh@wantstofly.org>
  * New time handling. Lennert Buytenhek <buytenh@wantstofly.org> 041213
@@ -2978,8 +2978,6 @@ static struct sk_buff *fill_packet_ipv6(struct net_device *odev,
 	skb->protocol = protocol;
 	skb->dev = odev;
 	skb->pkt_type = PACKET_HOST;
-
-	pktgen_finalize_skb(pkt_dev, skb, datalen);
 
 	pktgen_finalize_skb(pkt_dev, skb, datalen);
 

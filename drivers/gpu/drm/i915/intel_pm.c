@@ -1122,7 +1122,7 @@ static void pineview_update_wm(struct drm_crtc *unused_crtc)
 		int pixel_size = crtc->primary->fb->bits_per_pixel / 8;
 		int clock;
 
-		adjusted_mode = &to_intel_crtc(crtc)->config->base.adjusted_mode;
+		adjusted_mode = &to_intel_crtc(crtc)->config.adjusted_mode;
 		clock = adjusted_mode->crtc_clock;
 
 		/* Display SR */
@@ -1191,10 +1191,10 @@ static bool g4x_compute_wm0(struct drm_device *dev,
 		return false;
 	}
 
-	adjusted_mode = &to_intel_crtc(crtc)->config->base.adjusted_mode;
+	adjusted_mode = &to_intel_crtc(crtc)->config.adjusted_mode;
 	clock = adjusted_mode->crtc_clock;
 	htotal = adjusted_mode->crtc_htotal;
-	hdisplay = to_intel_crtc(crtc)->config->pipe_src_w;
+	hdisplay = to_intel_crtc(crtc)->config.pipe_src_w;
 	pixel_size = crtc->primary->fb->bits_per_pixel / 8;
 
 	/* Use the small buffer method to calculate plane watermark */
@@ -1278,10 +1278,10 @@ static bool g4x_compute_srwm(struct drm_device *dev,
 	}
 
 	crtc = intel_get_crtc_for_plane(dev, plane);
-	adjusted_mode = &to_intel_crtc(crtc)->config->base.adjusted_mode;
+	adjusted_mode = &to_intel_crtc(crtc)->config.adjusted_mode;
 	clock = adjusted_mode->crtc_clock;
 	htotal = adjusted_mode->crtc_htotal;
-	hdisplay = to_intel_crtc(crtc)->config->pipe_src_w;
+	hdisplay = to_intel_crtc(crtc)->config.pipe_src_w;
 	pixel_size = crtc->primary->fb->bits_per_pixel / 8;
 
 	line_time_us = max(htotal * 1000 / clock, 1);
@@ -1311,7 +1311,7 @@ static bool vlv_compute_drain_latency(struct drm_crtc *crtc,
 				      int *drain_latency)
 {
 	int entries;
-	int clock = to_intel_crtc(crtc)->config->base.adjusted_mode.crtc_clock;
+	int clock = to_intel_crtc(crtc)->config.adjusted_mode.crtc_clock;
 
 	if (WARN(clock == 0, "Pixel clock is zero!\n"))
 		return false;
@@ -1632,10 +1632,10 @@ static void i965_update_wm(struct drm_crtc *unused_crtc)
 		/* self-refresh has much higher latency */
 		static const int sr_latency_ns = 12000;
 		const struct drm_display_mode *adjusted_mode =
-			&to_intel_crtc(crtc)->config->base.adjusted_mode;
+			&to_intel_crtc(crtc)->config.adjusted_mode;
 		int clock = adjusted_mode->crtc_clock;
 		int htotal = adjusted_mode->crtc_htotal;
-		int hdisplay = to_intel_crtc(crtc)->config->pipe_src_w;
+		int hdisplay = to_intel_crtc(crtc)->config.pipe_src_w;
 		int pixel_size = crtc->primary->fb->bits_per_pixel / 8;
 		unsigned long line_time_us;
 		int entries;
@@ -1717,7 +1717,7 @@ static void i9xx_update_wm(struct drm_crtc *unused_crtc)
 		if (IS_GEN2(dev))
 			cpp = 4;
 
-		adjusted_mode = &to_intel_crtc(crtc)->config->base.adjusted_mode;
+		adjusted_mode = &to_intel_crtc(crtc)->config.adjusted_mode;
 		planea_wm = intel_calculate_wm(adjusted_mode->crtc_clock,
 					       wm_info, fifo_size, cpp,
 					       pessimal_latency_ns);
@@ -1739,7 +1739,7 @@ static void i9xx_update_wm(struct drm_crtc *unused_crtc)
 		if (IS_GEN2(dev))
 			cpp = 4;
 
-		adjusted_mode = &to_intel_crtc(crtc)->config->base.adjusted_mode;
+		adjusted_mode = &to_intel_crtc(crtc)->config.adjusted_mode;
 		planeb_wm = intel_calculate_wm(adjusted_mode->crtc_clock,
 					       wm_info, fifo_size, cpp,
 					       pessimal_latency_ns);
@@ -1778,10 +1778,10 @@ static void i9xx_update_wm(struct drm_crtc *unused_crtc)
 		/* self-refresh has much higher latency */
 		static const int sr_latency_ns = 6000;
 		const struct drm_display_mode *adjusted_mode =
-			&to_intel_crtc(enabled)->config->base.adjusted_mode;
+			&to_intel_crtc(enabled)->config.adjusted_mode;
 		int clock = adjusted_mode->crtc_clock;
 		int htotal = adjusted_mode->crtc_htotal;
-		int hdisplay = to_intel_crtc(enabled)->config->pipe_src_w;
+		int hdisplay = to_intel_crtc(enabled)->config.pipe_src_w;
 		int pixel_size = enabled->primary->fb->bits_per_pixel / 8;
 		unsigned long line_time_us;
 		int entries;
@@ -1834,7 +1834,7 @@ static void i845_update_wm(struct drm_crtc *unused_crtc)
 	if (crtc == NULL)
 		return;
 
-	adjusted_mode = &to_intel_crtc(crtc)->config->base.adjusted_mode;
+	adjusted_mode = &to_intel_crtc(crtc)->config.adjusted_mode;
 	planea_wm = intel_calculate_wm(adjusted_mode->crtc_clock,
 				       &i845_wm_info,
 				       dev_priv->display.get_fifo_size(dev, 0),
@@ -1853,17 +1853,17 @@ static uint32_t ilk_pipe_pixel_rate(struct drm_device *dev,
 	struct intel_crtc *intel_crtc = to_intel_crtc(crtc);
 	uint32_t pixel_rate;
 
-	pixel_rate = intel_crtc->config->base.adjusted_mode.crtc_clock;
+	pixel_rate = intel_crtc->config.adjusted_mode.crtc_clock;
 
 	/* We only use IF-ID interlacing. If we ever use PF-ID we'll need to
 	 * adjust the pixel_rate here. */
 
-	if (intel_crtc->config->pch_pfit.enabled) {
+	if (intel_crtc->config.pch_pfit.enabled) {
 		uint64_t pipe_w, pipe_h, pfit_w, pfit_h;
-		uint32_t pfit_size = intel_crtc->config->pch_pfit.size;
+		uint32_t pfit_size = intel_crtc->config.pch_pfit.size;
 
-		pipe_w = intel_crtc->config->pipe_src_w;
-		pipe_h = intel_crtc->config->pipe_src_h;
+		pipe_w = intel_crtc->config.pipe_src_w;
+		pipe_h = intel_crtc->config.pipe_src_h;
 		pfit_w = (pfit_size >> 16) & 0xFFFF;
 		pfit_h = pfit_size & 0xFFFF;
 		if (pipe_w < pfit_w)
@@ -2208,7 +2208,7 @@ hsw_compute_linetime_wm(struct drm_device *dev, struct drm_crtc *crtc)
 {
 	struct drm_i915_private *dev_priv = dev->dev_private;
 	struct intel_crtc *intel_crtc = to_intel_crtc(crtc);
-	struct drm_display_mode *mode = &intel_crtc->config->base.adjusted_mode;
+	struct drm_display_mode *mode = &intel_crtc->config.adjusted_mode;
 	u32 linetime, ips_linetime;
 
 	if (!intel_crtc_active(crtc))
@@ -2382,11 +2382,11 @@ static void ilk_compute_wm_parameters(struct drm_crtc *crtc,
 		return;
 
 	p->active = true;
-	p->pipe_htotal = intel_crtc->config->base.adjusted_mode.crtc_htotal;
+	p->pipe_htotal = intel_crtc->config.adjusted_mode.crtc_htotal;
 	p->pixel_rate = ilk_pipe_pixel_rate(dev, crtc);
 	p->pri.bytes_per_pixel = crtc->primary->fb->bits_per_pixel / 8;
 	p->cur.bytes_per_pixel = 4;
-	p->pri.horiz_pixels = intel_crtc->config->pipe_src_w;
+	p->pri.horiz_pixels = intel_crtc->config.pipe_src_w;
 	p->cur.horiz_pixels = intel_crtc->cursor_width;
 	/* TODO: for now, assume primary and cursor planes are always enabled. */
 	p->pri.enabled = true;
@@ -3418,8 +3418,8 @@ static void vlv_set_rps_idle(struct drm_i915_private *dev_priv)
 {
 	struct drm_device *dev = dev_priv->dev;
 
-	/* CHV and latest VLV don't need to force the gfx clock */
-	if (IS_CHERRYVIEW(dev) || dev->pdev->revision >= 0xd) {
+	/* Latest VLV doesn't need to force the gfx clock */
+	if (dev->pdev->revision >= 0xd) {
 		valleyview_set_rps(dev_priv->dev, dev_priv->rps.min_freq_softlimit);
 		return;
 	}
@@ -3457,7 +3457,9 @@ void gen6_rps_idle(struct drm_i915_private *dev_priv)
 
 	mutex_lock(&dev_priv->rps.hw_lock);
 	if (dev_priv->rps.enabled) {
-		if (IS_VALLEYVIEW(dev))
+		if (IS_CHERRYVIEW(dev))
+			valleyview_set_rps(dev_priv->dev, dev_priv->rps.min_freq_softlimit);
+		else if (IS_VALLEYVIEW(dev))
 			vlv_set_rps_idle(dev_priv);
 		else
 			gen6_set_rps(dev_priv->dev, dev_priv->rps.min_freq_softlimit);
@@ -3505,7 +3507,7 @@ void valleyview_set_rps(struct drm_device *dev, u8 val)
 	I915_WRITE(GEN6_PMINTRMSK, gen6_rps_pm_mask(dev_priv, val));
 
 	dev_priv->rps.cur_freq = val;
-	trace_intel_gpu_freq_change(intel_gpu_freq(dev_priv, val));
+	trace_intel_gpu_freq_change(vlv_gpu_freq(dev_priv, val));
 }
 
 static void gen8_disable_rps_interrupts(struct drm_device *dev)
@@ -3695,7 +3697,7 @@ static void gen8_enable_rps(struct drm_device *dev)
 
 	/* 1c & 1d: Get forcewake during program sequence. Although the driver
 	 * hasn't enabled a state yet where we need forcewake, BIOS may have.*/
-	intel_uncore_forcewake_get(dev_priv, FORCEWAKE_ALL);
+	gen6_gt_force_wake_get(dev_priv, FORCEWAKE_ALL);
 
 	/* 2a: Disable RC states. */
 	I915_WRITE(GEN6_RC_CONTROL, 0);
@@ -4285,7 +4287,7 @@ static void cherryview_enable_rps(struct drm_device *dev)
 
 	/* 1a & 1b: Get forcewake during program sequence. Although the driver
 	 * hasn't enabled a state yet where we need forcewake, BIOS may have.*/
-	intel_uncore_forcewake_get(dev_priv, FORCEWAKE_ALL);
+	gen6_gt_force_wake_get(dev_priv, FORCEWAKE_ALL);
 
 	/* 2a: Program RC6 thresholds.*/
 	I915_WRITE(GEN6_RC6_WAKE_RATE_LIMIT, 40 << 16);
@@ -4354,7 +4356,7 @@ static void cherryview_enable_rps(struct drm_device *dev)
 
 	gen8_enable_rps_interrupts(dev);
 
-	intel_uncore_forcewake_put(dev_priv, FORCEWAKE_ALL);
+	gen6_gt_force_wake_put(dev_priv, FORCEWAKE_ALL);
 }
 
 static void valleyview_enable_rps(struct drm_device *dev)
@@ -4434,7 +4436,7 @@ static void valleyview_enable_rps(struct drm_device *dev)
 
 	gen6_enable_rps_interrupts(dev);
 
-	intel_uncore_forcewake_put(dev_priv, FORCEWAKE_ALL);
+	gen6_gt_force_wake_put(dev_priv, FORCEWAKE_ALL);
 }
 
 void ironlake_teardown_rc6(struct drm_device *dev)
@@ -4670,27 +4672,146 @@ unsigned long i915_mch_val(struct drm_i915_private *dev_priv)
 	return ((m * x) / 127) - b;
 }
 
-static int _pxvid_to_vd(u8 pxvid)
-{
-	if (pxvid == 0)
-		return 0;
-
-	if (pxvid >= 8 && pxvid < 31)
-		pxvid = 31;
-
-	return (pxvid + 2) * 125;
-}
-
-static u32 pvid_to_extvid(struct drm_i915_private *dev_priv, u8 pxvid)
+static u16 pvid_to_extvid(struct drm_i915_private *dev_priv, u8 pxvid)
 {
 	struct drm_device *dev = dev_priv->dev;
-	const int vd = _pxvid_to_vd(pxvid);
-	const int vm = vd - 1125;
-
+	static const struct v_table {
+		u16 vd; /* in .1 mil */
+		u16 vm; /* in .1 mil */
+	} v_table[] = {
+		{ 0, 0, },
+		{ 375, 0, },
+		{ 500, 0, },
+		{ 625, 0, },
+		{ 750, 0, },
+		{ 875, 0, },
+		{ 1000, 0, },
+		{ 1125, 0, },
+		{ 4125, 3000, },
+		{ 4125, 3000, },
+		{ 4125, 3000, },
+		{ 4125, 3000, },
+		{ 4125, 3000, },
+		{ 4125, 3000, },
+		{ 4125, 3000, },
+		{ 4125, 3000, },
+		{ 4125, 3000, },
+		{ 4125, 3000, },
+		{ 4125, 3000, },
+		{ 4125, 3000, },
+		{ 4125, 3000, },
+		{ 4125, 3000, },
+		{ 4125, 3000, },
+		{ 4125, 3000, },
+		{ 4125, 3000, },
+		{ 4125, 3000, },
+		{ 4125, 3000, },
+		{ 4125, 3000, },
+		{ 4125, 3000, },
+		{ 4125, 3000, },
+		{ 4125, 3000, },
+		{ 4125, 3000, },
+		{ 4250, 3125, },
+		{ 4375, 3250, },
+		{ 4500, 3375, },
+		{ 4625, 3500, },
+		{ 4750, 3625, },
+		{ 4875, 3750, },
+		{ 5000, 3875, },
+		{ 5125, 4000, },
+		{ 5250, 4125, },
+		{ 5375, 4250, },
+		{ 5500, 4375, },
+		{ 5625, 4500, },
+		{ 5750, 4625, },
+		{ 5875, 4750, },
+		{ 6000, 4875, },
+		{ 6125, 5000, },
+		{ 6250, 5125, },
+		{ 6375, 5250, },
+		{ 6500, 5375, },
+		{ 6625, 5500, },
+		{ 6750, 5625, },
+		{ 6875, 5750, },
+		{ 7000, 5875, },
+		{ 7125, 6000, },
+		{ 7250, 6125, },
+		{ 7375, 6250, },
+		{ 7500, 6375, },
+		{ 7625, 6500, },
+		{ 7750, 6625, },
+		{ 7875, 6750, },
+		{ 8000, 6875, },
+		{ 8125, 7000, },
+		{ 8250, 7125, },
+		{ 8375, 7250, },
+		{ 8500, 7375, },
+		{ 8625, 7500, },
+		{ 8750, 7625, },
+		{ 8875, 7750, },
+		{ 9000, 7875, },
+		{ 9125, 8000, },
+		{ 9250, 8125, },
+		{ 9375, 8250, },
+		{ 9500, 8375, },
+		{ 9625, 8500, },
+		{ 9750, 8625, },
+		{ 9875, 8750, },
+		{ 10000, 8875, },
+		{ 10125, 9000, },
+		{ 10250, 9125, },
+		{ 10375, 9250, },
+		{ 10500, 9375, },
+		{ 10625, 9500, },
+		{ 10750, 9625, },
+		{ 10875, 9750, },
+		{ 11000, 9875, },
+		{ 11125, 10000, },
+		{ 11250, 10125, },
+		{ 11375, 10250, },
+		{ 11500, 10375, },
+		{ 11625, 10500, },
+		{ 11750, 10625, },
+		{ 11875, 10750, },
+		{ 12000, 10875, },
+		{ 12125, 11000, },
+		{ 12250, 11125, },
+		{ 12375, 11250, },
+		{ 12500, 11375, },
+		{ 12625, 11500, },
+		{ 12750, 11625, },
+		{ 12875, 11750, },
+		{ 13000, 11875, },
+		{ 13125, 12000, },
+		{ 13250, 12125, },
+		{ 13375, 12250, },
+		{ 13500, 12375, },
+		{ 13625, 12500, },
+		{ 13750, 12625, },
+		{ 13875, 12750, },
+		{ 14000, 12875, },
+		{ 14125, 13000, },
+		{ 14250, 13125, },
+		{ 14375, 13250, },
+		{ 14500, 13375, },
+		{ 14625, 13500, },
+		{ 14750, 13625, },
+		{ 14875, 13750, },
+		{ 15000, 13875, },
+		{ 15125, 14000, },
+		{ 15250, 14125, },
+		{ 15375, 14250, },
+		{ 15500, 14375, },
+		{ 15625, 14500, },
+		{ 15750, 14625, },
+		{ 15875, 14750, },
+		{ 16000, 14875, },
+		{ 16125, 15000, },
+	};
 	if (INTEL_INFO(dev)->is_mobile)
-		return vm > 0 ? vm : 0;
-
-	return vd;
+		return v_table[pxvid].vm;
+	else
+		return v_table[pxvid].vd;
 }
 
 static void __i915_update_gfx_val(struct drm_i915_private *dev_priv)
@@ -5570,10 +5691,6 @@ static void haswell_init_clock_gating(struct drm_device *dev)
 	I915_WRITE(GEN7_GT_MODE,
 		   GEN6_WIZ_HASHING_MASK | GEN6_WIZ_HASHING_16x4);
 
-	/* WaSampleCChickenBitEnable:hsw */
-	I915_WRITE(HALF_SLICE_CHICKEN3,
-		   _MASKED_BIT_ENABLE(HSW_SAMPLE_C_PERFORMANCE));
-
 	/* WaSwitchSolVfFArbitrationPriority:hsw */
 	I915_WRITE(GAM_ECOCHK, I915_READ(GAM_ECOCHK) | HSW_ECOCHK_ARB_PRIO_SOL);
 
@@ -5742,17 +5859,6 @@ static void valleyview_init_clock_gating(struct drm_device *dev)
 	 */
 	I915_WRITE(CACHE_MODE_1,
 		   _MASKED_BIT_ENABLE(PIXEL_SUBSPAN_COLLECT_OPT_DISABLE));
-
-	/*
-	 * BSpec recommends 8x4 when MSAA is used,
-	 * however in practice 16x4 seems fastest.
-	 *
-	 * Note that PS/WM thread counts depend on the WIZ hashing
-	 * disable bit, which we don't touch here, but it's good
-	 * to keep in mind (see 3DSTATE_PS and 3DSTATE_WM).
-	 */
-	I915_WRITE(GEN7_GT_MODE,
-		   _MASKED_FIELD(GEN6_WIZ_HASHING_MASK, GEN6_WIZ_HASHING_16x4));
 
 	/*
 	 * WaIncreaseL3CreditsForVLVB0:vlv
@@ -7318,24 +7424,28 @@ static int chv_freq_opcode(struct drm_i915_private *dev_priv, int val)
 	return opcode;
 }
 
-int intel_gpu_freq(struct drm_i915_private *dev_priv, int val)
+int vlv_gpu_freq(struct drm_i915_private *dev_priv, int val)
 {
+	int ret = -1;
+
 	if (IS_CHERRYVIEW(dev_priv->dev))
-		return chv_gpu_freq(dev_priv, val);
+		ret = chv_gpu_freq(dev_priv, val);
 	else if (IS_VALLEYVIEW(dev_priv->dev))
-		return byt_gpu_freq(dev_priv, val);
-	else
-		return val * GT_FREQUENCY_MULTIPLIER;
+		ret = byt_gpu_freq(dev_priv, val);
+
+	return ret;
 }
 
-int intel_freq_opcode(struct drm_i915_private *dev_priv, int val)
+int vlv_freq_opcode(struct drm_i915_private *dev_priv, int val)
 {
+	int ret = -1;
+
 	if (IS_CHERRYVIEW(dev_priv->dev))
-		return chv_freq_opcode(dev_priv, val);
+		ret = chv_freq_opcode(dev_priv, val);
 	else if (IS_VALLEYVIEW(dev_priv->dev))
-		return byt_freq_opcode(dev_priv, val);
-	else
-		return val / GT_FREQUENCY_MULTIPLIER;
+		ret = byt_freq_opcode(dev_priv, val);
+
+	return ret;
 }
 
 void intel_pm_setup(struct drm_device *dev)

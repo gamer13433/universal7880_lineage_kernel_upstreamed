@@ -4,8 +4,7 @@
  *
  * This code is based on drivers/scsi/mpt2sas/mpt2_ctl.c
  * Copyright (C) 2007-2014  LSI Corporation
- * Copyright (C) 20013-2014 Avago Technologies
- *  (mailto: MPT-FusionLinux.pdl@avagotech.com)
+ *  (mailto:DL-MPTFusionLinux@lsi.com)
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License

@@ -33,7 +33,6 @@
 #include <asm/page.h>
 #include <asm/current.h>
 #include <asm/apicdef.h>
-#include <asm/delay.h>
 #include <linux/atomic.h>
 #include <linux/jump_label.h>
 #include "kvm_cache_regs.h"
@@ -312,23 +311,16 @@ static u8 count_vectors(void *bitmap)
 	return count;
 }
 
-void __kvm_apic_update_irr(u32 *pir, void *regs)
+void kvm_apic_update_irr(struct kvm_vcpu *vcpu, u32 *pir)
 {
 	u32 i, pir_val;
+	struct kvm_lapic *apic = vcpu->arch.apic;
 
 	for (i = 0; i <= 7; i++) {
 		pir_val = xchg(&pir[i], 0);
 		if (pir_val)
-			*((u32 *)(regs + APIC_IRR + i * 0x10)) |= pir_val;
+			*((u32 *)(apic->regs + APIC_IRR + i * 0x10)) |= pir_val;
 	}
-}
-EXPORT_SYMBOL_GPL(__kvm_apic_update_irr);
-
-void kvm_apic_update_irr(struct kvm_vcpu *vcpu, u32 *pir)
-{
-	struct kvm_lapic *apic = vcpu->arch.apic;
-
-	__kvm_apic_update_irr(pir, apic->regs);
 }
 EXPORT_SYMBOL_GPL(kvm_apic_update_irr);
 
@@ -391,7 +383,7 @@ static inline void apic_set_isr(int vec, struct kvm_lapic *apic)
 	 * because the processor can modify ISR under the hood.  Instead
 	 * just set SVI.
 	 */
-	if (unlikely(kvm_x86_ops->hwapic_isr_update))
+	if (unlikely(kvm_apic_vid_enabled(vcpu->kvm)))
 		kvm_x86_ops->hwapic_isr_update(vcpu->kvm, vec);
 	else {
 		++apic->isr_count;
@@ -439,7 +431,7 @@ static inline void apic_clear_isr(int vec, struct kvm_lapic *apic)
 	 * on the other hand isr_count and highest_isr_cache are unused
 	 * and must be left alone.
 	 */
-	if (unlikely(kvm_x86_ops->hwapic_isr_update))
+	if (unlikely(kvm_apic_vid_enabled(vcpu->kvm)))
 		kvm_x86_ops->hwapic_isr_update(vcpu->kvm,
 					       apic_find_highest_isr(apic));
 	else {
@@ -615,21 +607,29 @@ int kvm_apic_match_dest(struct kvm_vcpu *vcpu, struct kvm_lapic *source,
 	ASSERT(target);
 	switch (short_hand) {
 	case APIC_DEST_NOSHORT:
-		if (dest_mode == APIC_DEST_PHYSICAL)
-			return kvm_apic_match_physical_addr(target, dest);
+		if (dest_mode == 0)
+			/* Physical mode. */
+			result = kvm_apic_match_physical_addr(target, dest);
 		else
-			return kvm_apic_match_logical_addr(target, dest);
+			/* Logical mode. */
+			result = kvm_apic_match_logical_addr(target, dest);
+		break;
 	case APIC_DEST_SELF:
-		return target == source;
+		result = (target == source);
+		break;
 	case APIC_DEST_ALLINC:
-		return true;
+		result = 1;
+		break;
 	case APIC_DEST_ALLBUT:
-		return target != source;
+		result = (target != source);
+		break;
 	default:
 		apic_debug("kvm: apic: Bad dest shorthand value %x\n",
 			   short_hand);
-		return false;
+		break;
 	}
+
+	return result;
 }
 
 bool kvm_irq_delivery_to_apic_fast(struct kvm *kvm, struct kvm_lapic *src,
@@ -802,7 +802,8 @@ int kvm_apic_compare_prio(struct kvm_vcpu *vcpu1, struct kvm_vcpu *vcpu2)
 
 static void kvm_ioapic_send_eoi(struct kvm_lapic *apic, int vector)
 {
-	if (kvm_ioapic_handles_vector(apic->vcpu->kvm, vector)) {
+	if (!(kvm_apic_get_reg(apic, APIC_SPIV) & APIC_SPIV_DIRECTED_EOI) &&
+	    kvm_ioapic_handles_vector(apic->vcpu->kvm, vector)) {
 		int trigger_mode;
 		if (apic_test_vector(vector, apic->regs + APIC_TMR))
 			trigger_mode = IOAPIC_LEVEL_TRIG;
@@ -1081,7 +1082,6 @@ static void start_apic_timer(struct kvm_lapic *apic)
 		/* lapic timer in tsc deadline mode */
 		u64 guest_tsc, tscdeadline = apic->lapic_timer.tscdeadline;
 		u64 ns = 0;
-		ktime_t expire;
 		struct kvm_vcpu *vcpu = apic->vcpu;
 		unsigned long this_tsc_khz = vcpu->arch.virtual_tsc_khz;
 		unsigned long flags;
@@ -1465,7 +1465,7 @@ void kvm_lapic_reset(struct kvm_vcpu *vcpu)
 		apic_set_reg(apic, APIC_TMR + 0x10 * i, 0);
 	}
 	apic->irr_pending = kvm_apic_vid_enabled(vcpu->kvm);
-	apic->isr_count = kvm_x86_ops->hwapic_isr_update ? 1 : 0;
+	apic->isr_count = kvm_apic_vid_enabled(vcpu->kvm);
 	apic->highest_isr_cache = -1;
 	update_divide_count(apic);
 	atomic_set(&apic->lapic_timer.pending, 0);

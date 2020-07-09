@@ -44,7 +44,7 @@ static const char *wm8995_supply_names[WM8995_NUM_SUPPLIES] = {
 	"MICVDD"
 };
 
-static const struct reg_default wm8995_reg_defaults[] = {
+static struct reg_default wm8995_reg_defaults[] = {
 	{ 0, 0x8995 },
 	{ 5, 0x0100 },
 	{ 16, 0x000b },
@@ -534,11 +534,10 @@ static void wm8995_update_class_w(struct snd_soc_codec *codec)
 static int check_clk_sys(struct snd_soc_dapm_widget *source,
 			 struct snd_soc_dapm_widget *sink)
 {
-	struct snd_soc_codec *codec = snd_soc_dapm_to_codec(source->dapm);
 	unsigned int reg;
 	const char *clk;
 
-	reg = snd_soc_read(codec, WM8995_CLOCKING_1);
+	reg = snd_soc_read(source->codec, WM8995_CLOCKING_1);
 	/* Check what we're currently using for CLK_SYS */
 	if (reg & WM8995_SYSCLK_SRC)
 		clk = "AIF2CLK";
@@ -561,7 +560,9 @@ static int wm8995_put_class_w(struct snd_kcontrol *kcontrol,
 static int hp_supply_event(struct snd_soc_dapm_widget *w,
 			   struct snd_kcontrol *kcontrol, int event)
 {
-	struct snd_soc_codec *codec = snd_soc_dapm_to_codec(w->dapm);
+	struct snd_soc_codec *codec;
+
+	codec = w->codec;
 
 	switch (event) {
 	case SND_SOC_DAPM_PRE_PMU:
@@ -610,9 +611,10 @@ static void dc_servo_cmd(struct snd_soc_codec *codec,
 static int hp_event(struct snd_soc_dapm_widget *w,
 		    struct snd_kcontrol *kcontrol, int event)
 {
-	struct snd_soc_codec *codec = snd_soc_dapm_to_codec(w->dapm);
+	struct snd_soc_codec *codec;
 	unsigned int reg;
 
+	codec = w->codec;
 	reg = snd_soc_read(codec, WM8995_ANALOGUE_HP_1);
 
 	switch (event) {
@@ -759,7 +761,9 @@ static int configure_clock(struct snd_soc_codec *codec)
 static int clk_sys_event(struct snd_soc_dapm_widget *w,
 			 struct snd_kcontrol *kcontrol, int event)
 {
-	struct snd_soc_codec *codec = snd_soc_dapm_to_codec(w->dapm);
+	struct snd_soc_codec *codec;
+
+	codec = w->codec;
 
 	switch (event) {
 	case SND_SOC_DAPM_PRE_PMU:
@@ -2196,14 +2200,14 @@ static struct snd_soc_dai_driver wm8995_dai[] = {
 	}
 };
 
-static const struct snd_soc_codec_driver soc_codec_dev_wm8995 = {
+static struct snd_soc_codec_driver soc_codec_dev_wm8995 = {
 	.probe = wm8995_probe,
 	.remove = wm8995_remove,
 	.set_bias_level = wm8995_set_bias_level,
 	.idle_bias_off = true,
 };
 
-static const struct regmap_config wm8995_regmap = {
+static struct regmap_config wm8995_regmap = {
 	.reg_bits = 16,
 	.val_bits = 16,
 

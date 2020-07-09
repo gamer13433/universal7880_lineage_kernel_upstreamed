@@ -94,9 +94,6 @@ struct scan_control {
 	/* Can pages be swapped as part of reclaim? */
 	unsigned int may_swap:1;
 
-	/* Can cgroups be reclaimed below their normal consumption range? */
-	unsigned int may_thrash:1;
-
 	unsigned int hibernation_mode:1;
 
 	/* One of the zones is ready for compaction */
@@ -449,29 +446,6 @@ out:
 	return freed;
 }
 
-void drop_slab_node(int nid)
-{
-	unsigned long freed;
-
-	do {
-		struct mem_cgroup *memcg = NULL;
-
-		freed = 0;
-		do {
-			freed += shrink_slab(GFP_KERNEL, nid, memcg,
-					     1000, 1000);
-		} while ((memcg = mem_cgroup_iter(NULL, memcg, NULL)) != NULL);
-	} while (freed > 10);
-}
-
-void drop_slab(void)
-{
-	int nid;
-
-	for_each_online_node(nid)
-		drop_slab_node(nid);
-}
-
 static inline int is_page_cache_freeable(struct page *page)
 {
 	/*
@@ -568,7 +542,7 @@ static pageout_t pageout(struct page *page, struct address_space *mapping,
 	}
 	if (mapping->a_ops->writepage == NULL)
 		return PAGE_ACTIVATE;
-	if (!may_write_to_queue(inode_to_bdi(mapping->host), sc))
+	if (!may_write_to_queue(mapping->backing_dev_info, sc))
 		return PAGE_KEEP;
 
 	if (clear_page_dirty_for_io(page)) {
@@ -1972,12 +1946,8 @@ static void get_scan_count(struct lruvec *lruvec, int swappiness,
 	 * latencies, so it's better to scan a minimum amount there as
 	 * well.
 	 */
-	if (current_is_kswapd()) {
-		if (!zone_reclaimable(zone))
-			force_scan = true;
-		if (!mem_cgroup_lruvec_online(lruvec))
-			force_scan = true;
-	}
+	if (current_is_kswapd() && !zone_reclaimable(zone))
+		force_scan = true;
 	if (!global_reclaim(sc))
 		force_scan = true;
 
@@ -2336,7 +2306,6 @@ static inline bool should_continue_reclaim(struct zone *zone,
 
 static bool shrink_zone(struct zone *zone, struct scan_control *sc)
 {
-	struct reclaim_state *reclaim_state = current->reclaim_state;
 	unsigned long nr_reclaimed, nr_scanned;
 	bool reclaimable = false;
 
@@ -2576,11 +2545,10 @@ static bool shrink_zones(struct zonelist *zonelist, struct scan_control *sc)
 static unsigned long do_try_to_free_pages(struct zonelist *zonelist,
 					  struct scan_control *sc)
 {
-	int initial_priority = sc->priority;
 	unsigned long total_scanned = 0;
 	unsigned long writeback_threshold;
 	bool zones_reclaimable;
-retry:
+
 	delayacct_freepages_start();
 
 	if (global_reclaim(sc))
@@ -2629,13 +2597,6 @@ retry:
 	/* Aborted reclaim to try compaction? don't OOM, then */
 	if (sc->compaction_ready)
 		return 1;
-
-	/* Untapped cgroup reserves?  Don't OOM, retry. */
-	if (!sc->may_thrash) {
-		sc->priority = initial_priority;
-		sc->may_thrash = 1;
-		goto retry;
-	}
 
 	/* Any of the zones still reclaimable?  Don't OOM. */
 	if (zones_reclaimable)
@@ -3273,7 +3234,7 @@ static unsigned long balance_pgdat(pg_data_t *pgdat, int order,
 		 */
 		if (waitqueue_active(&pgdat->pfmemalloc_wait) &&
 				pfmemalloc_watermark_ok(pgdat))
-			wake_up_all(&pgdat->pfmemalloc_wait);
+			wake_up(&pgdat->pfmemalloc_wait);
 
 		/*
 		 * Fragmentation may mean that the system cannot be rebalanced

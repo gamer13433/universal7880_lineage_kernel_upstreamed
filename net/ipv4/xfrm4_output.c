@@ -63,7 +63,6 @@ int xfrm4_prepare_output(struct xfrm_state *x, struct sk_buff *skb)
 		return err;
 
 	IPCB(skb)->flags |= IPSKB_XFRM_TUNNEL_SIZE;
-	skb->protocol = htons(ETH_P_IP);
 
 	return x->outer_mode->output2(x, skb);
 }
@@ -72,6 +71,7 @@ EXPORT_SYMBOL(xfrm4_prepare_output);
 int xfrm4_output_finish(struct sk_buff *skb)
 {
 	memset(IPCB(skb), 0, sizeof(*IPCB(skb)));
+	skb->protocol = htons(ETH_P_IP);
 
 #ifdef CONFIG_NETFILTER
 	IPCB(skb)->flags |= IPSKB_XFRM_TRANSFORMED;

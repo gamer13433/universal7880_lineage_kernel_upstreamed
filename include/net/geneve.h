@@ -68,12 +68,13 @@ struct geneve_sock;
 typedef void (geneve_rcv_t)(struct geneve_sock *gs, struct sk_buff *skb);
 
 struct geneve_sock {
-	struct list_head	list;
+	struct hlist_node	hlist;
 	geneve_rcv_t		*rcv;
 	void			*rcv_data;
+	struct work_struct	del_work;
 	struct socket		*sock;
 	struct rcu_head		rcu;
-	int			refcnt;
+	atomic_t		refcnt;
 	struct udp_offload	udp_offloads;
 };
 
@@ -90,7 +91,7 @@ int geneve_xmit_skb(struct geneve_sock *gs, struct rtable *rt,
 		    struct sk_buff *skb, __be32 src, __be32 dst, __u8 tos,
 		    __u8 ttl, __be16 df, __be16 src_port, __be16 dst_port,
 		    __be16 tun_flags, u8 vni[3], u8 opt_len, u8 *opt,
-		    bool csum, bool xnet);
+		    bool xnet);
 #endif /*ifdef CONFIG_INET */
 
 #endif /*ifdef__NET_GENEVE_H */

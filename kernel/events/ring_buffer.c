@@ -13,13 +13,12 @@
 #include <linux/vmalloc.h>
 #include <linux/slab.h>
 #include <linux/circ_buf.h>
-#include <linux/poll.h>
 
 #include "internal.h"
 
 static void perf_output_wakeup(struct perf_output_handle *handle)
 {
-	atomic_set(&handle->rb->poll, POLLIN);
+	atomic_set(&handle->rb->poll, POLL_IN);
 
 	handle->event->pending_wakeup = 1;
 	irq_work_queue(&handle->event->pending);

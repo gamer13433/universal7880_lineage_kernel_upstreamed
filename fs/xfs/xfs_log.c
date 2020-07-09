@@ -35,7 +35,6 @@
 #include "xfs_fsops.h"
 #include "xfs_cksum.h"
 #include "xfs_sysfs.h"
-#include "xfs_sb.h"
 
 kmem_zone_t	*xfs_log_ticket_zone;
 
@@ -1293,20 +1292,9 @@ xfs_log_worker(
 	struct xfs_mount	*mp = log->l_mp;
 
 	/* dgc: errors ignored - not fatal and nowhere to report them */
-	if (xfs_log_need_covered(mp)) {
-		/*
-		 * Dump a transaction into the log that contains no real change.
-		 * This is needed to stamp the current tail LSN into the log
-		 * during the covering operation.
-		 *
-		 * We cannot use an inode here for this - that will push dirty
-		 * state back up into the VFS and then periodic inode flushing
-		 * will prevent log covering from making progress. Hence we
-		 * synchronously log the superblock instead to ensure the
-		 * superblock is immediately unpinned and can be written back.
-		 */
-		xfs_sync_sb(mp, true);
-	} else
+	if (xfs_log_need_covered(mp))
+		xfs_fs_log_dummy(mp);
+	else
 		xfs_log_force(mp, 0);
 
 	/* start pushing all the metadata that is currently dirty */
@@ -1409,8 +1397,6 @@ xlog_alloc_log(
 	ASSERT(xfs_buf_islocked(bp));
 	xfs_buf_unlock(bp);
 
-	/* use high priority wq for log I/O completion */
-	bp->b_ioend_wq = mp->m_log_workqueue;
 	bp->b_iodone = xlog_iodone;
 	log->l_xbuf = bp;
 
@@ -1443,8 +1429,6 @@ xlog_alloc_log(
 		ASSERT(xfs_buf_islocked(bp));
 		xfs_buf_unlock(bp);
 
-		/* use high priority wq for log I/O completion */
-		bp->b_ioend_wq = mp->m_log_workqueue;
 		bp->b_iodone = xlog_iodone;
 		iclog->ic_bp = bp;
 		iclog->ic_data = bp->b_addr;
@@ -2041,7 +2025,7 @@ xlog_print_tic_res(
 		"  total reg   = %u bytes (o/flow = %u bytes)\n"
 		"  ophdrs      = %u (ophdr space = %u bytes)\n"
 		"  ophdr + reg = %u bytes\n"
-		"  num regions = %u",
+		"  num regions = %u\n",
 		((ticket->t_trans_type <= 0 ||
 		  ticket->t_trans_type > XFS_TRANS_TYPE_MAX) ?
 		  "bad-trans-type" : trans_type_str[ticket->t_trans_type-1]),

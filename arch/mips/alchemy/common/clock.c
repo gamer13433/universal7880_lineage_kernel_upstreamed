@@ -318,26 +318,17 @@ static struct clk __init *alchemy_clk_setup_mem(const char *pn, int ct)
 
 /* lrclk: external synchronous static bus clock ***********************/
 
-static struct clk __init *alchemy_clk_setup_lrclk(const char *pn, int t)
+static struct clk __init *alchemy_clk_setup_lrclk(const char *pn)
 {
-	/* Au1000, Au1500: MEM_STCFG0[11]: If bit is set, lrclk=pclk/5,
-	 * otherwise lrclk=pclk/4.
-	 * All other variants: MEM_STCFG0[15:13] = divisor.
+	/* MEM_STCFG0[15:13] = divisor.
 	 * L/RCLK = periph_clk / (divisor + 1)
 	 * On Au1000, Au1500, Au1100 it's called LCLK,
 	 * on later models it's called RCLK, but it's the same thing.
 	 */
 	struct clk *c;
-	unsigned long v = alchemy_rdsmem(AU1000_MEM_STCFG0);
+	unsigned long v = alchemy_rdsmem(AU1000_MEM_STCFG0) >> 13;
 
-	switch (t) {
-	case ALCHEMY_CPU_AU1000:
-	case ALCHEMY_CPU_AU1500:
-		v = 4 + ((v >> 11) & 1);
-		break;
-	default:	/* all other models */
-		v = ((v >> 13) & 7) + 1;
-	}
+	v = (v & 7) + 1;
 	c = clk_register_fixed_factor(NULL, ALCHEMY_LR_CLK,
 				      pn, 0, 1, v);
 	if (!IS_ERR(c))
@@ -558,8 +549,6 @@ static unsigned long alchemy_clk_fgv1_recalc(struct clk_hw *hw,
 }
 
 static long alchemy_clk_fgv1_detr(struct clk_hw *hw, unsigned long rate,
-					unsigned long min_rate,
-					unsigned long max_rate,
 					unsigned long *best_parent_rate,
 					struct clk **best_parent_clk)
 {
@@ -692,8 +681,6 @@ static unsigned long alchemy_clk_fgv2_recalc(struct clk_hw *hw,
 }
 
 static long alchemy_clk_fgv2_detr(struct clk_hw *hw, unsigned long rate,
-					unsigned long min_rate,
-					unsigned long max_rate,
 					unsigned long *best_parent_rate,
 					struct clk **best_parent_clk)
 {
@@ -913,8 +900,6 @@ static int alchemy_clk_csrc_setr(struct clk_hw *hw, unsigned long rate,
 }
 
 static long alchemy_clk_csrc_detr(struct clk_hw *hw, unsigned long rate,
-					unsigned long min_rate,
-					unsigned long max_rate,
 					unsigned long *best_parent_rate,
 					struct clk **best_parent_clk)
 {
@@ -1078,7 +1063,7 @@ static int __init alchemy_clk_init(void)
 	ERRCK(c)
 
 	/* L/RCLK: external static bus clock for synchronous mode */
-	c = alchemy_clk_setup_lrclk(ALCHEMY_PERIPH_CLK, ctype);
+	c = alchemy_clk_setup_lrclk(ALCHEMY_PERIPH_CLK);
 	ERRCK(c)
 
 	/* Frequency dividers 0-5 */

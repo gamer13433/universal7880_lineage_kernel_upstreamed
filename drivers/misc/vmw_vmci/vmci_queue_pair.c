@@ -369,12 +369,12 @@ static int __qp_memcpy_to_queue(struct vmci_queue *queue,
 			to_copy = size - bytes_copied;
 
 		if (is_iovec) {
-			struct msghdr *msg = (struct msghdr *)src;
+			struct iovec *iov = (struct iovec *)src;
 			int err;
 
 			/* The iovec will track bytes_copied internally. */
-			err = memcpy_from_msg((u8 *)va + page_offset,
-					      msg, to_copy);
+			err = memcpy_fromiovec((u8 *)va + page_offset,
+					       iov, to_copy);
 			if (err != 0) {
 				if (kernel_if->host)
 					kunmap(kernel_if->u.h.page[page_index]);
@@ -579,7 +579,7 @@ static int qp_memcpy_from_queue(void *dest,
  */
 static int qp_memcpy_to_queue_iov(struct vmci_queue *queue,
 				  u64 queue_offset,
-				  const void *msg,
+				  const void *src,
 				  size_t src_offset, size_t size)
 {
 
@@ -587,7 +587,7 @@ static int qp_memcpy_to_queue_iov(struct vmci_queue *queue,
 	 * We ignore src_offset because src is really a struct iovec * and will
 	 * maintain offset internally.
 	 */
-	return __qp_memcpy_to_queue(queue, queue_offset, msg, size, true);
+	return __qp_memcpy_to_queue(queue, queue_offset, src, size, true);
 }
 
 /*
@@ -3222,13 +3222,13 @@ EXPORT_SYMBOL_GPL(vmci_qpair_peek);
  * of bytes enqueued or < 0 on error.
  */
 ssize_t vmci_qpair_enquev(struct vmci_qp *qpair,
-			  struct msghdr *msg,
+			  void *iov,
 			  size_t iov_size,
 			  int buf_type)
 {
 	ssize_t result;
 
-	if (!qpair)
+	if (!qpair || !iov)
 		return VMCI_ERROR_INVALID_ARGS;
 
 	qp_lock(qpair);
@@ -3237,7 +3237,7 @@ ssize_t vmci_qpair_enquev(struct vmci_qp *qpair,
 		result = qp_enqueue_locked(qpair->produce_q,
 					   qpair->consume_q,
 					   qpair->produce_q_size,
-					   msg, iov_size,
+					   iov, iov_size,
 					   qp_memcpy_to_queue_iov);
 
 		if (result == VMCI_ERROR_QUEUEPAIR_NOT_READY &&

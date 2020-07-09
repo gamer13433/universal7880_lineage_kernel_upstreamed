@@ -12,10 +12,6 @@
 #define COMPACT_PARTIAL		3
 /* The full zone was compacted */
 #define COMPACT_COMPLETE	4
-/* For more detailed tracepoint output */
-#define COMPACT_NO_SUITABLE_PAGE	5
-#define COMPACT_NOT_SUITABLE_ZONE	6
-/* When adding new state, please change compaction_status_string, too */
 
 /* Used to signal whether compaction detected need_sched() or lock contention */
 /* No contention detected */
@@ -24,8 +20,6 @@
 #define COMPACT_CONTENDED_SCHED	1
 /* Zone lock or lru_lock was contended in async compaction */
 #define COMPACT_CONTENDED_LOCK	2
-
-struct alloc_context; /* in mm/internal.h */
 
 #ifdef CONFIG_COMPACTION
 extern int sysctl_compact_memory;

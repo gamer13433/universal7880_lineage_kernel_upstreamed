@@ -294,7 +294,9 @@ int qlcnic_alloc_sds_rings(struct qlcnic_recv_context *recv_ctx, int count)
 
 void qlcnic_free_sds_rings(struct qlcnic_recv_context *recv_ctx)
 {
-	kfree(recv_ctx->sds_rings);
+	if (recv_ctx->sds_rings != NULL)
+		kfree(recv_ctx->sds_rings);
+
 	recv_ctx->sds_rings = NULL;
 }
 
@@ -1254,7 +1256,8 @@ qlcnic_check_options(struct qlcnic_adapter *adapter)
 	if (ahw->op_mode != QLCNIC_NON_PRIV_FUNC) {
 		if (fw_dump->tmpl_hdr == NULL ||
 				adapter->fw_version > prev_fw_version) {
-			vfree(fw_dump->tmpl_hdr);
+			if (fw_dump->tmpl_hdr)
+				vfree(fw_dump->tmpl_hdr);
 			if (!qlcnic_fw_cmd_get_minidump_temp(adapter))
 				dev_info(&pdev->dev,
 					"Supports FW dump capability\n");
@@ -2370,12 +2373,13 @@ void qlcnic_free_tx_rings(struct qlcnic_adapter *adapter)
 
 	for (ring = 0; ring < adapter->drv_tx_rings; ring++) {
 		tx_ring = &adapter->tx_ring[ring];
-		if (tx_ring) {
+		if (tx_ring && tx_ring->cmd_buf_arr != NULL) {
 			vfree(tx_ring->cmd_buf_arr);
 			tx_ring->cmd_buf_arr = NULL;
 		}
 	}
-	kfree(adapter->tx_ring);
+	if (adapter->tx_ring != NULL)
+		kfree(adapter->tx_ring);
 }
 
 int qlcnic_alloc_tx_rings(struct qlcnic_adapter *adapter,
@@ -2752,9 +2756,13 @@ static void qlcnic_remove(struct pci_dev *pdev)
 	}
 
 	qlcnic_dcb_free(adapter->dcb);
+
 	qlcnic_detach(adapter);
-	kfree(adapter->npars);
-	kfree(adapter->eswitch);
+
+	if (adapter->npars != NULL)
+		kfree(adapter->npars);
+	if (adapter->eswitch != NULL)
+		kfree(adapter->eswitch);
 
 	if (qlcnic_82xx_check(adapter))
 		qlcnic_clr_all_drv_state(adapter, 0);
@@ -2922,13 +2930,13 @@ void qlcnic_alloc_lb_filters_mem(struct qlcnic_adapter *adapter)
 
 static void qlcnic_free_lb_filters_mem(struct qlcnic_adapter *adapter)
 {
-	if (adapter->fhash.fmax)
+	if (adapter->fhash.fmax && adapter->fhash.fhead)
 		kfree(adapter->fhash.fhead);
 
 	adapter->fhash.fhead = NULL;
 	adapter->fhash.fmax = 0;
 
-	if (adapter->rx_fhash.fmax)
+	if (adapter->rx_fhash.fmax && adapter->rx_fhash.fhead)
 		kfree(adapter->rx_fhash.fhead);
 
 	adapter->rx_fhash.fmax = 0;

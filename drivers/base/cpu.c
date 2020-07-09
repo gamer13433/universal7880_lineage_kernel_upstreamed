@@ -248,7 +248,7 @@ static ssize_t print_cpus_offline(struct device *dev,
 	if (!alloc_cpumask_var(&offline, GFP_KERNEL))
 		return -ENOMEM;
 	cpumask_andnot(offline, cpu_possible_mask, cpu_online_mask);
-	n = scnprintf(buf, len, "%*pbl", cpumask_pr_args(offline));
+	n = cpulist_scnprintf(buf, len, offline);
 	free_cpumask_var(offline);
 
 	/* display offline cpus >= nr_cpu_ids */

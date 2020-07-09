@@ -1255,7 +1255,7 @@ static int ignore_hardlimit(struct dquot *dquot)
 
 	return capable(CAP_SYS_RESOURCE) &&
 	       (info->dqi_format->qf_fmt_id != QFMT_VFS_OLD ||
-		!(info->dqi_flags & DQF_ROOT_SQUASH));
+		!(info->dqi_flags & V1_DQF_RSQUASH));
 }
 
 /* needs dq_data_lock */
@@ -2611,14 +2611,6 @@ int dquot_set_dqinfo(struct super_block *sb, int type, struct if_dqinfo *ii)
 		goto out;
 	}
 	mi = sb_dqopt(sb)->info + type;
-	if (ii->dqi_valid & IIF_FLAGS) {
-		if (ii->dqi_flags & ~DQF_SETINFO_MASK ||
-		    (ii->dqi_flags & DQF_ROOT_SQUASH &&
-		     mi->dqi_format->qf_fmt_id != QFMT_VFS_OLD)) {
-			err = -EINVAL;
-			goto out;
-		}
-	}
 	spin_lock(&dq_data_lock);
 	if (ii->dqi_valid & IIF_BGRACE)
 		mi->dqi_bgrace = ii->dqi_bgrace;
@@ -2648,17 +2640,6 @@ const struct quotactl_ops dquot_quotactl_ops = {
 	.set_dqblk	= dquot_set_dqblk
 };
 EXPORT_SYMBOL(dquot_quotactl_ops);
-
-const struct quotactl_ops dquot_quotactl_sysfile_ops = {
-	.quota_enable	= dquot_quota_enable,
-	.quota_disable	= dquot_quota_disable,
-	.quota_sync	= dquot_quota_sync,
-	.get_info	= dquot_get_dqinfo,
-	.set_info	= dquot_set_dqinfo,
-	.get_dqblk	= dquot_get_dqblk,
-	.set_dqblk	= dquot_set_dqblk
-};
-EXPORT_SYMBOL(dquot_quotactl_sysfile_ops);
 
 static int do_proc_dqstats(struct ctl_table *table, int write,
 		     void __user *buffer, size_t *lenp, loff_t *ppos)

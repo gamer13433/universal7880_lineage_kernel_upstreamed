@@ -53,6 +53,7 @@ uisthread_start(struct uisthread_info *thrinfo,
 	wake_up_process(thrinfo->task);
 	LOGINF("started thread pid:%d\n", thrinfo->id);
 	return 1;
+
 }
 EXPORT_SYMBOL_GPL(uisthread_start);
 

@@ -77,12 +77,6 @@ struct msm_drm_private {
 	/* subordinate devices, if present: */
 	struct platform_device *hdmi_pdev, *gpu_pdev;
 
-	/* eDP is for mdp5 only, but kms has not been created
-	 * when edp_bind() and edp_init() are called. Here is the only
-	 * place to keep the edp instance.
-	 */
-	struct msm_edp *edp;
-
 	/* when we have more than one 'msm_gpu' these need to be an array: */
 	struct msm_gpu *gpu;
 	struct msm_file_private *lastctx;
@@ -212,12 +206,6 @@ struct hdmi *hdmi_init(struct drm_device *dev, struct drm_encoder *encoder);
 irqreturn_t hdmi_irq(int irq, void *dev_id);
 void __init hdmi_register(void);
 void __exit hdmi_unregister(void);
-
-struct msm_edp;
-void __init msm_edp_register(void);
-void __exit msm_edp_unregister(void);
-int msm_edp_modeset_init(struct msm_edp *edp, struct drm_device *dev,
-		struct drm_encoder *encoder);
 
 #ifdef CONFIG_DEBUG_FS
 void msm_gem_describe(struct drm_gem_object *obj, struct seq_file *m);

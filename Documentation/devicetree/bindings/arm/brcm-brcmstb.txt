@@ -79,9 +79,7 @@ reboot
 Required properties
 
     - compatible
-        The string property "brcm,brcmstb-reboot" for 40nm/28nm chips with
-        the new SYS_CTRL interface, or "brcm,bcm7038-reboot" for 65nm
-        chips with the old SUN_TOP_CTRL interface.
+        The string property "brcm,brcmstb-reboot".
 
     - syscon
         A phandle / integer array that points to the syscon node which describes

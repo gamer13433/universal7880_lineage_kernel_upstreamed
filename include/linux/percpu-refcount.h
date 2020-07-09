@@ -221,7 +221,7 @@ static inline bool percpu_ref_tryget_live(struct percpu_ref *ref)
 	if (__ref_is_percpu(ref, &percpu_count)) {
 		this_cpu_inc(*percpu_count);
 		ret = true;
-	} else if (!(ref->percpu_count_ptr & __PERCPU_REF_DEAD)) {
+	} else if (!(ACCESS_ONCE(ref->percpu_count_ptr) & __PERCPU_REF_DEAD)) {
 		ret = atomic_long_inc_not_zero(&ref->count);
 	}
 
@@ -251,20 +251,6 @@ static inline void percpu_ref_put(struct percpu_ref *ref)
 		ref->release(ref);
 
 	rcu_read_unlock_sched();
-}
-
-/**
- * percpu_ref_is_dying - test whether a percpu refcount is dying or dead
- * @ref: percpu_ref to test
- *
- * Returns %true if @ref is dying or dead.
- *
- * This function is safe to call as long as @ref is between init and exit
- * and the caller is responsible for synchronizing against state changes.
- */
-static inline bool percpu_ref_is_dying(struct percpu_ref *ref)
-{
-	return ref->percpu_count_ptr & __PERCPU_REF_DEAD;
 }
 
 /**

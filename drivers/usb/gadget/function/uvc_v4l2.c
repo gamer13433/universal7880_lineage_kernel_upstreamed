@@ -27,7 +27,6 @@
 #include "uvc.h"
 #include "uvc_queue.h"
 #include "uvc_video.h"
-#include "uvc_v4l2.h"
 
 /* --------------------------------------------------------------------------
  * Requests handling

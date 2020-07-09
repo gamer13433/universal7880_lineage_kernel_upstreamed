@@ -30,7 +30,7 @@
 struct CHARQUEUE_Tag {
 	int alloc_size;
 	int nslots;
-	spinlock_t lock; /* read/write lock for this structure */
+	spinlock_t lock;
 	int head, tail;
 	unsigned char buf[0];
 };

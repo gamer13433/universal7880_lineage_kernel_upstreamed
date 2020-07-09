@@ -456,13 +456,10 @@ static void dsa_slave_phy_setup(struct dsa_slave_priv *p,
 	struct device_node *phy_dn, *port_dn;
 	bool phy_is_fixed = false;
 	u32 phy_flags = 0;
-	int mode, ret;
+	int ret;
 
 	port_dn = cd->port_dn[p->port];
-	mode = of_get_phy_mode(port_dn);
-	if (mode < 0)
-		mode = PHY_INTERFACE_MODE_NA;
-	p->phy_interface = mode;
+	p->phy_interface = of_get_phy_mode(port_dn);
 
 	phy_dn = of_parse_phandle(port_dn, "phy-handle", 0);
 	if (of_phy_is_fixed_link(port_dn)) {
@@ -603,6 +600,19 @@ dsa_slave_create(struct dsa_switch *ds, struct device *parent,
 	}
 
 	netif_carrier_off(slave_dev);
+
+	if (p->phy != NULL) {
+		if (ds->drv->get_phy_flags)
+			p->phy->dev_flags |= ds->drv->get_phy_flags(ds, port);
+
+		phy_attach(slave_dev, dev_name(&p->phy->dev),
+			   PHY_INTERFACE_MODE_GMII);
+
+		p->phy->autoneg = AUTONEG_ENABLE;
+		p->phy->speed = 0;
+		p->phy->duplex = 0;
+		p->phy->advertising = p->phy->supported | ADVERTISED_Autoneg;
+	}
 
 	return slave_dev;
 }

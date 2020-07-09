@@ -13,12 +13,10 @@
 
 #include <linux/device.h>
 
-#define DW_DMA_MAX_NR_MASTERS	4
-
 /**
  * struct dw_dma_slave - Controller-specific information about a slave
  *
- * @dma_dev:	required DMA master device
+ * @dma_dev: required DMA master device. Depricated.
  * @src_id:	src request line
  * @dst_id:	dst request line
  * @src_master: src master for transfers on allocated channel.
@@ -55,7 +53,7 @@ struct dw_dma_platform_data {
 	unsigned char	chan_priority;
 	unsigned short	block_size;
 	unsigned char	nr_masters;
-	unsigned char	data_width[DW_DMA_MAX_NR_MASTERS];
+	unsigned char	data_width[4];
 };
 
 #endif /* _PLATFORM_DATA_DMA_DW_H */

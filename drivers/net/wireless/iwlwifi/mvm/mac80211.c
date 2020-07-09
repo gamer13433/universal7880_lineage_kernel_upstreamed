@@ -84,7 +84,6 @@
 #include "testmode.h"
 #include "iwl-fw-error-dump.h"
 #include "iwl-prph.h"
-#include "iwl-csr.h"
 
 static const struct ieee80211_iface_limit iwl_mvm_limits[] = {
 	{
@@ -105,7 +104,7 @@ static const struct ieee80211_iface_limit iwl_mvm_limits[] = {
 
 static const struct ieee80211_iface_combination iwl_mvm_iface_combinations[] = {
 	{
-		.num_different_channels = 2,
+		.num_different_channels = 1,
 		.max_interfaces = 3,
 		.limits = iwl_mvm_limits,
 		.n_limits = ARRAY_SIZE(iwl_mvm_limits),
@@ -305,8 +304,6 @@ int iwl_mvm_mac_setup_register(struct iwl_mvm *mvm)
 				    IEEE80211_RADIOTAP_MCS_HAVE_STBC;
 	hw->radiotap_vht_details |= IEEE80211_RADIOTAP_VHT_KNOWN_STBC;
 	hw->rate_control_algorithm = "iwl-mvm-rs";
-	hw->uapsd_queues = IWL_MVM_UAPSD_QUEUES;
-	hw->uapsd_max_sp_len = IWL_UAPSD_MAX_SP;
 
 	/*
 	 * Enable 11w if advertised by firmware and software crypto
@@ -355,8 +352,6 @@ int iwl_mvm_mac_setup_register(struct iwl_mvm *mvm)
 
 	hw->wiphy->max_remain_on_channel_duration = 10000;
 	hw->max_listen_interval = IWL_CONN_MAX_LISTEN_INTERVAL;
-	/* we can compensate an offset of up to 3 channels = 15 MHz */
-	hw->wiphy->max_adj_channel_rssi_comp = 3 * 5;
 
 	/* Extract MAC address */
 	memcpy(mvm->addresses[0].addr, mvm->nvm_data->hw_addr, ETH_ALEN);
@@ -383,17 +378,9 @@ int iwl_mvm_mac_setup_register(struct iwl_mvm *mvm)
 	if (mvm->nvm_data->bands[IEEE80211_BAND_2GHZ].n_channels)
 		hw->wiphy->bands[IEEE80211_BAND_2GHZ] =
 			&mvm->nvm_data->bands[IEEE80211_BAND_2GHZ];
-	if (mvm->nvm_data->bands[IEEE80211_BAND_5GHZ].n_channels) {
+	if (mvm->nvm_data->bands[IEEE80211_BAND_5GHZ].n_channels)
 		hw->wiphy->bands[IEEE80211_BAND_5GHZ] =
 			&mvm->nvm_data->bands[IEEE80211_BAND_5GHZ];
-
-		if ((mvm->fw->ucode_capa.capa[0] &
-		     IWL_UCODE_TLV_CAPA_BEAMFORMER) &&
-		    (mvm->fw->ucode_capa.api[0] &
-		     IWL_UCODE_TLV_API_LQ_SS_PARAMS))
-			hw->wiphy->bands[IEEE80211_BAND_5GHZ]->vht_cap.cap |=
-				IEEE80211_VHT_CAP_SU_BEAMFORMER_CAPABLE;
-	}
 
 	hw->wiphy->hw_version = mvm->trans->hw_id;
 
@@ -747,7 +734,6 @@ void iwl_mvm_fw_error_dump(struct iwl_mvm *mvm)
 		mvm->cfg->device_family == IWL_DEVICE_FAMILY_7000 ?
 			cpu_to_le32(IWL_FW_ERROR_DUMP_FAMILY_7) :
 			cpu_to_le32(IWL_FW_ERROR_DUMP_FAMILY_8);
-	dump_info->hw_step = cpu_to_le32(CSR_HW_REV_STEP(mvm->trans->hw_rev));
 	memcpy(dump_info->fw_human_readable, mvm->fw->human_readable,
 	       sizeof(dump_info->fw_human_readable));
 	strncpy(dump_info->dev_human_readable, mvm->cfg->name,
@@ -756,39 +742,28 @@ void iwl_mvm_fw_error_dump(struct iwl_mvm *mvm)
 		sizeof(dump_info->bus_human_readable));
 
 	dump_data = iwl_fw_error_next_data(dump_data);
-	/* We only dump the FIFOs if the FW is in error state */
-	if (test_bit(STATUS_FW_ERROR, &mvm->trans->status))
-		iwl_mvm_dump_fifos(mvm, &dump_data);
+	dump_data->type = cpu_to_le32(IWL_FW_ERROR_DUMP_RXF);
+	dump_data->len = cpu_to_le32(rxf_len);
 
-	dump_data->type = cpu_to_le32(IWL_FW_ERROR_DUMP_MEM);
-	dump_data->len = cpu_to_le32(sram_len + sizeof(*dump_mem));
-	dump_mem = (void *)dump_data->data;
-	dump_mem->type = cpu_to_le32(IWL_FW_ERROR_DUMP_MEM_SRAM);
-	dump_mem->offset = cpu_to_le32(sram_ofs);
-	iwl_trans_read_mem_bytes(mvm->trans, sram_ofs, dump_mem->data,
+	if (iwl_trans_grab_nic_access(mvm->trans, false, &flags)) {
+		u32 *rxf = (void *)dump_data->data;
+		int i;
+
+		for (i = 0; i < (rxf_len / sizeof(u32)); i++) {
+			iwl_trans_write_prph(mvm->trans,
+					     RXF_LD_FENCE_OFFSET_ADDR,
+					     i * sizeof(u32));
+			rxf[i] = iwl_trans_read_prph(mvm->trans,
+						     RXF_FIFO_RD_FENCE_ADDR);
+		}
+		iwl_trans_release_nic_access(mvm->trans, &flags);
+	}
+
+	dump_data = iwl_fw_error_next_data(dump_data);
+	dump_data->type = cpu_to_le32(IWL_FW_ERROR_DUMP_SRAM);
+	dump_data->len = cpu_to_le32(sram_len);
+	iwl_trans_read_mem_bytes(mvm->trans, sram_ofs, dump_data->data,
 				 sram_len);
-
-	if (smem_len) {
-		dump_data = iwl_fw_error_next_data(dump_data);
-		dump_data->type = cpu_to_le32(IWL_FW_ERROR_DUMP_MEM);
-		dump_data->len = cpu_to_le32(smem_len + sizeof(*dump_mem));
-		dump_mem = (void *)dump_data->data;
-		dump_mem->type = cpu_to_le32(IWL_FW_ERROR_DUMP_MEM_SMEM);
-		dump_mem->offset = cpu_to_le32(mvm->cfg->smem_offset);
-		iwl_trans_read_mem_bytes(mvm->trans, mvm->cfg->smem_offset,
-					 dump_mem->data, smem_len);
-	}
-
-	if (sram2_len) {
-		dump_data = iwl_fw_error_next_data(dump_data);
-		dump_data->type = cpu_to_le32(IWL_FW_ERROR_DUMP_MEM);
-		dump_data->len = cpu_to_le32(sram2_len + sizeof(*dump_mem));
-		dump_mem = (void *)dump_data->data;
-		dump_mem->type = cpu_to_le32(IWL_FW_ERROR_DUMP_MEM_SRAM);
-		dump_mem->offset = cpu_to_le32(mvm->cfg->dccm2_offset);
-		iwl_trans_read_mem_bytes(mvm->trans, mvm->cfg->dccm2_offset,
-					 dump_mem->data, sram2_len);
-	}
 
 	fw_error_dump->trans_ptr = iwl_trans_dump_data(mvm->trans);
 	fw_error_dump->op_mode_len = file_len;
@@ -805,11 +780,6 @@ void iwl_mvm_fw_error_dump(struct iwl_mvm *mvm)
 static void iwl_mvm_restart_cleanup(struct iwl_mvm *mvm)
 {
 	iwl_mvm_fw_error_dump(mvm);
-
-	/* cleanup all stale references (scan, roc), but keep the
-	 * ucode_down ref until reconfig is complete
-	 */
-	iwl_mvm_unref_all_except(mvm, IWL_MVM_REF_UCODE_DOWN);
 
 	iwl_trans_stop_device(mvm->trans);
 
@@ -838,6 +808,10 @@ static void iwl_mvm_restart_cleanup(struct iwl_mvm *mvm)
 	memset(&mvm->bt_cts_kill_msk, 0, sizeof(mvm->bt_cts_kill_msk));
 
 	ieee80211_wake_queues(mvm->hw);
+
+	/* cleanup all stale references (scan, roc), but keep the
+	 * ucode_down ref until reconfig is complete */
+	iwl_mvm_unref_all_except(mvm, IWL_MVM_REF_UCODE_DOWN);
 
 	/* clear any stale d0i3 state */
 	clear_bit(IWL_MVM_STATUS_IN_D0I3, &mvm->status);
@@ -874,19 +848,6 @@ static int iwl_mvm_mac_start(struct ieee80211_hw *hw)
 {
 	struct iwl_mvm *mvm = IWL_MAC80211_GET_MVM(hw);
 	int ret;
-
-	/* Some hw restart cleanups must not hold the mutex */
-	if (test_bit(IWL_MVM_STATUS_IN_HW_RESTART, &mvm->status)) {
-		/*
-		 * Make sure we are out of d0i3. This is needed
-		 * to make sure the reference accounting is correct
-		 * (and there is no stale d0i3_exit_work).
-		 */
-		wait_event_timeout(mvm->d0i3_exit_waitq,
-				   !test_bit(IWL_MVM_STATUS_IN_D0I3,
-					     &mvm->status),
-				   HZ);
-	}
 
 	mutex_lock(&mvm->mutex);
 	ret = __iwl_mvm_mac_start(mvm);
@@ -1147,13 +1108,6 @@ static void iwl_mvm_prepare_mac_removal(struct iwl_mvm *mvm,
 		 */
 		flush_work(&mvm->sta_drained_wk);
 	}
-
-	if (mvm->trans->d0i3_mode == IWL_D0I3_MODE_ON_SUSPEND)
-		if (!wait_event_timeout(mvm->d0i3_exit_waitq,
-					!test_bit(IWL_MVM_STATUS_IN_D0I3,
-						  &mvm->status),
-					HZ))
-			WARN_ONCE(1, "D0i3 exit on resume timed out\n");
 }
 
 static void iwl_mvm_mac_remove_interface(struct ieee80211_hw *hw,
@@ -1910,19 +1864,7 @@ static void iwl_mvm_mac_cancel_hw_scan(struct ieee80211_hw *hw,
 
 	mutex_lock(&mvm->mutex);
 
-	/* Due to a race condition, it's possible that mac80211 asks
-	 * us to stop a hw_scan when it's already stopped.  This can
-	 * happen, for instance, if we stopped the scan ourselves,
-	 * called ieee80211_scan_completed() and the userspace called
-	 * cancel scan scan before ieee80211_scan_work() could run.
-	 * To handle that, simply return if the scan is not running.
-	*/
-	/* FIXME: for now, we ignore this race for UMAC scans, since
-	 * they don't set the scan_status.
-	 */
-	if ((mvm->scan_status == IWL_MVM_SCAN_OS) ||
-	    (mvm->fw->ucode_capa.capa[0] & IWL_UCODE_TLV_CAPA_UMAC_SCAN))
-		iwl_mvm_cancel_scan(mvm);
+	iwl_mvm_cancel_scan(mvm);
 
 	mutex_unlock(&mvm->mutex);
 }
@@ -2004,7 +1946,7 @@ static void iwl_mvm_sta_pre_rcu_remove(struct ieee80211_hw *hw,
 				       struct ieee80211_sta *sta)
 {
 	struct iwl_mvm *mvm = IWL_MAC80211_GET_MVM(hw);
-	struct iwl_mvm_sta *mvm_sta = iwl_mvm_sta_from_mac80211(sta);
+	struct iwl_mvm_sta *mvm_sta = (void *)sta->drv_priv;
 
 	/*
 	 * This is called before mac80211 does RCU synchronisation,
@@ -2019,20 +1961,6 @@ static void iwl_mvm_sta_pre_rcu_remove(struct ieee80211_hw *hw,
 		rcu_assign_pointer(mvm->fw_id_to_mac_id[mvm_sta->sta_id],
 				   ERR_PTR(-ENOENT));
 	mutex_unlock(&mvm->mutex);
-}
-
-static void iwl_mvm_check_uapsd(struct iwl_mvm *mvm, struct ieee80211_vif *vif,
-				const u8 *bssid)
-{
-	if (!(mvm->fw->ucode_capa.flags & IWL_UCODE_TLV_FLAGS_UAPSD_SUPPORT))
-		return;
-
-	if (iwlwifi_mod_params.uapsd_disable) {
-		vif->driver_flags &= ~IEEE80211_VIF_SUPPORTS_UAPSD;
-		return;
-	}
-
-	vif->driver_flags |= IEEE80211_VIF_SUPPORTS_UAPSD;
 }
 
 static int iwl_mvm_mac_sta_state(struct ieee80211_hw *hw,
@@ -2094,7 +2022,6 @@ static int iwl_mvm_mac_sta_state(struct ieee80211_hw *hw,
 		 * Reset EBS status here assuming environment has been changed.
 		 */
 		mvm->last_ebs_successful = true;
-		iwl_mvm_check_uapsd(mvm, vif, sta->addr);
 		ret = 0;
 	} else if (old_state == IEEE80211_STA_AUTH &&
 		   new_state == IEEE80211_STA_ASSOC) {
@@ -2973,7 +2900,7 @@ static int iwl_mvm_set_tim(struct ieee80211_hw *hw,
 			   bool set)
 {
 	struct iwl_mvm *mvm = IWL_MAC80211_GET_MVM(hw);
-	struct iwl_mvm_sta *mvm_sta = iwl_mvm_sta_from_mac80211(sta);
+	struct iwl_mvm_sta *mvm_sta = (void *)sta->drv_priv;
 
 	if (!mvm_sta || !mvm_sta->vif) {
 		IWL_ERR(mvm, "Station is not associated to a vif\n");

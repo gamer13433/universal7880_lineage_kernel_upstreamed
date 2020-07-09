@@ -240,20 +240,6 @@ static bool hists__decay_entry(struct hists *hists, struct hist_entry *he)
 	return he->stat.period == 0;
 }
 
-static void hists__delete_entry(struct hists *hists, struct hist_entry *he)
-{
-	rb_erase(&he->rb_node, &hists->entries);
-
-	if (sort__need_collapse)
-		rb_erase(&he->rb_node_in, &hists->entries_collapsed);
-
-	--hists->nr_entries;
-	if (!he->filtered)
-		--hists->nr_non_filtered_entries;
-
-	hist_entry__delete(he);
-}
-
 void hists__decay_entries(struct hists *hists, bool zap_user, bool zap_kernel)
 {
 	struct rb_node *next = rb_first(&hists->entries);
@@ -271,7 +257,16 @@ void hists__decay_entries(struct hists *hists, bool zap_user, bool zap_kernel)
 		     (zap_kernel && n->level != '.') ||
 		     hists__decay_entry(hists, n)) &&
 		    !n->used) {
-			hists__delete_entry(hists, n);
+			rb_erase(&n->rb_node, &hists->entries);
+
+			if (sort__need_collapse)
+				rb_erase(&n->rb_node_in, &hists->entries_collapsed);
+
+			--hists->nr_entries;
+			if (!n->filtered)
+				--hists->nr_non_filtered_entries;
+
+			hist_entry__free(n);
 		}
 	}
 }
@@ -285,7 +280,16 @@ void hists__delete_entries(struct hists *hists)
 		n = rb_entry(next, struct hist_entry, rb_node);
 		next = rb_next(&n->rb_node);
 
-		hists__delete_entry(hists, n);
+		rb_erase(&n->rb_node, &hists->entries);
+
+		if (sort__need_collapse)
+			rb_erase(&n->rb_node_in, &hists->entries_collapsed);
+
+		--hists->nr_entries;
+		if (!n->filtered)
+			--hists->nr_non_filtered_entries;
+
+		hist_entry__free(n);
 	}
 }
 
@@ -427,8 +431,6 @@ static struct hist_entry *add_hist_entry(struct hists *hists,
 	he = hist_entry__new(entry, sample_self);
 	if (!he)
 		return NULL;
-
-	hists->nr_entries++;
 
 	rb_link_node(&he->rb_node_in, parent, p);
 	rb_insert_color(&he->rb_node_in, hists->entries_in);
@@ -911,7 +913,7 @@ hist_entry__cmp(struct hist_entry *left, struct hist_entry *right)
 		if (perf_hpp__should_skip(fmt))
 			continue;
 
-		cmp = fmt->cmp(fmt, left, right);
+		cmp = fmt->cmp(left, right);
 		if (cmp)
 			break;
 	}
@@ -929,7 +931,7 @@ hist_entry__collapse(struct hist_entry *left, struct hist_entry *right)
 		if (perf_hpp__should_skip(fmt))
 			continue;
 
-		cmp = fmt->collapse(fmt, left, right);
+		cmp = fmt->collapse(left, right);
 		if (cmp)
 			break;
 	}
@@ -937,7 +939,7 @@ hist_entry__collapse(struct hist_entry *left, struct hist_entry *right)
 	return cmp;
 }
 
-void hist_entry__delete(struct hist_entry *he)
+void hist_entry__free(struct hist_entry *he)
 {
 	zfree(&he->branch_info);
 	zfree(&he->mem_info);
@@ -976,7 +978,7 @@ static bool hists__collapse_insert_entry(struct hists *hists __maybe_unused,
 						iter->callchain,
 						he->callchain);
 			}
-			hist_entry__delete(he);
+			hist_entry__free(he);
 			return false;
 		}
 
@@ -1054,7 +1056,7 @@ static int hist_entry__sort(struct hist_entry *a, struct hist_entry *b)
 		if (perf_hpp__should_skip(fmt))
 			continue;
 
-		cmp = fmt->sort(fmt, a, b);
+		cmp = fmt->sort(a, b);
 		if (cmp)
 			break;
 	}

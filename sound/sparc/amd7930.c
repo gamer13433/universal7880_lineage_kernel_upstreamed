@@ -37,7 +37,6 @@
 #include <linux/moduleparam.h>
 #include <linux/of.h>
 #include <linux/of_device.h>
-#include <linux/io.h>
 
 #include <sound/core.h>
 #include <sound/pcm.h>
@@ -45,6 +44,7 @@
 #include <sound/control.h>
 #include <sound/initval.h>
 
+#include <asm/io.h>
 #include <asm/irq.h>
 #include <asm/prom.h>
 

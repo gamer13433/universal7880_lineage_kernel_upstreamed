@@ -126,7 +126,7 @@ static void rsnd_ssi_status_check(struct rsnd_mod *mod,
 static int rsnd_ssi_master_clk_start(struct rsnd_ssi *ssi,
 				     struct rsnd_dai_stream *io)
 {
-	struct rsnd_priv *priv = rsnd_io_to_priv(io);
+	struct rsnd_priv *priv = rsnd_mod_to_priv(&ssi->mod);
 	struct snd_pcm_runtime *runtime = rsnd_io_to_runtime(io);
 	struct device *dev = rsnd_priv_to_dev(priv);
 	int i, j, ret;
@@ -155,6 +155,7 @@ static int rsnd_ssi_master_clk_start(struct rsnd_ssi *ssi,
 
 			ret = rsnd_adg_ssi_clk_try_start(&ssi->mod, main_rate);
 			if (0 == ret) {
+				ssi->rate	= rate;
 				ssi->cr_clk	= FORCE | SWL_32 |
 						  SCKD | SWSD | CKDV(j);
 
@@ -479,7 +480,7 @@ static int rsnd_ssi_dma_start(struct rsnd_mod *mod,
 	rsnd_ssi_hw_start(ssi, ssi->rdai, io);
 
 	/* enable WS continue */
-	if (rsnd_rdai_is_clk_master(rdai))
+	if (rsnd_dai_is_clk_master(rdai))
 		rsnd_mod_write(&ssi->mod, SSIWSR, CONT);
 
 	return 0;
@@ -668,6 +669,7 @@ int rsnd_ssi_probe(struct platform_device *pdev,
 			return PTR_ERR(clk);
 
 		ssi->info	= pinfo;
+		ssi->clk	= clk;
 
 		ops = &rsnd_ssi_non_ops;
 		if (pinfo->dma_id > 0)
@@ -675,7 +677,7 @@ int rsnd_ssi_probe(struct platform_device *pdev,
 		else if (rsnd_ssi_pio_available(ssi))
 			ops = &rsnd_ssi_pio_ops;
 
-		rsnd_mod_init(&ssi->mod, ops, clk, RSND_MOD_SSI, i);
+		rsnd_mod_init(priv, &ssi->mod, ops, RSND_MOD_SSI, i);
 
 		rsnd_ssi_parent_clk_setup(priv, ssi);
 	}

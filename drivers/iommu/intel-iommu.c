@@ -71,9 +71,6 @@
 				__DOMAIN_MAX_PFN(gaw), (unsigned long)-1))
 #define DOMAIN_MAX_ADDR(gaw)	(((uint64_t)__DOMAIN_MAX_PFN(gaw)) << VTD_PAGE_SHIFT)
 
-/* IO virtual address start page frame number */
-#define IOVA_START_PFN		(1)
-
 #define IOVA_PFN(addr)		((addr) >> PAGE_SHIFT)
 #define DMA_32BIT_PFN		IOVA_PFN(DMA_BIT_MASK(32))
 #define DMA_64BIT_PFN		IOVA_PFN(DMA_BIT_MASK(64))
@@ -493,6 +490,7 @@ __setup("intel_iommu=", intel_iommu_setup);
 
 static struct kmem_cache *iommu_domain_cache;
 static struct kmem_cache *iommu_devinfo_cache;
+static struct kmem_cache *iommu_iova_cache;
 
 static inline void *alloc_pgtable_page(int node)
 {
@@ -528,6 +526,16 @@ static inline void * alloc_devinfo_mem(void)
 static inline void free_devinfo_mem(void *vaddr)
 {
 	kmem_cache_free(iommu_devinfo_cache, vaddr);
+}
+
+struct iova *alloc_iova_mem(void)
+{
+	return kmem_cache_alloc(iommu_iova_cache, GFP_ATOMIC);
+}
+
+void free_iova_mem(struct iova *iova)
+{
+	kmem_cache_free(iommu_iova_cache, iova);
 }
 
 static inline int domain_type_is_vm(struct dmar_domain *domain)
@@ -1632,8 +1640,7 @@ static int dmar_init_reserved_ranges(void)
 	struct iova *iova;
 	int i;
 
-	init_iova_domain(&reserved_iova_list, VTD_PAGE_SIZE, IOVA_START_PFN,
-			DMA_32BIT_PFN);
+	init_iova_domain(&reserved_iova_list, DMA_32BIT_PFN);
 
 	lockdep_set_class(&reserved_iova_list.iova_rbtree_lock,
 		&reserved_rbtree_key);
@@ -1691,8 +1698,7 @@ static int domain_init(struct dmar_domain *domain, int guest_width)
 	int adjust_width, agaw;
 	unsigned long sagaw;
 
-	init_iova_domain(&domain->iovad, VTD_PAGE_SIZE, IOVA_START_PFN,
-			DMA_32BIT_PFN);
+	init_iova_domain(&domain->iovad, DMA_32BIT_PFN);
 	domain_reserve_special_ranges(domain);
 
 	/* calculate AGAW */
@@ -3421,6 +3427,23 @@ static inline int iommu_devinfo_cache_init(void)
 	return ret;
 }
 
+static inline int iommu_iova_cache_init(void)
+{
+	int ret = 0;
+
+	iommu_iova_cache = kmem_cache_create("iommu_iova",
+					 sizeof(struct iova),
+					 0,
+					 SLAB_HWCACHE_ALIGN,
+					 NULL);
+	if (!iommu_iova_cache) {
+		printk(KERN_ERR "Couldn't create iova cache\n");
+		ret = -ENOMEM;
+	}
+
+	return ret;
+}
+
 static int __init iommu_init_mempool(void)
 {
 	int ret;
@@ -3438,7 +3461,7 @@ static int __init iommu_init_mempool(void)
 
 	kmem_cache_destroy(iommu_domain_cache);
 domain_error:
-	iommu_iova_cache_destroy();
+	kmem_cache_destroy(iommu_iova_cache);
 
 	return -ENOMEM;
 }
@@ -3447,7 +3470,8 @@ static void __init iommu_exit_mempool(void)
 {
 	kmem_cache_destroy(iommu_devinfo_cache);
 	kmem_cache_destroy(iommu_domain_cache);
-	iommu_iova_cache_destroy();
+	kmem_cache_destroy(iommu_iova_cache);
+
 }
 
 static void quirk_ioat_snb_local_iommu(struct pci_dev *pdev)
@@ -4163,8 +4187,7 @@ static int md_domain_init(struct dmar_domain *domain, int guest_width)
 {
 	int adjust_width;
 
-	init_iova_domain(&domain->iovad, VTD_PAGE_SIZE, IOVA_START_PFN,
-			DMA_32BIT_PFN);
+	init_iova_domain(&domain->iovad, DMA_32BIT_PFN);
 	domain_reserve_special_ranges(domain);
 
 	/* calculate AGAW */

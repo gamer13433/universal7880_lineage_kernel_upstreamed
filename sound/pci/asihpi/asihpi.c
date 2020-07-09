@@ -540,8 +540,9 @@ static void snd_card_asihpi_pcm_timer_start(struct snd_pcm_substream *
 	expiry = HZ / 200;
 	/*? (dpcm->period_bytes * HZ / dpcm->bytes_per_sec); */
 	expiry = max(expiry, 1); /* don't let it be zero! */
-	mod_timer(&dpcm->timer, jiffies + expiry);
+	dpcm->timer.expires = jiffies + expiry;
 	dpcm->respawn_timer = 1;
+	add_timer(&dpcm->timer);
 }
 
 static void snd_card_asihpi_pcm_timer_stop(struct snd_pcm_substream *substream)
@@ -1000,8 +1001,9 @@ static int snd_card_asihpi_playback_open(struct snd_pcm_substream *substream)
 	    If internal and other stream playing, can't switch
 	*/
 
-	setup_timer(&dpcm->timer, snd_card_asihpi_timer_function,
-		    (unsigned long) dpcm);
+	init_timer(&dpcm->timer);
+	dpcm->timer.data = (unsigned long) dpcm;
+	dpcm->timer.function = snd_card_asihpi_timer_function;
 	dpcm->substream = substream;
 	runtime->private_data = dpcm;
 	runtime->private_free = snd_card_asihpi_runtime_free;
@@ -1173,8 +1175,9 @@ static int snd_card_asihpi_capture_open(struct snd_pcm_substream *substream)
 	if (err)
 		return -EIO;
 
-	setup_timer(&dpcm->timer, snd_card_asihpi_timer_function,
-		    (unsigned long) dpcm);
+	init_timer(&dpcm->timer);
+	dpcm->timer.data = (unsigned long) dpcm;
+	dpcm->timer.function = snd_card_asihpi_timer_function;
 	dpcm->substream = substream;
 	runtime->private_data = dpcm;
 	runtime->private_free = snd_card_asihpi_runtime_free;
@@ -2770,11 +2773,14 @@ static int snd_asihpi_hpi_ioctl(struct snd_hwdep *hw, struct file *file,
 /* results in /dev/snd/hwC#D0 file for each card with index #
    also /proc/asound/hwdep will contain '#-00: asihpi (HPI) for each card'
 */
-static int snd_asihpi_hpi_new(struct snd_card_asihpi *asihpi, int device)
+static int snd_asihpi_hpi_new(struct snd_card_asihpi *asihpi,
+			      int device, struct snd_hwdep **rhwdep)
 {
 	struct snd_hwdep *hw;
 	int err;
 
+	if (rhwdep)
+		*rhwdep = NULL;
 	err = snd_hwdep_new(asihpi->card, "HPI", device, &hw);
 	if (err < 0)
 		return err;
@@ -2784,6 +2790,8 @@ static int snd_asihpi_hpi_new(struct snd_card_asihpi *asihpi, int device)
 	hw->ops.ioctl = snd_asihpi_hpi_ioctl;
 	hw->ops.release = snd_asihpi_hpi_release;
 	hw->private_data = asihpi;
+	if (rhwdep)
+		*rhwdep = hw;
 	return 0;
 }
 
@@ -2917,7 +2925,7 @@ static int snd_asihpi_probe(struct pci_dev *pci_dev,
 
 	/* always create, can be enabled or disabled dynamically
 	    by enable_hwdep  module param*/
-	snd_asihpi_hpi_new(asihpi, 0);
+	snd_asihpi_hpi_new(asihpi, 0, NULL);
 
 	strcpy(card->driver, "ASIHPI");
 

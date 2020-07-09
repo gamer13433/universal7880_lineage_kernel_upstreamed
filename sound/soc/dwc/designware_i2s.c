@@ -22,7 +22,6 @@
 #include <sound/pcm.h>
 #include <sound/pcm_params.h>
 #include <sound/soc.h>
-#include <sound/dmaengine_pcm.h>
 
 /* common register for all channel */
 #define IER		0x000
@@ -55,38 +54,8 @@
 #define I2S_COMP_VERSION	0x01F8
 #define I2S_COMP_TYPE		0x01FC
 
-/*
- * Component parameter register fields - define the I2S block's
- * configuration.
- */
-#define	COMP1_TX_WORDSIZE_3(r)	(((r) & GENMASK(27, 25)) >> 25)
-#define	COMP1_TX_WORDSIZE_2(r)	(((r) & GENMASK(24, 22)) >> 22)
-#define	COMP1_TX_WORDSIZE_1(r)	(((r) & GENMASK(21, 19)) >> 19)
-#define	COMP1_TX_WORDSIZE_0(r)	(((r) & GENMASK(18, 16)) >> 16)
-#define	COMP1_TX_CHANNELS(r)	(((r) & GENMASK(10, 9)) >> 9)
-#define	COMP1_RX_CHANNELS(r)	(((r) & GENMASK(8, 7)) >> 7)
-#define	COMP1_RX_ENABLED(r)	(((r) & BIT(6)) >> 6)
-#define	COMP1_TX_ENABLED(r)	(((r) & BIT(5)) >> 5)
-#define	COMP1_MODE_EN(r)	(((r) & BIT(4)) >> 4)
-#define	COMP1_FIFO_DEPTH_GLOBAL(r)	(((r) & GENMASK(3, 2)) >> 2)
-#define	COMP1_APB_DATA_WIDTH(r)	(((r) & GENMASK(1, 0)) >> 0)
-
-#define	COMP2_RX_WORDSIZE_3(r)	(((r) & GENMASK(12, 10)) >> 10)
-#define	COMP2_RX_WORDSIZE_2(r)	(((r) & GENMASK(9, 7)) >> 7)
-#define	COMP2_RX_WORDSIZE_1(r)	(((r) & GENMASK(5, 3)) >> 3)
-#define	COMP2_RX_WORDSIZE_0(r)	(((r) & GENMASK(2, 0)) >> 0)
-
-/* Number of entries in WORDSIZE and DATA_WIDTH parameter registers */
-#define	COMP_MAX_WORDSIZE	(1 << 3)
-#define	COMP_MAX_DATA_WIDTH	(1 << 2)
-
 #define MAX_CHANNEL_NUM		8
 #define MIN_CHANNEL_NUM		2
-
-union dw_i2s_snd_dma_data {
-	struct i2s_dma_data pd;
-	struct snd_dmaengine_dai_dma_data dt;
-};
 
 struct dw_i2s_dev {
 	void __iomem *i2s_base;
@@ -96,8 +65,8 @@ struct dw_i2s_dev {
 	struct device *dev;
 
 	/* data related to DMA transfers b/w i2s and DMAC */
-	union dw_i2s_snd_dma_data play_dma_data;
-	union dw_i2s_snd_dma_data capture_dma_data;
+	struct i2s_dma_data play_dma_data;
+	struct i2s_dma_data capture_dma_data;
 	struct i2s_clk_config_data config;
 	int (*i2s_clk_cfg)(struct i2s_clk_config_data *config);
 };
@@ -184,7 +153,7 @@ static int dw_i2s_startup(struct snd_pcm_substream *substream,
 		struct snd_soc_dai *cpu_dai)
 {
 	struct dw_i2s_dev *dev = snd_soc_dai_get_drvdata(cpu_dai);
-	union dw_i2s_snd_dma_data *dma_data = NULL;
+	struct i2s_dma_data *dma_data = NULL;
 
 	if (!(dev->capability & DWC_I2S_RECORD) &&
 			(substream->stream == SNDRV_PCM_STREAM_CAPTURE))
@@ -276,21 +245,13 @@ static int dw_i2s_hw_params(struct snd_pcm_substream *substream,
 
 	config->sample_rate = params_rate(params);
 
-	if (dev->i2s_clk_cfg) {
-		ret = dev->i2s_clk_cfg(config);
-		if (ret < 0) {
-			dev_err(dev->dev, "runtime audio clk config fail\n");
-			return ret;
-		}
-	} else {
-		u32 bitclk = config->sample_rate * config->data_width * 2;
+	if (!dev->i2s_clk_cfg)
+		return -EINVAL;
 
-		ret = clk_set_rate(dev->clk, bitclk);
-		if (ret) {
-			dev_err(dev->dev, "Can't set I2S clock rate: %d\n",
-				ret);
-			return ret;
-		}
+	ret = dev->i2s_clk_cfg(config);
+	if (ret < 0) {
+		dev_err(dev->dev, "runtime audio clk config fail\n");
+		return ret;
 	}
 
 	return 0;

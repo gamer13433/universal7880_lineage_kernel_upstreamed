@@ -42,7 +42,8 @@
 #include "../../include/linux/lnet/lnet.h"
 #include "tracefile.h"
 
-static void kportal_memhog_free (struct libcfs_device_userstate *ldu)
+void
+kportal_memhog_free (struct libcfs_device_userstate *ldu)
 {
 	struct page **level0p = &ldu->ldu_memhog_root_page;
 	struct page **level1p;
@@ -85,7 +86,8 @@ static void kportal_memhog_free (struct libcfs_device_userstate *ldu)
 	LASSERT (ldu->ldu_memhog_pages == 0);
 }
 
-static int kportal_memhog_alloc(struct libcfs_device_userstate *ldu, int npages,
+int
+kportal_memhog_alloc(struct libcfs_device_userstate *ldu, int npages,
 		     gfp_t flags)
 {
 	struct page **level0p;
@@ -332,6 +334,8 @@ extern struct mutex cfs_trace_thread_mutex;
 extern struct cfs_wi_sched *cfs_sched_rehash;
 
 extern void libcfs_init_nidstrings(void);
+extern int libcfs_arch_init(void);
+extern void libcfs_arch_cleanup(void);
 
 static int init_libcfs_module(void)
 {

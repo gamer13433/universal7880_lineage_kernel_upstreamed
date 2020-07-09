@@ -320,8 +320,7 @@ void arch_remove_optimized_kprobe(struct optimized_kprobe *op)
  * Target instructions MUST be relocatable (checked inside)
  * This is called when new aggr(opt)probe is allocated or reused.
  */
-int arch_prepare_optimized_kprobe(struct optimized_kprobe *op,
-				  struct kprobe *__unused)
+int arch_prepare_optimized_kprobe(struct optimized_kprobe *op)
 {
 	u8 *buf;
 	int ret;

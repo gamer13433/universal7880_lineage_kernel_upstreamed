@@ -1121,7 +1121,7 @@ static void ath_buf_set_rate(struct ath_softc *sc, struct ath_buf *bf,
 	info->rtscts_rate = fi->rtscts_rate;
 
 	for (i = 0; i < ARRAY_SIZE(bf->rates); i++) {
-		bool is_40, is_sgi, is_sp, is_cck;
+		bool is_40, is_sgi, is_sp;
 		int phy;
 
 		if (!rates[i].count || (rates[i].idx < 0))
@@ -2224,7 +2224,7 @@ int ath_tx_start(struct ieee80211_hw *hw, struct sk_buff *skb,
 	struct ath_txq *txq = txctl->txq;
 	struct ath_atx_tid *tid = NULL;
 	struct ath_buf *bf;
-	bool queue, skip_uapsd = false, ps_resp;
+	bool queue, skip_uapsd = false;
 	int q, ret;
 
 	if (vif)
@@ -2232,8 +2232,6 @@ int ath_tx_start(struct ieee80211_hw *hw, struct sk_buff *skb,
 
 	if (info->flags & IEEE80211_TX_CTL_TX_OFFCHAN)
 		txctl->force_channel = true;
-
-	ps_resp = !!(info->control.flags & IEEE80211_TX_CTRL_PS_RESPONSE);
 
 	ret = ath_tx_prepare(hw, skb, txctl);
 	if (ret)
@@ -2277,7 +2275,7 @@ int ath_tx_start(struct ieee80211_hw *hw, struct sk_buff *skb,
 	if (txctl->an && queue)
 		tid = ath_get_skb_tid(sc, txctl->an, skb);
 
-	if (!skip_uapsd && ps_resp) {
+	if (!skip_uapsd && (info->flags & IEEE80211_TX_CTL_PS_RESPONSE)) {
 		ath_txq_unlock(sc, txq);
 		txq = sc->tx.uapsdq;
 		ath_txq_lock(sc, txq);
@@ -2410,12 +2408,9 @@ static void ath_tx_complete(struct ath_softc *sc, struct sk_buff *skb,
 	if (sc->sc_ah->caldata)
 		set_bit(PAPRD_PACKET_SENT, &sc->sc_ah->caldata->cal_flags);
 
-	if (!(tx_flags & ATH_TX_ERROR)) {
-		if (tx_info->flags & IEEE80211_TX_CTL_NO_ACK)
-			tx_info->flags |= IEEE80211_TX_STAT_NOACK_TRANSMITTED;
-		else
-			tx_info->flags |= IEEE80211_TX_STAT_ACK;
-	}
+	if (!(tx_flags & ATH_TX_ERROR))
+		/* Frame was ACKed */
+		tx_info->flags |= IEEE80211_TX_STAT_ACK;
 
 	padpos = ieee80211_hdrlen(hdr->frame_control);
 	padsize = padpos & 3;

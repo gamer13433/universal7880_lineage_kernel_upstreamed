@@ -38,12 +38,6 @@ enum ath10k_debug_mask {
 	ATH10K_DBG_ANY		= 0xffffffff,
 };
 
-enum ath10k_dbg_aggr_mode {
-	ATH10K_DBG_AGGR_MODE_AUTO,
-	ATH10K_DBG_AGGR_MODE_MANUAL,
-	ATH10K_DBG_AGGR_MODE_MAX,
-};
-
 extern unsigned int ath10k_debug_mask;
 
 __printf(2, 3) int ath10k_info(struct ath10k *ar, const char *fmt, ...);
@@ -123,10 +117,6 @@ ath10k_debug_get_new_fw_crash_data(struct ath10k *ar)
 #define ATH10K_DFS_STAT_INC(ar, c) do { } while (0)
 
 #endif /* CONFIG_ATH10K_DEBUGFS */
-#ifdef CONFIG_MAC80211_DEBUGFS
-void ath10k_sta_add_debugfs(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
-			    struct ieee80211_sta *sta, struct dentry *dir);
-#endif /* CONFIG_MAC80211_DEBUGFS */
 
 #ifdef CONFIG_ATH10K_DEBUG
 __printf(3, 4) void ath10k_dbg(struct ath10k *ar,

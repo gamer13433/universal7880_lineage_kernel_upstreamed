@@ -21,13 +21,6 @@
 #include <linux/delay.h>
 #include <linux/vermagic.h>
 
-enum test_power_id {
-	TEST_AC,
-	TEST_BATTERY,
-	TEST_USB,
-	TEST_POWER_NUM,
-};
-
 static int ac_online			= 1;
 static int usb_online			= 1;
 static int battery_status		= POWER_SUPPLY_STATUS_DISCHARGING;
@@ -154,7 +147,7 @@ static char *test_power_ac_supplied_to[] = {
 };
 
 static struct power_supply test_power_supplies[] = {
-	[TEST_AC] = {
+	{
 		.name = "test_ac",
 		.type = POWER_SUPPLY_TYPE_MAINS,
 		.supplied_to = test_power_ac_supplied_to,
@@ -162,15 +155,13 @@ static struct power_supply test_power_supplies[] = {
 		.properties = test_power_ac_props,
 		.num_properties = ARRAY_SIZE(test_power_ac_props),
 		.get_property = test_power_get_ac_property,
-	},
-	[TEST_BATTERY] = {
+	}, {
 		.name = "test_battery",
 		.type = POWER_SUPPLY_TYPE_BATTERY,
 		.properties = test_power_battery_props,
 		.num_properties = ARRAY_SIZE(test_power_battery_props),
 		.get_property = test_power_get_battery_property,
-	},
-	[TEST_USB] = {
+	}, {
 		.name = "test_usb",
 		.type = POWER_SUPPLY_TYPE_USB,
 		.supplied_to = test_power_ac_supplied_to,
@@ -186,8 +177,6 @@ static int __init test_power_init(void)
 {
 	int i;
 	int ret;
-
-	BUILD_BUG_ON(TEST_POWER_NUM != ARRAY_SIZE(test_power_supplies));
 
 	for (i = 0; i < ARRAY_SIZE(test_power_supplies); i++) {
 		ret = power_supply_register(NULL, &test_power_supplies[i]);
@@ -320,7 +309,7 @@ static inline void signal_power_supply_changed(struct power_supply *psy)
 static int param_set_ac_online(const char *key, const struct kernel_param *kp)
 {
 	ac_online = map_get_value(map_ac_online, key, ac_online);
-	signal_power_supply_changed(&test_power_supplies[TEST_AC]);
+	signal_power_supply_changed(&test_power_supplies[0]);
 	return 0;
 }
 
@@ -333,7 +322,7 @@ static int param_get_ac_online(char *buffer, const struct kernel_param *kp)
 static int param_set_usb_online(const char *key, const struct kernel_param *kp)
 {
 	usb_online = map_get_value(map_ac_online, key, usb_online);
-	signal_power_supply_changed(&test_power_supplies[TEST_USB]);
+	signal_power_supply_changed(&test_power_supplies[2]);
 	return 0;
 }
 
@@ -347,7 +336,7 @@ static int param_set_battery_status(const char *key,
 					const struct kernel_param *kp)
 {
 	battery_status = map_get_value(map_status, key, battery_status);
-	signal_power_supply_changed(&test_power_supplies[TEST_BATTERY]);
+	signal_power_supply_changed(&test_power_supplies[1]);
 	return 0;
 }
 
@@ -361,7 +350,7 @@ static int param_set_battery_health(const char *key,
 					const struct kernel_param *kp)
 {
 	battery_health = map_get_value(map_health, key, battery_health);
-	signal_power_supply_changed(&test_power_supplies[TEST_BATTERY]);
+	signal_power_supply_changed(&test_power_supplies[1]);
 	return 0;
 }
 
@@ -375,7 +364,7 @@ static int param_set_battery_present(const char *key,
 					const struct kernel_param *kp)
 {
 	battery_present = map_get_value(map_present, key, battery_present);
-	signal_power_supply_changed(&test_power_supplies[TEST_AC]);
+	signal_power_supply_changed(&test_power_supplies[0]);
 	return 0;
 }
 
@@ -391,7 +380,7 @@ static int param_set_battery_technology(const char *key,
 {
 	battery_technology = map_get_value(map_technology, key,
 						battery_technology);
-	signal_power_supply_changed(&test_power_supplies[TEST_BATTERY]);
+	signal_power_supply_changed(&test_power_supplies[1]);
 	return 0;
 }
 
@@ -412,7 +401,7 @@ static int param_set_battery_capacity(const char *key,
 		return -EINVAL;
 
 	battery_capacity = tmp;
-	signal_power_supply_changed(&test_power_supplies[TEST_BATTERY]);
+	signal_power_supply_changed(&test_power_supplies[1]);
 	return 0;
 }
 
@@ -427,7 +416,7 @@ static int param_set_battery_voltage(const char *key,
 		return -EINVAL;
 
 	battery_voltage = tmp;
-	signal_power_supply_changed(&test_power_supplies[TEST_BATTERY]);
+	signal_power_supply_changed(&test_power_supplies[1]);
 	return 0;
 }
 

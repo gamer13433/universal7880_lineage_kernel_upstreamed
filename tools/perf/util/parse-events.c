@@ -526,7 +526,7 @@ do {					\
 }
 
 int parse_events_add_breakpoint(struct list_head *list, int *idx,
-				void *ptr, char *type, u64 len)
+				void *ptr, char *type)
 {
 	struct perf_event_attr attr;
 
@@ -536,15 +536,14 @@ int parse_events_add_breakpoint(struct list_head *list, int *idx,
 	if (parse_breakpoint_type(type, &attr))
 		return -EINVAL;
 
-	/* Provide some defaults if len is not specified */
-	if (!len) {
-		if (attr.bp_type == HW_BREAKPOINT_X)
-			len = sizeof(long);
-		else
-			len = HW_BREAKPOINT_LEN_4;
-	}
-
-	attr.bp_len = len;
+	/*
+	 * We should find a nice way to override the access length
+	 * Provide some defaults for now
+	 */
+	if (attr.bp_type == HW_BREAKPOINT_X)
+		attr.bp_len = sizeof(long);
+	else
+		attr.bp_len = HW_BREAKPOINT_LEN_4;
 
 	attr.type = PERF_TYPE_BREAKPOINT;
 	attr.sample_period = 1;
@@ -1120,7 +1119,7 @@ void print_tracepoint_events(const char *subsys_glob, const char *event_glob,
 		return;
 
 	for_each_subsystem(sys_dir, sys_dirent, sys_next) {
-		if (subsys_glob != NULL &&
+		if (subsys_glob != NULL && 
 		    !strglobmatch(sys_dirent.d_name, subsys_glob))
 			continue;
 
@@ -1131,7 +1130,7 @@ void print_tracepoint_events(const char *subsys_glob, const char *event_glob,
 			continue;
 
 		for_each_event(sys_dirent, evt_dir, evt_dirent, evt_next) {
-			if (event_glob != NULL &&
+			if (event_glob != NULL && 
 			    !strglobmatch(evt_dirent.d_name, event_glob))
 				continue;
 
@@ -1304,7 +1303,7 @@ static void print_symbol_events(const char *event_glob, unsigned type,
 
 	for (i = 0; i < max; i++, syms++) {
 
-		if (event_glob != NULL &&
+		if (event_glob != NULL && 
 		    !(strglobmatch(syms->symbol, event_glob) ||
 		      (syms->alias && strglobmatch(syms->alias, event_glob))))
 			continue;
@@ -1365,7 +1364,7 @@ void print_events(const char *event_glob, bool name_only)
 		printf("\n");
 
 		printf("  %-50s [%s]\n",
-		       "mem:<addr>[/len][:access]",
+		       "mem:<addr>[:access]",
 			event_type_descriptors[PERF_TYPE_BREAKPOINT]);
 		printf("\n");
 	}

@@ -28,7 +28,7 @@
 
 /* Analog */
 #include <linux/videodev2.h>
-#include <media/videobuf2-vmalloc.h>
+#include <media/videobuf-vmalloc.h>
 #include <media/v4l2-device.h>
 #include <media/v4l2-ctrls.h>
 #include <media/v4l2-fh.h>
@@ -126,7 +126,17 @@ enum au0828_dev_state {
 	DEV_MISCONFIGURED = 0x04
 };
 
-struct au0828_dev;
+struct au0828_fh {
+	/* must be the first field of this struct! */
+	struct v4l2_fh fh;
+
+	struct au0828_dev *dev;
+	unsigned int  resources;
+
+	struct videobuf_queue        vb_vidq;
+	struct videobuf_queue        vb_vbiq;
+	enum v4l2_buf_type           type;
+};
 
 struct au0828_usb_isoc_ctl {
 		/* max packet size of isoc transaction */
@@ -167,20 +177,21 @@ struct au0828_usb_isoc_ctl {
 /* buffer for one video frame */
 struct au0828_buffer {
 	/* common v4l buffer stuff -- must be first */
-	struct vb2_buffer vb;
-	struct list_head list;
+	struct videobuf_buffer vb;
 
-	void *mem;
-	unsigned long length;
+	struct list_head frame;
 	int top_field;
-	/* pointer to vmalloc memory address in vb */
-	char *vb_buf;
+	int receiving;
 };
 
 struct au0828_dmaqueue {
 	struct list_head       active;
+	struct list_head       queued;
+
+	wait_queue_head_t          wq;
+
 	/* Counters to control buffer fill */
-	int                    pos;
+	int                        pos;
 };
 
 struct au0828_dev {
@@ -209,26 +220,14 @@ struct au0828_dev {
 	struct au0828_rc *ir;
 #endif
 
+	int users;
+	unsigned int resources;	/* resources in use */
 	struct video_device *vdev;
 	struct video_device *vbi_dev;
-
-	/* Videobuf2 */
-	struct vb2_queue vb_vidq;
-	struct vb2_queue vb_vbiq;
-	struct mutex vb_queue_lock;
-	struct mutex vb_vbi_queue_lock;
-
-	unsigned int frame_count;
-	unsigned int vbi_frame_count;
-
 	struct timer_list vid_timeout;
 	int vid_timeout_running;
 	struct timer_list vbi_timeout;
 	int vbi_timeout_running;
-
-	int users;
-	int streaming_users;
-
 	int width;
 	int height;
 	int vbi_width;
@@ -243,6 +242,7 @@ struct au0828_dev {
 	__u8 isoc_in_endpointaddr;
 	u8 isoc_init_ok;
 	int greenscreen_detected;
+	unsigned int frame_count;
 	int ctrl_freq;
 	int input_type;
 	int std_set_in_tuner_core;
@@ -277,7 +277,6 @@ struct au0828_dev {
 	char *dig_transfer_buffer[URB_COUNT];
 };
 
-
 /* ----------------------------------------------------------- */
 #define au0828_read(dev, reg) au0828_readreg(dev, reg)
 #define au0828_write(dev, reg, value) au0828_writereg(dev, reg, value)
@@ -310,15 +309,13 @@ extern int au0828_i2c_unregister(struct au0828_dev *dev);
 
 /* ----------------------------------------------------------- */
 /* au0828-video.c */
-extern int au0828_analog_register(struct au0828_dev *dev,
+int au0828_analog_register(struct au0828_dev *dev,
 			   struct usb_interface *interface);
-extern void au0828_analog_unregister(struct au0828_dev *dev);
-extern int au0828_start_analog_streaming(struct vb2_queue *vq,
-						unsigned int count);
-extern void au0828_stop_vbi_streaming(struct vb2_queue *vq);
+int au0828_analog_stream_disable(struct au0828_dev *d);
+void au0828_analog_unregister(struct au0828_dev *dev);
 #ifdef CONFIG_VIDEO_AU0828_V4L2
-extern void au0828_v4l2_suspend(struct au0828_dev *dev);
-extern void au0828_v4l2_resume(struct au0828_dev *dev);
+void au0828_v4l2_suspend(struct au0828_dev *dev);
+void au0828_v4l2_resume(struct au0828_dev *dev);
 #else
 static inline void au0828_v4l2_suspend(struct au0828_dev *dev) { };
 static inline void au0828_v4l2_resume(struct au0828_dev *dev) { };
@@ -332,7 +329,7 @@ void au0828_dvb_suspend(struct au0828_dev *dev);
 void au0828_dvb_resume(struct au0828_dev *dev);
 
 /* au0828-vbi.c */
-extern struct vb2_ops au0828_vbi_qops;
+extern struct videobuf_queue_ops au0828_vbi_qops;
 
 #define dprintk(level, fmt, arg...)\
 	do { if (au0828_debug & level)\

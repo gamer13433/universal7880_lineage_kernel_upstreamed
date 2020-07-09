@@ -56,62 +56,6 @@ static void stmmac_default_data(void)
 	plat_dat.unicast_filter_entries = 1;
 }
 
-static int quark_default_data(struct plat_stmmacenet_data *plat,
-			      struct stmmac_pci_info *info)
-{
-	struct pci_dev *pdev = info->pdev;
-	int ret;
-
-	/*
-	 * Refuse to load the driver and register net device if MAC controller
-	 * does not connect to any PHY interface.
-	 */
-	ret = stmmac_pci_find_phy_addr(info);
-	if (ret < 0)
-		return ret;
-
-	plat->bus_id = PCI_DEVID(pdev->bus->number, pdev->devfn);
-	plat->phy_addr = ret;
-	plat->interface = PHY_INTERFACE_MODE_RMII;
-	plat->clk_csr = 2;
-	plat->has_gmac = 1;
-	plat->force_sf_dma_mode = 1;
-
-	plat->mdio_bus_data->phy_reset = NULL;
-	plat->mdio_bus_data->phy_mask = 0;
-
-	plat->dma_cfg->pbl = 16;
-	plat->dma_cfg->burst_len = DMA_AXI_BLEN_256;
-	plat->dma_cfg->fixed_burst = 1;
-
-	/* Set default value for multicast hash bins */
-	plat->multicast_filter_bins = HASH_TABLE_SIZE;
-
-	/* Set default value for unicast filter entries */
-	plat->unicast_filter_entries = 1;
-
-	return 0;
-}
-
-static struct stmmac_pci_dmi_data quark_pci_dmi_data[] = {
-	{
-		.name = "Galileo",
-		.func = 6,
-		.phy_addr = 1,
-	},
-	{
-		.name = "GalileoGen2",
-		.func = 6,
-		.phy_addr = 1,
-	},
-	{}
-};
-
-static struct stmmac_pci_info quark_pci_info = {
-	.setup = quark_default_data,
-	.dmi = quark_pci_dmi_data,
-};
-
 /**
  * stmmac_pci_probe
  *
@@ -231,13 +175,11 @@ static int stmmac_pci_resume(struct pci_dev *pdev)
 #endif
 
 #define STMMAC_VENDOR_ID 0x700
-#define STMMAC_QUARK_ID  0x0937
 #define STMMAC_DEVICE_ID 0x1108
 
 static const struct pci_device_id stmmac_id_table[] = {
 	{PCI_DEVICE(STMMAC_VENDOR_ID, STMMAC_DEVICE_ID)},
 	{PCI_DEVICE(PCI_VENDOR_ID_STMICRO, PCI_DEVICE_ID_STMICRO_MAC)},
-	{PCI_VDEVICE(INTEL, STMMAC_QUARK_ID), (kernel_ulong_t)&quark_pci_info},
 	{}
 };
 

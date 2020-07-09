@@ -112,6 +112,7 @@ static int ecryptfs_inode_set(struct inode *inode, void *opaque)
 	inode->i_ino = lower_inode->i_ino;
 	inode->i_version++;
 	inode->i_mapping->a_ops = &ecryptfs_aops;
+	inode->i_mapping->backing_dev_info = inode->i_sb->s_bdi;
 
 	if (S_ISLNK(inode->i_mode))
 		inode->i_op = &ecryptfs_symlink_iops;
@@ -1344,9 +1345,9 @@ static int ecryptfs_setattr(struct dentry *dentry, struct iattr *ia)
 	lower_inode = ecryptfs_inode_to_lower(inode);
 	lower_dentry = ecryptfs_dentry_to_lower(dentry);
 	mutex_lock(&crypt_stat->cs_mutex);
-	if (d_is_dir(dentry))
+	if (S_ISDIR(dentry->d_inode->i_mode))
 		crypt_stat->flags &= ~(ECRYPTFS_ENCRYPTED);
-	else if (d_is_reg(dentry)
+	else if (S_ISREG(dentry->d_inode->i_mode)
 		 && (!(crypt_stat->flags & ECRYPTFS_POLICY_APPLIED)
 		     || !(crypt_stat->flags & ECRYPTFS_KEY_VALID))) {
 		struct ecryptfs_mount_crypt_stat *mount_crypt_stat;
