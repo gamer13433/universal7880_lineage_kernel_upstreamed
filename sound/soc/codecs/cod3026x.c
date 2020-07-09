@@ -570,30 +570,30 @@ static const struct snd_kcontrol_new cod3026x_snd_controls[] = {
 static int dac_ev(struct snd_soc_dapm_widget *w, struct snd_kcontrol *kcontrol,
 		int event)
 {
-	dev_dbg(w->codec->dev, "%s called\n", __func__);
+	dev_dbg(snd_soc_dapm_to_codec(w->dapm)->dev, "%s called\n", __func__);
 
 	switch (event) {
 	case SND_SOC_DAPM_PRE_PMU:
 		/* DAC digital power On */
-		snd_soc_update_bits(w->codec, COD3026X_40_DIGITAL_POWER,
+		snd_soc_update_bits(snd_soc_dapm_to_codec(w->dapm), COD3026X_40_DIGITAL_POWER,
 				PDB_DACDIG_MASK, PDB_DACDIG_MASK);
 
 		/* DAC digital Reset On/Off */
-		snd_soc_update_bits(w->codec, COD3026X_40_DIGITAL_POWER,
+		snd_soc_update_bits(snd_soc_dapm_to_codec(w->dapm), COD3026X_40_DIGITAL_POWER,
 				RSTB_DAT_DA_MASK, 0x0);
 
-		snd_soc_update_bits(w->codec, COD3026X_40_DIGITAL_POWER,
+		snd_soc_update_bits(snd_soc_dapm_to_codec(w->dapm), COD3026X_40_DIGITAL_POWER,
 				RSTB_DAT_DA_MASK, RSTB_DAT_DA_MASK);
 
 		break;
 
 	case SND_SOC_DAPM_PRE_PMD:
 		/* DAC digital Reset Off */
-		snd_soc_update_bits(w->codec, COD3026X_40_DIGITAL_POWER,
+		snd_soc_update_bits(snd_soc_dapm_to_codec(w->dapm), COD3026X_40_DIGITAL_POWER,
 				RSTB_DAT_DA_MASK, 0x0);
 
 		/* DAC digital power Off */
-		snd_soc_update_bits(w->codec, COD3026X_40_DIGITAL_POWER,
+		snd_soc_update_bits(snd_soc_dapm_to_codec(w->dapm), COD3026X_40_DIGITAL_POWER,
 				PDB_DACDIG_MASK, 0x0);
 		break;
 
@@ -741,8 +741,8 @@ static int cod3026x_dmic_capture_deinit(struct snd_soc_codec *codec)
 static int adc_ev(struct snd_soc_dapm_widget *w, struct snd_kcontrol *kcontrol,
 		int event)
 {
-	struct cod3026x_priv *cod3026x = snd_soc_codec_get_drvdata(w->codec);
-	dev_dbg(w->codec->dev, "%s called, event = %d\n", __func__, event);
+	struct cod3026x_priv *cod3026x = snd_soc_codec_get_drvdata(snd_soc_dapm_to_codec(w->dapm));
+	dev_dbg(snd_soc_dapm_to_codec(w->dapm)->dev, "%s called, event = %d\n", __func__, event);
 
 	switch (event) {
 	case SND_SOC_DAPM_PRE_PMU:
@@ -756,7 +756,7 @@ static int adc_ev(struct snd_soc_dapm_widget *w, struct snd_kcontrol *kcontrol,
 	case SND_SOC_DAPM_PRE_PMD:
 		mutex_lock(&cod3026x->adc_mute_lock);
 		/* disable ADC digital mute before configuring ADC */
-		cod3026x_adc_digital_mute(w->codec, true);
+		cod3026x_adc_digital_mute(snd_soc_dapm_to_codec(w->dapm), true);
 		mutex_unlock(&cod3026x->adc_mute_lock);
 		break;
 
@@ -770,8 +770,8 @@ static int adc_ev(struct snd_soc_dapm_widget *w, struct snd_kcontrol *kcontrol,
 static int dadc_ev(struct snd_soc_dapm_widget *w, struct snd_kcontrol *kcontrol,
 		int event)
 {
-	struct cod3026x_priv *cod3026x = snd_soc_codec_get_drvdata(w->codec);
-	dev_dbg(w->codec->dev, "%s called, event = %d\n", __func__, event);
+	struct cod3026x_priv *cod3026x = snd_soc_codec_get_drvdata(snd_soc_dapm_to_codec(w->dapm));
+	dev_dbg(snd_soc_dapm_to_codec(w->dapm)->dev, "%s called, event = %d\n", __func__, event);
 
 	switch (event) {
 	case SND_SOC_DAPM_PRE_PMU:
@@ -785,7 +785,7 @@ static int dadc_ev(struct snd_soc_dapm_widget *w, struct snd_kcontrol *kcontrol,
 	case SND_SOC_DAPM_PRE_PMD:
 		mutex_lock(&cod3026x->adc_mute_lock);
 		/* disable ADC digital mute before configuring ADC */
-		cod3026x_adc_digital_mute(w->codec, true);
+		cod3026x_adc_digital_mute(snd_soc_dapm_to_codec(w->dapm), true);
 		mutex_unlock(&cod3026x->adc_mute_lock);
 		break;
 
@@ -1209,18 +1209,18 @@ static int cod3026_power_off_mic3(struct snd_soc_codec *codec)
 static int vmid_ev(struct snd_soc_dapm_widget *w,
 		struct snd_kcontrol *kcontrol, int event)
 {
-	dev_dbg(w->codec->dev, "%s called\n", __func__);
+	dev_dbg(snd_soc_dapm_to_codec(w->dapm)->dev, "%s called\n", __func__);
 
 	switch (event) {
 	case SND_SOC_DAPM_PRE_PMU:
-		cod3026x_capture_init(w->codec);
+		cod3026x_capture_init(snd_soc_dapm_to_codec(w->dapm));
 		break;
 
 	case SND_SOC_DAPM_POST_PMU:
 		break;
 
 	case SND_SOC_DAPM_PRE_PMD:
-		cod3026x_capture_deinit(w->codec);
+		cod3026x_capture_deinit(snd_soc_dapm_to_codec(w->dapm));
 		break;
 
 	default:
@@ -1233,18 +1233,18 @@ static int vmid_ev(struct snd_soc_dapm_widget *w,
 static int dvmid_ev(struct snd_soc_dapm_widget *w,
 		struct snd_kcontrol *kcontrol, int event)
 {
-	dev_dbg(w->codec->dev, "%s called\n", __func__);
+	dev_dbg(snd_soc_dapm_to_codec(w->dapm)->dev, "%s called\n", __func__);
 
 	switch (event) {
 	case SND_SOC_DAPM_PRE_PMU:
-		cod3026x_dmic_capture_init(w->codec);
+		cod3026x_dmic_capture_init(snd_soc_dapm_to_codec(w->dapm));
 		break;
 
 	case SND_SOC_DAPM_POST_PMU:
 		break;
 
 	case SND_SOC_DAPM_PRE_PMD:
-		cod3026x_dmic_capture_deinit(w->codec);
+		cod3026x_dmic_capture_deinit(snd_soc_dapm_to_codec(w->dapm));
 		break;
 
 	default:
@@ -1373,65 +1373,65 @@ static int spkdrv_ev(struct snd_soc_dapm_widget *w,
 	int chop_val;
 	unsigned int spk_gain;
 	int offset;
-	struct cod3026x_priv *cod3026x = snd_soc_codec_get_drvdata(w->codec);
+	struct cod3026x_priv *cod3026x = snd_soc_codec_get_drvdata(snd_soc_dapm_to_codec(w->dapm));
 
-	chop_val = snd_soc_read(w->codec, COD3026X_76_CHOP_DA);
+	chop_val = snd_soc_read(snd_soc_dapm_to_codec(w->dapm), COD3026X_76_CHOP_DA);
 	hp_on = chop_val & EN_HP_CHOP_MASK;
 	spk_on = chop_val & EN_SPK_PGA_CHOP_MASK;
 	ep_on = chop_val & EN_EP_CHOP_MASK;
 
 	if (!spk_on) {
-		dev_dbg(w->codec->dev, "%s called but speaker not enabled\n",
+		dev_dbg(snd_soc_dapm_to_codec(w->dapm)->dev, "%s called but speaker not enabled\n",
 				__func__);
 		return 0;
 	}
-	dev_dbg(w->codec->dev, "%s called event=%d\n", __func__, event);
+	dev_dbg(snd_soc_dapm_to_codec(w->dapm)->dev, "%s called event=%d\n", __func__, event);
 
 	switch (event) {
 	case SND_SOC_DAPM_PRE_PMU:
 		/* Update OTP configuration */
-		cod3026x_update_playback_otp(w->codec);
+		cod3026x_update_playback_otp(snd_soc_dapm_to_codec(w->dapm));
 
 		/* CP Freq setting scenario rev 0.1*/
-		snd_soc_write(w->codec, COD3026X_DD_CTRL_SPKS1, 0x82);
+		snd_soc_write(snd_soc_dapm_to_codec(w->dapm), COD3026X_DD_CTRL_SPKS1, 0x82);
 
-		snd_soc_update_bits(w->codec, COD3026X_37_MIX_DA2,
+		snd_soc_update_bits(snd_soc_dapm_to_codec(w->dapm), COD3026X_37_MIX_DA2,
 				EN_SPK_MIX_DCTL_MASK | EN_SPK_MIX_DCTR_MASK, 0);
 
-		spk_gain = snd_soc_read(w->codec, COD3026X_32_VOL_EP_SPK);
+		spk_gain = snd_soc_read(snd_soc_dapm_to_codec(w->dapm), COD3026X_32_VOL_EP_SPK);
 
-		snd_soc_update_bits(w->codec, COD3026X_32_VOL_EP_SPK,
+		snd_soc_update_bits(snd_soc_dapm_to_codec(w->dapm), COD3026X_32_VOL_EP_SPK,
 				CTVOL_SPK_PGA_MASK, 0);
 
-		snd_soc_update_bits(w->codec, COD3026X_17_PWAUTO_DA,
+		snd_soc_update_bits(snd_soc_dapm_to_codec(w->dapm), COD3026X_17_PWAUTO_DA,
 				PW_AUTO_DA_MASK | APW_SPK_MASK,
 				PW_AUTO_DA_MASK | APW_SPK_MASK);
 
-		snd_soc_update_bits(w->codec, COD3026X_37_MIX_DA2,
+		snd_soc_update_bits(snd_soc_dapm_to_codec(w->dapm), COD3026X_37_MIX_DA2,
 				EN_SPK_MIX_DCTL_MASK | EN_SPK_MIX_DCTR_MASK,
 				EN_SPK_MIX_DCTL_MASK | EN_SPK_MIX_DCTR_MASK);
 
 		msleep(135);
 
-		snd_soc_update_bits(w->codec, COD3026X_32_VOL_EP_SPK,
+		snd_soc_update_bits(snd_soc_dapm_to_codec(w->dapm), COD3026X_32_VOL_EP_SPK,
 				CTVOL_SPK_PGA_MASK, spk_gain);
 
 		break;
 
 	case SND_SOC_DAPM_PRE_PMD:
-		snd_soc_update_bits(w->codec, COD3026X_32_VOL_EP_SPK,
+		snd_soc_update_bits(snd_soc_dapm_to_codec(w->dapm), COD3026X_32_VOL_EP_SPK,
 				CTVOL_SPK_PGA_MASK, 0x6);
 
 		if (hp_on || ep_on) {
-			snd_soc_update_bits(w->codec, COD3026X_17_PWAUTO_DA,
+			snd_soc_update_bits(snd_soc_dapm_to_codec(w->dapm), COD3026X_17_PWAUTO_DA,
 					APW_SPK_MASK, 0);
 		} else {
-			snd_soc_update_bits(w->codec, COD3026X_17_PWAUTO_DA,
+			snd_soc_update_bits(snd_soc_dapm_to_codec(w->dapm), COD3026X_17_PWAUTO_DA,
 					PW_AUTO_DA_MASK | APW_SPK_MASK, 0);
 		}
 		cod3026x_usleep(200);
 
-		snd_soc_update_bits(w->codec, COD3026X_37_MIX_DA2,
+		snd_soc_update_bits(snd_soc_dapm_to_codec(w->dapm), COD3026X_37_MIX_DA2,
 				EN_SPK_MIX_DCTL_MASK | EN_SPK_MIX_DCTR_MASK, 0);
 
 		cod3026x_usleep(100);
@@ -1440,18 +1440,18 @@ static int spkdrv_ev(struct snd_soc_dapm_widget *w,
 			/* We are in HP only mode */
 			/* Updating OTP register 0xD4 */
 			offset = COD3026X_D4_OFFSET_DAL - COD3026X_OTP_REG_WRITE_START;
-			snd_soc_write(w->codec, COD3026X_D4_OFFSET_DAL,
+			snd_soc_write(snd_soc_dapm_to_codec(w->dapm), COD3026X_D4_OFFSET_DAL,
 				cod3026x->otp_reg[offset]);
 
 			/* Updating OTP register 0xD5 */
 			offset = COD3026X_D5_OFFSET_DAR - COD3026X_OTP_REG_WRITE_START;
-			snd_soc_write(w->codec, COD3026X_D5_OFFSET_DAR,
+			snd_soc_write(snd_soc_dapm_to_codec(w->dapm), COD3026X_D5_OFFSET_DAR,
 				cod3026x->otp_reg[offset]);
-			snd_soc_write(w->codec, COD3026X_30_VOL_HPL, 0x1A);
-			snd_soc_write(w->codec, COD3026X_31_VOL_HPR, 0x1A);
+			snd_soc_write(snd_soc_dapm_to_codec(w->dapm), COD3026X_30_VOL_HPL, 0x1A);
+			snd_soc_write(snd_soc_dapm_to_codec(w->dapm), COD3026X_31_VOL_HPR, 0x1A);
 			msleep(6);
 			/* enable DNC */
-			snd_soc_update_bits(w->codec,
+			snd_soc_update_bits(snd_soc_dapm_to_codec(w->dapm),
 				COD3026X_54_DNC1, EN_DNC_MASK, EN_DNC_MASK);
 		}
 		break;
@@ -1467,62 +1467,62 @@ static int hpdrv_ev(struct snd_soc_dapm_widget *w,
 {
 	int hp_on, spk_on, ep_on;
 	int chop_val;
-	struct cod3026x_priv *cod3026x = snd_soc_codec_get_drvdata(w->codec);
+	struct cod3026x_priv *cod3026x = snd_soc_codec_get_drvdata(snd_soc_dapm_to_codec(w->dapm));
 
-	chop_val = snd_soc_read(w->codec, COD3026X_76_CHOP_DA);
+	chop_val = snd_soc_read(snd_soc_dapm_to_codec(w->dapm), COD3026X_76_CHOP_DA);
 	hp_on = chop_val & EN_HP_CHOP_MASK;
 	spk_on = chop_val & EN_SPK_PGA_CHOP_MASK;
 	ep_on = chop_val & EN_EP_CHOP_MASK;
 
 	if (!hp_on) {
-		dev_dbg(w->codec->dev, "%s called but headphone not enabled\n",
+		dev_dbg(snd_soc_dapm_to_codec(w->dapm)->dev, "%s called but headphone not enabled\n",
 				__func__);
 		return 0;
 	}
 
-	dev_dbg(w->codec->dev, "%s called, event = %d\n", __func__, event);
+	dev_dbg(snd_soc_dapm_to_codec(w->dapm)->dev, "%s called, event = %d\n", __func__, event);
 
 	switch (event) {
 	case SND_SOC_DAPM_PRE_PMU:
-		cod3026x->vol_hpl = snd_soc_read(w->codec, COD3026X_30_VOL_HPL);
-		cod3026x->vol_hpr = snd_soc_read(w->codec, COD3026X_31_VOL_HPR);
+		cod3026x->vol_hpl = snd_soc_read(snd_soc_dapm_to_codec(w->dapm), COD3026X_30_VOL_HPL);
+		cod3026x->vol_hpr = snd_soc_read(snd_soc_dapm_to_codec(w->dapm), COD3026X_31_VOL_HPR);
 
-		cod3026x_hp_playback_init(w->codec);
+		cod3026x_hp_playback_init(snd_soc_dapm_to_codec(w->dapm));
 		break;
 
 	case SND_SOC_DAPM_POST_PMU:
-		snd_soc_update_bits(w->codec, COD3026X_17_PWAUTO_DA,
+		snd_soc_update_bits(snd_soc_dapm_to_codec(w->dapm), COD3026X_17_PWAUTO_DA,
 				PW_AUTO_DA_MASK | APW_HP_MASK,
 				PW_AUTO_DA_MASK | APW_HP_MASK);
 
-		snd_soc_update_bits(w->codec, COD3026X_36_MIX_DA1,
+		snd_soc_update_bits(snd_soc_dapm_to_codec(w->dapm), COD3026X_36_MIX_DA1,
 			EN_HP_MIXL_DCTL_MASK | EN_HP_MIXR_DCTR_MASK,
 			EN_HP_MIXL_DCTL_MASK | EN_HP_MIXR_DCTR_MASK);
 
 		msleep(180);
 
 		/* SKIP HP VOL OFF */
-		snd_soc_update_bits(w->codec, COD3026X_19_SV_HP,
+		snd_soc_update_bits(snd_soc_dapm_to_codec(w->dapm), COD3026X_19_SV_HP,
 				SKIP_HP_SV_MASK, 0x0);
 
 		if (!spk_on && !ep_on) {
 			/* Only HP is on, enable DNC and set default analog HP
 			 * volume
 			 */
-			snd_soc_write(w->codec, COD3026X_30_VOL_HPL, 0x1A);
-			snd_soc_write(w->codec, COD3026X_31_VOL_HPR, 0x1A);
+			snd_soc_write(snd_soc_dapm_to_codec(w->dapm), COD3026X_30_VOL_HPL, 0x1A);
+			snd_soc_write(snd_soc_dapm_to_codec(w->dapm), COD3026X_31_VOL_HPR, 0x1A);
 			msleep(6);
 
 			/* Limiter level selection -0.2dB (defult) */
-			snd_soc_update_bits(w->codec, COD3026X_54_DNC1,
+			snd_soc_update_bits(snd_soc_dapm_to_codec(w->dapm), COD3026X_54_DNC1,
 					EN_DNC_MASK, EN_DNC_MASK);
 		} else {
 			/* Either SPK or EP is on, disable DNC and set given
 			 * analog HP volume
 			 */
-			snd_soc_write(w->codec, COD3026X_30_VOL_HPL,
+			snd_soc_write(snd_soc_dapm_to_codec(w->dapm), COD3026X_30_VOL_HPL,
 							cod3026x->vol_hpl);
-			snd_soc_write(w->codec, COD3026X_31_VOL_HPR,
+			snd_soc_write(snd_soc_dapm_to_codec(w->dapm), COD3026X_31_VOL_HPR,
 							cod3026x->vol_hpr);
 		}
 
@@ -1530,25 +1530,25 @@ static int hpdrv_ev(struct snd_soc_dapm_widget *w,
 
 	case SND_SOC_DAPM_PRE_PMD:
 
-		snd_soc_update_bits(w->codec, COD3026X_54_DNC1,
+		snd_soc_update_bits(snd_soc_dapm_to_codec(w->dapm), COD3026X_54_DNC1,
 				EN_DNC_MASK , 0);
 
 		/* SKIP HP VOL ON */
-		snd_soc_update_bits(w->codec, COD3026X_19_SV_HP,
+		snd_soc_update_bits(snd_soc_dapm_to_codec(w->dapm), COD3026X_19_SV_HP,
 				SKIP_HP_SV_MASK, SKIP_HP_SV_MASK);
 
 		if (spk_on || ep_on) {
-			snd_soc_update_bits(w->codec, COD3026X_17_PWAUTO_DA,
+			snd_soc_update_bits(snd_soc_dapm_to_codec(w->dapm), COD3026X_17_PWAUTO_DA,
 					APW_HP_MASK, 0);
 		} else {
-			snd_soc_update_bits(w->codec, COD3026X_17_PWAUTO_DA,
+			snd_soc_update_bits(snd_soc_dapm_to_codec(w->dapm), COD3026X_17_PWAUTO_DA,
 					PW_AUTO_DA_MASK | APW_HP_MASK, 0);
 		}
-		snd_soc_update_bits(w->codec, COD3026X_36_MIX_DA1,
+		snd_soc_update_bits(snd_soc_dapm_to_codec(w->dapm), COD3026X_36_MIX_DA1,
 				EN_HP_MIXL_DCTL_MASK | EN_HP_MIXR_DCTR_MASK, 0);
 		msleep(40);
 		/* SKIP HP VOL OFF */
-		snd_soc_update_bits(w->codec, COD3026X_19_SV_HP,
+		snd_soc_update_bits(snd_soc_dapm_to_codec(w->dapm), COD3026X_19_SV_HP,
 				SKIP_HP_SV_MASK, 0x0);
 
 		break;
@@ -1566,28 +1566,28 @@ static int epdrv_ev(struct snd_soc_dapm_widget *w,
 	int hp_on, spk_on, ep_on;
 	int chop_val;
 
-	chop_val = snd_soc_read(w->codec, COD3026X_76_CHOP_DA);
+	chop_val = snd_soc_read(snd_soc_dapm_to_codec(w->dapm), COD3026X_76_CHOP_DA);
 	hp_on = chop_val & EN_HP_CHOP_MASK;
 	spk_on = chop_val & EN_SPK_PGA_CHOP_MASK;
 	ep_on = chop_val & EN_EP_CHOP_MASK;
 
 	if (!ep_on) {
-		dev_dbg(w->codec->dev, "%s called but ear-piece not enabled\n",
+		dev_dbg(snd_soc_dapm_to_codec(w->dapm)->dev, "%s called but ear-piece not enabled\n",
 				__func__);
 		return 0;
 	}
-	dev_dbg(w->codec->dev, "%s called, event = %d\n", __func__, event);
+	dev_dbg(snd_soc_dapm_to_codec(w->dapm)->dev, "%s called, event = %d\n", __func__, event);
 
 	switch (event) {
 	case SND_SOC_DAPM_PRE_PMU:
 		/* Update OTP configuration */
-		cod3026x_update_playback_otp(w->codec);
+		cod3026x_update_playback_otp(snd_soc_dapm_to_codec(w->dapm));
 
-		snd_soc_update_bits(w->codec, COD3026X_17_PWAUTO_DA,
+		snd_soc_update_bits(snd_soc_dapm_to_codec(w->dapm), COD3026X_17_PWAUTO_DA,
 				APW_EP_MASK | PW_AUTO_DA_MASK,
 				APW_EP_MASK | PW_AUTO_DA_MASK);
 
-		snd_soc_update_bits(w->codec, COD3026X_37_MIX_DA2,
+		snd_soc_update_bits(snd_soc_dapm_to_codec(w->dapm), COD3026X_37_MIX_DA2,
 				EN_EP_MIX_DCTL_MASK, EN_EP_MIX_DCTL_MASK);
 
 		msleep(136);
@@ -1596,15 +1596,15 @@ static int epdrv_ev(struct snd_soc_dapm_widget *w,
 
 	case SND_SOC_DAPM_PRE_PMD:
 		if (spk_on || hp_on) {
-			snd_soc_update_bits(w->codec, COD3026X_17_PWAUTO_DA,
+			snd_soc_update_bits(snd_soc_dapm_to_codec(w->dapm), COD3026X_17_PWAUTO_DA,
 					APW_EP_MASK, 0x0);
 		} else {
-			snd_soc_update_bits(w->codec, COD3026X_17_PWAUTO_DA,
+			snd_soc_update_bits(snd_soc_dapm_to_codec(w->dapm), COD3026X_17_PWAUTO_DA,
 					PW_AUTO_DA_MASK | APW_EP_MASK, 0x0);
 		}
 		cod3026x_usleep(100);
 
-		snd_soc_update_bits(w->codec, COD3026X_37_MIX_DA2,
+		snd_soc_update_bits(snd_soc_dapm_to_codec(w->dapm), COD3026X_37_MIX_DA2,
 				EN_EP_MIX_DCTL_MASK, 0x0);
 
 		cod3026x_usleep(100);
@@ -1623,22 +1623,22 @@ static int mic2_pga_ev(struct snd_soc_dapm_widget *w,
 {
 	int mic_on;
 
-	dev_dbg(w->codec->dev, "%s called, event = %d\n", __func__, event);
+	dev_dbg(snd_soc_dapm_to_codec(w->dapm)->dev, "%s called, event = %d\n", __func__, event);
 
-	mic_on = snd_soc_read(w->codec, COD3026X_78_MIC_ON);
+	mic_on = snd_soc_read(snd_soc_dapm_to_codec(w->dapm), COD3026X_78_MIC_ON);
 	if (!(mic_on & EN_MIC2_MASK)) {
-		dev_dbg(w->codec->dev, "%s: MIC2 is not enabled, returning.\n",
+		dev_dbg(snd_soc_dapm_to_codec(w->dapm)->dev, "%s: MIC2 is not enabled, returning.\n",
 								__func__);
 		return 0;
 	}
 
 	switch (event) {
 	case SND_SOC_DAPM_PRE_PMU:
-		cod3026_power_on_mic2(w->codec);
+		cod3026_power_on_mic2(snd_soc_dapm_to_codec(w->dapm));
 		break;
 
 	case SND_SOC_DAPM_PRE_PMD:
-		cod3026_power_off_mic2(w->codec);
+		cod3026_power_off_mic2(snd_soc_dapm_to_codec(w->dapm));
 		break;
 	default:
 		break;
@@ -1652,22 +1652,22 @@ static int dmic2_pga_ev(struct snd_soc_dapm_widget *w,
 {
 	int mic_on;
 
-	dev_dbg(w->codec->dev, "%s called, event = %d\n", __func__, event);
+	dev_dbg(snd_soc_dapm_to_codec(w->dapm)->dev, "%s called, event = %d\n", __func__, event);
 
-	mic_on = snd_soc_read(w->codec, COD3026X_78_MIC_ON);
+	mic_on = snd_soc_read(snd_soc_dapm_to_codec(w->dapm), COD3026X_78_MIC_ON);
 	if (!(mic_on & EN_DMIC2_MASK)) {
-		dev_dbg(w->codec->dev, "%s: DMIC2 is not enabled, returning.\n",
+		dev_dbg(snd_soc_dapm_to_codec(w->dapm)->dev, "%s: DMIC2 is not enabled, returning.\n",
 								__func__);
 		return 0;
 	}
 
 	switch (event) {
 	case SND_SOC_DAPM_PRE_PMU:
-		cod3026_power_on_dmic2(w->codec);
+		cod3026_power_on_dmic2(snd_soc_dapm_to_codec(w->dapm));
 		break;
 
 	case SND_SOC_DAPM_PRE_PMD:
-		cod3026_power_off_dmic2(w->codec);
+		cod3026_power_off_dmic2(snd_soc_dapm_to_codec(w->dapm));
 		break;
 	default:
 		break;
@@ -1681,22 +1681,22 @@ static int mic1_pga_ev(struct snd_soc_dapm_widget *w,
 {
 	int mic_on;
 
-	dev_dbg(w->codec->dev, "%s called, event = %d\n", __func__, event);
+	dev_dbg(snd_soc_dapm_to_codec(w->dapm)->dev, "%s called, event = %d\n", __func__, event);
 
-	mic_on = snd_soc_read(w->codec, COD3026X_78_MIC_ON);
+	mic_on = snd_soc_read(snd_soc_dapm_to_codec(w->dapm), COD3026X_78_MIC_ON);
 	if (!(mic_on & EN_MIC1_MASK)) {
-		dev_dbg(w->codec->dev, "%s: MIC1 is not enabled, returning.\n",
+		dev_dbg(snd_soc_dapm_to_codec(w->dapm)->dev, "%s: MIC1 is not enabled, returning.\n",
 								__func__);
 		return 0;
 	}
 
 	switch (event) {
 	case SND_SOC_DAPM_PRE_PMU:
-		cod3026_power_on_mic1(w->codec);
+		cod3026_power_on_mic1(snd_soc_dapm_to_codec(w->dapm));
 		break;
 
 	case SND_SOC_DAPM_PRE_PMD:
-		cod3026_power_off_mic1(w->codec);
+		cod3026_power_off_mic1(snd_soc_dapm_to_codec(w->dapm));
 		break;
 
 	default:
@@ -1711,22 +1711,22 @@ static int dmic1_pga_ev(struct snd_soc_dapm_widget *w,
 {
 	int mic_on;
 
-	dev_dbg(w->codec->dev, "%s called, event = %d\n", __func__, event);
+	dev_dbg(snd_soc_dapm_to_codec(w->dapm)->dev, "%s called, event = %d\n", __func__, event);
 
-	mic_on = snd_soc_read(w->codec, COD3026X_78_MIC_ON);
+	mic_on = snd_soc_read(snd_soc_dapm_to_codec(w->dapm), COD3026X_78_MIC_ON);
 	if (!(mic_on & EN_DMIC1_MASK)) {
-		dev_dbg(w->codec->dev, "%s: DMIC1 is not enabled, returning.\n",
+		dev_dbg(snd_soc_dapm_to_codec(w->dapm)->dev, "%s: DMIC1 is not enabled, returning.\n",
 								__func__);
 		return 0;
 	}
 
 	switch (event) {
 	case SND_SOC_DAPM_PRE_PMU:
-		cod3026_power_on_dmic1(w->codec);
+		cod3026_power_on_dmic1(snd_soc_dapm_to_codec(w->dapm));
 		break;
 
 	case SND_SOC_DAPM_PRE_PMD:
-		cod3026_power_off_dmic1(w->codec);
+		cod3026_power_off_dmic1(snd_soc_dapm_to_codec(w->dapm));
 		break;
 
 	default:
@@ -1739,22 +1739,22 @@ static int mic3_pga_ev(struct snd_soc_dapm_widget *w,
 		struct snd_kcontrol *kcontrol, int event)
 {
 	int mic_on;
-	dev_dbg(w->codec->dev, "%s called, event = %d\n", __func__, event);
+	dev_dbg(snd_soc_dapm_to_codec(w->dapm)->dev, "%s called, event = %d\n", __func__, event);
 
-	mic_on = snd_soc_read(w->codec, COD3026X_78_MIC_ON);
+	mic_on = snd_soc_read(snd_soc_dapm_to_codec(w->dapm), COD3026X_78_MIC_ON);
 	if (!(mic_on & EN_MIC3_MASK)) {
-		dev_dbg(w->codec->dev, "%s: MIC3 is not enabled, returning.\n",
+		dev_dbg(snd_soc_dapm_to_codec(w->dapm)->dev, "%s: MIC3 is not enabled, returning.\n",
 								__func__);
 		return 0;
 	}
 
 	switch (event) {
 	case SND_SOC_DAPM_PRE_PMU:
-		cod3026_power_on_mic3(w->codec);
+		cod3026_power_on_mic3(snd_soc_dapm_to_codec(w->dapm));
 		break;
 
 	case SND_SOC_DAPM_PRE_PMD:
-		cod3026_power_off_mic3(w->codec);
+		cod3026_power_off_mic3(snd_soc_dapm_to_codec(w->dapm));
 		break;
 
 	default:
@@ -1769,22 +1769,22 @@ static int linein_pga_ev(struct snd_soc_dapm_widget *w,
 {
 	int linein_on;
 
-	dev_dbg(w->codec->dev, "%s called, event = %d\n", __func__, event);
+	dev_dbg(snd_soc_dapm_to_codec(w->dapm)->dev, "%s called, event = %d\n", __func__, event);
 
-	linein_on = snd_soc_read(w->codec, COD3026X_78_MIC_ON);
+	linein_on = snd_soc_read(snd_soc_dapm_to_codec(w->dapm), COD3026X_78_MIC_ON);
 	if (!(linein_on & EN_LN_MASK)) {
-		dev_dbg(w->codec->dev, "%s: LINE IN is not enabled, returning.\n",
+		dev_dbg(snd_soc_dapm_to_codec(w->dapm)->dev, "%s: LINE IN is not enabled, returning.\n",
 								__func__);
 		return 0;
 	}
 
 	switch (event) {
 	case SND_SOC_DAPM_PRE_PMU:
-		cod3026_power_on_linein(w->codec);
+		cod3026_power_on_linein(snd_soc_dapm_to_codec(w->dapm));
 		break;
 
 	case SND_SOC_DAPM_PRE_PMD:
-		cod3026_power_off_linein(w->codec);
+		cod3026_power_off_linein(snd_soc_dapm_to_codec(w->dapm));
 		break;
 
 	default:

@@ -63,10 +63,6 @@
 #include <asm/psci.h>
 #include <asm/efi.h>
 
-#if defined(CONFIG_ECT)
-#include <soc/samsung/ect_parser.h>
-#endif
-
 unsigned int processor_id;
 EXPORT_SYMBOL(processor_id);
 
@@ -85,7 +81,7 @@ unsigned int compat_elf_hwcap __read_mostly = COMPAT_ELF_HWCAP_DEFAULT;
 unsigned int compat_elf_hwcap2 __read_mostly;
 #endif
 
-DECLARE_BITMAP(cpu_hwcaps, NCAPS);
+DECLARE_BITMAP(cpu_hwcaps, ARM64_NCAPS);
 
 static const char *cpu_name;
 phys_addr_t __fdt_pointer __initdata;
@@ -125,39 +121,17 @@ void __init early_print(const char *str, ...)
 
 void __init smp_setup_processor_id(void)
 {
+	u64 mpidr = read_cpuid_mpidr() & MPIDR_HWID_BITMASK;
+	cpu_logical_map(0) = mpidr;
+
 	/*
 	 * clear __my_cpu_offset on boot CPU to avoid hang caused by
 	 * using percpu variable early, for example, lockdep will
 	 * access percpu variable inside lock_release
 	 */
 	set_my_cpu_offset(0);
+	pr_info("Booting Linux on physical CPU 0x%lx\n", (unsigned long)mpidr);
 }
-
-#if defined(CONFIG_ECT)
-int __init early_init_dt_scan_ect(unsigned long node, const char *uname,
-		int depth, void *data)
-{
-	int address = 0, size = 0;
-	const __be32 *paddr, *psize;
-
-	if (depth != 1 || (strcmp(uname, "ect") != 0))
-		return 0;
-
-	paddr = of_get_flat_dt_prop(node, "parameter_address", &address);
-	if (paddr == NULL)
-		return 0;
-
-	psize = of_get_flat_dt_prop(node, "parameter_size", &size);
-	if (psize == NULL)
-		return -1;
-
-	pr_info("[ECT] Address %x, Size %x\b", be32_to_cpu(*paddr), be32_to_cpu(*psize));
-	memblock_reserve(be32_to_cpu(*paddr), be32_to_cpu(*psize));
-	ect_init(be32_to_cpu(*paddr), be32_to_cpu(*psize));
-
-	return 1;
-}
-#endif
 
 bool arch_match_cpu_phys_id(int cpu, u64 phys_id)
 {
@@ -347,11 +321,6 @@ static void __init setup_machine_fdt(phys_addr_t dt_phys)
 	}
 
 	dump_stack_set_arch_desc("%s (DT)", of_flat_dt_get_machine_name());
-
-#if defined(CONFIG_ECT)
-	/* Scan dvfs paramter information, address that loaded on DRAM and size */
-	of_scan_flat_dt(early_init_dt_scan_ect, NULL);
-#endif
 }
 
 static void __init request_standard_resources(void)
@@ -397,6 +366,7 @@ void __init setup_arch(char **cmdline_p)
 
 	*cmdline_p = boot_command_line;
 
+	early_fixmap_init();
 	early_ioremap_init();
 
 	parse_early_param();
@@ -419,7 +389,6 @@ void __init setup_arch(char **cmdline_p)
 
 	psci_init();
 
-	cpu_logical_map(0) = read_cpuid_mpidr() & MPIDR_HWID_BITMASK;
 	cpu_read_bootcpu_ops();
 #ifdef CONFIG_SMP
 	smp_init_cpus();
