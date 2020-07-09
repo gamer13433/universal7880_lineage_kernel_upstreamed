@@ -5,6 +5,7 @@
 #ifndef _METAG_PGTABLE_H
 #define _METAG_PGTABLE_H
 
+#include <asm/pgtable-bits.h>
 #include <asm-generic/pgtable-nopmd.h>
 
 /* Invalid regions on Meta: 0x00000000-0x001FFFFF and 0xFFFF0000-0xFFFFFFFF */

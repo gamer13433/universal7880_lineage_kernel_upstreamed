@@ -2409,8 +2409,15 @@ static void intel_find_plane_obj(struct intel_crtc *intel_crtc,
 	if (!intel_crtc->base.primary->fb)
 		return;
 
-	if (intel_alloc_plane_obj(intel_crtc, plane_config))
+	if (intel_alloc_plane_obj(intel_crtc, plane_config)) {
+		struct drm_plane *primary = intel_crtc->base.primary;
+
+		primary->state->crtc = &intel_crtc->base;
+		primary->crtc = &intel_crtc->base;
+		update_state_fb(primary);
+
 		return;
+	}
 
 	kfree(intel_crtc->base.primary->fb);
 	intel_crtc->base.primary->fb = NULL;

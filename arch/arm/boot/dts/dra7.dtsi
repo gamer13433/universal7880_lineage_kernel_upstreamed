@@ -1111,6 +1111,7 @@
 				clock-names =	"wkupclk",
 						"refclk";
 				#phy-cells = <0>;
+				ti,hwmods = "pcie1-phy";
 			};
 
 			usb2_phy2: phy@4a085000 {

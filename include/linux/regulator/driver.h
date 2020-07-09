@@ -301,7 +301,7 @@ struct regulator_desc {
  * @driver_data: private regulator data
  * @of_node: OpenFirmware node to parse for device tree bindings (may be
  *           NULL).
- * @regmap: regmap to use for core regmap helpers if dev_get_regulator() is
+ * @regmap: regmap to use for core regmap helpers if dev_get_regmap() is
  *          insufficient.
  * @ena_gpio: GPIO controlling regulator enable.
  * @ena_gpio_invert: Sense for GPIO enable control.

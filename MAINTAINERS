@@ -1318,6 +1318,7 @@ F:	drivers/i2c/busses/i2c-rk3x.c
 F:	drivers/*/*rockchip*
 F:	drivers/*/*/*rockchip*
 F:	sound/soc/rockchip/
+N:	rockchip
 
 ARM/SAMSUNG ARM ARCHITECTURES
 M:	Ben Dooks <ben-linux@fluff.org>
@@ -1624,8 +1625,8 @@ F:	drivers/misc/eeprom/at24.c
 F:	include/linux/platform_data/at24.h
 
 ATA OVER ETHERNET (AOE) DRIVER
-M:	"Ed L. Cashin" <ecashin@coraid.com>
-W:	http://support.coraid.com/support/linux
+M:	"Ed L. Cashin" <ed.cashin@acm.org>
+W:	http://www.openaoe.org/
 S:	Supported
 F:	Documentation/aoe/
 F:	drivers/block/aoe/
@@ -3107,6 +3108,13 @@ L:	lm-sensors@lm-sensors.org
 S:	Maintained
 F:	Documentation/hwmon/dme1737
 F:	drivers/hwmon/dme1737.c
+
+DMI/SMBIOS SUPPORT
+M:	Jean Delvare <jdelvare@suse.de>
+S:	Maintained
+F:	drivers/firmware/dmi-id.c
+F:	drivers/firmware/dmi_scan.c
+F:	include/linux/dmi.h
 
 DOCKING STATION DRIVER
 M:	Shaohua Li <shaohua.li@intel.com>

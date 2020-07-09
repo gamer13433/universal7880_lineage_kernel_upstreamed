@@ -70,6 +70,44 @@ asm(
 #define MCOUNT_INSN_OFFSET	6
 #define FTRACE_INSN_SIZE	6
 
+static inline void ftrace_generate_orig_insn(struct ftrace_insn *insn)
+{
+#ifdef CC_USING_HOTPATCH
+	/* brcl 0,0 */
+	insn->opc = 0xc004;
+	insn->disp = 0;
+#else
+	/* stg r14,8(r15) */
+	insn->opc = 0xe3e0;
+	insn->disp = 0xf0080024;
+#endif
+}
+
+static inline int is_kprobe_on_ftrace(struct ftrace_insn *insn)
+{
+#ifdef CONFIG_KPROBES
+	if (insn->opc == BREAKPOINT_INSTRUCTION)
+		return 1;
+#endif
+	return 0;
+}
+
+static inline void ftrace_generate_kprobe_nop_insn(struct ftrace_insn *insn)
+{
+#ifdef CONFIG_KPROBES
+	insn->opc = BREAKPOINT_INSTRUCTION;
+	insn->disp = KPROBE_ON_FTRACE_NOP;
+#endif
+}
+
+static inline void ftrace_generate_kprobe_call_insn(struct ftrace_insn *insn)
+{
+#ifdef CONFIG_KPROBES
+	insn->opc = BREAKPOINT_INSTRUCTION;
+	insn->disp = KPROBE_ON_FTRACE_CALL;
+#endif
+}
+
 int ftrace_modify_call(struct dyn_ftrace *rec, unsigned long old_addr,
 		       unsigned long addr)
 {

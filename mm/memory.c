@@ -3086,6 +3086,7 @@ static int do_numa_page(struct mm_struct *mm, struct vm_area_struct *vma,
 	int last_cpupid;
 	int target_nid;
 	bool migrated = false;
+	bool was_writable = pte_write(pte);
 	int flags = 0;
 
 	/*
@@ -3116,16 +3117,14 @@ static int do_numa_page(struct mm_struct *mm, struct vm_area_struct *vma,
 	BUG_ON(is_zero_pfn(page_to_pfn(page)));
 
 	/*
-	 * Avoid grouping on DSO/COW pages in specific and RO pages
-	 * in general, RO pages shouldn't hurt as much anyway since
-	 * they can be in shared cache state.
-	 *
-	 * FIXME! This checks "pmd_dirty()" as an approximation of
-	 * "is this a read-only page", since checking "pmd_write()"
-	 * is even more broken. We haven't actually turned this into
-	 * a writable page, so pmd_write() will always be false.
+	 * Avoid grouping on RO pages in general. RO pages shouldn't hurt as
+	 * much anyway since they can be in shared cache state. This misses
+	 * the case where a mapping is writable but the process never writes
+	 * to it but pte_write gets cleared during protection updates and
+	 * pte_dirty has unpredictable behaviour between PTE scan updates,
+	 * background writeback, dirty balancing and application behaviour.
 	 */
-	if (!pte_dirty(pte))
+	if (!(vma->vm_flags & VM_WRITE))
 		flags |= TNF_NO_GROUP;
 
 	/*
@@ -3149,7 +3148,8 @@ static int do_numa_page(struct mm_struct *mm, struct vm_area_struct *vma,
 	if (migrated) {
 		page_nid = target_nid;
 		flags |= TNF_MIGRATED;
-	}
+	} else
+		flags |= TNF_MIGRATE_FAIL;
 
 out:
 	if (page_nid != -1)
