@@ -44,12 +44,6 @@ void disable_cpuidle(void)
 	off = 1;
 }
 
-bool cpuidle_not_available(struct cpuidle_driver *drv,
-			   struct cpuidle_device *dev)
-{
-	return off || !initialized || !drv || !dev || !dev->enabled;
-}
-
 /**
  * cpuidle_play_dead - cpu off-lining
  *
