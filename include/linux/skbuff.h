@@ -1,3 +1,4 @@
+/* Copyright (c) 2015 Samsung Electronics Co., Ltd. */
 /*
  *	Definitions for the 'struct sk_buff' memory handlers.
  *
@@ -10,6 +11,14 @@
  *	as published by the Free Software Foundation; either version
  *	2 of the License, or (at your option) any later version.
  */
+/*
+ *  Changes:
+ *  KwnagHyun Kim <kh0304.kim@samsung.com> 2015/07/08
+ *  Baesung Park  <baesung.park@samsung.com> 2015/07/08
+ *  Vignesh Saravanaperumal <vignesh1.s@samsung.com> 2015/07/08
+ *    Add codes to share UID/PID information
+ *
+ */
 
 #ifndef _LINUX_SKBUFF_H
 #define _LINUX_SKBUFF_H
@@ -20,8 +29,6 @@
 #include <linux/time.h>
 #include <linux/bug.h>
 #include <linux/cache.h>
-#include <linux/rbtree.h>
-#include <linux/socket.h>
 
 #include <linux/atomic.h>
 #include <asm/types.h>
@@ -154,8 +161,6 @@
 struct net_device;
 struct scatterlist;
 struct pipe_inode_info;
-struct iov_iter;
-struct napi_struct;
 
 #if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
 struct nf_conntrack {
@@ -325,6 +330,13 @@ struct skb_shared_info {
 	/* Intermediate layers must ensure that destructor_arg
 	 * remains valid until skb destructor */
 	void *		destructor_arg;
+    
+ // ------------- START of KNOX_VPN ------------------//
+	uid_t uid;
+	pid_t pid;
+	u_int32_t knox_mark;
+ // ------------- END of KNOX_VPN -------------------//
+
 
 	/* must be last field, see pskb_expand_head() */
 	skb_frag_t	frags[MAX_SKB_FRAGS];
@@ -349,6 +361,7 @@ enum {
 	SKB_FCLONE_UNAVAILABLE,	/* skb has no fclone (from head_cache) */
 	SKB_FCLONE_ORIG,	/* orig skb (from fclone_cache) */
 	SKB_FCLONE_CLONE,	/* companion fclone skb (from fclone_cache) */
+	SKB_FCLONE_FREE,	/* this companion fclone skb is available */
 };
 
 enum {
@@ -377,7 +390,8 @@ enum {
 
 	SKB_GSO_UDP_TUNNEL_CSUM = 1 << 11,
 
-	SKB_GSO_TUNNEL_REMCSUM = 1 << 12,
+	SKB_GSO_MPLS = 1 << 12,
+
 };
 
 #if BITS_PER_LONG > 32
@@ -446,7 +460,6 @@ static inline u32 skb_mstamp_us_delta(const struct skb_mstamp *t1,
  *	@next: Next buffer in list
  *	@prev: Previous buffer in list
  *	@tstamp: Time we arrived/left
- *	@rbnode: RB tree node, alternative to next/prev for netem/tcp
  *	@sk: Socket we are owned by
  *	@dev: Device we arrived on/are leaving by
  *	@cb: Control buffer. Free for use by every layer. Put private vars here
@@ -511,19 +524,15 @@ static inline u32 skb_mstamp_us_delta(const struct skb_mstamp *t1,
  */
 
 struct sk_buff {
-	union {
-		struct {
-			/* These two members must be first. */
-			struct sk_buff		*next;
-			struct sk_buff		*prev;
+	/* These two members must be first. */
+	struct sk_buff		*next;
+	struct sk_buff		*prev;
 
-			union {
-				ktime_t		tstamp;
-				struct skb_mstamp skb_mstamp;
-			};
-		};
-		struct rb_node	rbnode; /* used in netem & tcp stack */
+	union {
+		ktime_t		tstamp;
+		struct skb_mstamp skb_mstamp;
 	};
+
 	struct sock		*sk;
 	struct net_device	*dev;
 
@@ -608,8 +617,7 @@ struct sk_buff {
 #endif
 	__u8			ipvs_property:1;
 	__u8			inner_protocol_type:1;
-	__u8			remcsum_offload:1;
-	/* 3 or 5 bit hole */
+	/* 4 or 6 bit hole */
 
 #ifdef CONFIG_NET_SCHED
 	__u16			tc_index;	/* traffic control index */
@@ -681,7 +689,6 @@ struct sk_buff {
 
 #define SKB_ALLOC_FCLONE	0x01
 #define SKB_ALLOC_RX		0x02
-#define SKB_ALLOC_NAPI		0x04
 
 /* Returns true if the skb was allocated from PFMEMALLOC reserves */
 static inline bool skb_pfmemalloc(const struct sk_buff *skb)
@@ -726,6 +733,9 @@ static inline void skb_dst_set(struct sk_buff *skb, struct dst_entry *dst)
 	skb->_skb_refdst = (unsigned long)dst;
 }
 
+void __skb_dst_set_noref(struct sk_buff *skb, struct dst_entry *dst,
+			 bool force);
+
 /**
  * skb_dst_set_noref - sets skb dst, hopefully, without taking reference
  * @skb: buffer
@@ -738,8 +748,24 @@ static inline void skb_dst_set(struct sk_buff *skb, struct dst_entry *dst)
  */
 static inline void skb_dst_set_noref(struct sk_buff *skb, struct dst_entry *dst)
 {
-	WARN_ON(!rcu_read_lock_held() && !rcu_read_lock_bh_held());
-	skb->_skb_refdst = (unsigned long)dst | SKB_DST_NOREF;
+	__skb_dst_set_noref(skb, dst, false);
+}
+
+/**
+ * skb_dst_set_noref_force - sets skb dst, without taking reference
+ * @skb: buffer
+ * @dst: dst entry
+ *
+ * Sets skb dst, assuming a reference was not taken on dst.
+ * No reference is taken and no dst_release will be called. While for
+ * cached dsts deferred reclaim is a basic feature, for entries that are
+ * not cached it is caller's job to guarantee that last dst_release for
+ * provided dst happens when nobody uses it, eg. after a RCU grace period.
+ */
+static inline void skb_dst_set_noref_force(struct sk_buff *skb,
+					   struct dst_entry *dst)
+{
+	__skb_dst_set_noref(skb, dst, true);
 }
 
 /**
@@ -769,6 +795,7 @@ bool skb_try_coalesce(struct sk_buff *to, struct sk_buff *from,
 
 struct sk_buff *__alloc_skb(unsigned int size, gfp_t priority, int flags,
 			    int node);
+struct sk_buff *__build_skb(void *data, unsigned int frag_size);
 struct sk_buff *build_skb(void *data, unsigned int frag_size);
 static inline struct sk_buff *alloc_skb(unsigned int size,
 					gfp_t priority)
@@ -807,7 +834,7 @@ static inline bool skb_fclone_busy(const struct sock *sk,
 	fclones = container_of(skb, struct sk_buff_fclones, skb1);
 
 	return skb->fclone == SKB_FCLONE_ORIG &&
-	       atomic_read(&fclones->fclone_ref) > 1 &&
+	       fclones->skb2.fclone == SKB_FCLONE_CLONE &&
 	       fclones->skb2.sk == sk;
 }
 
@@ -2180,61 +2207,47 @@ static inline struct sk_buff *netdev_alloc_skb_ip_align(struct net_device *dev,
 	return __netdev_alloc_skb_ip_align(dev, length, GFP_ATOMIC);
 }
 
-void *napi_alloc_frag(unsigned int fragsz);
-struct sk_buff *__napi_alloc_skb(struct napi_struct *napi,
-				 unsigned int length, gfp_t gfp_mask);
-static inline struct sk_buff *napi_alloc_skb(struct napi_struct *napi,
-					     unsigned int length)
-{
-	return __napi_alloc_skb(napi, length, GFP_ATOMIC);
-}
-
 /**
- * __dev_alloc_pages - allocate page for network Rx
- * @gfp_mask: allocation priority. Set __GFP_NOMEMALLOC if not for network Rx
- * @order: size of the allocation
+ *	__skb_alloc_pages - allocate pages for ps-rx on a skb and preserve pfmemalloc data
+ *	@gfp_mask: alloc_pages_node mask. Set __GFP_NOMEMALLOC if not for network packet RX
+ *	@skb: skb to set pfmemalloc on if __GFP_MEMALLOC is used
+ *	@order: size of the allocation
  *
- * Allocate a new page.
+ * 	Allocate a new page.
  *
- * %NULL is returned if there is no free memory.
+ * 	%NULL is returned if there is no free memory.
 */
-static inline struct page *__dev_alloc_pages(gfp_t gfp_mask,
-					     unsigned int order)
+static inline struct page *__skb_alloc_pages(gfp_t gfp_mask,
+					      struct sk_buff *skb,
+					      unsigned int order)
 {
-	/* This piece of code contains several assumptions.
-	 * 1.  This is for device Rx, therefor a cold page is preferred.
-	 * 2.  The expectation is the user wants a compound page.
-	 * 3.  If requesting a order 0 page it will not be compound
-	 *     due to the check to see if order has a value in prep_new_page
-	 * 4.  __GFP_MEMALLOC is ignored if __GFP_NOMEMALLOC is set due to
-	 *     code in gfp_to_alloc_flags that should be enforcing this.
-	 */
-	gfp_mask |= __GFP_COLD | __GFP_COMP | __GFP_MEMALLOC;
+	struct page *page;
 
-	return alloc_pages_node(NUMA_NO_NODE, gfp_mask, order);
-}
+	gfp_mask |= __GFP_COLD;
 
-static inline struct page *dev_alloc_pages(unsigned int order)
-{
-	return __dev_alloc_pages(GFP_ATOMIC, order);
+	if (!(gfp_mask & __GFP_NOMEMALLOC))
+		gfp_mask |= __GFP_MEMALLOC;
+
+	page = alloc_pages_node(NUMA_NO_NODE, gfp_mask, order);
+	if (skb && page && page->pfmemalloc)
+		skb->pfmemalloc = true;
+
+	return page;
 }
 
 /**
- * __dev_alloc_page - allocate a page for network Rx
- * @gfp_mask: allocation priority. Set __GFP_NOMEMALLOC if not for network Rx
+ *	__skb_alloc_page - allocate a page for ps-rx for a given skb and preserve pfmemalloc data
+ *	@gfp_mask: alloc_pages_node mask. Set __GFP_NOMEMALLOC if not for network packet RX
+ *	@skb: skb to set pfmemalloc on if __GFP_MEMALLOC is used
  *
- * Allocate a new page.
+ * 	Allocate a new page.
  *
- * %NULL is returned if there is no free memory.
+ * 	%NULL is returned if there is no free memory.
  */
-static inline struct page *__dev_alloc_page(gfp_t gfp_mask)
+static inline struct page *__skb_alloc_page(gfp_t gfp_mask,
+					     struct sk_buff *skb)
 {
-	return __dev_alloc_pages(gfp_mask, 0);
-}
-
-static inline struct page *dev_alloc_page(void)
-{
-	return __dev_alloc_page(GFP_ATOMIC);
+	return __skb_alloc_pages(gfp_mask, skb, 0);
 }
 
 /**
@@ -2466,35 +2479,13 @@ static inline int skb_cow_head(struct sk_buff *skb, unsigned int headroom)
  *	is untouched. Otherwise it is extended. Returns zero on
  *	success. The skb is freed on error.
  */
+ 
 static inline int skb_padto(struct sk_buff *skb, unsigned int len)
 {
 	unsigned int size = skb->len;
 	if (likely(size >= len))
 		return 0;
 	return skb_pad(skb, len - size);
-}
-
-/**
- *	skb_put_padto - increase size and pad an skbuff up to a minimal size
- *	@skb: buffer to pad
- *	@len: minimal length
- *
- *	Pads up a buffer to ensure the trailing bytes exist and are
- *	blanked. If the buffer already contains sufficient data it
- *	is untouched. Otherwise it is extended. Returns zero on
- *	success. The skb is freed on error.
- */
-static inline int skb_put_padto(struct sk_buff *skb, unsigned int len)
-{
-	unsigned int size = skb->len;
-
-	if (unlikely(size < len)) {
-		len -= size;
-		if (skb_pad(skb, len))
-			return -ENOMEM;
-		__skb_put(skb, len);
-	}
-	return 0;
 }
 
 static inline int skb_add_data(struct sk_buff *skb,
@@ -2668,18 +2659,18 @@ struct sk_buff *skb_recv_datagram(struct sock *sk, unsigned flags, int noblock,
 				  int *err);
 unsigned int datagram_poll(struct file *file, struct socket *sock,
 			   struct poll_table_struct *wait);
-int skb_copy_datagram_iter(const struct sk_buff *from, int offset,
-			   struct iov_iter *to, int size);
-static inline int skb_copy_datagram_msg(const struct sk_buff *from, int offset,
-					struct msghdr *msg, int size)
-{
-	return skb_copy_datagram_iter(from, offset, &msg->msg_iter, size);
-}
-int skb_copy_and_csum_datagram_msg(struct sk_buff *skb, int hlen,
-				   struct msghdr *msg);
-int skb_copy_datagram_from_iter(struct sk_buff *skb, int offset,
-				 struct iov_iter *from, int len);
-int zerocopy_sg_from_iter(struct sk_buff *skb, struct iov_iter *frm);
+int skb_copy_datagram_iovec(const struct sk_buff *from, int offset,
+			    struct iovec *to, int size);
+int skb_copy_and_csum_datagram_iovec(struct sk_buff *skb, int hlen,
+				     struct iovec *iov, int len);
+int skb_copy_datagram_from_iovec(struct sk_buff *skb, int offset,
+				 const struct iovec *from, int from_offset,
+				 int len);
+int zerocopy_sg_from_iovec(struct sk_buff *skb, const struct iovec *frm,
+			   int offset, size_t count);
+int skb_copy_datagram_const_iovec(const struct sk_buff *from, int offset,
+				  const struct iovec *to, int to_offset,
+				  int size);
 void skb_free_datagram(struct sock *sk, struct sk_buff *skb);
 void skb_free_datagram_locked(struct sock *sk, struct sk_buff *skb);
 int skb_kill_datagram(struct sock *sk, struct sk_buff *skb, unsigned int flags);
@@ -2700,19 +2691,6 @@ void skb_scrub_packet(struct sk_buff *skb, bool xnet);
 unsigned int skb_gso_transport_seglen(const struct sk_buff *skb);
 struct sk_buff *skb_segment(struct sk_buff *skb, netdev_features_t features);
 struct sk_buff *skb_vlan_untag(struct sk_buff *skb);
-int skb_ensure_writable(struct sk_buff *skb, int write_len);
-int skb_vlan_pop(struct sk_buff *skb);
-int skb_vlan_push(struct sk_buff *skb, __be16 vlan_proto, u16 vlan_tci);
-
-static inline int memcpy_from_msg(void *data, struct msghdr *msg, int len)
-{
-	return copy_from_iter(data, len, &msg->msg_iter) == len ? 0 : -EFAULT;
-}
-
-static inline int memcpy_to_msg(struct msghdr *msg, void *data, int len)
-{
-	return copy_to_iter(data, len, &msg->msg_iter) == len ? 0 : -EFAULT;
-}
 
 struct skb_checksum_ops {
 	__wsum (*update)(const void *mem, int len, __wsum wsum);
@@ -3012,6 +2990,18 @@ static inline bool __skb_checksum_validate_needed(struct sk_buff *skb,
  * in checksum_init.
  */
 #define CHECKSUM_BREAK 76
+
+/* Unset checksum-complete
+ *
+ * Unset checksum complete can be done when packet is being modified
+ * (uncompressed for instance) and checksum-complete value is
+ * invalidated.
+ */
+static inline void skb_checksum_complete_unset(struct sk_buff *skb)
+{
+	if (skb->ip_summed == CHECKSUM_COMPLETE)
+		skb->ip_summed = CHECKSUM_NONE;
+}
 
 /* Validate (init) checksum based on checksum complete.
  *

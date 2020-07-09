@@ -20,6 +20,7 @@
 
 #include <linux/types.h>
 #include <linux/vmalloc.h>
+#include <linux/dma-debug.h>
 
 #include <asm-generic/dma-coherent.h>
 
@@ -28,6 +29,9 @@
 
 #define DMA_ERROR_CODE	(~(dma_addr_t)0)
 extern struct dma_map_ops *dma_ops;
+extern struct dma_map_ops coherent_swiotlb_dma_ops;
+extern struct dma_map_ops noncoherent_swiotlb_dma_ops;
+extern struct dma_map_ops arm_exynos_dma_mcode_ops;
 
 static inline struct dma_map_ops *__generic_dma_ops(struct device *dev)
 {
@@ -45,20 +49,17 @@ static inline struct dma_map_ops *get_dma_ops(struct device *dev)
 		return __generic_dma_ops(dev);
 }
 
-static inline void arch_setup_dma_ops(struct device *dev, u64 dma_base, u64 size,
-				      struct iommu_ops *iommu, bool coherent)
+static inline void set_dma_ops(struct device *dev, struct dma_map_ops *ops)
 {
-	dev->archdata.dma_coherent = coherent;
+	dev->archdata.dma_ops = ops;
 }
-#define arch_setup_dma_ops	arch_setup_dma_ops
 
-/* do not use this function in a driver */
-static inline bool is_device_dma_coherent(struct device *dev)
+static inline int set_arch_dma_coherent_ops(struct device *dev)
 {
-	if (!dev)
-		return false;
-	return dev->archdata.dma_coherent;
+	set_dma_ops(dev, &coherent_swiotlb_dma_ops);
+	return 0;
 }
+#define set_arch_dma_coherent_ops	set_arch_dma_coherent_ops
 
 #include <asm-generic/dma-mapping-common.h>
 

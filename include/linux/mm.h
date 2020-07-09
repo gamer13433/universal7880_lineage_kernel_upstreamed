@@ -1369,10 +1369,23 @@ static inline unsigned long get_mm_hiwater_vm(struct mm_struct *mm)
 	return max(mm->hiwater_vm, mm->total_vm);
 }
 
+static inline void update_hiwater_rss(struct mm_struct *mm)
+{
+	unsigned long _rss = get_mm_rss(mm);
+
+	if ((mm)->hiwater_rss < _rss)
+		(mm)->hiwater_rss = _rss;
+}
+
 static inline void update_hiwater_vm(struct mm_struct *mm)
 {
 	if (mm->hiwater_vm < mm->total_vm)
 		mm->hiwater_vm = mm->total_vm;
+}
+
+static inline void reset_mm_hiwater_rss(struct mm_struct *mm)
+{
+	mm->hiwater_rss = get_mm_rss(mm);
 }
 
 static inline void reset_mm_hiwater_rss(struct mm_struct *mm)
