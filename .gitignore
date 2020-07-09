@@ -26,6 +26,7 @@
 *.bin
 *.gz
 *.bz2
+*.rej
 *.lzma
 *.xz
 *.lz4
