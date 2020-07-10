@@ -1393,7 +1393,7 @@ static void uart_close(struct tty_struct *tty, struct file *filp)
 	tty_ldisc_flush(tty);
 
 	tty_port_tty_set(port, NULL);
-	tty->closing = 0;
+
 	spin_lock_irqsave(&port->lock, flags);
 
 	if (port->blocked_open) {

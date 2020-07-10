@@ -124,6 +124,9 @@ void __weak arch_release_task_struct(struct task_struct *tsk)
 {
 }
 
+/* Initialized by the architecture: */
+int arch_task_struct_size __read_mostly;
+
 #ifndef CONFIG_ARCH_TASK_STRUCT_ALLOCATOR
 static struct kmem_cache *task_struct_cachep;
 
@@ -279,7 +282,7 @@ void __init fork_init(unsigned long mempages)
 #endif
 	/* create a slab on which task_structs can be allocated */
 	task_struct_cachep =
-		kmem_cache_create("task_struct", sizeof(struct task_struct),
+		kmem_cache_create("task_struct", arch_task_struct_size,
 			ARCH_MIN_TASKALIGN, SLAB_PANIC | SLAB_NOTRACK, NULL);
 #endif
 

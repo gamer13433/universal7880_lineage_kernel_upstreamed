@@ -591,6 +591,7 @@ static int c_can_start(struct net_device *dev)
 {
 	struct c_can_priv *priv = netdev_priv(dev);
 	int err;
+	struct pinctrl *p;
 
 	/* basic c_can configuration */
 	err = c_can_chip_config(dev);

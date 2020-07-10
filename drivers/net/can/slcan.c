@@ -210,6 +210,7 @@ static void slc_bump(struct slcan *sl)
 	if (!skb)
 		return;
 
+	__net_timestamp(skb);
 	skb->dev = sl->dev;
 	skb->protocol = htons(ETH_P_CAN);
 	skb->pkt_type = PACKET_BROADCAST;
@@ -220,10 +221,10 @@ static void slc_bump(struct slcan *sl)
 
 	memcpy(skb_put(skb, sizeof(struct can_frame)),
 	       &cf, sizeof(struct can_frame));
-	netif_rx_ni(skb);
 
 	sl->dev->stats.rx_packets++;
 	sl->dev->stats.rx_bytes += cf.can_dlc;
+	netif_rx_ni(skb);
 }
 
 /* parse tty input stream */

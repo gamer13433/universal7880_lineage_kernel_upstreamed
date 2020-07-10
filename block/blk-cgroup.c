@@ -24,6 +24,14 @@
 
 #define MAX_KEY_LEN 100
 
+/*
+ * blkcg_pol_mutex protects blkcg_policy[] and policy [de]activation.
+ * blkcg_pol_register_mutex nests outside of it and synchronizes entire
+ * policy [un]register operations including cgroup file additions /
+ * removals.  Putting cgroup file registration outside blkcg_pol_mutex
+ * allows grabbing it from cgroup callbacks.
+ */
+static DEFINE_MUTEX(blkcg_pol_register_mutex);
 static DEFINE_MUTEX(blkcg_pol_mutex);
 
 struct blkcg blkcg_root = { .cfq_weight = 2 * CFQ_WEIGHT_DEFAULT,
@@ -31,6 +39,8 @@ struct blkcg blkcg_root = { .cfq_weight = 2 * CFQ_WEIGHT_DEFAULT,
 EXPORT_SYMBOL_GPL(blkcg_root);
 
 static struct blkcg_policy *blkcg_policy[BLKCG_MAX_POLS];
+
+static LIST_HEAD(all_blkcgs);		/* protected by blkcg_pol_mutex */
 
 static bool blkcg_policy_enabled(struct request_queue *q,
 				 const struct blkcg_policy *pol)
@@ -448,20 +458,7 @@ static int blkcg_reset_stats(struct cgroup_subsys_state *css,
 	struct blkcg_gq *blkg;
 	int i;
 
-	/*
-	 * XXX: We invoke cgroup_add/rm_cftypes() under blkcg_pol_mutex
-	 * which ends up putting cgroup's internal cgroup_tree_mutex under
-	 * it; however, cgroup_tree_mutex is nested above cgroup file
-	 * active protection and grabbing blkcg_pol_mutex from a cgroup
-	 * file operation creates a possible circular dependency.  cgroup
-	 * internal locking is planned to go through further simplification
-	 * and this issue should go away soon.  For now, let's trylock
-	 * blkcg_pol_mutex and restart the write on failure.
-	 *
-	 * http://lkml.kernel.org/g/5363C04B.4010400@oracle.com
-	 */
-	if (!mutex_trylock(&blkcg_pol_mutex))
-		return restart_syscall();
+	mutex_lock(&blkcg_pol_mutex);
 	spin_lock_irq(&blkcg->lock);
 
 	/*
@@ -716,8 +713,12 @@ int blkg_conf_prep(struct blkcg *blkcg, const struct blkcg_policy *pol,
 		return -EINVAL;
 
 	disk = get_gendisk(MKDEV(major, minor), &part);
-	if (!disk || part)
+	if (!disk)
 		return -EINVAL;
+	if (part) {
+		put_disk(disk);
+		return -EINVAL;
+	}
 
 	rcu_read_lock();
 	spin_lock_irq(disk->queue->queue_lock);
@@ -815,14 +816,25 @@ static void blkcg_css_free(struct cgroup_subsys_state *css)
 {
 	struct blkcg *blkcg = css_to_blkcg(css);
 
-	if (blkcg != &blkcg_root)
+	mutex_lock(&blkcg_pol_mutex);
+	list_del(&blkcg->all_blkcgs_node);
+	mutex_unlock(&blkcg_pol_mutex);
+
+	if (blkcg != &blkcg_root) {
+		int i;
+
+		for (i = 0; i < BLKCG_MAX_POLS; i++)
+			kfree(blkcg->pd[i]);
 		kfree(blkcg);
+	}
 }
 
 static struct cgroup_subsys_state *
 blkcg_css_alloc(struct cgroup_subsys_state *parent_css)
 {
 	struct blkcg *blkcg;
+
+	mutex_lock(&blkcg_pol_mutex);
 
 	if (!parent_css) {
 		blkcg = &blkcg_root;
@@ -1105,11 +1117,13 @@ EXPORT_SYMBOL_GPL(blkcg_deactivate_policy);
  */
 int blkcg_policy_register(struct blkcg_policy *pol)
 {
+	struct blkcg *blkcg;
 	int i, ret;
 
 	if (WARN_ON(pol->pd_size < sizeof(struct blkg_policy_data)))
 		return -EINVAL;
 
+	mutex_lock(&blkcg_pol_register_mutex);
 	mutex_lock(&blkcg_pol_mutex);
 
 	/* find an empty slot */
@@ -1118,19 +1132,49 @@ int blkcg_policy_register(struct blkcg_policy *pol)
 		if (!blkcg_policy[i])
 			break;
 	if (i >= BLKCG_MAX_POLS)
-		goto out_unlock;
+		goto err_unlock;
 
-	/* register and update blkgs */
+	/* register @pol */
 	pol->plid = i;
-	blkcg_policy[i] = pol;
+	blkcg_policy[pol->plid] = pol;
+
+	/* allocate and install cpd's */
+	if (pol->cpd_size) {
+		list_for_each_entry(blkcg, &all_blkcgs, all_blkcgs_node) {
+			struct blkcg_policy_data *cpd;
+
+			cpd = kzalloc(pol->cpd_size, GFP_KERNEL);
+			if (!cpd) {
+				mutex_unlock(&blkcg_pol_mutex);
+				goto err_free_cpds;
+			}
+
+			blkcg->pd[pol->plid] = cpd;
+			cpd->plid = pol->plid;
+			pol->cpd_init_fn(blkcg);
+		}
+	}
+
+	mutex_unlock(&blkcg_pol_mutex);
 
 	/* everything is in place, add intf files for the new policy */
 	if (pol->cftypes)
 		WARN_ON(cgroup_add_legacy_cftypes(&blkio_cgrp_subsys,
 						  pol->cftypes));
-	ret = 0;
-out_unlock:
+	mutex_unlock(&blkcg_pol_register_mutex);
+	return 0;
+
+err_free_cpds:
+	if (pol->cpd_size) {
+		list_for_each_entry(blkcg, &all_blkcgs, all_blkcgs_node) {
+			kfree(blkcg->pd[pol->plid]);
+			blkcg->pd[pol->plid] = NULL;
+		}
+	}
+	blkcg_policy[pol->plid] = NULL;
+err_unlock:
 	mutex_unlock(&blkcg_pol_mutex);
+	mutex_unlock(&blkcg_pol_register_mutex);
 	return ret;
 }
 EXPORT_SYMBOL_GPL(blkcg_policy_register);
@@ -1143,7 +1187,9 @@ EXPORT_SYMBOL_GPL(blkcg_policy_register);
  */
 void blkcg_policy_unregister(struct blkcg_policy *pol)
 {
-	mutex_lock(&blkcg_pol_mutex);
+	struct blkcg *blkcg;
+
+	mutex_lock(&blkcg_pol_register_mutex);
 
 	if (WARN_ON(blkcg_policy[pol->plid] != pol))
 		goto out_unlock;
@@ -1152,9 +1198,19 @@ void blkcg_policy_unregister(struct blkcg_policy *pol)
 	if (pol->cftypes)
 		cgroup_rm_cftypes(pol->cftypes);
 
-	/* unregister and update blkgs */
+	/* remove cpds and unregister */
+	mutex_lock(&blkcg_pol_mutex);
+
+	if (pol->cpd_size) {
+		list_for_each_entry(blkcg, &all_blkcgs, all_blkcgs_node) {
+			kfree(blkcg->pd[pol->plid]);
+			blkcg->pd[pol->plid] = NULL;
+		}
+	}
 	blkcg_policy[pol->plid] = NULL;
-out_unlock:
+
 	mutex_unlock(&blkcg_pol_mutex);
+out_unlock:
+	mutex_unlock(&blkcg_pol_register_mutex);
 }
 EXPORT_SYMBOL_GPL(blkcg_policy_unregister);

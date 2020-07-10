@@ -42,6 +42,61 @@ static DEFINE_RWLOCK(cpufreq_driver_lock);
 DEFINE_MUTEX(cpufreq_governor_lock);
 static LIST_HEAD(cpufreq_policy_list);
 
+static inline bool policy_is_inactive(struct cpufreq_policy *policy)
+{
+	return cpumask_empty(policy->cpus);
+}
+
+static bool suitable_policy(struct cpufreq_policy *policy, bool active)
+{
+	return active == !policy_is_inactive(policy);
+}
+
+/* Finds Next Acive/Inactive policy */
+static struct cpufreq_policy *next_policy(struct cpufreq_policy *policy,
+					  bool active)
+{
+	do {
+		policy = list_next_entry(policy, policy_list);
+
+		/* No more policies in the list */
+		if (&policy->policy_list == &cpufreq_policy_list)
+			return NULL;
+	} while (!suitable_policy(policy, active));
+
+	return policy;
+}
+
+static struct cpufreq_policy *first_policy(bool active)
+{
+	struct cpufreq_policy *policy;
+
+	/* No policies in the list */
+	if (list_empty(&cpufreq_policy_list))
+		return NULL;
+
+	policy = list_first_entry(&cpufreq_policy_list, typeof(*policy),
+				  policy_list);
+
+	if (!suitable_policy(policy, active))
+		policy = next_policy(policy, active);
+
+	return policy;
+}
+
+/* Macros to iterate over CPU policies */
+#define for_each_suitable_policy(__policy, __active)	\
+	for (__policy = first_policy(__active);		\
+	     __policy;					\
+	     __policy = next_policy(__policy, __active))
+
+#define for_each_active_policy(__policy)		\
+	for_each_suitable_policy(__policy, true)
+#define for_each_inactive_policy(__policy)		\
+	for_each_suitable_policy(__policy, false)
+
+#define for_each_policy(__policy)			
+
 /* This one keeps track of the previously set governor of a removed CPU */
 static DEFINE_PER_CPU(char[CPUFREQ_NAME_LEN], cpufreq_cpu_governor);
 
@@ -110,6 +165,15 @@ struct kobject *get_governor_parent_kobj(struct cpufreq_policy *policy)
 		return cpufreq_global_kobject;
 }
 EXPORT_SYMBOL_GPL(get_governor_parent_kobj);
+
+struct cpufreq_frequency_table *cpufreq_frequency_get_table(unsigned int cpu)
+{
+	struct cpufreq_policy *policy = per_cpu(cpufreq_cpu_data, cpu);
+
+	return policy && !policy_is_inactive(policy) ?
+		policy->freq_table : NULL;
+}
+EXPORT_SYMBOL_GPL(cpufreq_frequency_get_table);
 
 static inline u64 get_cpu_idle_time_jiffy(unsigned int cpu, u64 *wall)
 {
@@ -826,6 +890,12 @@ static ssize_t store(struct kobject *kobj, struct attribute *attr,
 
 	down_write(&policy->rwsem);
 
+if (policy_is_inactive(policy)) {
+		ret = -ENODEV;
+		goto unlock;
+	}
+
+
 	if (fattr->store)
 		ret = fattr->store(policy, buf, count);
 	else
@@ -1144,7 +1214,7 @@ static int update_policy_cpu(struct cpufreq_policy *policy, unsigned int cpu,
 
 	policy->last_cpu = policy->cpu;
 	policy->cpu = cpu;
-
+	policy->governor = NULL;
 	up_write(&policy->rwsem);
 
 	blocking_notifier_call_chain(&cpufreq_policy_notifier_list,

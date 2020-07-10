@@ -985,10 +985,12 @@ int i915_reg_read_ioctl(struct drm_device *dev,
 	struct drm_i915_private *dev_priv = dev->dev_private;
 	struct drm_i915_reg_read *reg = data;
 	struct register_whitelist const *entry = whitelist;
+	unsigned size;
+	u64 offset;
 	int i, ret = 0;
 
 	for (i = 0; i < ARRAY_SIZE(whitelist); i++, entry++) {
-		if (entry->offset == reg->offset &&
+		if (entry->offset == (reg->offset & -entry->size) &&
 		    (1 << INTEL_INFO(dev)->gen & entry->gen_bitmask))
 			break;
 	}

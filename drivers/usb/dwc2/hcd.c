@@ -376,18 +376,15 @@ static int dwc2_hcd_urb_enqueue(struct dwc2_hsotg *hsotg,
 			return -ENODEV;
 	}
 
-	qtd = kzalloc(sizeof(*qtd), mem_flags);
 	if (!qtd)
-		return -ENOMEM;
+		return -EINVAL;
 
 	dwc2_hcd_qtd_init(qtd, urb);
-	retval = dwc2_hcd_qtd_add(hsotg, qtd, (struct dwc2_qh **)ep_handle,
-				  mem_flags);
+	retval = dwc2_hcd_qtd_add(hsotg, qtd, qh);
 	if (retval) {
 		dev_err(hsotg->dev,
 			"DWC OTG HCD URB Enqueue failed adding QTD. Error status %d\n",
 			retval);
-		kfree(qtd);
 		return retval;
 	}
 
@@ -2401,6 +2398,9 @@ static int _dwc2_hcd_urb_enqueue(struct usb_hcd *hcd, struct urb *urb,
 	u32 tflags = 0;
 	void *buf;
 	unsigned long flags;
+	struct dwc2_qh *qh;
+	bool qh_allocated = false;
+	struct dwc2_qtd *qtd;
 
 	if (dbg_urb(urb)) {
 		dev_vdbg(hsotg->dev, "DWC OTG HCD URB Enqueue\n");

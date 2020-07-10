@@ -77,6 +77,16 @@ static int nx_sha256_update(struct shash_desc *desc, const u8 *data,
 	max_sg_len = min_t(u32, nx_driver.of.max_sg_len/sizeof(struct nx_sg),
 			   nx_ctx->ap->sglen);
 
+	data_len = SHA256_DIGEST_SIZE;
+	out_sg = nx_build_sg_list(nx_ctx->out_sg, (u8 *)sctx->state,
+				  &data_len, max_sg_len);
+	nx_ctx->op.outlen = (nx_ctx->out_sg - out_sg) * sizeof(struct nx_sg);
+
+	if (data_len != SHA256_DIGEST_SIZE) {
+		rc = -EINVAL;
+		goto out;
+	}
+
 	do {
 		/*
 		 * to_process: the SHA256_BLOCK_SIZE data chunk to process in
@@ -276,7 +286,7 @@ struct shash_alg nx_shash_sha256_alg = {
 		.cra_blocksize   = SHA256_BLOCK_SIZE,
 		.cra_module      = THIS_MODULE,
 		.cra_ctxsize     = sizeof(struct nx_crypto_ctx),
-		.cra_init        = nx_crypto_ctx_sha_init,
+		.cra_init        = nx_crypto_ctx_sha256_init,
 		.cra_exit        = nx_crypto_ctx_exit,
 	}
 };

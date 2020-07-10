@@ -23,9 +23,14 @@
 #include <linux/pci.h>
 #include <linux/slab.h>
 #include <linux/module.h>
+#include <linux/acpi.h>
 
 #include "xhci.h"
 #include "xhci-trace.h"
+
+#define PORT2_SSIC_CONFIG_REG2	0x883c
+#define PROG_DONE		(1 << 30)
+#define SSIC_PORT_UNUSED	(1 << 31)
 
 /* Device for a quirk */
 #define PCI_VENDOR_ID_FRESCO_LOGIC	0x1b73
@@ -237,6 +242,9 @@ static int xhci_pci_probe(struct pci_dev *dev, const struct pci_device_id *id)
 	if (!(xhci->quirks & XHCI_BROKEN_STREAMS) &&
 			HCC_MAX_PSA(xhci->hcc_params) >= 4)
 		xhci->shared_hcd->can_do_streams = 1;
+
+	if (xhci->quirks & XHCI_PME_STUCK_QUIRK)
+		xhci_pme_acpi_rtd3_enable(dev);
 
 	/* USB-2 and USB-3 roothubs initialized, allow runtime pm suspend */
 	pm_runtime_put_noidle(&dev->dev);

@@ -443,6 +443,12 @@ static inline unsigned int FH_MEM_CBBC_QUEUE(unsigned int chnl)
 #define RX_FREE_BUFFERS 64
 #define RX_LOW_WATERMARK 8
 
+/*
+ * RX related structures and functions
+ */
+#define RX_FREE_BUFFERS 64
+#define RX_LOW_WATERMARK 8
+
 /**
  * struct iwl_rb_status - reseve buffer status
  * 	host memory mapped FH registers

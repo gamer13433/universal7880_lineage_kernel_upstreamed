@@ -737,7 +737,7 @@ static int handle_outgoing_dr_smp(struct ib_mad_agent_private *mad_agent_priv,
 	struct ib_wc mad_wc;
 	struct ib_send_wr *send_wr = &mad_send_wr->send_wr;
 
-	if (device->node_type == RDMA_NODE_IB_SWITCH &&
+	if (rdma_cap_ib_switch(device) &&
 	    smp->mgmt_class == IB_MGMT_CLASS_SUBN_DIRECTED_ROUTE)
 		port_num = send_wr->wr.ud.port_num;
 	else
@@ -1989,7 +1989,7 @@ static void ib_mad_recv_done_handler(struct ib_mad_port_private *port_priv,
 		goto out;
 	}
 
-	if (port_priv->device->node_type == RDMA_NODE_IB_SWITCH)
+	if (rdma_cap_ib_switch(port_priv->device))
 		port_num = wc->port_num;
 	else
 		port_num = port_priv->port_num;

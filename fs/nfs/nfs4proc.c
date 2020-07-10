@@ -5314,15 +5314,15 @@ static int nfs4_proc_getlk(struct nfs4_state *state, int cmd, struct file_lock *
 	return err;
 }
 
-static int do_vfs_lock(struct file *file, struct file_lock *fl)
+static int do_vfs_lock(struct inode *inode, struct file_lock *fl)
 {
 	int res = 0;
 	switch (fl->fl_flags & (FL_POSIX|FL_FLOCK)) {
 		case FL_POSIX:
-			res = posix_lock_file_wait(file, fl);
+			res = posix_lock_inode_wait(inode, fl);
 			break;
 		case FL_FLOCK:
-			res = flock_lock_file_wait(file, fl);
+			res = flock_lock_inode_wait(inode, fl);
 			break;
 		default:
 			BUG();
@@ -5555,7 +5555,6 @@ static struct nfs4_lockdata *nfs4_alloc_lockdata(struct file_lock *fl,
 	p->server = server;
 	atomic_inc(&lsp->ls_count);
 	p->ctx = get_nfs_open_context(ctx);
-	get_file(fl->fl_file);
 	memcpy(&p->fl, fl, sizeof(p->fl));
 	return p;
 out_free_seqid:
@@ -5844,7 +5843,7 @@ static int _nfs4_proc_setlk(struct nfs4_state *state, int cmd, struct file_lock 
 	if (status != 0)
 		goto out;
 	request->fl_flags |= FL_ACCESS;
-	status = do_vfs_lock(request->fl_file, request);
+	status = do_vfs_lock(state->inode, request);
 	if (status < 0)
 		goto out;
 	down_read(&nfsi->rwsem);

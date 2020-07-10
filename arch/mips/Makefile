@@ -122,6 +122,13 @@ predef-le += -DMIPSEL -D_MIPSEL -D__MIPSEL -D__MIPSEL__
 cflags-$(CONFIG_CPU_BIG_ENDIAN)		+= $(shell $(CC) -dumpmachine |grep -q 'mips.*el-.*' && echo -EB $(undef-all) $(predef-be))
 cflags-$(CONFIG_CPU_LITTLE_ENDIAN)	+= $(shell $(CC) -dumpmachine |grep -q 'mips.*el-.*' || echo -EL $(undef-all) $(predef-le))
 
+ifdef CONFIG_CPU_SB1
+ifdef CONFIG_SB1_PASS_1_WORKAROUNDS
+KBUILD_AFLAGS_MODULE += -msb1-pass1-workarounds
+KBUILD_CFLAGS_MODULE += -msb1-pass1-workarounds
+endif
+endif
+
 # For smartmips configurations, there are hundreds of warnings due to ISA overrides
 # in assembly and header files. smartmips is only supported for MIPS32r1 onwards
 # and there is no support for 64-bit. Various '.set mips2' or '.set mips3' or

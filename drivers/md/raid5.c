@@ -1835,6 +1835,9 @@ static int resize_stripes(struct r5conf *conf, int newsize)
 	if (!sc)
 		return -ENOMEM;
 
+	/* Need to ensure auto-resizing doesn't interfere */
+	mutex_lock(&conf->cache_size_mutex);
+
 	for (i = conf->max_nr_stripes; i; i--) {
 		nsh = kmem_cache_zalloc(sc, GFP_KERNEL);
 		if (!nsh)
@@ -1853,6 +1856,7 @@ static int resize_stripes(struct r5conf *conf, int newsize)
 			kmem_cache_free(sc, nsh);
 		}
 		kmem_cache_destroy(sc);
+		mutex_unlock(&conf->cache_size_mutex);
 		return -ENOMEM;
 	}
 	/* Step 2 - Must use GFP_NOIO now.
@@ -1939,6 +1943,7 @@ static int resize_stripes(struct r5conf *conf, int newsize)
 	}
 	put_online_cpus();
 
+	mutex_unlock(&conf->cache_size_mutex);
 	/* Step 4, return new stripes to service */
 	while(!list_empty(&newstripes)) {
 		nsh = list_entry(newstripes.next, struct stripe_head, lru);
@@ -3628,8 +3633,10 @@ static void analyse_stripe(struct stripe_head *sh, struct stripe_head_state *s)
 				 &first_bad, &bad_sectors))
 			set_bit(R5_ReadRepl, &dev->flags);
 		else {
-			if (rdev)
+			if (rdev && !test_bit(Faulty, &rdev->flags))
 				set_bit(R5_NeedReplace, &dev->flags);
+			else
+				clear_bit(R5_NeedReplace, &dev->flags);
 			rdev = rcu_dereference(conf->disks[i].rdev);
 			clear_bit(R5_ReadRepl, &dev->flags);
 		}

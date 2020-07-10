@@ -130,12 +130,12 @@ out_noerr:
 	goto out;
 }
 
-static struct sk_buff *skb_set_peeked(struct sk_buff *skb)
+static int skb_set_peeked(struct sk_buff *skb)
 {
 	struct sk_buff *nskb;
 
 	if (skb->peeked)
-		return skb;
+		return 0;
 
 	/* We have to unshare an skb before modifying it. */
 	if (!skb_shared(skb))
@@ -143,7 +143,7 @@ static struct sk_buff *skb_set_peeked(struct sk_buff *skb)
 
 	nskb = skb_clone(skb, GFP_ATOMIC);
 	if (!nskb)
-		return ERR_PTR(-ENOMEM);;
+		return -ENOMEM;
 
 	skb->prev->next = nskb;
 	skb->next->prev = nskb;
@@ -156,7 +156,7 @@ static struct sk_buff *skb_set_peeked(struct sk_buff *skb)
 done:
 	skb->peeked = 1;
 
-	return skb;
+	return 0;
 }
 
 /**
@@ -780,7 +780,8 @@ __sum16 __skb_checksum_complete_head(struct sk_buff *skb, int len)
 		    !skb->csum_complete_sw)
 			netdev_rx_csum_fault(skb->dev);
 	}
-	skb->csum_valid = !sum;
+	if (!skb_shared(skb))
+		skb->csum_valid = !sum;
 	return sum;
 }
 EXPORT_SYMBOL(__skb_checksum_complete_head);
@@ -800,11 +801,13 @@ __sum16 __skb_checksum_complete(struct sk_buff *skb)
 			netdev_rx_csum_fault(skb->dev);
 	}
 
-	/* Save full packet checksum */
-	skb->csum = csum;
-	skb->ip_summed = CHECKSUM_COMPLETE;
-	skb->csum_complete_sw = 1;
-	skb->csum_valid = !sum;
+	if (!skb_shared(skb)) {
+		/* Save full packet checksum */
+		skb->csum = csum;
+		skb->ip_summed = CHECKSUM_COMPLETE;
+		skb->csum_complete_sw = 1;
+		skb->csum_valid = !sum;
+	}
 
 	return sum;
 }

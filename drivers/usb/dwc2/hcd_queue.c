@@ -191,7 +191,7 @@ static void dwc2_qh_init(struct dwc2_hsotg *hsotg, struct dwc2_qh *qh,
  *
  * Return: Pointer to the newly allocated QH, or NULL on error
  */
-static struct dwc2_qh *dwc2_hcd_qh_create(struct dwc2_hsotg *hsotg,
+struct dwc2_qh *dwc2_hcd_qh_create(struct dwc2_hsotg *hsotg,
 					  struct dwc2_hcd_urb *urb,
 					  gfp_t mem_flags)
 {

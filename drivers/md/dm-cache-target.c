@@ -1489,6 +1489,7 @@ static int commit_if_needed(struct cache *cache)
 
 static void process_deferred_bios(struct cache *cache)
 {
+	bool prealloc_used = false;
 	unsigned long flags;
 	struct bio_list bios;
 	struct bio *bio;
@@ -1570,7 +1571,7 @@ static void process_deferred_writethrough_bios(struct cache *cache)
 
 static void writeback_some_dirty_blocks(struct cache *cache)
 {
-	int r = 0;
+	bool prealloc_used = false;
 	dm_oblock_t oblock;
 	dm_cblock_t cblock;
 	struct prealloc structs;
@@ -2892,6 +2893,11 @@ static void cache_status(struct dm_target *ti, status_type_t type,
 			if (r)
 				DMERR("policy_emit_config_values returned %d", r);
 		}
+
+		if (dm_cache_metadata_needs_check(cache->cmd))
+			DMEMIT("needs_check ");
+		else
+			DMEMIT("- ");
 
 		break;
 

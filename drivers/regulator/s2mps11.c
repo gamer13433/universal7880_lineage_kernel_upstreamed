@@ -33,6 +33,8 @@
 #include <linux/mfd/samsung/s2mps14.h>
 #include <linux/mfd/samsung/s2mpu02.h>
 
+/* The highest number of possible regulators for supported devices. */
+#define S2MPS_REGULATOR_MAX		S2MPS13_REGULATOR_MAX
 struct s2mps11_info {
 	unsigned int rdev_num;
 	int ramp_delay2;
@@ -376,7 +378,7 @@ static int s2mps14_regulator_enable(struct regulator_dev *rdev)
 
 	switch (s2mps11->dev_type) {
 	case S2MPS14X:
-		if (s2mps11->s2mps14_suspend_state & (1 << rdev_get_id(rdev)))
+		if (test_bit(rdev_get_id(rdev), s2mps11->suspend_state))
 			val = S2MPS14_ENABLE_SUSPEND;
 		else if (gpio_is_valid(s2mps11->ext_control_gpio[rdev_get_id(rdev)]))
 			val = S2MPS14_ENABLE_EXT_CONTROL;
@@ -384,7 +386,7 @@ static int s2mps14_regulator_enable(struct regulator_dev *rdev)
 			val = rdev->desc->enable_mask;
 		break;
 	case S2MPU02:
-		if (s2mps11->s2mps14_suspend_state & (1 << rdev_get_id(rdev)))
+		if (test_bit(rdev_get_id(rdev), s2mps11->suspend_state))
 			val = S2MPU02_ENABLE_SUSPEND;
 		else
 			val = rdev->desc->enable_mask;
@@ -437,7 +439,7 @@ static int s2mps14_regulator_set_suspend_disable(struct regulator_dev *rdev)
 	if (ret < 0)
 		return ret;
 
-	s2mps11->s2mps14_suspend_state |= (1 << rdev_get_id(rdev));
+	set_bit(rdev_get_id(rdev), s2mps11->suspend_state);
 	/*
 	 * Don't enable suspend mode if regulator is already disabled because
 	 * this would effectively for a short time turn on the regulator after

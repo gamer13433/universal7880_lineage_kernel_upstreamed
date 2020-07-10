@@ -2503,31 +2503,33 @@ static void do_slave_init(struct mlx4_ib_dev *ibdev, int slave, int do_init)
 	dm = kcalloc(ports, sizeof(*dm), GFP_ATOMIC);
 	if (!dm) {
 		pr_err("failed to allocate memory for tunneling qp update\n");
-		goto out;
+		return;
 	}
 
 	for (i = 0; i < ports; i++) {
 		dm[i] = kmalloc(sizeof (struct mlx4_ib_demux_work), GFP_ATOMIC);
 		if (!dm[i]) {
 			pr_err("failed to allocate memory for tunneling qp update work struct\n");
-			for (i = 0; i < dev->caps.num_ports; i++) {
-				if (dm[i])
-					kfree(dm[i]);
-			}
+			while (--i >= 0)
+				kfree(dm[i]);
 			goto out;
 		}
-	}
-	/* initialize or tear down tunnel QPs for the slave */
-	for (i = 0; i < ports; i++) {
 		INIT_WORK(&dm[i]->work, mlx4_ib_tunnels_update_work);
 		dm[i]->port = first_port + i + 1;
 		dm[i]->slave = slave;
 		dm[i]->do_init = do_init;
 		dm[i]->dev = ibdev;
-		spin_lock_irqsave(&ibdev->sriov.going_down_lock, flags);
-		if (!ibdev->sriov.is_going_down)
+	}
+	/* initialize or tear down tunnel QPs for the slave */
+	spin_lock_irqsave(&ibdev->sriov.going_down_lock, flags);
+	if (!ibdev->sriov.is_going_down) {
+		for (i = 0; i < ports; i++)
 			queue_work(ibdev->sriov.demux[i].ud_wq, &dm[i]->work);
 		spin_unlock_irqrestore(&ibdev->sriov.going_down_lock, flags);
+	} else {
+		spin_unlock_irqrestore(&ibdev->sriov.going_down_lock, flags);
+		for (i = 0; i < ports; i++)
+			kfree(dm[i]);
 	}
 out:
 	kfree(dm);

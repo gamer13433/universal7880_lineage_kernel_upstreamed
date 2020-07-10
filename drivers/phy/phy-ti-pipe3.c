@@ -28,6 +28,7 @@
 #include <linux/delay.h>
 #include <linux/phy/omap_control_phy.h>
 #include <linux/of_platform.h>
+#include <linux/spinlock.h>
 
 #define	PLL_STATUS		0x00000004
 #define	PLL_GO			0x00000008
@@ -299,6 +300,7 @@ static int ti_pipe3_probe(struct platform_device *pdev)
 		return -ENOMEM;
 
 	phy->dev		= &pdev->dev;
+	spin_lock_init(&phy->lock);
 
 	if (!of_device_is_compatible(node, "ti,phy-pipe3-pcie")) {
 		match = of_match_device(of_match_ptr(ti_pipe3_id_table),

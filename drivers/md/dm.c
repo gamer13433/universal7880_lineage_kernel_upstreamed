@@ -994,10 +994,13 @@ static void end_clone_bio(struct bio *clone, int error)
  */
 static void rq_completed(struct mapped_device *md, int rw, int run_queue)
 {
+	int nr_requests_pending;
+
 	atomic_dec(&md->pending[rw]);
 
 	/* nudge anyone waiting on suspend queue */
-	if (!md_in_flight(md))
+	nr_requests_pending = md_in_flight(md);
+	if (!nr_requests_pending)
 		wake_up(&md->wait);
 
 	/*

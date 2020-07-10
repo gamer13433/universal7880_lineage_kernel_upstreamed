@@ -341,7 +341,7 @@ void vector_exception(struct pt_regs *regs)
 	}
 
 	/* get vector interrupt code from fpc */
-	asm volatile("stfpc %0" : "=m" (current->thread.fp_regs.fpc));
+	asm volatile("stfpc %0" : "=Q" (current->thread.fp_regs.fpc));
 	vic = (current->thread.fp_regs.fpc & 0xf00) >> 8;
 	switch (vic) {
 	case 1: /* invalid vector operation */

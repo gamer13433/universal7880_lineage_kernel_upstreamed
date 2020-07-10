@@ -342,7 +342,7 @@ static int ip_frag_queue(struct ipq *qp, struct sk_buff *skb)
 	ihl = ip_hdrlen(skb);
 
 	/* Determine the position of this fragment. */
-	end = offset + skb->len - ihl;
+	end = offset + skb->len - skb_network_offset(skb) - ihl;
 	err = -EINVAL;
 
 	/* Is this the final fragment? */

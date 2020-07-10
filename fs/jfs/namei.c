@@ -1163,7 +1163,7 @@ static int jfs_rename(struct inode *old_dir, struct dentry *old_dentry,
 		rc = dtModify(tid, new_dir, &new_dname, &ino,
 			      old_ip->i_ino, JFS_RENAME);
 		if (rc)
-			goto out4;
+			goto out_tx;
 		drop_nlink(new_ip);
 		if (S_ISDIR(new_ip->i_mode)) {
 			drop_nlink(new_ip);
@@ -1188,7 +1188,7 @@ static int jfs_rename(struct inode *old_dir, struct dentry *old_dentry,
 			if ((new_size = commitZeroLink(tid, new_ip)) < 0) {
 				txAbort(tid, 1);	/* Marks FS Dirty */
 				rc = new_size;
-				goto out4;
+				goto out_tx;
 			}
 			tblk = tid_to_tblock(tid);
 			tblk->xflag |= COMMIT_DELETE;
@@ -1206,7 +1206,7 @@ static int jfs_rename(struct inode *old_dir, struct dentry *old_dentry,
 		if (rc) {
 			jfs_err("jfs_rename didn't expect dtSearch to fail "
 				"w/rc = %d", rc);
-			goto out4;
+			goto out_tx;
 		}
 
 		ino = old_ip->i_ino;
@@ -1214,7 +1214,7 @@ static int jfs_rename(struct inode *old_dir, struct dentry *old_dentry,
 		if (rc) {
 			if (rc == -EIO)
 				jfs_err("jfs_rename: dtInsert returned -EIO");
-			goto out4;
+			goto out_tx;
 		}
 		if (S_ISDIR(old_ip->i_mode))
 			inc_nlink(new_dir);
@@ -1229,7 +1229,7 @@ static int jfs_rename(struct inode *old_dir, struct dentry *old_dentry,
 		jfs_err("jfs_rename did not expect dtDelete to return rc = %d",
 			rc);
 		txAbort(tid, 1);	/* Marks Filesystem dirty */
-		goto out4;
+		goto out_tx;
 	}
 	if (S_ISDIR(old_ip->i_mode)) {
 		drop_nlink(old_dir);
@@ -1288,7 +1288,7 @@ static int jfs_rename(struct inode *old_dir, struct dentry *old_dentry,
 
 	rc = txCommit(tid, ipcount, iplist, commit_flag);
 
-      out4:
+      out_tx:
 	txEnd(tid);
 	if (new_ip)
 		mutex_unlock(&JFS_IP(new_ip)->commit_mutex);
@@ -1311,13 +1311,6 @@ static int jfs_rename(struct inode *old_dir, struct dentry *old_dentry,
 	}
 	if (new_ip && (new_ip->i_nlink == 0))
 		set_cflag(COMMIT_Nolink, new_ip);
-      out3:
-	free_UCSname(&new_dname);
-      out2:
-	free_UCSname(&old_dname);
-      out1:
-	if (new_ip && !S_ISDIR(new_ip->i_mode))
-		IWRITE_UNLOCK(new_ip);
 	/*
 	 * Truncating the directory index table is not guaranteed.  It
 	 * may need to be done iteratively
@@ -1328,7 +1321,13 @@ static int jfs_rename(struct inode *old_dir, struct dentry *old_dentry,
 
 		clear_cflag(COMMIT_Stale, old_dir);
 	}
-
+	if (new_ip && !S_ISDIR(new_ip->i_mode))
+		IWRITE_UNLOCK(new_ip);
+      out3:
+	free_UCSname(&new_dname);
+      out2:
+	free_UCSname(&old_dname);
+      out1:
 	jfs_info("jfs_rename: returning %d", rc);
 	return rc;
 }

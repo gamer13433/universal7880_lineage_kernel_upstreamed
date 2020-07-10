@@ -1008,9 +1008,15 @@ static int br_ip4_multicast_igmp3_report(struct net_bridge *br,
 			continue;
 		}
 
-		err = br_ip4_multicast_add_group(br, port, group, vid);
-		if (err)
-			break;
+		if ((type == IGMPV3_CHANGE_TO_INCLUDE ||
+		     type == IGMPV3_MODE_IS_INCLUDE) &&
+		    ntohs(grec->grec_nsrcs) == 0) {
+			br_ip4_multicast_leave_group(br, port, group, vid);
+		} else {
+			err = br_ip4_multicast_add_group(br, port, group, vid);
+			if (err)
+				break;
+		}
 	}
 
 	return err;
@@ -1069,10 +1075,17 @@ static int br_ip6_multicast_mld2_report(struct net_bridge *br,
 			continue;
 		}
 
-		err = br_ip6_multicast_add_group(br, port, &grec->grec_mca,
-						 vid);
-		if (err)
-			break;
+		if ((grec->grec_type == MLD2_CHANGE_TO_INCLUDE ||
+		     grec->grec_type == MLD2_MODE_IS_INCLUDE) &&
+		    ntohs(*nsrcs) == 0) {
+			br_ip6_multicast_leave_group(br, port, &grec->grec_mca,
+						     vid);
+		} else {
+			err = br_ip6_multicast_add_group(br, port,
+							 &grec->grec_mca, vid);
+			if (!err)
+				break;
+		}
 	}
 
 	return err;

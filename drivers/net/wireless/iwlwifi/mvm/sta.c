@@ -1398,6 +1398,7 @@ void iwl_mvm_sta_modify_ps_wake(struct iwl_mvm *mvm,
 		.mac_id_n_color = cpu_to_le32(mvmsta->mac_id_n_color),
 	};
 	int ret;
+	static const u8 __maybe_unused zero_addr[ETH_ALEN] = {0};
 
 	ret = iwl_mvm_send_cmd_pdu(mvm, ADD_STA, CMD_ASYNC, sizeof(cmd), &cmd);
 	if (ret)

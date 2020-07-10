@@ -213,6 +213,16 @@
 					};
 				};
 			};
+			gpios {
+				/* Dangling GPIO pins */
+				gpios_hrefv60_mode: gpios_hrefv60 {
+					default_cfg1 {
+						/* Normally UART1 RXD, now dangling */
+						pins = "GPIO4_AH6";
+						ste,config = <&in_pu>;
+					};
+				};
+			};
 		};
 	};
 };

@@ -130,6 +130,7 @@ config SENSORS_LM3533
 config LTR501
 	tristate "LTR-501ALS-01 light sensor"
 	depends on I2C
+	select REGMAP_I2C
 	select IIO_BUFFER
 	select IIO_TRIGGERED_BUFFER
 	help
@@ -177,6 +178,7 @@ config SENSORS_TSL2563
 config TSL4531
 	tristate "TAOS TSL4531 ambient light sensors"
 	depends on I2C
+	select REGMAP_I2C
 	help
 	 Say Y here if you want to build a driver for the TAOS TSL4531 family
 	 of ambient light sensors with direct lux output.

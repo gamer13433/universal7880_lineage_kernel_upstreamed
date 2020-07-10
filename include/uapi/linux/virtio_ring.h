@@ -31,6 +31,9 @@
  * SUCH DAMAGE.
  *
  * Copyright Rusty Russell IBM Corporation 2007. */
+#ifndef __KERNEL__
+#include <stdint.h>
+#endif
 #include <linux/types.h>
 
 /* This marks a buffer as continuing via the next field. */

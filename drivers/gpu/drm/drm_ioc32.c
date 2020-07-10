@@ -70,6 +70,8 @@
 
 #define DRM_IOCTL_WAIT_VBLANK32		DRM_IOWR(0x3a, drm_wait_vblank32_t)
 
+#define DRM_IOCTL_MODE_ADDFB232		DRM_IOWR(0xb8, drm_mode_fb_cmd232_t)
+
 typedef struct drm_version_32 {
 	int version_major;	  /**< Major version */
 	int version_minor;	  /**< Minor version */
@@ -1048,6 +1050,7 @@ drm_ioctl_compat_t *drm_compat_ioctls[] = {
 	[DRM_IOCTL_NR(DRM_IOCTL_UPDATE_DRAW32)] = compat_drm_update_draw,
 #endif
 	[DRM_IOCTL_NR(DRM_IOCTL_WAIT_VBLANK32)] = compat_drm_wait_vblank,
+	[DRM_IOCTL_NR(DRM_IOCTL_MODE_ADDFB232)] = compat_drm_mode_addfb2,
 };
 
 /**

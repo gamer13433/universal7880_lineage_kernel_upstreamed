@@ -135,6 +135,7 @@ struct ftrace_ops {
 	struct ftrace_ops		*next;
 	unsigned long			flags;
 	void				*private;
+	ftrace_func_t			saved_func;
 	int __percpu			*disabled;
 #ifdef CONFIG_DYNAMIC_FTRACE
 	int				nr_trampolines;

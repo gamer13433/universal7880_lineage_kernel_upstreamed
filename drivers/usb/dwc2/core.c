@@ -482,7 +482,7 @@ int dwc2_core_init(struct dwc2_hsotg *hsotg, bool select_phy, int irq)
 		dev_dbg(hsotg->dev, "Device Mode\n");
 		hsotg->op_state = OTG_STATE_B_PERIPHERAL;
 	}
-
+	dr->valid = true;
 	return 0;
 }
 
@@ -1692,6 +1692,7 @@ int dwc2_hc_continue_transfer(struct dwc2_hsotg *hsotg,
 		return 1;
 	}
 
+	gr->valid = true;
 	return 0;
 }
 

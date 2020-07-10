@@ -4376,6 +4376,9 @@ static void haswell_crtc_disable(struct drm_crtc *crtc)
 	if (!intel_crtc->active)
 		return;
 
+	/* crtc should still be enabled when we disable it. */
+	WARN_ON(!crtc->state->enable);
+
 	intel_crtc_disable_planes(crtc);
 
 	for_each_encoder_on_crtc(dev, crtc, encoder) {

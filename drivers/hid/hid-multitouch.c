@@ -780,6 +780,9 @@ static int mt_input_mapped(struct hid_device *hdev, struct hid_input *hi,
 	/*
 	 * some egalax touchscreens have "application == HID_DG_TOUCHSCREEN"
 	 * for the stylus.
+	 * The check for mt_report_id ensures we don't process
+	 * HID_DG_CONTACTCOUNT from the pen report as it is outside the physical
+	 * collection, but within the report ID.
 	 */
 	if (field->physical == HID_DG_STYLUS)
 		return 0;

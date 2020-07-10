@@ -95,6 +95,7 @@ choice
 
 config ARC_CPU_750D
 	bool "ARC750D"
+	select ARC_CANT_LLSC
 	help
 	  Support for ARC750 core
 

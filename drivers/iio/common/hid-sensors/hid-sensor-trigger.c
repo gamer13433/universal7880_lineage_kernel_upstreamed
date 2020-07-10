@@ -34,6 +34,8 @@ int hid_sensor_power_state(struct hid_sensor_common *st, bool state)
 	int report_val;
 
 	if (state) {
+		if (!atomic_read(&st->user_requested_state))
+			return 0;
 		if (sensor_hub_device_open(st->hsdev))
 			return -EIO;
 
@@ -48,8 +50,12 @@ int hid_sensor_power_state(struct hid_sensor_common *st, bool state)
 			st->report_state.index,
 			HID_USAGE_SENSOR_PROP_REPORTING_STATE_ALL_EVENTS_ENUM);
 	} else {
-		if (!atomic_dec_and_test(&st->data_ready))
+		int val;
+
+		val = atomic_dec_if_positive(&st->data_ready);
+		if (val < 0)
 			return 0;
+
 		sensor_hub_device_close(st->hsdev);
 		state_val = hid_sensor_get_usage_index(st->hsdev,
 			st->power_state.report_id,

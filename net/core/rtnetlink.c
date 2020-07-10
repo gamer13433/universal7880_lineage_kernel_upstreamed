@@ -1207,10 +1207,6 @@ static const struct nla_policy ifla_info_policy[IFLA_INFO_MAX+1] = {
 	[IFLA_INFO_SLAVE_DATA]	= { .type = NLA_NESTED },
 };
 
-static const struct nla_policy ifla_vfinfo_policy[IFLA_VF_INFO_MAX+1] = {
-	[IFLA_VF_INFO]		= { .type = NLA_NESTED },
-};
-
 static const struct nla_policy ifla_vf_policy[IFLA_VF_MAX+1] = {
 	[IFLA_VF_MAC]		= { .len = sizeof(struct ifla_vf_mac) },
 	[IFLA_VF_VLAN]		= { .len = sizeof(struct ifla_vf_vlan) },
@@ -1632,14 +1628,21 @@ static int do_setlink(const struct sk_buff *skb,
 	}
 
 	if (tb[IFLA_VFINFO_LIST]) {
+		struct nlattr *vfinfo[IFLA_VF_MAX + 1];
 		struct nlattr *attr;
 		int rem;
+
 		nla_for_each_nested(attr, tb[IFLA_VFINFO_LIST], rem) {
-			if (nla_type(attr) != IFLA_VF_INFO) {
+			if (nla_type(attr) != IFLA_VF_INFO ||
+			    nla_len(attr) < NLA_HDRLEN) {
 				err = -EINVAL;
 				goto errout;
 			}
-			err = do_setvfinfo(dev, attr);
+			err = nla_parse_nested(vfinfo, IFLA_VF_MAX, attr,
+					       ifla_vf_policy);
+			if (err < 0)
+				goto errout;
+			err = do_setvfinfo(dev, vfinfo);
 			if (err < 0)
 				goto errout;
 			status |= DO_SETLINK_NOTIFY;
@@ -1658,10 +1661,13 @@ static int do_setlink(const struct sk_buff *skb,
 			goto errout;
 
 		nla_for_each_nested(attr, tb[IFLA_VF_PORTS], rem) {
-			if (nla_type(attr) != IFLA_VF_PORT)
-				continue;
-			err = nla_parse_nested(port, IFLA_PORT_MAX,
-				attr, ifla_port_policy);
+			if (nla_type(attr) != IFLA_VF_PORT ||
+			    nla_len(attr) < NLA_HDRLEN) {
+				err = -EINVAL;
+				goto errout;
+			}
+			err = nla_parse_nested(port, IFLA_PORT_MAX, attr,
+					       ifla_port_policy);
 			if (err < 0)
 				goto errout;
 			if (!port[IFLA_PORT_VF]) {

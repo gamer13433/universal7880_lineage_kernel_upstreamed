@@ -1157,12 +1157,8 @@ static void ib_sa_add_one(struct ib_device *device)
 	if (rdma_node_get_transport(device->node_type) != RDMA_TRANSPORT_IB)
 		return;
 
-	if (device->node_type == RDMA_NODE_IB_SWITCH)
-		s = e = 0;
-	else {
-		s = 1;
-		e = device->phys_port_cnt;
-	}
+	s = rdma_start_port(device);
+	e = rdma_end_port(device);
 
 	sa_dev = kzalloc(sizeof *sa_dev +
 			 (e - s + 1) * sizeof (struct ib_sa_port),

@@ -42,6 +42,7 @@ static int nx_xcbc_set_key(struct crypto_shash *desc,
 			   unsigned int         key_len)
 {
 	struct nx_crypto_ctx *nx_ctx = crypto_shash_ctx(desc);
+	struct nx_csbcpb *csbcpb = nx_ctx->csbcpb;
 
 	switch (key_len) {
 	case AES_KEYSIZE_128:
@@ -51,7 +52,7 @@ static int nx_xcbc_set_key(struct crypto_shash *desc,
 		return -EINVAL;
 	}
 
-	memcpy(nx_ctx->priv.xcbc.key, in_key, key_len);
+	memcpy(csbcpb->cpb.aes_xcbc.key, in_key, key_len);
 
 	return 0;
 }
@@ -182,6 +183,17 @@ static int nx_xcbc_update(struct shash_desc *desc,
 	in_sg = nx_ctx->in_sg;
 	max_sg_len = min_t(u32, nx_driver.of.max_sg_len/sizeof(struct nx_sg),
 				nx_ctx->ap->sglen);
+
+	data_len = AES_BLOCK_SIZE;
+	out_sg = nx_build_sg_list(nx_ctx->out_sg, (u8 *)sctx->state,
+				  &len, nx_ctx->ap->sglen);
+
+	if (data_len != AES_BLOCK_SIZE) {
+		rc = -EINVAL;
+		goto out;
+	}
+
+	nx_ctx->op.outlen = (nx_ctx->out_sg - out_sg) * sizeof(struct nx_sg);
 
 	do {
 
@@ -327,7 +339,7 @@ struct shash_alg nx_shash_aes_xcbc_alg = {
 		.cra_blocksize   = AES_BLOCK_SIZE,
 		.cra_module      = THIS_MODULE,
 		.cra_ctxsize     = sizeof(struct nx_crypto_ctx),
-		.cra_init        = nx_crypto_ctx_aes_xcbc_init,
+		.cra_init        = nx_crypto_ctx_aes_xcbc_init2,
 		.cra_exit        = nx_crypto_ctx_exit,
 	}
 };

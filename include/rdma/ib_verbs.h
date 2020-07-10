@@ -1628,6 +1628,7 @@ struct ib_device {
 	char			     node_desc[64];
 	__be64			     node_guid;
 	u32			     local_dma_lkey;
+	u16                          is_switch:1;
 	u8                           node_type;
 	u8                           phys_port_cnt;
 };
@@ -1717,6 +1718,20 @@ int ib_find_gid(struct ib_device *device, union ib_gid *gid,
 
 int ib_find_pkey(struct ib_device *device,
 		 u8 port_num, u16 pkey, u16 *index);
+
+/**
+ * rdma_cap_ib_switch - Check if the device is IB switch
+ * @device: Device to check
+ *
+ * Device driver is responsible for setting is_switch bit on
+ * in ib_device structure at init time.
+ *
+ * Return: true if the device is IB switch.
+ */
+static inline bool rdma_cap_ib_switch(const struct ib_device *device)
+{
+	return device->is_switch;
+}
 
 /**
  * ib_alloc_pd - Allocates an unused protection domain.
