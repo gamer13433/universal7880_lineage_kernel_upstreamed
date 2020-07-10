@@ -304,10 +304,8 @@ static int functionfs_ready_callback(struct ffs_data *ffs)
 	gfs_registered = true;
 
 	ret = usb_composite_probe(&gfs_driver);
-	if (unlikely(ret < 0)) {
-		++missing_funcs;
+	if (unlikely(ret < 0))
 		gfs_registered = false;
-	}
 	
 	return ret;
 }
