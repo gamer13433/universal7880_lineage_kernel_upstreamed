@@ -554,6 +554,25 @@ static int pcm512x_resume(struct device *dev)
 			dev_err(dev, "Failed to enable SCLK: %d\n", ret);
 			return ret;
 		}
+
+		gpio = PCM512x_G1OE << (4 - 1);
+		ret = regmap_update_bits(pcm512x->regmap, PCM512x_GPIO_EN,
+					 gpio, gpio);
+		if (ret != 0) {
+			dev_err(codec->dev, "Failed to enable gpio %d: %d\n",
+				4, ret);
+			return ret;
+		}
+
+		gpio = PCM512x_GPIO_OUTPUT_1 + 4 - 1;
+		ret = regmap_update_bits(pcm512x->regmap, gpio,
+					 PCM512x_GxSL, PCM512x_GxSL_PLLLK);
+		if (ret != 0) {
+			dev_err(codec->dev,
+				"Failed to output pll lock on %d: %d\n",
+				ret, 4);
+			return ret;
+		}
 	}
 
 	ret = regulator_bulk_enable(ARRAY_SIZE(pcm512x->supplies),

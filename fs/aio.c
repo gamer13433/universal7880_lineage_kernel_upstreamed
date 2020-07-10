@@ -747,11 +747,12 @@ static int kill_ioctx(struct mm_struct *mm, struct kioctx *ctx,
 {
 	struct kioctx_table *table;
 
-	if (atomic_xchg(&ctx->dead, 1))
-		return -EINVAL;
-
-
 	spin_lock(&mm->ioctx_lock);
+	if (atomic_xchg(&ctx->dead, 1)) {
+		spin_unlock(&mm->ioctx_lock);
+		return -EINVAL;
+	}
+
 	table = rcu_dereference_raw(mm->ioctx_table);
 	WARN_ON(ctx != table->table[ctx->id]);
 	table->table[ctx->id] = NULL;

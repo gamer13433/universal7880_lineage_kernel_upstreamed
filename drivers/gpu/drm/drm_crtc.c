@@ -1979,7 +1979,7 @@ int drm_mode_getconnector(struct drm_device *dev, void *data,
 	connector = drm_connector_find(dev, out_resp->connector_id);
 	if (!connector) {
 		ret = -ENOENT;
-		goto out;
+		goto out_unlock;
 	}
 
 	props_count = connector->properties.count;

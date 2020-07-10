@@ -938,7 +938,6 @@ struct vlv_s0ix_state {
 	/* Display 2 CZ domain */
 	u32 gu_ctl0;
 	u32 gu_ctl1;
-	u32 pcbr;
 	u32 clock_gate_dis2;
 };
 
