@@ -95,12 +95,6 @@ u32 omap4_prminst_rmw_inst_reg_bits(u32 mask, u32 bits, u8 part, s16 inst,
 	return v;
 }
 
-/*
- * Address offset (in bytes) between the reset control and the reset
- * status registers: 4 bytes on OMAP4
- */
-#define OMAP4_RST_CTRL_ST_OFFSET		4
-
 /**
  * omap4_prminst_is_hardreset_asserted - read the HW reset line state of
  * submodules contained in the hwmod module
@@ -173,13 +167,13 @@ int omap4_prminst_deassert_hardreset(u8 shift, u8 part, s16 inst,
 		return -EEXIST;
 
 	/* Clear the reset status by writing 1 to the status bit */
-	omap4_prminst_rmw_inst_reg_bits(0xffffffff, mask, part, inst,
+	omap4_prminst_rmw_inst_reg_bits(0xffffffff, st_mask, part, inst,
 					rstst_offs);
 	/* de-assert the reset control line */
 	omap4_prminst_rmw_inst_reg_bits(mask, 0, part, inst, rstctrl_offs);
 	/* wait the status to be set */
-	omap_test_timeout(omap4_prminst_is_hardreset_asserted(shift, part, inst,
-							      rstst_offs),
+	omap_test_timeout(omap4_prminst_is_hardreset_asserted(st_shift, part,
+							      inst, rstst_offs),
 			  MAX_MODULE_HARDRESET_WAIT, c);
 
 	return (c == MAX_MODULE_HARDRESET_WAIT) ? -EBUSY : 0;

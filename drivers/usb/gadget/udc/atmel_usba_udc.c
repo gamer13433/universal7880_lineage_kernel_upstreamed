@@ -2100,7 +2100,7 @@ static int usba_udc_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static int __exit usba_udc_remove(struct platform_device *pdev)
+static int usba_udc_remove(struct platform_device *pdev)
 {
 	struct usba_udc *udc;
 	int i;
@@ -2126,7 +2126,7 @@ MODULE_DEVICE_TABLE(of, atmel_udc_dt_ids);
 #endif
 
 static struct platform_driver udc_driver = {
-	.remove		= __exit_p(usba_udc_remove),
+	.remove		= usba_udc_remove,
 	.driver		= {
 		.name		= "atmel_usba_udc",
 		.owner		= THIS_MODULE,

@@ -937,6 +937,9 @@ static void ops_run_io(struct stripe_head *sh, struct stripe_head_state *s)
 			pr_debug("skip op %ld on disc %d for sector %llu\n",
 				bi->bi_rw, i, (unsigned long long)sh->sector);
 			clear_bit(R5_LOCKED, &sh->dev[i].flags);
+			if (sh->batch_head)
+				set_bit(STRIPE_BATCH_ERR,
+					&sh->batch_head->state);
 			set_bit(STRIPE_HANDLE, &sh->state);
 		}
 	}
@@ -1909,6 +1912,25 @@ static int resize_stripes(struct r5conf *conf, int newsize)
 
 		if (scribble) {
 			kfree(percpu->scribble);
+			percpu->scribble = scribble;
+		} else {
+			err = -ENOMEM;
+			break;
+		}
+	}
+	put_online_cpus();
+
+	get_online_cpus();
+	for_each_present_cpu(cpu) {
+		struct raid5_percpu *percpu;
+		struct flex_array *scribble;
+
+		percpu = per_cpu_ptr(conf->percpu, cpu);
+		scribble = scribble_alloc(newsize, conf->chunk_sectors /
+			STRIPE_SECTORS, GFP_NOIO);
+
+		if (scribble) {
+			flex_array_free(percpu->scribble);
 			percpu->scribble = scribble;
 		} else {
 			err = -ENOMEM;
@@ -2996,6 +3018,7 @@ static void handle_stripe_fill(struct stripe_head *sh,
 {
 	int i;
 
+	BUG_ON(sh->batch_head);
 	/* look for blocks to read/compute, skip this if a compute
 	 * is already in flight, or if the stripe contents are in the
 	 * midst of changing due to a write
@@ -4959,6 +4982,8 @@ static sector_t reshape_request(struct mddev *mddev, sector_t sector_nr, int *sk
 		sh = list_entry(stripes.next, struct stripe_head, lru);
 		list_del_init(&sh->lru);
 		release_stripe(sh);
+
+		sh = next;
 	}
 	/* If this takes us to the resync_max point where we have to pause,
 	 * then we need to write out the superblock.

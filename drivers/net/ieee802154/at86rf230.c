@@ -82,6 +82,7 @@ struct at86rf230_local {
 	struct ieee802154_dev *dev;
 	struct at86rf2xx_chip_data *data;
 	struct regmap *regmap;
+	int slp_tr;
 
 	struct completion state_complete;
 	struct at86rf230_state_change state;
@@ -289,6 +290,8 @@ struct at86rf230_local {
 #define STATE_BUSY_RX_AACK_NOCLK 0x1E
 #define STATE_TRANSITION_IN_PROGRESS 0x1F
 
+#define TRX_STATE_MASK		(0x1F)
+
 #define AT86RF2XX_NUMREGS 0x3F
 
 static int
@@ -330,6 +333,14 @@ at86rf230_write_subreg(struct at86rf230_local *lp,
 		       unsigned int shift, unsigned int data)
 {
 	return regmap_update_bits(lp->regmap, addr, mask, data << shift);
+}
+
+static inline void
+at86rf230_slp_tr_rising_edge(struct at86rf230_local *lp)
+{
+	gpio_set_value(lp->slp_tr, 1);
+	udelay(1);
+	gpio_set_value(lp->slp_tr, 0);
 }
 
 static bool
@@ -484,7 +495,7 @@ at86rf230_async_state_assert(void *context)
 	struct at86rf230_state_change *ctx = context;
 	struct at86rf230_local *lp = ctx->lp;
 	const u8 *buf = ctx->buf;
-	const u8 trx_state = buf[1] & 0x1f;
+	const u8 trx_state = buf[1] & TRX_STATE_MASK;
 
 	/* Assert state change */
 	if (trx_state != ctx->to_state) {
@@ -616,7 +627,7 @@ at86rf230_async_state_change_start(void *context)
 	struct at86rf230_state_change *ctx = context;
 	struct at86rf230_local *lp = ctx->lp;
 	u8 *buf = ctx->buf;
-	const u8 trx_state = buf[1] & 0x1f;
+	const u8 trx_state = buf[1] & TRX_STATE_MASK;
 	int rc;
 
 	/* Check for "possible" STATE_TRANSITION_IN_PROGRESS */
@@ -923,13 +934,18 @@ at86rf230_write_frame_complete(void *context)
 	u8 *buf = ctx->buf;
 	int rc;
 
-	buf[0] = (RG_TRX_STATE & CMD_REG_MASK) | CMD_REG | CMD_WRITE;
-	buf[1] = STATE_BUSY_TX;
 	ctx->trx.len = 2;
-	ctx->msg.complete = NULL;
-	rc = spi_async(lp->spi, &ctx->msg);
-	if (rc)
-		at86rf230_async_error(lp, ctx, rc);
+
+	if (gpio_is_valid(lp->slp_tr)) {
+		at86rf230_slp_tr_rising_edge(lp);
+	} else {
+		buf[0] = (RG_TRX_STATE & CMD_REG_MASK) | CMD_REG | CMD_WRITE;
+		buf[1] = STATE_BUSY_TX;
+		ctx->msg.complete = NULL;
+		rc = spi_async(lp->spi, &ctx->msg);
+		if (rc)
+			at86rf230_async_error(lp, ctx, rc);
+	}
 }
 
 static void

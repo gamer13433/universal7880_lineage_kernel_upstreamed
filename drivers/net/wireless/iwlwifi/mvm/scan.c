@@ -515,7 +515,7 @@ int iwl_mvm_rx_scan_complete(struct iwl_mvm *mvm, struct iwl_rx_cmd_buffer *rxb,
 			  struct iwl_device_cmd *cmd)
 {
 	struct iwl_rx_packet *pkt = rxb_addr(rxb);
-	struct iwl_scan_complete_notif *notif = (void *)pkt->data;
+	struct iwl_lmac_scan_complete_notif *notif = (void *)pkt->data;
 
 	lockdep_assert_held(&mvm->mutex);
 

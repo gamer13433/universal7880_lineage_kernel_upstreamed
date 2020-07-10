@@ -2896,13 +2896,6 @@ static const struct file_operations qtudev_fops = {
 	.release = qtudev_release,
 };
 
-static struct miscdevice qtu_device = {
-	.minor = MISC_DYNAMIC_MINOR,
-	.name = QTU_DEV_NAME,
-	.fops = &qtudev_fops,
-	/* How sad it doesn't allow for defaults: .mode = S_IRUGO | S_IWUSR */
-};
-
 static const struct seq_operations proc_qtaguid_ctrl_seqops = {
 	.start = qtaguid_ctrl_proc_start,
 	.next = qtaguid_ctrl_proc_next,
@@ -3007,8 +3000,7 @@ static int __init qtaguid_mt_init(void)
 {
 	if (qtaguid_proc_register(&xt_qtaguid_procdir)
 	    || iface_stat_init(xt_qtaguid_procdir)
-	    || xt_register_match(&qtaguid_mt_reg)
-	    || misc_register(&qtu_device))
+	    || xt_register_match(&qtaguid_mt_reg))
 		return -1;
 	return 0;
 }

@@ -802,6 +802,16 @@ int i915_reset(struct drm_device *dev)
 	if (!i915.reset)
 		return 0;
 
+	/*
+	 * Interrupts have to be enabled before any batches are run. If not the
+	 * GPU will hang. i915_gem_init_hw() will initiate batches to
+	 * update/restore the context.
+	 *
+	 * Modeset enabling in intel_modeset_init_hw() also needs working
+	 * interrupts.
+	 */
+	intel_runtime_pm_enable_interrupts(dev_priv);
+
 	mutex_lock(&dev->struct_mutex);
 
 	i915_gem_reset(dev);

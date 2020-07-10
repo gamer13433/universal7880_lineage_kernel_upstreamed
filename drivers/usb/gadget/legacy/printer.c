@@ -1235,7 +1235,7 @@ fail:
 	return status;
 }
 
-static int printer_unbind(struct usb_composite_dev *cdev)
+static int __exit printer_unbind(struct usb_composite_dev *cdev)
 {
 	return 0;
 }

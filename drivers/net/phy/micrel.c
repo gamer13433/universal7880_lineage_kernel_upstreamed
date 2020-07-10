@@ -451,7 +451,8 @@ static int ksz8021_probe(struct phy_device *phydev)
 	struct clk *clk;
 
 	clk = devm_clk_get(&phydev->dev, "rmii-ref");
-	if (!IS_ERR(clk)) {
+	/* NOTE: clk may be NULL if building without CONFIG_HAVE_CLK */
+	if (!IS_ERR_OR_NULL(clk)) {
 		unsigned long rate = clk_get_rate(clk);
 
 		if (rate > 24500000 && rate < 25500000) {

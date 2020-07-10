@@ -25,7 +25,6 @@
 #ifndef _LINUX_NETDEVICE_H
 #define _LINUX_NETDEVICE_H
 
-#include <linux/pm_qos.h>
 #include <linux/timer.h>
 #include <linux/bug.h>
 #include <linux/delay.h>
@@ -1451,7 +1450,6 @@ enum netdev_priv_flags {
  *	@qdisc_tx_busylock:	XXX: need comments on this one
  *
  *	@group:		The group, that the device belongs to
- *	@pm_qos_req:	Power Management QoS object
  *
  *	FIXME: cleanup struct net_device such that network protocol info
  *	moves out.
@@ -1703,7 +1701,6 @@ struct net_device {
 	struct phy_device *phydev;
 	struct lock_class_key *qdisc_tx_busylock;
 	int group;
-	struct pm_qos_request	pm_qos_req;
 };
 #define to_net_dev(d) container_of(d, struct net_device, dev)
 

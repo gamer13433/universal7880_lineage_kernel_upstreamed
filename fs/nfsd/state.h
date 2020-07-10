@@ -63,12 +63,12 @@ typedef struct {
 
 struct nfsd4_callback {
 	struct nfs4_client *cb_clp;
-	struct list_head cb_per_client;
 	u32 cb_minorversion;
 	struct rpc_message cb_msg;
 	struct nfsd4_callback_ops *cb_ops;
 	struct work_struct cb_work;
-	bool cb_done;
+	int cb_status;
+	bool cb_need_restart;
 };
 
 struct nfsd4_callback_ops {
@@ -125,6 +125,7 @@ struct nfs4_delegation {
 	struct list_head	dl_perfile;
 	struct list_head	dl_perclnt;
 	struct list_head	dl_recall_lru;  /* delegation recalled */
+	struct nfs4_clnt_odstate *dl_clnt_odstate;
 	u32			dl_type;
 	time_t			dl_time;
 /* For recall: */
@@ -328,7 +329,6 @@ struct nfs4_client {
 	int			cl_cb_state;
 	struct nfsd4_callback	cl_cb_null;
 	struct nfsd4_session	*cl_cb_session;
-	struct list_head	cl_callbacks; /* list of in-progress callbacks */
 
 	/* for all client information that callback code might need: */
 	spinlock_t		cl_lock;
@@ -461,6 +461,17 @@ static inline struct nfs4_lockowner * lockowner(struct nfs4_stateowner *so)
 }
 
 /*
+ * Per-client state indicating no. of opens and outstanding delegations
+ * on a file from a particular client.'od' stands for 'open & delegation'
+ */
+struct nfs4_clnt_odstate {
+	struct nfs4_client	*co_client;
+	struct nfs4_file	*co_file;
+	struct list_head	co_perfile;
+	atomic_t		co_odcount;
+};
+
+/*
  * nfs4_file: a file opened by some number of (open) nfs4_stateowners.
  *
  * These objects are global. nfsd only keeps one instance of a nfs4_file per
@@ -511,6 +522,7 @@ struct nfs4_ol_stateid {
 	struct list_head              st_perstateowner;
 	struct list_head              st_locks;
 	struct nfs4_stateowner      * st_stateowner;
+	struct nfs4_clnt_odstate    * st_clnt_odstate;
 	unsigned char                 st_access_bmap;
 	unsigned char                 st_deny_bmap;
 	struct nfs4_ol_stateid         * st_openstp;

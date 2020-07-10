@@ -1411,6 +1411,8 @@ static noinline int insert_tree_block_ref(struct btrfs_trans_handle *trans,
 
 	ret = btrfs_insert_empty_item(trans, root, path, &key, 0);
 	btrfs_release_path(path);
+	if (ret)
+		btrfs_abort_transaction(trans, root, ret);
 	return ret;
 }
 

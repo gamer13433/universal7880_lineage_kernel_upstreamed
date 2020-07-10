@@ -1065,6 +1065,9 @@ static void pl011_dma_shutdown(struct uart_amba_port *uap)
 	while (readw(uap->port.membase + UART01x_FR) & UART01x_FR_BUSY)
 		barrier();
 
+	/* Assume that TX IRQ doesn't work until we see one: */
+	uap->tx_irq_seen = 0;
+
 	spin_lock_irq(&uap->port.lock);
 	uap->dmacr &= ~(UART011_DMAONERR | UART011_RXDMAE | UART011_TXDMAE);
 	writew(uap->dmacr, uap->port.membase + UART011_DMACR);

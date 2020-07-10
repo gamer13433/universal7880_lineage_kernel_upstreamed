@@ -105,7 +105,6 @@ static void ath_hci_uart_work(struct work_struct *work)
 	hci_uart_tx_wakeup(hu);
 }
 
-/* Initialize protocol */
 static int ath_open(struct hci_uart *hu)
 {
 	struct ath_struct *ath;
@@ -126,8 +125,7 @@ static int ath_open(struct hci_uart *hu)
 	return 0;
 }
 
-/* Flush protocol data */
-static int ath_flush(struct hci_uart *hu)
+static int ath_close(struct hci_uart *hu)
 {
 	struct ath_struct *ath = hu->priv;
 
@@ -135,11 +133,17 @@ static int ath_flush(struct hci_uart *hu)
 
 	skb_queue_purge(&ath->txq);
 
+	kfree_skb(ath->rx_skb);
+
+	cancel_work_sync(&ath->ctxtsw);
+
+	hu->priv = NULL;
+	kfree(ath);
+
 	return 0;
 }
 
-/* Close protocol */
-static int ath_close(struct hci_uart *hu)
+static int ath_flush(struct hci_uart *hu)
 {
 	struct ath_struct *ath = hu->priv;
 
@@ -167,8 +171,7 @@ static int ath_enqueue(struct hci_uart *hu, struct sk_buff *skb)
 		return 0;
 	}
 
-	/*
-	 * Update power management enable flag with parameters of
+	/* Update power management enable flag with parameters of
 	 * HCI sleep enable vendor specific HCI command.
 	 */
 	if (bt_cb(skb)->pkt_type == HCI_COMMAND_PKT) {

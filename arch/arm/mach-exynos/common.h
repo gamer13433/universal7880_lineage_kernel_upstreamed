@@ -157,6 +157,8 @@ extern void exynos_cluster_power_up(int cluster);
 extern int  exynos_cluster_power_state(int cluster);
 extern void exynos_enter_aftr(void);
 
+extern void exynos_set_delayed_reset_assertion(bool enable);
+
 extern void s5p_init_cpu(void __iomem *cpuid_addr);
 extern unsigned int samsung_rev(void);
 
