@@ -385,6 +385,7 @@ static void ovl_put_super(struct super_block *sb)
 	struct ovl_fs *ufs = sb->s_fs_info;
 
 	dput(ufs->workdir);
+out_put_upper_mnt:
 	mntput(ufs->upper_mnt);
 	mntput(ufs->lower_mnt);
 

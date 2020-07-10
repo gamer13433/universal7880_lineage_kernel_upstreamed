@@ -99,6 +99,9 @@
 #define IWL3165_FW_PRE "iwlwifi-3165-"
 #define IWL3165_MODULE_FIRMWARE(api) IWL3165_FW_PRE __stringify(api) ".ucode"
 
+#define IWL3165_FW_PRE "iwlwifi-3165-"
+#define IWL3165_MODULE_FIRMWARE(api) IWL3165_FW_PRE __stringify(api) ".ucode"
+
 #define IWL7265_FW_PRE "iwlwifi-7265-"
 #define IWL7265_MODULE_FIRMWARE(api) IWL7265_FW_PRE __stringify(api) ".ucode"
 

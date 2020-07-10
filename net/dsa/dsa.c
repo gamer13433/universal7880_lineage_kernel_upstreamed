@@ -103,7 +103,7 @@ dsa_switch_setup(struct dsa_switch_tree *dst, int index,
 	 */
 	ds = kzalloc(sizeof(*ds) + drv->priv_size, GFP_KERNEL);
 	if (ds == NULL)
-		return ERR_PTR(-ENOMEM);
+		return NULL;
 
 	ds->dst = dst;
 	ds->index = index;

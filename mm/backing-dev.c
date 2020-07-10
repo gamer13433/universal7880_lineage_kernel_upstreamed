@@ -397,21 +397,6 @@ static void bdi_prune_sb(struct backing_dev_info *bdi)
 	spin_unlock(&sb_lock);
 }
 
-void bdi_unregister(struct backing_dev_info *bdi)
-{
-	if (bdi->dev) {
-		bdi_set_min_ratio(bdi, 0);
-		trace_writeback_bdi_unregister(bdi);
-		bdi_prune_sb(bdi);
-
-		bdi_wb_shutdown(bdi);
-		bdi_debug_unregister(bdi);
-		device_unregister(bdi->dev);
-		bdi->dev = NULL;
-	}
-}
-EXPORT_SYMBOL(bdi_unregister);
-
 static void bdi_wb_init(struct bdi_writeback *wb, struct backing_dev_info *bdi)
 {
 	memset(wb, 0, sizeof(*wb));
@@ -504,8 +489,6 @@ void bdi_destroy(struct backing_dev_info *bdi)
 		spin_unlock(&bdi->wb.list_lock);
 		spin_unlock(&dst->list_lock);
 	}
-
-	bdi_unregister(bdi);
 
 	WARN_ON(delayed_work_pending(&bdi->wb.dwork));
 

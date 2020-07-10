@@ -139,7 +139,11 @@ struct cpu_hw_events {
 					     added in the current transaction */
 	int			assign[X86_PMC_IDX_MAX]; /* event to counter assignment */
 	u64			tags[X86_PMC_IDX_MAX];
+
 	struct perf_event	*event_list[X86_PMC_IDX_MAX]; /* in enabled order */
+	struct event_constraint	*event_constraint[X86_PMC_IDX_MAX];
+
+	int			n_excl; /* the number of exclusive events */
 
 	unsigned int		group_flag;
 	int			is_fake;
@@ -600,8 +604,8 @@ static inline void __x86_pmu_enable_event(struct hw_perf_event *hwc,
 
 void x86_pmu_enable_all(int added);
 
-int perf_assign_events(struct perf_event **events, int n,
-			int wmin, int wmax, int *assign);
+int perf_assign_events(struct event_constraint **constraints, int n,
+			int wmin, int wmax, int gpmax, int *assign);
 int x86_schedule_events(struct cpu_hw_events *cpuc, int n, int *assign);
 
 void x86_pmu_stop(struct perf_event *event, int flags);
@@ -772,4 +776,8 @@ static inline struct intel_shared_regs *allocate_shared_regs(int cpu)
 	return NULL;
 }
 
+static inline int is_ht_workaround_enabled(void)
+{
+	return 0;
+}
 #endif /* CONFIG_CPU_SUP_INTEL */

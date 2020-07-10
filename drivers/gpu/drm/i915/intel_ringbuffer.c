@@ -904,6 +904,13 @@ static int gen8_rcs_signal(struct intel_engine_cs *signaller,
 		intel_ring_emit(signaller, 0);
 	}
 
+	if (INTEL_REVID(dev) == SKL_REVID_C0 ||
+	    INTEL_REVID(dev) == SKL_REVID_D0)
+		/* WaBarrierPerformanceFixDisable:skl */
+		WA_SET_BIT_MASKED(HDC_CHICKEN0,
+				  HDC_FENCE_DEST_SLM_DISABLE |
+				  HDC_BARRIER_PERFORMANCE_DISABLE);
+
 	return 0;
 }
 

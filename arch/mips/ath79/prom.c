@@ -1,6 +1,7 @@
 /*
  *  Atheros AR71XX/AR724X/AR913X specific prom routines
  *
+ *  Copyright (C) 2015 Laurent Fasnacht <l@libres.ch>
  *  Copyright (C) 2008-2010 Gabor Juhos <juhosg@openwrt.org>
  *  Copyright (C) 2008 Imre Kaloz <kaloz@openwrt.org>
  *

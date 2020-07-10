@@ -176,6 +176,9 @@ static bool rs_mimo_allow(struct iwl_mvm *mvm, struct ieee80211_sta *sta,
 	if (!iwl_mvm_bt_coex_is_mimo_allowed(mvm, sta))
 		return false;
 
+	if (mvm->nvm_data->sku_cap_mimo_disabled)
+		return false;
+
 	return true;
 }
 

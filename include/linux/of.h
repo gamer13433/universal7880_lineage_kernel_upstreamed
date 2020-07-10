@@ -106,6 +106,7 @@ static inline void of_node_put(struct device_node *node) { }
 #endif /* !CONFIG_OF_DYNAMIC */
 
 #ifdef CONFIG_OF
+void of_core_init(void);
 
 /* Pointer for first entry in chain of all nodes. */
 extern struct device_node *of_allnodes;
@@ -354,6 +355,10 @@ const char *of_prop_next_string(struct property *prop, const char *cur);
 bool of_console_check(struct device_node *dn, char *name, int index);
 
 #else /* CONFIG_OF */
+
+static inline void of_core_init(void)
+{
+}
 
 static inline const char* of_node_full_name(const struct device_node *np)
 {

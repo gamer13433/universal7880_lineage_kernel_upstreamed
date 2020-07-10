@@ -186,6 +186,7 @@ static bool check_hw_exists(void)
 	u64 val, val_fail, val_new= ~0;
 	int i, reg, reg_fail, ret = 0;
 	int bios_fail = 0;
+	int reg_safe = -1;
 
 	/*
 	 * Check to see if the BIOS enabled any of the counters, if so
@@ -200,6 +201,8 @@ static bool check_hw_exists(void)
 			bios_fail = 1;
 			val_fail = val;
 			reg_fail = reg;
+		} else {
+			reg_safe = i;
 		}
 	}
 
@@ -218,11 +221,22 @@ static bool check_hw_exists(void)
 	}
 
 	/*
+	 * If all the counters are enabled, the below test will always
+	 * fail.  The tools will also become useless in this scenario.
+	 * Just fail and disable the hardware counters.
+	 */
+
+	if (reg_safe == -1) {
+		reg = reg_safe;
+		goto msr_fail;
+	}
+
+	/*
 	 * Read the current value, change it and read it back to see if it
 	 * matches, this is needed to detect certain hardware emulators
 	 * (qemu/kvm) that don't trap on the MSR access and always return 0s.
 	 */
-	reg = x86_pmu_event_addr(0);
+	reg = x86_pmu_event_addr(reg_safe);
 	if (rdmsrl_safe(reg, &val))
 		goto msr_fail;
 	val ^= 0xffffUL;
@@ -556,6 +570,7 @@ struct sched_state {
 	int	event;		/* event index */
 	int	counter;	/* counter index */
 	int	unassigned;	/* number of events to be assigned left */
+	int	nr_gp;		/* number of GP counters used */
 	unsigned long used[BITS_TO_LONGS(X86_PMC_IDX_MAX)];
 };
 
@@ -565,27 +580,29 @@ struct sched_state {
 struct perf_sched {
 	int			max_weight;
 	int			max_events;
-	struct perf_event	**events;
-	struct sched_state	state;
+	int			max_gp;
 	int			saved_states;
+	struct event_constraint	**constraints;
+	struct sched_state	state;
 	struct sched_state	saved[SCHED_STATES_MAX];
 };
 
 /*
  * Initialize interator that runs through all events and counters.
  */
-static void perf_sched_init(struct perf_sched *sched, struct perf_event **events,
-			    int num, int wmin, int wmax)
+static void perf_sched_init(struct perf_sched *sched, struct event_constraint **constraints,
+			    int num, int wmin, int wmax, int gpmax)
 {
 	int idx;
 
 	memset(sched, 0, sizeof(*sched));
 	sched->max_events	= num;
 	sched->max_weight	= wmax;
-	sched->events		= events;
+	sched->max_gp		= gpmax;
+	sched->constraints	= constraints;
 
 	for (idx = 0; idx < num; idx++) {
-		if (events[idx]->hw.constraint->weight == wmin)
+		if (constraints[idx]->weight == wmin)
 			break;
 	}
 
@@ -632,7 +649,7 @@ static bool __perf_sched_find_counter(struct perf_sched *sched)
 	if (sched->state.event >= sched->max_events)
 		return false;
 
-	c = sched->events[sched->state.event]->hw.constraint;
+	c = sched->constraints[sched->state.event];
 	/* Prefer fixed purpose counters */
 	if (c->idxmsk64 & (~0ULL << INTEL_PMC_IDX_FIXED)) {
 		idx = INTEL_PMC_IDX_FIXED;
@@ -641,11 +658,16 @@ static bool __perf_sched_find_counter(struct perf_sched *sched)
 				goto done;
 		}
 	}
+
 	/* Grab the first unused counter starting with idx */
 	idx = sched->state.counter;
 	for_each_set_bit_from(idx, c->idxmsk, INTEL_PMC_IDX_FIXED) {
-		if (!__test_and_set_bit(idx, sched->state.used))
+		if (!__test_and_set_bit(idx, sched->state.used)) {
+			if (sched->state.nr_gp++ >= sched->max_gp)
+				return false;
+
 			goto done;
+		}
 	}
 
 	return false;
@@ -690,7 +712,7 @@ static bool perf_sched_next_event(struct perf_sched *sched)
 			if (sched->state.weight > sched->max_weight)
 				return false;
 		}
-		c = sched->events[sched->state.event]->hw.constraint;
+		c = sched->constraints[sched->state.event];
 	} while (c->weight != sched->state.weight);
 
 	sched->state.counter = 0;	/* start with first counter */
@@ -701,12 +723,12 @@ static bool perf_sched_next_event(struct perf_sched *sched)
 /*
  * Assign a counter for each event.
  */
-int perf_assign_events(struct perf_event **events, int n,
-			int wmin, int wmax, int *assign)
+int perf_assign_events(struct event_constraint **constraints, int n,
+			int wmin, int wmax, int gpmax, int *assign)
 {
 	struct perf_sched sched;
 
-	perf_sched_init(&sched, events, n, wmin, wmax);
+	perf_sched_init(&sched, constraints, n, wmin, wmax, gpmax);
 
 	do {
 		if (!perf_sched_find_counter(&sched))
@@ -743,7 +765,7 @@ int x86_schedule_events(struct cpu_hw_events *cpuc, int n, int *assign)
 	 */
 	for (i = 0; i < n; i++) {
 		hwc = &cpuc->event_list[i]->hw;
-		c = hwc->constraint;
+		c = cpuc->event_constraint[i];
 
 		/* never assigned */
 		if (hwc->idx == -1)
@@ -1214,8 +1236,10 @@ static void x86_pmu_del(struct perf_event *event, int flags)
 		x86_pmu.put_event_constraints(cpuc, event);
 
 	/* Delete the array entry. */
-	while (++i < cpuc->n_events)
+	while (++i < cpuc->n_events) {
 		cpuc->event_list[i-1] = cpuc->event_list[i];
+		cpuc->event_constraint[i-1] = cpuc->event_constraint[i];
+	}
 	--cpuc->n_events;
 
 	perf_event_update_userpage(event);

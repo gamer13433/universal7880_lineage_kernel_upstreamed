@@ -69,13 +69,6 @@ struct tcmu_hba {
 	u32 host_id;
 };
 
-/* User wants all cmds or just some */
-enum passthru_level {
-	TCMU_PASS_ALL = 0,
-	TCMU_PASS_IO,
-	TCMU_PASS_INVALID,
-};
-
 #define TCMU_CONFIG_LEN 256
 
 struct tcmu_dev {
@@ -87,7 +80,6 @@ struct tcmu_dev {
 #define TCMU_DEV_BIT_OPEN 0
 #define TCMU_DEV_BIT_BROKEN 1
 	unsigned long flags;
-	enum passthru_level pass_level;
 
 	struct uio_info uio_info;
 
@@ -657,8 +649,6 @@ static struct se_device *tcmu_alloc_device(struct se_hba *hba, const char *name)
 	setup_timer(&udev->timeout, tcmu_device_timedout,
 		(unsigned long)udev);
 
-	udev->pass_level = TCMU_PASS_ALL;
-
 	return &udev->se_dev;
 }
 
@@ -924,13 +914,13 @@ static void tcmu_free_device(struct se_device *dev)
 }
 
 enum {
-	Opt_dev_config, Opt_dev_size, Opt_err, Opt_pass_level,
+	Opt_dev_config, Opt_dev_size, Opt_hw_block_size, Opt_err,
 };
 
 static match_table_t tokens = {
 	{Opt_dev_config, "dev_config=%s"},
 	{Opt_dev_size, "dev_size=%u"},
-	{Opt_pass_level, "pass_level=%u"},
+	{Opt_hw_block_size, "hw_block_size=%u"},
 	{Opt_err, NULL}
 };
 
@@ -941,7 +931,7 @@ static ssize_t tcmu_set_configfs_dev_params(struct se_device *dev,
 	char *orig, *ptr, *opts, *arg_p;
 	substring_t args[MAX_OPT_ARGS];
 	int ret = 0, token;
-	int arg;
+	unsigned long tmp_ul;
 
 	opts = kstrdup(page, GFP_KERNEL);
 	if (!opts)
@@ -974,15 +964,23 @@ static ssize_t tcmu_set_configfs_dev_params(struct se_device *dev,
 			if (ret < 0)
 				pr_err("kstrtoul() failed for dev_size=\n");
 			break;
-		case Opt_pass_level:
-			match_int(args, &arg);
-			if (arg >= TCMU_PASS_INVALID) {
-				pr_warn("TCMU: Invalid pass_level: %d\n", arg);
+		case Opt_hw_block_size:
+			arg_p = match_strdup(&args[0]);
+			if (!arg_p) {
+				ret = -ENOMEM;
 				break;
 			}
-
-			pr_debug("TCMU: Setting pass_level to %d\n", arg);
-			udev->pass_level = arg;
+			ret = kstrtoul(arg_p, 0, &tmp_ul);
+			kfree(arg_p);
+			if (ret < 0) {
+				pr_err("kstrtoul() failed for hw_block_size=\n");
+				break;
+			}
+			if (!tmp_ul) {
+				pr_err("hw_block_size must be nonzero\n");
+				break;
+			}
+			dev->dev_attrib.hw_block_size = tmp_ul;
 			break;
 		default:
 			break;
@@ -1000,8 +998,7 @@ static ssize_t tcmu_show_configfs_dev_params(struct se_device *dev, char *b)
 
 	bl = sprintf(b + bl, "Config: %s ",
 		     udev->dev_config[0] ? udev->dev_config : "NULL");
-	bl += sprintf(b + bl, "Size: %zu PassLevel: %u\n",
-		      udev->dev_size, udev->pass_level);
+	bl += sprintf(b + bl, "Size: %zu\n", udev->dev_size);
 
 	return bl;
 }
@@ -1015,12 +1012,9 @@ static sector_t tcmu_get_blocks(struct se_device *dev)
 }
 
 static sense_reason_t
-tcmu_execute_rw(struct se_cmd *se_cmd, struct scatterlist *sgl, u32 sgl_nents,
-		enum dma_data_direction data_direction)
+tcmu_pass_op(struct se_cmd *se_cmd)
 {
-	int ret;
-
-	ret = tcmu_queue_cmd(se_cmd);
+	int ret = tcmu_queue_cmd(se_cmd);
 
 	if (ret != 0)
 		return TCM_LOGICAL_UNIT_COMMUNICATION_FAILURE;
@@ -1097,7 +1091,7 @@ static struct se_subsystem_api tcmu_template = {
 	.inquiry_prod		= "USER",
 	.inquiry_rev		= TCMU_VERSION,
 	.owner			= THIS_MODULE,
-	.transport_type		= TRANSPORT_PLUGIN_VHBA_PDEV,
+	.transport_flags	= TRANSPORT_FLAG_PASSTHROUGH,
 	.attach_hba		= tcmu_attach_hba,
 	.detach_hba		= tcmu_detach_hba,
 	.alloc_device		= tcmu_alloc_device,

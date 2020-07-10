@@ -1743,6 +1743,7 @@ static int iwl_mvm_d3_test_release(struct inode *inode, struct file *file)
 	mvm->d3_test_active = false;
 	__iwl_mvm_resume(mvm, true);
 	iwl_abort_notification_waits(&mvm->notif_wait);
+	iwl_mvm_ref(mvm, IWL_MVM_REF_UCODE_DOWN);
 	ieee80211_restart_hw(mvm->hw);
 
 	/* wait for restart and disconnect all interfaces */
