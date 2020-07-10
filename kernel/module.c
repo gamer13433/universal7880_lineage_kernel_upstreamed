@@ -254,6 +254,153 @@ typedef struct {
 DEFINE_MUTEX(module_mutex);
 EXPORT_SYMBOL_GPL(module_mutex);
 static LIST_HEAD(modules);
+
+#ifdef CONFIG_MODULES_TREE_LOOKUP
+
+/*
+ * Use a latched RB-tree for __module_address(); this allows us to use
+ * RCU-sched lookups of the address from any context.
+ *
+ * Because modules have two address ranges: init and core, we need two
+ * latch_tree_nodes entries. Therefore we need the back-pointer from
+ * mod_tree_node.
+ *
+ * Because init ranges are short lived we mark them unlikely and have placed
+ * them outside the critical cacheline in struct module.
+ *
+ * This is conditional on PERF_EVENTS || TRACING because those can really hit
+ * __module_address() hard by doing a lot of stack unwinding; potentially from
+ * NMI context.
+ */
+
+static __always_inline unsigned long __mod_tree_val(struct latch_tree_node *n)
+{
+	struct mod_tree_node *mtn = container_of(n, struct mod_tree_node, node);
+	struct module *mod = mtn->mod;
+
+	if (unlikely(mtn == &mod->mtn_init))
+		return (unsigned long)mod->module_init;
+
+	return (unsigned long)mod->module_core;
+}
+
+static __always_inline unsigned long __mod_tree_size(struct latch_tree_node *n)
+{
+	struct mod_tree_node *mtn = container_of(n, struct mod_tree_node, node);
+	struct module *mod = mtn->mod;
+
+	if (unlikely(mtn == &mod->mtn_init))
+		return (unsigned long)mod->init_size;
+
+	return (unsigned long)mod->core_size;
+}
+
+static __always_inline bool
+mod_tree_less(struct latch_tree_node *a, struct latch_tree_node *b)
+{
+	return __mod_tree_val(a) < __mod_tree_val(b);
+}
+
+static __always_inline int
+mod_tree_comp(void *key, struct latch_tree_node *n)
+{
+	unsigned long val = (unsigned long)key;
+	unsigned long start, end;
+
+	start = __mod_tree_val(n);
+	if (val < start)
+		return -1;
+
+	end = start + __mod_tree_size(n);
+	if (val >= end)
+		return 1;
+
+	return 0;
+}
+
+static const struct latch_tree_ops mod_tree_ops = {
+	.less = mod_tree_less,
+	.comp = mod_tree_comp,
+};
+
+static struct mod_tree_root {
+	struct latch_tree_root root;
+	unsigned long addr_min;
+	unsigned long addr_max;
+} mod_tree __cacheline_aligned = {
+	.addr_min = -1UL,
+};
+
+#define module_addr_min mod_tree.addr_min
+#define module_addr_max mod_tree.addr_max
+
+static noinline void __mod_tree_insert(struct mod_tree_node *node)
+{
+	latch_tree_insert(&node->node, &mod_tree.root, &mod_tree_ops);
+}
+
+static void __mod_tree_remove(struct mod_tree_node *node)
+{
+	latch_tree_erase(&node->node, &mod_tree.root, &mod_tree_ops);
+}
+
+/*
+ * These modifications: insert, remove_init and remove; are serialized by the
+ * module_mutex.
+ */
+static void mod_tree_insert(struct module *mod)
+{
+	mod->mtn_core.mod = mod;
+	mod->mtn_init.mod = mod;
+
+	__mod_tree_insert(&mod->mtn_core);
+	if (mod->init_size)
+		__mod_tree_insert(&mod->mtn_init);
+}
+
+static void mod_tree_remove_init(struct module *mod)
+{
+	if (mod->init_size)
+		__mod_tree_remove(&mod->mtn_init);
+}
+
+static void mod_tree_remove(struct module *mod)
+{
+	__mod_tree_remove(&mod->mtn_core);
+	mod_tree_remove_init(mod);
+}
+
+static struct module *mod_find(unsigned long addr)
+{
+	struct latch_tree_node *ltn;
+
+	ltn = latch_tree_find((void *)addr, &mod_tree.root, &mod_tree_ops);
+	if (!ltn)
+		return NULL;
+
+	return container_of(ltn, struct mod_tree_node, node)->mod;
+}
+
+#else /* MODULES_TREE_LOOKUP */
+
+static void mod_tree_insert(struct module *mod) { }
+static void mod_tree_remove_init(struct module *mod) { }
+static void mod_tree_remove(struct module *mod) { }
+
+static struct module *mod_find(unsigned long addr)
+{
+	struct module *mod;
+
+	list_for_each_entry_rcu(mod, &modules, list) {
+		if (within_module(addr, mod))
+			return mod;
+	}
+
+	return NULL;
+}
+
+#endif /* MODULES_TREE_LOOKUP */
+
 #ifdef CONFIG_KGDB_KDB
 struct list_head *kdb_modules = &modules; /* kdb needs the list of modules */
 #endif /* CONFIG_KGDB_KDB */
@@ -4166,6 +4313,7 @@ static int load_module(struct load_info *info, const char __user *uargs,
 	mutex_lock(&module_mutex);
 	/* Unlink carefully: kallsyms could be walking list. */
 	list_del_rcu(&mod->list);
+	mod_tree_remove(mod);
 	wake_up_all(&module_wq);
 	mutex_unlock(&module_mutex);
  free_module:

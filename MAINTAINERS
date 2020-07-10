@@ -5621,7 +5621,7 @@ M:	Michael Ellerman <mpe@ellerman.id.au>
 W:	http://www.penguinppc.org/
 L:	linuxppc-dev@lists.ozlabs.org
 Q:	http://patchwork.ozlabs.org/project/linuxppc-dev/list/
-T:	git git://git.kernel.org/pub/scm/linux/kernel/git/benh/powerpc.git
+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/powerpc/linux.git
 S:	Supported
 F:	Documentation/powerpc/
 F:	arch/powerpc/
@@ -7687,10 +7687,12 @@ RADOS BLOCK DEVICE (RBD)
 M:	Yehuda Sadeh <yehuda@inktank.com>
 M:	Sage Weil <sage@inktank.com>
 M:	Alex Elder <elder@kernel.org>
-M:	ceph-devel@vger.kernel.org
+L:	ceph-devel@vger.kernel.org
 W:	http://ceph.com/
 T:	git git://git.kernel.org/pub/scm/linux/kernel/git/sage/ceph-client.git
+T:	git git://github.com/ceph/ceph-client.git
 S:	Supported
+F:	Documentation/ABI/testing/sysfs-bus-rbd
 F:	drivers/block/rbd.c
 F:	drivers/block/rbd_types.h
 

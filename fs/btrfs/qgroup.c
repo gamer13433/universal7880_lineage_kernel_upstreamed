@@ -1171,6 +1171,11 @@ int btrfs_limit_qgroup(struct btrfs_trans_handle *trans,
 	struct btrfs_root *quota_root;
 	struct btrfs_qgroup *qgroup;
 	int ret = 0;
+	/* Sometimes we would want to clear the limit on this qgroup.
+	 * To meet this requirement, we treat the -1 as a special value
+	 * which tell kernel to clear the limit on this qgroup.
+	 */
+	const u64 CLEAR_VALUE = -1;
 
 	mutex_lock(&fs_info->qgroup_ioctl_lock);
 	quota_root = fs_info->quota_root;

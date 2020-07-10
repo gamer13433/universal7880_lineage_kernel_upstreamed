@@ -2,6 +2,7 @@ tools/perf
 tools/scripts
 tools/lib/traceevent
 tools/lib/api
+tools/lib/rbtree.c
 tools/lib/symbol/kallsyms.c
 tools/lib/symbol/kallsyms.h
 tools/include/asm/bug.h
@@ -26,7 +27,6 @@ arch/*/lib/memset*.S
 include/linux/poison.h
 include/linux/magic.h
 include/linux/hw_breakpoint.h
-include/linux/rbtree_augmented.h
 include/uapi/linux/perf_event.h
 include/uapi/linux/const.h
 include/uapi/linux/swab.h

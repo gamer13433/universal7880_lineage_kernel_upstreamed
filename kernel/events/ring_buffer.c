@@ -220,6 +220,11 @@ void perf_output_end(struct perf_output_handle *handle)
 	rcu_read_unlock();
 }
 
+static void rb_irq_work(struct irq_work *work)
+{
+	struct ring_buffer *rb = container_of(work, struct ring_buffer, irq_work);
+}
+
 static void
 ring_buffer_init(struct ring_buffer *rb, long watermark, int flags)
 {
@@ -240,6 +245,16 @@ ring_buffer_init(struct ring_buffer *rb, long watermark, int flags)
 
 	INIT_LIST_HEAD(&rb->event_list);
 	spin_lock_init(&rb->event_lock);
+	init_irq_work(&rb->irq_work, rb_irq_work);
+}
+
+static void ring_buffer_put_async(struct ring_buffer *rb)
+{
+	if (!atomic_dec_and_test(&rb->refcount))
+		return;
+
+	rb->rcu_head.next = (void *)rb;
+	irq_work_queue(&rb->irq_work);
 }
 
 #ifndef CONFIG_PERF_USE_VMALLOC

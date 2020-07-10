@@ -851,6 +851,29 @@ static void acpi_device_remove_files(struct acpi_device *dev)
 			ACPI Bus operations
    -------------------------------------------------------------------------- */
 
+static bool __acpi_match_device_cls(const struct acpi_device_id *id,
+				    struct acpi_hardware_id *hwid)
+{
+	int i, msk, byte_shift;
+	char buf[3];
+
+	if (!id->cls)
+		return false;
+
+	/* Apply class-code bitmask, before checking each class-code byte */
+	for (i = 1; i <= 3; i++) {
+		byte_shift = 8 * (3 - i);
+		msk = (id->cls_msk >> byte_shift) & 0xFF;
+		if (!msk)
+			continue;
+
+		sprintf(buf, "%02x", (id->cls >> byte_shift) & msk);
+		if (strncmp(buf, &hwid->id[(i - 1) * 2], 2))
+			return false;
+	}
+	return true;
+}
+
 static const struct acpi_device_id *__acpi_match_device(
 	struct acpi_device *device, const struct acpi_device_id *ids)
 {
@@ -1865,6 +1888,8 @@ static void acpi_set_pnp_ids(acpi_handle handle, struct acpi_device_pnp *pnp,
 		if (info->valid & ACPI_VALID_UID)
 			pnp->unique_id = kstrdup(info->unique_id.string,
 							GFP_KERNEL);
+		if (info->valid & ACPI_VALID_CLS)
+			acpi_add_id(pnp, info->class_code.string);
 
 		kfree(info);
 

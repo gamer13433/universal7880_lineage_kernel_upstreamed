@@ -105,8 +105,16 @@ int cxl_context_init(struct cxl_context *ctx, struct cxl_afu *afu, bool master,
  */
 int cxl_context_iomap(struct cxl_context *ctx, struct vm_area_struct *vma)
 {
+	u64 start = vma->vm_pgoff << PAGE_SHIFT;
 	u64 len = vma->vm_end - vma->vm_start;
-	len = min(len, ctx->psn_size);
+
+	if (ctx->afu->current_mode == CXL_MODE_DEDICATED) {
+		if (start + len > ctx->afu->adapter->ps_size)
+			return -EINVAL;
+	} else {
+		if (start + len > ctx->psn_size)
+			return -EINVAL;
+	}
 
 	if (ctx->afu->current_mode == CXL_MODE_DEDICATED) {
 		vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);

@@ -179,7 +179,7 @@ struct clk *clk_register_flexgen(const char *name,
 
 	init.name = name;
 	init.ops = &flexgen_ops;
-	init.flags = CLK_IS_BASIC | flexgen_flags;
+	init.flags = CLK_IS_BASIC | CLK_GET_RATE_NOCACHE | flexgen_flags;
 	init.parent_names = parent_names;
 	init.num_parents = num_parents;
 
@@ -291,6 +291,8 @@ void __init st_of_flexgen_setup(struct device_node *np)
 	rlock = kzalloc(sizeof(spinlock_t), GFP_KERNEL);
 	if (!rlock)
 		goto err;
+
+	spin_lock_init(rlock);
 
 	for (i = 0; i < clk_data->clk_num; i++) {
 		struct clk *clk;

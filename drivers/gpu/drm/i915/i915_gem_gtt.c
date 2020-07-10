@@ -1308,6 +1308,8 @@ void i915_gem_restore_gtt_mappings(struct drm_device *dev)
 	struct drm_i915_private *dev_priv = dev->dev_private;
 	struct drm_i915_gem_object *obj;
 	struct i915_address_space *vm;
+	struct i915_vma *vma;
+	bool flush;
 
 	i915_check_and_clear_faults(dev);
 

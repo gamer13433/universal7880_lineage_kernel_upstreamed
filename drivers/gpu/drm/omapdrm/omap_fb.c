@@ -282,10 +282,10 @@ fail:
 }
 
 /* unpin, no longer being scanned out: */
-int omap_framebuffer_unpin(struct drm_framebuffer *fb)
+void omap_framebuffer_unpin(struct drm_framebuffer *fb)
 {
 	struct omap_framebuffer *omap_fb = to_omap_framebuffer(fb);
-	int ret, i, n = drm_format_num_planes(fb->pixel_format);
+	int i, n = drm_format_num_planes(fb->pixel_format);
 
 	for (i = 0; i < n; i++) {
 		struct plane *plane = &omap_fb->planes[i];

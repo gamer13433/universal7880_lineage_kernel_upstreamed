@@ -8,6 +8,7 @@
 #include <linux/radix-tree.h>
 #include <linux/uio.h>
 #include <linux/workqueue.h>
+#include <net/net_namespace.h>
 
 #include <linux/ceph/types.h>
 #include <linux/ceph/buffer.h>
@@ -52,6 +53,7 @@ struct ceph_messenger {
 	struct ceph_entity_addr my_enc_addr;
 
 	atomic_t stopping;
+	possible_net_t net;
 	bool nocrc;
 
 	/*

@@ -26,6 +26,7 @@
 #include <linux/device.h>
 #include <linux/export.h>
 #include <linux/ioport.h>
+#include <linux/list.h>
 #include <linux/slab.h>
 
 #ifdef CONFIG_X86

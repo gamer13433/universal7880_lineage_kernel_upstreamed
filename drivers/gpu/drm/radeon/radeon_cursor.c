@@ -91,15 +91,34 @@ static void radeon_show_cursor(struct drm_crtc *crtc)
 	struct radeon_device *rdev = crtc->dev->dev_private;
 
 	if (ASIC_IS_DCE4(rdev)) {
+		WREG32(EVERGREEN_CUR_SURFACE_ADDRESS_HIGH + radeon_crtc->crtc_offset,
+		       upper_32_bits(radeon_crtc->cursor_addr));
+		WREG32(EVERGREEN_CUR_SURFACE_ADDRESS + radeon_crtc->crtc_offset,
+		       lower_32_bits(radeon_crtc->cursor_addr));
 		WREG32(RADEON_MM_INDEX, EVERGREEN_CUR_CONTROL + radeon_crtc->crtc_offset);
 		WREG32(RADEON_MM_DATA, EVERGREEN_CURSOR_EN |
 		       EVERGREEN_CURSOR_MODE(EVERGREEN_CURSOR_24_8_PRE_MULT) |
 		       EVERGREEN_CURSOR_URGENT_CONTROL(EVERGREEN_CURSOR_URGENT_1_2));
 	} else if (ASIC_IS_AVIVO(rdev)) {
+		if (rdev->family >= CHIP_RV770) {
+			if (radeon_crtc->crtc_id)
+				WREG32(R700_D2CUR_SURFACE_ADDRESS_HIGH,
+				       upper_32_bits(radeon_crtc->cursor_addr));
+			else
+				WREG32(R700_D1CUR_SURFACE_ADDRESS_HIGH,
+				       upper_32_bits(radeon_crtc->cursor_addr));
+		}
+
+		WREG32(AVIVO_D1CUR_SURFACE_ADDRESS + radeon_crtc->crtc_offset,
+		       lower_32_bits(radeon_crtc->cursor_addr));
 		WREG32(RADEON_MM_INDEX, AVIVO_D1CUR_CONTROL + radeon_crtc->crtc_offset);
 		WREG32(RADEON_MM_DATA, AVIVO_D1CURSOR_EN |
 		       (AVIVO_D1CURSOR_MODE_24BPP << AVIVO_D1CURSOR_MODE_SHIFT));
 	} else {
+		/* offset is from DISP(2)_BASE_ADDRESS */
+		WREG32(RADEON_CUR_OFFSET + radeon_crtc->crtc_offset,
+		       radeon_crtc->cursor_addr - radeon_crtc->legacy_display_base_addr);
+
 		switch (radeon_crtc->crtc_id) {
 		case 0:
 			WREG32(RADEON_MM_INDEX, RADEON_CRTC_GEN_CNTL);
@@ -305,8 +324,9 @@ int radeon_crtc_cursor_move(struct drm_crtc *crtc,
 			| (x << 16)
 			| y));
 		/* offset is from DISP(2)_BASE_ADDRESS */
-		WREG32(RADEON_CUR_OFFSET + radeon_crtc->crtc_offset, (radeon_crtc->legacy_cursor_offset +
-								      (yorigin * 256)));
+		WREG32(RADEON_CUR_OFFSET + radeon_crtc->crtc_offset,
+		       radeon_crtc->cursor_addr - radeon_crtc->legacy_display_base_addr +
+		       yorigin * 256);
 	}
 	radeon_lock_cursor(crtc, false);
 

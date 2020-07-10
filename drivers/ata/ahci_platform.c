@@ -20,6 +20,8 @@
 #include <linux/platform_device.h>
 #include <linux/libata.h>
 #include <linux/ahci_platform.h>
+#include <linux/acpi.h>
+#include <linux/pci_ids.h>
 #include "ahci.h"
 
 static const struct ata_port_info ahci_port_info = {

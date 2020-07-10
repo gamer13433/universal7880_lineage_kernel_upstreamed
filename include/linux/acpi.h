@@ -442,6 +442,7 @@ struct platform_device *acpi_create_platform_device(struct acpi_device *);
 #define ACPI_COMPANION(dev)		(NULL)
 #define ACPI_COMPANION_SET(dev, adev)	do { } while (0)
 #define ACPI_HANDLE(dev)		(NULL)
+#define ACPI_DEVICE_CLASS(_cls, _msk)	.cls = (0), .cls_msk = (0),
 
 static inline const char *acpi_dev_name(struct acpi_device *adev)
 {

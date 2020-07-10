@@ -236,7 +236,7 @@ static struct elog_obj *create_elog_obj(uint64_t id, size_t size, uint64_t type)
 	return elog;
 }
 
-static void elog_work_fn(struct work_struct *work)
+static irqreturn_t elog_event(int irq, void *data)
 {
 	__be64 size;
 	__be64 id;
@@ -250,7 +250,7 @@ static void elog_work_fn(struct work_struct *work)
 	rc = opal_get_elog_size(&id, &size, &type);
 	if (rc != OPAL_SUCCESS) {
 		pr_err("ELOG: OPAL log info read failed\n");
-		return;
+		return IRQ_HANDLED;
 	}
 
 	elog_size = be64_to_cpu(size);

@@ -4076,6 +4076,9 @@ static void intel_crtc_disable_planes(struct drm_crtc *crtc)
 	int pipe = intel_crtc->pipe;
 	int plane = intel_crtc->plane;
 
+	if (!intel_crtc->active)
+		return;
+
 	intel_crtc_wait_for_pending_flips(crtc);
 
 	if (dev_priv->fbc.plane == plane)
@@ -6411,7 +6414,7 @@ static void chv_crtc_clock_get(struct intel_crtc *crtc,
 	int pipe = pipe_config->cpu_transcoder;
 	enum dpio_channel port = vlv_pipe_to_channel(pipe);
 	intel_clock_t clock;
-	u32 cmn_dw13, pll_dw0, pll_dw1, pll_dw2;
+	u32 cmn_dw13, pll_dw0, pll_dw1, pll_dw2, pll_dw3;
 	int refclk = 100000;
 
 	mutex_lock(&dev_priv->dpio_lock);

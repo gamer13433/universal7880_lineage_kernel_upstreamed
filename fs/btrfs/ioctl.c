@@ -87,7 +87,8 @@ struct btrfs_ioctl_received_subvol_args_32 {
 
 
 static int btrfs_clone(struct inode *src, struct inode *inode,
-		       u64 off, u64 olen, u64 olen_aligned, u64 destoff);
+		       u64 off, u64 olen, u64 olen_aligned, u64 destoff,
+		       int no_time_update);
 
 /* Mask out flags that are inappropriate for the given type of inode. */
 static inline __u32 btrfs_mask_flags(umode_t mode, __u32 flags)
@@ -2775,13 +2776,10 @@ out:
 	return ret;
 }
 
-static struct page *extent_same_get_page(struct inode *inode, u64 off)
+static struct page *extent_same_get_page(struct inode *inode, pgoff_t index)
 {
 	struct page *page;
-	pgoff_t index;
 	struct extent_io_tree *tree = &BTRFS_I(inode)->io_tree;
-
-	index = off >> PAGE_CACHE_SHIFT;
 
 	page = grab_cache_page(inode->i_mapping, index);
 	if (!page)
@@ -2801,6 +2799,20 @@ static struct page *extent_same_get_page(struct inode *inode, u64 off)
 	unlock_page(page);
 
 	return page;
+}
+
+static int gather_extent_pages(struct inode *inode, struct page **pages,
+			       int num_pages, u64 off)
+{
+	int i;
+	pgoff_t index = off >> PAGE_CACHE_SHIFT;
+
+	for (i = 0; i < num_pages; i++) {
+		pages[i] = extent_same_get_page(inode, index + i);
+		if (!pages[i])
+			return -ENOMEM;
+	}
+	return 0;
 }
 
 static inline void lock_extent_range(struct inode *inode, u64 off, u64 len)
@@ -2828,52 +2840,120 @@ static inline void lock_extent_range(struct inode *inode, u64 off, u64 len)
 	}
 }
 
-static void btrfs_double_unlock(struct inode *inode1, u64 loff1,
-				struct inode *inode2, u64 loff2, u64 len)
+static void btrfs_double_inode_unlock(struct inode *inode1, struct inode *inode2)
 {
-	unlock_extent(&BTRFS_I(inode1)->io_tree, loff1, loff1 + len - 1);
-	unlock_extent(&BTRFS_I(inode2)->io_tree, loff2, loff2 + len - 1);
-
 	mutex_unlock(&inode1->i_mutex);
 	mutex_unlock(&inode2->i_mutex);
 }
 
-static void btrfs_double_lock(struct inode *inode1, u64 loff1,
-			      struct inode *inode2, u64 loff2, u64 len)
+static void btrfs_double_inode_lock(struct inode *inode1, struct inode *inode2)
+{
+	if (inode1 < inode2)
+		swap(inode1, inode2);
+
+	mutex_lock_nested(&inode1->i_mutex, I_MUTEX_PARENT);
+	if (inode1 != inode2)
+		mutex_lock_nested(&inode2->i_mutex, I_MUTEX_CHILD);
+}
+
+static void btrfs_double_extent_unlock(struct inode *inode1, u64 loff1,
+				      struct inode *inode2, u64 loff2, u64 len)
+{
+	unlock_extent(&BTRFS_I(inode1)->io_tree, loff1, loff1 + len - 1);
+	unlock_extent(&BTRFS_I(inode2)->io_tree, loff2, loff2 + len - 1);
+}
+
+static void btrfs_double_extent_lock(struct inode *inode1, u64 loff1,
+				     struct inode *inode2, u64 loff2, u64 len)
 {
 	if (inode1 < inode2) {
 		swap(inode1, inode2);
 		swap(loff1, loff2);
 	}
-
-	mutex_lock_nested(&inode1->i_mutex, I_MUTEX_PARENT);
 	lock_extent_range(inode1, loff1, len);
-	if (inode1 != inode2) {
-		mutex_lock_nested(&inode2->i_mutex, I_MUTEX_CHILD);
+	if (inode1 != inode2)
 		lock_extent_range(inode2, loff2, len);
+}
+
+struct cmp_pages {
+	int		num_pages;
+	struct page	**src_pages;
+	struct page	**dst_pages;
+};
+
+static void btrfs_cmp_data_free(struct cmp_pages *cmp)
+{
+	int i;
+	struct page *pg;
+
+	for (i = 0; i < cmp->num_pages; i++) {
+		pg = cmp->src_pages[i];
+		if (pg)
+			page_cache_release(pg);
+		pg = cmp->dst_pages[i];
+		if (pg)
+			page_cache_release(pg);
 	}
+	kfree(cmp->src_pages);
+	kfree(cmp->dst_pages);
+}
+
+static int btrfs_cmp_data_prepare(struct inode *src, u64 loff,
+				  struct inode *dst, u64 dst_loff,
+				  u64 len, struct cmp_pages *cmp)
+{
+	int ret;
+	int num_pages = PAGE_CACHE_ALIGN(len) >> PAGE_CACHE_SHIFT;
+	struct page **src_pgarr, **dst_pgarr;
+
+	/*
+	 * We must gather up all the pages before we initiate our
+	 * extent locking. We use an array for the page pointers. Size
+	 * of the array is bounded by len, which is in turn bounded by
+	 * BTRFS_MAX_DEDUPE_LEN.
+	 */
+	src_pgarr = kzalloc(num_pages * sizeof(struct page *), GFP_NOFS);
+	dst_pgarr = kzalloc(num_pages * sizeof(struct page *), GFP_NOFS);
+	if (!src_pgarr || !dst_pgarr) {
+		kfree(src_pgarr);
+		kfree(dst_pgarr);
+		return -ENOMEM;
+	}
+	cmp->num_pages = num_pages;
+	cmp->src_pages = src_pgarr;
+	cmp->dst_pages = dst_pgarr;
+
+	ret = gather_extent_pages(src, cmp->src_pages, cmp->num_pages, loff);
+	if (ret)
+		goto out;
+
+	ret = gather_extent_pages(dst, cmp->dst_pages, cmp->num_pages, dst_loff);
+
+out:
+	if (ret)
+		btrfs_cmp_data_free(cmp);
+	return 0;
 }
 
 static int btrfs_cmp_data(struct inode *src, u64 loff, struct inode *dst,
-			  u64 dst_loff, u64 len)
+			  u64 dst_loff, u64 len, struct cmp_pages *cmp)
 {
 	int ret = 0;
+	int i;
 	struct page *src_page, *dst_page;
 	unsigned int cmp_len = PAGE_CACHE_SIZE;
 	void *addr, *dst_addr;
 
+	i = 0;
 	while (len) {
 		if (len < PAGE_CACHE_SIZE)
 			cmp_len = len;
 
-		src_page = extent_same_get_page(src, loff);
-		if (!src_page)
-			return -EINVAL;
-		dst_page = extent_same_get_page(dst, dst_loff);
-		if (!dst_page) {
-			page_cache_release(src_page);
-			return -EINVAL;
-		}
+		BUG_ON(i >= cmp->num_pages);
+
+		src_page = cmp->src_pages[i];
+		dst_page = cmp->dst_pages[i];
+
 		addr = kmap_atomic(src_page);
 		dst_addr = kmap_atomic(dst_page);
 
@@ -2885,15 +2965,12 @@ static int btrfs_cmp_data(struct inode *src, u64 loff, struct inode *dst,
 
 		kunmap_atomic(addr);
 		kunmap_atomic(dst_addr);
-		page_cache_release(src_page);
-		page_cache_release(dst_page);
 
 		if (ret)
 			break;
 
-		loff += cmp_len;
-		dst_loff += cmp_len;
 		len -= cmp_len;
+		i++;
 	}
 
 	return ret;
@@ -3102,13 +3179,15 @@ static int clone_finish_inode_update(struct btrfs_trans_handle *trans,
 				     struct inode *inode,
 				     u64 endoff,
 				     const u64 destoff,
-				     const u64 olen)
+				     const u64 olen,
+				     int no_time_update)
 {
 	struct btrfs_root *root = BTRFS_I(inode)->root;
 	int ret;
 
 	inode_inc_iversion(inode);
-	inode->i_mtime = inode->i_ctime = CURRENT_TIME;
+	if (!no_time_update)
+		inode->i_mtime = inode->i_ctime = CURRENT_TIME;
 	/*
 	 * We round up to the block size at eof when determining which
 	 * extents to clone above, but shouldn't round up the file size.
@@ -3193,13 +3272,13 @@ static void clone_update_extent_map(struct inode *inode,
  * @inode: Inode to clone to
  * @off: Offset within source to start clone from
  * @olen: Original length, passed by user, of range to clone
- * @olen_aligned: Block-aligned value of olen, extent_same uses
- *               identical values here
+ * @olen_aligned: Block-aligned value of olen
  * @destoff: Offset within @inode to start clone
+ * @no_time_update: Whether to update mtime/ctime on the target inode
  */
 static int btrfs_clone(struct inode *src, struct inode *inode,
 		       const u64 off, const u64 olen, const u64 olen_aligned,
-		       const u64 destoff)
+		       const u64 destoff, int no_time_update)
 {
 	struct btrfs_root *root = BTRFS_I(inode)->root;
 	struct btrfs_path *path = NULL;
@@ -3521,7 +3600,8 @@ process_slot:
 					      root->sectorsize);
 			ret = clone_finish_inode_update(trans, inode,
 							last_dest_end,
-							destoff, olen);
+							destoff, olen,
+							no_time_update);
 			if (ret)
 				goto out;
 			if (new_key.offset + datal >= destoff + len)
@@ -3559,7 +3639,7 @@ process_slot:
 		clone_update_extent_map(inode, trans, NULL, last_dest_end,
 					destoff + len - last_dest_end);
 		ret = clone_finish_inode_update(trans, inode, destoff + len,
-						destoff, olen);
+						destoff, olen, no_time_update);
 	}
 
 out:
@@ -3696,7 +3776,7 @@ static noinline long btrfs_ioctl_clone(struct file *file, unsigned long srcfd,
 		lock_extent_range(inode, destoff, len);
 	}
 
-	ret = btrfs_clone(src, inode, off, olen, len, destoff);
+	ret = btrfs_clone(src, inode, off, olen, len, destoff, 0);
 
 	if (same_inode) {
 		u64 lock_start = min_t(u64, off, destoff);

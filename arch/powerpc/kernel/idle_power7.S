@@ -36,6 +36,22 @@
 	.text
 
 /*
+ * Used by threads when the lock bit of core_idle_state is set.
+ * Threads will spin in HMT_LOW until the lock bit is cleared.
+ * r14 - pointer to core_idle_state
+ * r15 - used to load contents of core_idle_state
+ */
+
+core_idle_lock_held:
+	HMT_LOW
+3:	lwz	r15,0(r14)
+	andi.   r15,r15,PNV_CORE_IDLE_LOCK_BIT
+	bne	3b
+	HMT_MEDIUM
+	lwarx	r15,0,r14
+	blr
+
+/*
  * Pass requested state in r3:
  * 	0 - nap
  * 	1 - sleep
