@@ -1971,6 +1971,7 @@ static int fec_enet_mii_init(struct platform_device *pdev)
 				platform_get_device_id(fep->pdev);
 	struct device_node *node;
 	int err = -ENXIO, i;
+	u32 mii_speed, holdtime;
 
 	/*
 	 * The dual fec interfaces are not equivalent with enet-mac.

@@ -21,6 +21,7 @@
 #include <linux/can/dev.h>
 #include <linux/can/error.h>
 
+#define MAX_TX_URBS			16
 #define MAX_RX_URBS			4
 #define START_TIMEOUT			1000 /* msecs */
 #define STOP_TIMEOUT			1000 /* msecs */
@@ -272,7 +273,6 @@ struct kvaser_msg {
 	} u;
 } __packed;
 
-/* Context for an outstanding, not yet ACKed, transmission */
 struct kvaser_usb_tx_urb_context {
 	struct kvaser_usb_net_priv *priv;
 	u32 echo_index;
@@ -408,8 +408,8 @@ static int kvaser_usb_wait_msg(const struct kvaser_usb *dev, u8 id,
 			 * for further details.
 			 */
 			if (tmp->len == 0) {
-				pos = round_up(pos, le16_to_cpu(dev->bulk_in->
-								wMaxPacketSize));
+				pos = round_up(pos,
+					       dev->bulk_in->wMaxPacketSize);
 				continue;
 			}
 
@@ -519,7 +519,7 @@ static void kvaser_usb_tx_acknowledge(const struct kvaser_usb *dev,
 
 	stats = &priv->netdev->stats;
 
-	context = &priv->tx_contexts[tid % dev->max_tx_urbs];
+	context = &priv->tx_contexts[tid % MAX_TX_URBS];
 
 	/* Sometimes the state change doesn't come after a bus-off event */
 	if (priv->can.restart_ms &&
@@ -1000,8 +1000,7 @@ static void kvaser_usb_read_bulk_callback(struct urb *urb)
 		 * number of events in case of a heavy rx load on the bus.
 		 */
 		if (msg->len == 0) {
-			pos = round_up(pos, le16_to_cpu(dev->bulk_in->
-							wMaxPacketSize));
+			pos = round_up(pos, dev->bulk_in->wMaxPacketSize);
 			continue;
 		}
 
@@ -1520,9 +1519,7 @@ static int kvaser_usb_init_one(struct usb_interface *intf,
 	if (err)
 		return err;
 
-	netdev = alloc_candev(sizeof(*priv) +
-			      dev->max_tx_urbs * sizeof(*priv->tx_contexts),
-			      dev->max_tx_urbs);
+	netdev = alloc_candev(sizeof(*priv), MAX_TX_URBS);
 	if (!netdev) {
 		dev_err(&intf->dev, "Cannot alloc candev\n");
 		return -ENOMEM;
@@ -1641,19 +1638,17 @@ static int kvaser_usb_probe(struct usb_interface *intf,
 		return err;
 	}
 
-	dev_dbg(&intf->dev, "Firmware version: %d.%d.%d\n",
-		((dev->fw_version >> 24) & 0xff),
-		((dev->fw_version >> 16) & 0xff),
-		(dev->fw_version & 0xffff));
-
-	dev_dbg(&intf->dev, "Max oustanding tx = %d URBs\n", dev->max_tx_urbs);
-
 	err = kvaser_usb_get_card_info(dev);
 	if (err) {
 		dev_err(&intf->dev,
 			"Cannot get card infos, error %d\n", err);
 		return err;
 	}
+
+	dev_dbg(&intf->dev, "Firmware version: %d.%d.%d\n",
+		((dev->fw_version >> 24) & 0xff),
+		((dev->fw_version >> 16) & 0xff),
+		(dev->fw_version & 0xffff));
 
 	for (i = 0; i < dev->nchannels; i++) {
 		err = kvaser_usb_init_one(intf, id, i);

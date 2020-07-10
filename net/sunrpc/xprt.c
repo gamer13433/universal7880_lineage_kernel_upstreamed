@@ -1296,6 +1296,7 @@ static void xprt_init(struct rpc_xprt *xprt, struct net *net)
  */
 struct rpc_xprt *xprt_create_transport(struct xprt_create *args)
 {
+	int err;
 	struct rpc_xprt	*xprt;
 	struct xprt_class *t;
 

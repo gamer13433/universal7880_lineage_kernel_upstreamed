@@ -136,6 +136,7 @@ struct fimd_win_data {
 	unsigned int		ovl_height;
 	unsigned int		fb_width;
 	unsigned int		fb_height;
+	unsigned int		fb_pitch;
 	unsigned int		bpp;
 	unsigned int		pixel_format;
 	dma_addr_t		dma_addr;
@@ -665,7 +666,7 @@ static void fimd_win_commit(struct exynos_drm_manager *mgr, int zpos)
 	writel(val, ctx->regs + VIDWx_BUF_START(win, 0));
 
 	/* buffer end address */
-	size = win_data->fb_width * win_data->ovl_height * (win_data->bpp >> 3);
+	size = win_data->fb_pitch * win_data->ovl_height * (win_data->bpp >> 3);
 	val = (unsigned long)(win_data->dma_addr + size);
 	writel(val, ctx->regs + VIDWx_BUF_END(win, 0));
 

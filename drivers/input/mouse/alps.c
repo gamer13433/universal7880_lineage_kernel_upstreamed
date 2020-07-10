@@ -1142,8 +1142,8 @@ static psmouse_ret_t alps_handle_interleaved_ps2(struct psmouse *psmouse)
 		 * de-synchronization.
 		 */
 
-		alps_report_bare_ps2_packet(psmouse, &psmouse->packet[3],
-					    false);
+		alps_report_bare_ps2_packet(priv->dev2,
+					    &psmouse->packet[3], false);
 
 		/*
 		 * Continue with the standard ALPS protocol handling,
@@ -1199,9 +1199,18 @@ static psmouse_ret_t alps_process_byte(struct psmouse *psmouse)
 	 * properly we only do this if the device is fully synchronized.
 	 */
 	if (!psmouse->out_of_sync_cnt && (psmouse->packet[0] & 0xc8) == 0x08) {
+
+		/* Register dev3 mouse if we received PS/2 packet first time */
+		if (unlikely(!priv->dev3))
+			psmouse_queue_work(psmouse,
+					   &priv->dev3_register_work, 0);
+
 		if (psmouse->pktcnt == 3) {
-			alps_report_bare_ps2_packet(psmouse, psmouse->packet,
-						    true);
+			/* Once dev3 mouse device is registered report data */
+			if (likely(!IS_ERR_OR_NULL(priv->dev3)))
+				alps_report_bare_ps2_packet(priv->dev3,
+							    psmouse->packet,
+							    true);
 			return PSMOUSE_FULL_PACKET;
 		}
 		return PSMOUSE_GOOD_DATA;

@@ -149,6 +149,11 @@ static const struct min_max_quirk min_max_pnpid_table[] = {
 	},
 	{
 		(const char * const []){"LEN2006", NULL},
+		{2691, 2691},
+		1024, 5045, 2457, 4832
+	},
+	{
+		(const char * const []){"LEN2006", NULL},
 		1264, 5675, 1171, 4688
 	},
 	{ }
@@ -185,7 +190,7 @@ static const char * const topbuttonpad_pnp_ids[] = {
 	"LEN2003",
 	"LEN2004", /* L440 */
 	"LEN2005",
-	"LEN2006",
+	"LEN2006", /* Edge E440/E540 */
 	"LEN2007",
 	"LEN2008",
 	"LEN2009",

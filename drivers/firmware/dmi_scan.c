@@ -86,10 +86,13 @@ static void dmi_table(u8 *buf, u32 len, int num,
 	int i = 0;
 
 	/*
-	 *	Stop when we see all the items the table claimed to have
-	 *	OR we run off the end of the table (also happens)
+	 * Stop when we have seen all the items the table claimed to have
+	 * (SMBIOS < 3.0 only) OR we reach an end-of-table marker OR we run
+	 * off the end of the table (should never happen but sometimes does
+	 * on bogus implementations.)
 	 */
-	while ((i < num) && (data - buf + sizeof(struct dmi_header)) <= len) {
+	while ((!num || i < num) &&
+	       (data - buf + sizeof(struct dmi_header)) <= len) {
 		const struct dmi_header *dm = (const struct dmi_header *)data;
 
 		/*
