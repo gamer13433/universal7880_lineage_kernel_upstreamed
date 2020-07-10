@@ -1267,7 +1267,7 @@ int ipmi_set_gets_events(ipmi_user_t user, bool val)
  out:
 	spin_unlock_irqrestore(&intf->events_lock, flags);
 
-	return 0;
+	return seq_has_overflowed(m);
 }
 EXPORT_SYMBOL(ipmi_set_gets_events);
 
@@ -3120,7 +3120,7 @@ static int handle_ipmb_get_msg_rsp(ipmi_smi_t          intf,
 	ipmi_inc_stat(intf, handled_ipmb_responses);
 	deliver_response(recv_msg);
 
-	return 0;
+	return seq_has_overflowed(m);
 }
 
 static int handle_ipmb_get_msg_cmd(ipmi_smi_t          intf,

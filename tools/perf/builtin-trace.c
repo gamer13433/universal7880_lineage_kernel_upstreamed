@@ -2166,6 +2166,11 @@ next_event:
 
 			if (interrupted)
 				goto out_disable;
+
+			if (done && !draining) {
+				perf_evlist__disable(evlist);
+				draining = true;
+			}
 		}
 	}
 

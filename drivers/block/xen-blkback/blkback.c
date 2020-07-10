@@ -262,6 +262,17 @@ static void put_persistent_gnt(struct xen_blkif *blkif,
 	atomic_dec(&blkif->persistent_gnt_in_use);
 }
 
+static void free_persistent_gnts_unmap_callback(int result,
+						struct gntab_unmap_queue_data *data)
+{
+	struct completion *c = data->data;
+
+	/* BUG_ON used to reproduce existing behaviour,
+	   but is this the best way to deal with this? */
+	BUG_ON(result);
+	complete(c);
+}
+
 static void free_persistent_gnts(struct xen_blkif *blkif, struct rb_root *root,
                                  unsigned int num)
 {

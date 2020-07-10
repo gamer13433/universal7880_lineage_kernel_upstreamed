@@ -749,7 +749,7 @@ static void mcam_ctlr_image(struct mcam_camera *cam)
 
 	switch (fmt->pixelformat) {
 	case V4L2_PIX_FMT_YUYV:
-	case V4L2_PIX_FMT_UYVY:
+	case V4L2_PIX_FMT_YVYU:
 		widthy = fmt->width * 2;
 		widthuv = 0;
 		break;
@@ -785,15 +785,15 @@ static void mcam_ctlr_image(struct mcam_camera *cam)
 	case V4L2_PIX_FMT_YUV420:
 	case V4L2_PIX_FMT_YVU420:
 		mcam_reg_write_mask(cam, REG_CTRL0,
-			C0_DF_YUV | C0_YUV_420PL | C0_YUVE_YVYU, C0_DF_MASK);
+			C0_DF_YUV | C0_YUV_420PL | C0_YUVE_VYUY, C0_DF_MASK);
 		break;
 	case V4L2_PIX_FMT_YUYV:
 		mcam_reg_write_mask(cam, REG_CTRL0,
-			C0_DF_YUV | C0_YUV_PACKED | C0_YUVE_UYVY, C0_DF_MASK);
+			C0_DF_YUV | C0_YUV_PACKED | C0_YUVE_NOSWAP, C0_DF_MASK);
 		break;
-	case V4L2_PIX_FMT_UYVY:
+	case V4L2_PIX_FMT_YVYU:
 		mcam_reg_write_mask(cam, REG_CTRL0,
-			C0_DF_YUV | C0_YUV_PACKED | C0_YUVE_YUYV, C0_DF_MASK);
+			C0_DF_YUV | C0_YUV_PACKED | C0_YUVE_SWAP24, C0_DF_MASK);
 		break;
 	case V4L2_PIX_FMT_JPEG:
 		mcam_reg_write_mask(cam, REG_CTRL0,
