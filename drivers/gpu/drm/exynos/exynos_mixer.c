@@ -68,6 +68,12 @@ struct hdmi_win_data {
 	bool			resume;
 };
 
+/* The pixelformats that are natively supported by the mixer. */
+#define MXR_FORMAT_RGB565	4
+#define MXR_FORMAT_ARGB1555	5
+#define MXR_FORMAT_ARGB4444	6
+#define MXR_FORMAT_ARGB8888	7
+
 struct mixer_resources {
 	int			irq;
 	void __iomem		*mixer_regs;
@@ -349,7 +355,8 @@ static void mixer_cfg_rgb_fmt(struct mixer_context *ctx, unsigned int height)
 	mixer_reg_writemask(res, MXR_CFG, val, MXR_CFG_RGB_FMT_MASK);
 }
 
-static void mixer_cfg_layer(struct mixer_context *ctx, int win, bool enable)
+static void mixer_cfg_layer(struct mixer_context *ctx, unsigned int win,
+				bool enable)
 {
 	struct mixer_resources *res = &ctx->mixer_res;
 	u32 val = enable ? ~0 : 0;
@@ -381,8 +388,6 @@ static void mixer_run(struct mixer_context *ctx)
 	struct mixer_resources *res = &ctx->mixer_res;
 
 	mixer_reg_writemask(res, MXR_STATUS, ~0, MXR_STATUS_REG_RUN);
-
-	mixer_regs_dump(ctx);
 }
 
 static void mixer_stop(struct mixer_context *ctx)
@@ -513,6 +518,7 @@ static void vp_video_buffer(struct mixer_context *ctx, int win)
 	mixer_vsync_set_update(ctx, true);
 	spin_unlock_irqrestore(&res->reg_slock, flags);
 
+	mixer_regs_dump(ctx);
 	vp_regs_dump(ctx);
 }
 
@@ -523,7 +529,7 @@ static void mixer_layer_update(struct mixer_context *ctx)
 	mixer_reg_writemask(res, MXR_CFG, ~0, MXR_CFG_LAYER_UPDATE);
 }
 
-static void mixer_graph_buffer(struct mixer_context *ctx, int win)
+static void mixer_graph_buffer(struct mixer_context *ctx, unsigned int win)
 {
 	struct mixer_resources *res = &ctx->mixer_res;
 	unsigned long flags;
@@ -622,6 +628,8 @@ static void mixer_graph_buffer(struct mixer_context *ctx, int win)
 
 	mixer_vsync_set_update(ctx, true);
 	spin_unlock_irqrestore(&res->reg_slock, flags);
+
+	mixer_regs_dump(ctx);
 }
 
 static void vp_win_reset(struct mixer_context *ctx)
@@ -1215,7 +1223,7 @@ static struct mixer_drv_data exynos4210_mxr_drv_data = {
 	.has_sclk = 1,
 };
 
-static struct platform_device_id mixer_driver_types[] = {
+static const struct platform_device_id mixer_driver_types[] = {
 	{
 		.name		= "s5p-mixer",
 		.driver_data	= (unsigned long)&exynos4210_mxr_drv_data,

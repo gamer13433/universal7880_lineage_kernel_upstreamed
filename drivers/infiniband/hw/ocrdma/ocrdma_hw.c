@@ -908,12 +908,18 @@ static irqreturn_t ocrdma_irq_handler(int irq, void *handle)
 	struct ocrdma_eqe eqe;
 	struct ocrdma_eqe *ptr;
 	u16 cq_id;
+	u8 mcode;
 	int budget = eq->cq_cnt;
 
 	do {
 		ptr = ocrdma_get_eqe(eq);
 		eqe = *ptr;
 		ocrdma_le32_to_cpu(&eqe, sizeof(eqe));
+		mcode = (eqe.id_valid & OCRDMA_EQE_MAJOR_CODE_MASK)
+				>> OCRDMA_EQE_MAJOR_CODE_SHIFT;
+		if (mcode == OCRDMA_MAJOR_CODE_SENTINAL)
+			pr_err("EQ full on eqid = 0x%x, eqe = 0x%x\n",
+			       eq->q.id, eqe.id_valid);
 		if ((eqe.id_valid & OCRDMA_EQE_VALID_MASK) == 0)
 			break;
 
@@ -2257,7 +2263,7 @@ int ocrdma_mbx_query_qp(struct ocrdma_dev *dev, struct ocrdma_qp *qp,
 	struct ocrdma_query_qp *cmd;
 	struct ocrdma_query_qp_rsp *rsp;
 
-	cmd = ocrdma_init_emb_mqe(OCRDMA_CMD_QUERY_QP, sizeof(*cmd));
+	cmd = ocrdma_init_emb_mqe(OCRDMA_CMD_QUERY_QP, sizeof(*rsp));
 	if (!cmd)
 		return status;
 	cmd->qp_id = qp->id;
@@ -2279,7 +2285,7 @@ static int ocrdma_set_av_params(struct ocrdma_qp *qp,
 	int status;
 	struct ib_ah_attr *ah_attr = &attrs->ah_attr;
 	union ib_gid sgid, zgid;
-	u32 vlan_id;
+	u32 vlan_id = 0xFFFF;
 	u8 mac_addr[6];
 
 	if ((ah_attr->ah_flags & IB_AH_GRH) == 0)
@@ -2366,8 +2372,10 @@ static int ocrdma_set_qp_params(struct ocrdma_qp *qp,
 		cmd->flags |= OCRDMA_QP_PARA_DST_QPN_VALID;
 	}
 	if (attr_mask & IB_QP_PATH_MTU) {
-		if (attrs->path_mtu < IB_MTU_256 ||
+		if (attrs->path_mtu < IB_MTU_512 ||
 		    attrs->path_mtu > IB_MTU_4096) {
+			pr_err("ocrdma%d: IB MTU %d is not supported\n",
+			       dev->id, ib_mtu_enum_to_int(attrs->path_mtu));
 			status = -EINVAL;
 			goto pmtu_err;
 		}
@@ -2917,9 +2925,9 @@ void ocrdma_cleanup_hw(struct ocrdma_dev *dev)
 {
 	ocrdma_mbx_delete_ah_tbl(dev);
 
-	/* cleanup the eqs */
-	ocrdma_destroy_eqs(dev);
-
 	/* cleanup the control path */
 	ocrdma_destroy_mq(dev);
+
+	/* cleanup the eqs */
+	ocrdma_destroy_eqs(dev);
 }

@@ -32,6 +32,7 @@
 
 #include "exynos_drm_drv.h"
 #include "exynos_dp_core.h"
+#include "exynos_drm_fimd.h"
 
 #define ctx_from_connector(c)	container_of(c, struct exynos_dp_device, \
 					connector)
