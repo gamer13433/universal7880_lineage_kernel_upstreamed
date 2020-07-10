@@ -938,20 +938,6 @@ static ssize_t sdfat_direct_IO(struct kiocb *iocb, struct iov_iter *iter)
 	return __sdfat_direct_IO(rw, iocb, inode,
 			(void *)iter, offset, count, 0 /* UNUSED */);
 }
-#elif LINUX_VERSION_CODE >= KERNEL_VERSION(4, 1, 0)
-static ssize_t sdfat_direct_IO(struct kiocb *iocb,
-		struct iov_iter *iter,
-		loff_t offset)
-{
-	struct file *file = iocb->ki_filp;
-	struct address_space *mapping = file->f_mapping;
-	struct inode *inode = mapping->host;
-	size_t count = iov_iter_count(iter);
-	int rw = iov_iter_rw(iter);
-
-	return __sdfat_direct_IO(rw, iocb, inode,
-			(void *)iter, offset, count, 0 /* UNUSED */);
-}
 #elif LINUX_VERSION_CODE >= KERNEL_VERSION(3, 16, 0)
 static ssize_t sdfat_direct_IO(int rw, struct kiocb *iocb,
 		struct iov_iter *iter,
@@ -988,15 +974,6 @@ static inline ssize_t __sdfat_blkdev_direct_IO(int unused, struct kiocb *iocb,
 	struct iov_iter *iter = (struct iov_iter *)iov_u;
 
 	return blockdev_direct_IO(iocb, inode, iter, sdfat_get_block);
-}
-#elif LINUX_VERSION_CODE >= KERNEL_VERSION(4, 1, 0)
-static inline ssize_t __sdfat_blkdev_direct_IO(int unused, struct kiocb *iocb,
-		struct inode *inode, void *iov_u, loff_t offset,
-		unsigned long nr_segs)
-{
-	struct iov_iter *iter = (struct iov_iter *)iov_u;
-
-	return blockdev_direct_IO(iocb, inode, iter, offset, sdfat_get_block);
 }
 #elif LINUX_VERSION_CODE >= KERNEL_VERSION(3, 16, 0)
 static inline ssize_t __sdfat_blkdev_direct_IO(int rw, struct kiocb *iocb,

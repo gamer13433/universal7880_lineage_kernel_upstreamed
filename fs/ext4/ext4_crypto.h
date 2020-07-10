@@ -20,19 +20,11 @@ struct ext4_encryption_policy {
 	char version;
 	char contents_encryption_mode;
 	char filenames_encryption_mode;
-	char flags;
 	char master_key_descriptor[EXT4_KEY_DESCRIPTOR_SIZE];
 } __attribute__((__packed__));
 
 #define EXT4_ENCRYPTION_CONTEXT_FORMAT_V1 1
 #define EXT4_KEY_DERIVATION_NONCE_SIZE 16
-
-#define EXT4_POLICY_FLAGS_PAD_4		0x00
-#define EXT4_POLICY_FLAGS_PAD_8		0x01
-#define EXT4_POLICY_FLAGS_PAD_16	0x02
-#define EXT4_POLICY_FLAGS_PAD_32	0x03
-#define EXT4_POLICY_FLAGS_PAD_MASK	0x03
-#define EXT4_POLICY_FLAGS_VALID		0x03
 
 /**
  * Encryption context for inode
@@ -49,7 +41,7 @@ struct ext4_encryption_context {
 	char format;
 	char contents_encryption_mode;
 	char filenames_encryption_mode;
-	char flags;
+	char reserved;
 	char master_key_descriptor[EXT4_KEY_DESCRIPTOR_SIZE];
 	char nonce[EXT4_KEY_DERIVATION_NONCE_SIZE];
 } __attribute__((__packed__));

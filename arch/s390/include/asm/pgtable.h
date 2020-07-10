@@ -12,12 +12,9 @@
 #define _ASM_S390_PGTABLE_H
 
 /*
- * The Linux memory management assumes a three-level page table setup. For
- * s390 31 bit we "fold" the mid level into the top-level page table, so
- * that we physically have the same two-level page table as the s390 mmu
- * expects in 31 bit mode. For s390 64 bit we use three of the five levels
- * the hardware provides (region first and region second tables are not
- * used).
+ * The Linux memory management assumes a three-level page table setup.
+ * For s390 64 bit we use up to four of the five levels the hardware
+ * provides (region first tables are not used).
  *
  * The "pgd_xxx()" functions are trivial for a folded two-level
  * setup: the pgd is never bad, and a pmd always exists (as it's folded
@@ -114,8 +111,8 @@ extern unsigned long zero_page_mask;
 
 #ifndef __ASSEMBLY__
 /*
- * The vmalloc and module area will always be on the topmost area of the kernel
- * mapping. We reserve 96MB (31bit) / 128GB (64bit) for vmalloc and modules.
+ * The vmalloc and module area will always be on the topmost area of the
+ * kernel mapping. We reserve 128GB (64bit) for vmalloc and modules.
  * On 64 bit kernels we have a 2GB area at the top of the vmalloc area where
  * modules will reside. That makes sure that inter module branches always
  * happen without trampolines and in addition the placement within a 2GB frame
@@ -136,38 +133,6 @@ extern unsigned long MODULES_END;
 #endif
 
 /*
- * A 31 bit pagetable entry of S390 has following format:
- *  |   PFRA          |    |  OS  |
- * 0                   0IP0
- * 00000000001111111111222222222233
- * 01234567890123456789012345678901
- *
- * I Page-Invalid Bit:    Page is not available for address-translation
- * P Page-Protection Bit: Store access not possible for page
- *
- * A 31 bit segmenttable entry of S390 has following format:
- *  |   P-table origin      |  |PTL
- * 0                         IC
- * 00000000001111111111222222222233
- * 01234567890123456789012345678901
- *
- * I Segment-Invalid Bit:    Segment is not available for address-translation
- * C Common-Segment Bit:     Segment is not private (PoP 3-30)
- * PTL Page-Table-Length:    Page-table length (PTL+1*16 entries -> up to 256)
- *
- * The 31 bit segmenttable origin of S390 has following format:
- *
- *  |S-table origin   |     | STL |
- * X                   **GPS
- * 00000000001111111111222222222233
- * 01234567890123456789012345678901
- *
- * X Space-Switch event:
- * G Segment-Invalid Bit:     *
- * P Private-Space Bit:       Segment is not private (PoP 3-30)
- * S Storage-Alteration:
- * STL Segment-Table-Length:  Segment-table length (STL+1*16 entries -> up to 2048)
- *
  * A 64 bit pagetable entry of S390 has following format:
  * |			 PFRA			      |0IPC|  OS  |
  * 0000000000111111111122222222223333333333444444444455555555556666
@@ -225,7 +190,6 @@ extern unsigned long MODULES_END;
 
 /* Software bits in the page table entry */
 #define _PAGE_PRESENT	0x001		/* SW pte present bit */
-#define _PAGE_TYPE	0x002		/* SW pte type bit */
 #define _PAGE_YOUNG	0x004		/* SW pte young bit */
 #define _PAGE_DIRTY	0x008		/* SW pte dirty bit */
 #define _PAGE_READ	0x010		/* SW pte read bit */
@@ -391,6 +355,8 @@ extern unsigned long MODULES_END;
  * read-write, dirty, young	11..0...0...11
  * The segment table origin is used to distinguish empty (origin==0) from
  * read-write, old segment table entries (origin!=0)
+ * HW-bits: R read-only, I invalid
+ * SW-bits: y young, d dirty, r read, w write
  */
 
 #define _SEGMENT_ENTRY_SPLIT_BIT 11	/* THP splitting bit number */
@@ -485,6 +451,15 @@ static inline int mm_use_skey(struct mm_struct *mm)
 {
 #ifdef CONFIG_PGSTE
 	if (mm->context.use_skey)
+		return 1;
+#endif
+	return 0;
+}
+
+static inline int mm_alloc_pgste(struct mm_struct *mm)
+{
+#ifdef CONFIG_PGSTE
+	if (unlikely(mm->context.alloc_pgste))
 		return 1;
 #endif
 	return 0;
@@ -650,10 +625,9 @@ static inline int pte_none(pte_t pte)
 
 static inline int pte_swap(pte_t pte)
 {
-	/* Bit pattern: (pte & 0x603) == 0x402 */
-	return (pte_val(pte) & (_PAGE_INVALID | _PAGE_PROTECT |
-				_PAGE_TYPE | _PAGE_PRESENT))
-		== (_PAGE_INVALID | _PAGE_TYPE);
+	/* Bit pattern: (pte & 0x201) == 0x200 */
+	return (pte_val(pte) & (_PAGE_PROTECT | _PAGE_PRESENT))
+		== _PAGE_PROTECT;
 }
 
 static inline int pte_file(pte_t pte)

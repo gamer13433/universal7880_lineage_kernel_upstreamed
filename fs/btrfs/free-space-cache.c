@@ -1091,7 +1091,7 @@ cleanup_write_cache_enospc(struct inode *inode,
  *
  * This function writes out a free space cache struct to disk for quick recovery
  * on mount.  This will return 0 if it was successfull in writing the cache out,
- * and -1 if it was not.
+ * or an errno if it was not.
  */
 static int __btrfs_write_out_cache(struct btrfs_root *root, struct inode *inode,
 				   struct btrfs_free_space_ctl *ctl,

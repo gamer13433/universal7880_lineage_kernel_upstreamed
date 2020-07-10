@@ -1513,7 +1513,7 @@ static int pxa168_eth_probe(struct platform_device *pdev)
 	pep->base = devm_ioremap_resource(&pdev->dev, res);
 	if (IS_ERR(pep->base)) {
 		err = -ENOMEM;
-		goto err_netdev;
+		goto err_base;
 	}
 	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
 	BUG_ON(!res);

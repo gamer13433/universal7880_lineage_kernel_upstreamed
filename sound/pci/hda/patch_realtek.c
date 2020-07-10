@@ -442,7 +442,6 @@ static void alc_auto_init_amp(struct hda_codec *codec, int type)
 			alc888_coef_init(codec);
 			break;
 		}
-		break;
 	}
 }
 

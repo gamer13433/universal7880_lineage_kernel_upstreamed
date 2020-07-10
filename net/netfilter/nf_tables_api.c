@@ -3975,7 +3975,6 @@ static int nft_verdict_init(const struct nft_ctx *ctx, struct nft_data *data,
 	case NFT_CONTINUE:
 	case NFT_BREAK:
 	case NFT_RETURN:
-		desc->len = sizeof(data->verdict);
 		break;
 	case NFT_JUMP:
 	case NFT_GOTO:

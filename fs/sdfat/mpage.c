@@ -105,15 +105,6 @@ static void mpage_write_end_io(struct bio *bio, int err)
 }
 #endif
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 1, 0)
-static inline int bio_get_nr_vecs(struct block_device *bdev)
-{
-	return BIO_MAX_PAGES;
-}
-#else /* LINUX_VERSION_CODE < KERNEL_VERSION(4,1,0) */
-	/* EMPTY */
-#endif
-
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 14, 0)
 static inline sector_t __sdfat_bio_sector(struct bio *bio)
 {

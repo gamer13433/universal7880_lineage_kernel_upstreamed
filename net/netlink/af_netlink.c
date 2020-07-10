@@ -1599,11 +1599,13 @@ static struct sk_buff *netlink_alloc_large_skb(unsigned int size,
 	if (data == NULL)
 		return NULL;
 
-	skb = __build_skb(data, size);
+	skb = build_skb(data, size);
 	if (skb == NULL)
 		vfree(data);
-	else
+	else {
+		skb->head_frag = 0;
 		skb->destructor = netlink_skb_destructor;
+	}
 
 	return skb;
 }

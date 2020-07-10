@@ -38,8 +38,6 @@ static int ext4_is_encryption_context_consistent_with_policy(
 		return 0;
 	return (memcmp(ctx.master_key_descriptor, policy->master_key_descriptor,
 			EXT4_KEY_DESCRIPTOR_SIZE) == 0 &&
-		(ctx.flags ==
-		 policy->flags) &&
 		(ctx.contents_encryption_mode ==
 		 policy->contents_encryption_mode) &&
 		(ctx.filenames_encryption_mode ==
@@ -136,7 +134,6 @@ int ext4_get_policy(struct inode *inode, struct ext4_encryption_policy *policy)
 	policy->version = 0;
 	policy->contents_encryption_mode = ctx.contents_encryption_mode;
 	policy->filenames_encryption_mode = ctx.filenames_encryption_mode;
-	policy->flags = ctx.flags;
 	memcpy(&policy->master_key_descriptor, ctx.master_key_descriptor,
 	       EXT4_KEY_DESCRIPTOR_SIZE);
 	return 0;
