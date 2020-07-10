@@ -157,7 +157,7 @@ int tick_device_uses_broadcast(struct clock_event_device *dev, int cpu)
 {
 	struct clock_event_device *bc = tick_broadcast_device.evtdev;
 	unsigned long flags;
-	int ret = 0;
+	int ret;
 
 	raw_spin_lock_irqsave(&tick_broadcast_lock, flags);
 
@@ -219,14 +219,13 @@ int tick_device_uses_broadcast(struct clock_event_device *dev, int cpu)
 			 * If we kept the cpu in the broadcast mask,
 			 * tell the caller to leave the per cpu device
 			 * in shutdown state. The periodic interrupt
-			 * is delivered by the broadcast device, if
-			 * the broadcast device exists and is not
-			 * hrtimer based.
+			 * is delivered by the broadcast device.
 			 */
-			if (bc && !(bc->features & CLOCK_EVT_FEAT_HRTIMER))
-				ret = cpumask_test_cpu(cpu, tick_broadcast_mask);
+			ret = cpumask_test_cpu(cpu, tick_broadcast_mask);
 			break;
 		default:
+			/* Nothing to do */
+			ret = 0;
 			break;
 		}
 	}
@@ -359,16 +358,8 @@ static void tick_do_broadcast_on_off(unsigned long *reason)
 	case CLOCK_EVT_NOTIFY_BROADCAST_FORCE:
 		cpumask_set_cpu(cpu, tick_broadcast_on);
 		if (!cpumask_test_and_set_cpu(cpu, tick_broadcast_mask)) {
-			/*
-			 * Only shutdown the cpu local device, if:
-			 *
-			 * - the broadcast device exists
-			 * - the broadcast device is not a hrtimer based one
-			 * - the broadcast device is in periodic mode to
-			 *   avoid a hickup during switch to oneshot mode
-			 */
-			if (bc && !(bc->features & CLOCK_EVT_FEAT_HRTIMER) &&
-			    tick_broadcast_device.mode == TICKDEV_MODE_PERIODIC)
+			if (tick_broadcast_device.mode ==
+			    TICKDEV_MODE_PERIODIC)
 				clockevents_shutdown(dev);
 		}
 		if (*reason == CLOCK_EVT_NOTIFY_BROADCAST_FORCE)
@@ -388,16 +379,14 @@ static void tick_do_broadcast_on_off(unsigned long *reason)
 		break;
 	}
 
-	if (bc) {
-		if (cpumask_empty(tick_broadcast_mask)) {
-			if (!bc_stopped)
-				clockevents_shutdown(bc);
-		} else if (bc_stopped) {
-			if (tick_broadcast_device.mode == TICKDEV_MODE_PERIODIC)
-				tick_broadcast_start_periodic(bc);
-			else
-				tick_broadcast_setup_oneshot(bc);
-		}
+	if (cpumask_empty(tick_broadcast_mask)) {
+		if (!bc_stopped)
+			clockevents_shutdown(bc);
+	} else if (bc_stopped) {
+		if (tick_broadcast_device.mode == TICKDEV_MODE_PERIODIC)
+			tick_broadcast_start_periodic(bc);
+		else
+			tick_broadcast_setup_oneshot(bc);
 	}
 out:
 	raw_spin_unlock_irqrestore(&tick_broadcast_lock, flags);
@@ -947,16 +936,6 @@ bool tick_broadcast_oneshot_available(void)
 	return bc ? bc->features & CLOCK_EVT_FEAT_ONESHOT : false;
 }
 
-#else
-int __tick_broadcast_oneshot_control(enum tick_broadcast_state state)
-{
-	struct clock_event_device *bc = tick_broadcast_device.evtdev;
-
-	if (!bc || (bc->features & CLOCK_EVT_FEAT_HRTIMER))
-		return -EBUSY;
-
-	return 0;
-}
 #endif
 
 void __init tick_broadcast_init(void)
