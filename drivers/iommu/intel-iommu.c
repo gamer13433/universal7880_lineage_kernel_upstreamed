@@ -441,6 +441,14 @@ static int dmar_map_gfx = 1;
 static int dmar_forcedac;
 static int intel_iommu_strict;
 static int intel_iommu_superpage = 1;
+static int intel_iommu_ecs = 1;
+
+/* We only actually use ECS when PASID support (on the new bit 40)
+ * is also advertised. Some early implementations — the ones with
+ * PASID support on bit 28 — have issues even when we *only* use
+ * extended root/context tables. */
+#define ecs_enabled(iommu) (intel_iommu_ecs && ecap_ecs(iommu->ecap) && \
+			    ecap_pasid(iommu->ecap))
 
 int intel_iommu_gfx_mapped;
 EXPORT_SYMBOL_GPL(intel_iommu_gfx_mapped);
@@ -478,6 +486,10 @@ static int __init intel_iommu_setup(char *str)
 			printk(KERN_INFO
 				"Intel-IOMMU: disable supported super page\n");
 			intel_iommu_superpage = 0;
+		} else if (!strncmp(str, "ecs_off", 7)) {
+			printk(KERN_INFO
+				"Intel-IOMMU: disable extended context table support\n");
+			intel_iommu_ecs = 0;
 		}
 
 		str += strcspn(str, ",");
@@ -685,6 +697,11 @@ static void domain_update_iommu_cap(struct dmar_domain *domain)
 	domain->iommu_superpage = domain_update_iommu_superpage(NULL);
 }
 
+static int iommu_dummy(struct device *dev)
+{
+	return dev->archdata.iommu == DUMMY_DEVICE_DOMAIN_INFO;
+}
+
 static struct intel_iommu *device_to_iommu(struct device *dev, u8 *bus, u8 *devfn)
 {
 	struct dmar_drhd_unit *drhd = NULL;
@@ -693,6 +710,9 @@ static struct intel_iommu *device_to_iommu(struct device *dev, u8 *bus, u8 *devf
 	struct pci_dev *ptmp, *pdev = NULL;
 	u16 segment = 0;
 	int i;
+
+	if (iommu_dummy(dev))
+		return NULL;
 
 	if (dev_is_pci(dev)) {
 		pdev = to_pci_dev(dev);
@@ -2974,11 +2994,6 @@ static inline struct dmar_domain *get_valid_domain_for_dev(struct device *dev)
 		return info->domain;
 
 	return __get_valid_domain_for_dev(dev);
-}
-
-static int iommu_dummy(struct device *dev)
-{
-	return dev->archdata.iommu == DUMMY_DEVICE_DOMAIN_INFO;
 }
 
 /* Check if the dev needs to go through non-identity map and unmap process.*/

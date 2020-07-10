@@ -687,7 +687,7 @@ static unsigned int get_num_devices(struct hda_codec *codec, hda_nid_t nid)
 	    get_wcaps_type(wcaps) != AC_WID_PIN)
 		return 0;
 
-	parm = snd_hda_param_read(codec, nid, AC_PAR_DEVLIST_LEN);
+	parm = snd_hdac_read_parm_uncached(&codec->core, nid, AC_PAR_DEVLIST_LEN);
 	if (parm == -1 && codec->bus->rirb_error)
 		parm = 0;
 	return parm & AC_DEV_LIST_LEN_MASK;
@@ -1626,6 +1626,31 @@ static bool is_likely_hdmi_codec(struct hda_codec *codec)
 /* no HDMI codec parser support */
 #define is_likely_hdmi_codec(codec)	false
 #endif /* CONFIG_SND_HDA_CODEC_HDMI */
+
+/**
+ * snd_hda_codec_amp_update - update the AMP mono value
+ * @codec: HD-audio codec
+ * @nid: NID to read the AMP value
+ * @ch: channel to update (0 or 1)
+ * @dir: #HDA_INPUT or #HDA_OUTPUT
+ * @idx: the index value (only for input direction)
+ * @mask: bit mask to set
+ * @val: the bits value to set
+ *
+ * Update the AMP values for the given channel, direction and index.
+ */
+int snd_hda_codec_amp_update(struct hda_codec *codec, hda_nid_t nid,
+			     int ch, int dir, int idx, int mask, int val)
+{
+	unsigned int cmd = snd_hdac_regmap_encode_amp(nid, ch, dir, idx);
+
+	/* enable fake mute if no h/w mute but min=mute */
+	if ((query_amp_caps(codec, nid, dir) &
+	     (AC_AMPCAP_MUTE | AC_AMPCAP_MIN_MUTE)) == AC_AMPCAP_MIN_MUTE)
+		cmd |= AC_AMP_FAKE_MUTE;
+	return snd_hdac_regmap_update_raw(&codec->core, cmd, mask, val);
+}
+EXPORT_SYMBOL_GPL(snd_hda_codec_amp_update);
 
 /**
  * snd_hda_codec_configure - (Re-)configure the HD-audio codec

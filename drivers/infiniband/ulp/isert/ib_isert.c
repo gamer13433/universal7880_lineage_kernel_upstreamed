@@ -61,6 +61,8 @@ static int
 isert_rdma_accept(struct isert_conn *isert_conn);
 struct rdma_cm_id *isert_setup_id(struct isert_np *isert_np);
 
+static void isert_release_work(struct work_struct *work);
+
 static inline bool
 isert_prot_cmd(struct isert_conn *conn, struct se_cmd *cmd)
 {
@@ -891,6 +893,7 @@ isert_disconnected_handler(struct rdma_cm_id *cma_id,
 {
 	struct isert_np *isert_np = cma_id->context;
 	struct isert_conn *isert_conn;
+	bool terminating = false;
 
 	if (isert_np->np_cm_id == cma_id)
 		return isert_np_cma_handler(cma_id->context, event);
@@ -3417,7 +3420,6 @@ static void isert_wait_conn(struct iscsi_conn *conn)
 
 	wait_for_completion(&isert_conn->conn_wait_comp_err);
 
-	INIT_WORK(&isert_conn->release_work, isert_release_work);
 	queue_work(isert_release_wq, &isert_conn->release_work);
 }
 
@@ -3425,6 +3427,7 @@ static void isert_free_conn(struct iscsi_conn *conn)
 {
 	struct isert_conn *isert_conn = conn->context;
 
+	isert_wait4flush(isert_conn);
 	isert_put_conn(isert_conn);
 }
 

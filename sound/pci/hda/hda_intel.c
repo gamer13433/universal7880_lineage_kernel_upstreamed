@@ -319,6 +319,11 @@ enum {
 #define use_vga_switcheroo(chip)	0
 #endif
 
+#define CONTROLLER_IN_GPU(pci) (((pci)->device == 0x0a0c) || \
+					((pci)->device == 0x0c0c) || \
+					((pci)->device == 0x0d0c) || \
+					((pci)->device == 0x160c))
+
 static char *driver_short_names[] = {
 	[AZX_DRIVER_ICH] = "HDA Intel",
 	[AZX_DRIVER_PCH] = "HDA Intel PCH",
@@ -1916,6 +1921,9 @@ static int azx_probe_continue(struct azx *chip)
 #endif
 	}
 
+#ifdef CONFIG_SND_HDA_I915
+ skip_i915:
+#endif
 	err = azx_first_init(chip);
 	if (err < 0)
 		goto out_free;

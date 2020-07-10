@@ -1170,6 +1170,7 @@ static int apic_reg_write(struct kvm_lapic *apic, u32 reg, u32 val)
 				apic_set_reg(apic, APIC_LVTT + 0x10 * i,
 					     lvt_val | APIC_LVT_MASKED);
 			}
+			apic_update_lvtt(apic);
 			atomic_set(&apic->lapic_timer.pending, 0);
 
 		}
@@ -1686,6 +1687,7 @@ void kvm_apic_post_state_restore(struct kvm_vcpu *vcpu,
 
 	apic_update_ppr(apic);
 	hrtimer_cancel(&apic->lapic_timer.timer);
+	apic_update_lvtt(apic);
 	update_divide_count(apic);
 	start_apic_timer(apic);
 	apic->irr_pending = true;
