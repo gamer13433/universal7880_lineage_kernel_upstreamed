@@ -1134,16 +1134,15 @@ EXPORT_SYMBOL_GPL(gpiod_is_active_low);
  * that the GPIO was actually requested.
  */
 
-static int _gpiod_get_raw_value(const struct gpio_desc *desc)
+static bool _gpiod_get_raw_value(const struct gpio_desc *desc)
 {
 	struct gpio_chip	*chip;
+	bool value;
 	int offset;
-	int value;
 
 	chip = desc->chip;
 	offset = gpio_chip_hwgpio(desc);
-	value = chip->get ? chip->get(chip, offset) : -EIO;
-	value = value < 0 ? value : !!value;
+	value = chip->get ? chip->get(chip, offset) : false;
 	trace_gpio_value(desc_to_gpio(desc), 1, value);
 	return value;
 }
@@ -1153,7 +1152,7 @@ static int _gpiod_get_raw_value(const struct gpio_desc *desc)
  * @desc: gpio whose value will be returned
  *
  * Return the GPIO's raw value, i.e. the value of the physical line disregarding
- * its ACTIVE_LOW status, or negative errno on failure.
+ * its ACTIVE_LOW status.
  *
  * This function should be called from contexts where we cannot sleep, and will
  * complain if the GPIO chip functions potentially sleep.
@@ -1173,7 +1172,7 @@ EXPORT_SYMBOL_GPL(gpiod_get_raw_value);
  * @desc: gpio whose value will be returned
  *
  * Return the GPIO's logical value, i.e. taking the ACTIVE_LOW status into
- * account, or negative errno on failure.
+ * account.
  *
  * This function should be called from contexts where we cannot sleep, and will
  * complain if the GPIO chip functions potentially sleep.
@@ -1187,9 +1186,6 @@ int gpiod_get_value(const struct gpio_desc *desc)
 	WARN_ON(desc->chip->can_sleep);
 
 	value = _gpiod_get_raw_value(desc);
-	if (value < 0)
-		return value;
-
 	if (test_bit(FLAG_ACTIVE_LOW, &desc->flags))
 		value = !value;
 
@@ -1389,7 +1385,7 @@ EXPORT_SYMBOL_GPL(gpio_unlock_as_irq);
  * @desc: gpio whose value will be returned
  *
  * Return the GPIO's raw value, i.e. the value of the physical line disregarding
- * its ACTIVE_LOW status, or negative errno on failure.
+ * its ACTIVE_LOW status.
  *
  * This function is to be called from contexts that can sleep.
  */
@@ -1407,7 +1403,7 @@ EXPORT_SYMBOL_GPL(gpiod_get_raw_value_cansleep);
  * @desc: gpio whose value will be returned
  *
  * Return the GPIO's logical value, i.e. taking the ACTIVE_LOW status into
- * account, or negative errno on failure.
+ * account.
  *
  * This function is to be called from contexts that can sleep.
  */
@@ -1420,9 +1416,6 @@ int gpiod_get_value_cansleep(const struct gpio_desc *desc)
 		return 0;
 
 	value = _gpiod_get_raw_value(desc);
-	if (value < 0)
-		return value;
-
 	if (test_bit(FLAG_ACTIVE_LOW, &desc->flags))
 		value = !value;
 

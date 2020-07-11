@@ -192,7 +192,7 @@ static const struct clkgen_pll_data st_pll3200c32_407_a0 = {
 	.ops		= &stm_pll3200c32_ops,
 };
 
-static const struct clkgen_pll_data st_pll3200c32_cx_0 = {
+static const struct clkgen_pll_data st_pll3200c32_407_c0_0 = {
 	/* 407 C0 PLL0 */
 	.pdn_status	= CLKGEN_FIELD(0x2a0,	0x1,			8),
 	.locked_status	= CLKGEN_FIELD(0x2a0,	0x1,			24),
@@ -204,7 +204,7 @@ static const struct clkgen_pll_data st_pll3200c32_cx_0 = {
 	.ops		= &stm_pll3200c32_ops,
 };
 
-static const struct clkgen_pll_data st_pll3200c32_cx_1 = {
+static const struct clkgen_pll_data st_pll3200c32_407_c0_1 = {
 	/* 407 C0 PLL1 */
 	.pdn_status	= CLKGEN_FIELD(0x2c8,	0x1,			8),
 	.locked_status	= CLKGEN_FIELD(0x2c8,	0x1,			24),
@@ -623,12 +623,12 @@ static struct of_device_id c32_pll_of_match[] = {
 		.data = &st_pll3200c32_407_a0,
 	},
 	{
-		.compatible = "st,plls-c32-cx_0",
-		.data = &st_pll3200c32_cx_0,
+		.compatible = "st,stih407-plls-c32-c0_0",
+		.data = &st_pll3200c32_407_c0_0,
 	},
 	{
-		.compatible = "st,plls-c32-cx_1",
-		.data = &st_pll3200c32_cx_1,
+		.compatible = "st,stih407-plls-c32-c0_1",
+		.data = &st_pll3200c32_407_c0_1,
 	},
 	{
 		.compatible = "st,stih407-plls-c32-a9",

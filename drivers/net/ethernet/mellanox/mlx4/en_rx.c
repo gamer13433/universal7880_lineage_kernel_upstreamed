@@ -902,15 +902,13 @@ int mlx4_en_poll_rx_cq(struct napi_struct *napi, int budget)
 
 	/* If we used up all the quota - we're probably not done yet... */
 	if (done == budget) {
-		const struct cpumask *aff;
-		struct irq_data *idata;
 		int cpu_curr;
+		const struct cpumask *aff;
 
 		INC_PERF_COUNTER(priv->pstats.napi_quota);
 
 		cpu_curr = smp_processor_id();
-		idata = irq_desc_get_irq_data(cq->irq_desc);
-		aff = irq_data_get_affinity_mask(idata);
+		aff = irq_desc_get_irq_data(cq->irq_desc)->affinity;
 
 		if (unlikely(!cpumask_test_cpu(cpu_curr, aff))) {
 			/* Current cpu is not according to smp_irq_affinity -

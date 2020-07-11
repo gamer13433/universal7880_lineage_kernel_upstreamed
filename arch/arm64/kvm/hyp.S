@@ -745,9 +745,16 @@
 	msr	ifsr32_el2, x5
 	msr	fpexc32_el2, x6
 
-	skip_debug_state x8, 1f
+	skip_debug_state x8, 2f
 	ldr	x7, [x3, #24]
 	msr	dbgvcr32_el2, x7
+2:
+	skip_tee_state x8, 1f
+
+	add	x3, x2, #CPU_SYSREG_OFFSET(TEECR32_EL1)
+	ldp	x4, x5, [x3]
+	msr	teecr32_el1, x4
+	msr	teehbr32_el1, x5
 1:
 .endm
 
@@ -836,6 +843,8 @@
 	mrs	x3, cntv_ctl_el0
 	and	x3, x3, #3
 	str	w3, [x0, #VCPU_TIMER_CNTV_CTL]
+	bic	x3, x3, #1		// Clear Enable
+	msr	cntv_ctl_el0, x3
 
 	isb
 
@@ -843,9 +852,6 @@
 	str	x3, [x0, #VCPU_TIMER_CNTV_CVAL]
 
 1:
-	// Disable the virtual timer
-	msr	cntv_ctl_el0, xzr
-
 	// Allow physical timer/counter access for the host
 	mrs	x2, cnthctl_el2
 	orr	x2, x2, #3
@@ -1054,9 +1060,6 @@ __kvm_hyp_panic:
 	ldr	x2, [x0, #VCPU_HOST_CONTEXT]
 	kern_hyp_va x2
 
-	// We must restore the 32-bit state before the sysregs, thanks
-	// to Cortex-A57 erratum #852523.
-	restore_guest_32bit_state
 	bl __restore_sysregs
 
 1:	adr	x0, __hyp_panic_str

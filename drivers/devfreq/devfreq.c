@@ -54,7 +54,7 @@ static struct devfreq *find_device_devfreq(struct device *dev)
 {
 	struct devfreq *tmp_devfreq;
 
-	if (IS_ERR_OR_NULL(dev)) {
+	if (unlikely(IS_ERR_OR_NULL(dev))) {
 		pr_err("DEVFREQ: %s: Invalid parameters\n", __func__);
 		return ERR_PTR(-EINVAL);
 	}
@@ -140,7 +140,7 @@ static struct devfreq_governor *find_devfreq_governor(const char *name)
 {
 	struct devfreq_governor *tmp_governor;
 
-	if (IS_ERR_OR_NULL(name)) {
+	if (unlikely(IS_ERR_OR_NULL(name))) {
 		pr_err("DEVFREQ: %s: Invalid parameters\n", __func__);
 		return ERR_PTR(-EINVAL);
 	}
@@ -188,10 +188,10 @@ int update_devfreq(struct devfreq *devfreq)
 		return err;
 
 	/*
-	 * Adjust the frequency with user freq and QoS.
+	 * Adjust the freuqency with user freq and QoS.
 	 *
-	 * List from the highest priority
-	 * max_freq
+	 * List from the highest proiority
+	 * max_freq (probably called by thermal when it's too hot)
 	 * min_freq
 	 */
 

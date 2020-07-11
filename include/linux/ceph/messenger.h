@@ -230,8 +230,6 @@ struct ceph_connection {
 	bool out_kvec_is_msg; /* kvec refers to out_msg */
 	int out_more;        /* there is more data after the kvecs */
 	__le64 out_temp_ack; /* for writing an ack */
-	struct ceph_timespec out_temp_keepalive2; /* for writing keepalive2
-						     stamp */
 
 	/* message in temps */
 	struct ceph_msg_header in_hdr;
