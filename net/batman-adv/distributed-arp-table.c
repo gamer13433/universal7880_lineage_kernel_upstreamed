@@ -1106,9 +1106,6 @@ void batadv_dat_snoop_outgoing_arp_reply(struct batadv_priv *bat_priv,
  * @bat_priv: the bat priv with all the soft interface information
  * @skb: packet to check
  * @hdr_size: size of the encapsulation header
- *
- * Returns true if the packet was snooped and consumed by DAT. False if the
- * packet has to be delivered to the interface
  */
 bool batadv_dat_snoop_incoming_arp_reply(struct batadv_priv *bat_priv,
 					 struct sk_buff *skb, int hdr_size)
@@ -1116,7 +1113,7 @@ bool batadv_dat_snoop_incoming_arp_reply(struct batadv_priv *bat_priv,
 	uint16_t type;
 	__be32 ip_src, ip_dst;
 	uint8_t *hw_src, *hw_dst;
-	bool dropped = false;
+	bool ret = false;
 	unsigned short vid;
 
 	if (!atomic_read(&bat_priv->distributed_arp_table))
@@ -1145,17 +1142,12 @@ bool batadv_dat_snoop_incoming_arp_reply(struct batadv_priv *bat_priv,
 	/* if this REPLY is directed to a client of mine, let's deliver the
 	 * packet to the interface
 	 */
-	dropped = !batadv_is_my_client(bat_priv, hw_dst, vid);
-
-	/* if this REPLY is sent on behalf of a client of mine, let's drop the
-	 * packet because the client will reply by itself
-	 */
-	dropped |= batadv_is_my_client(bat_priv, hw_src, vid);
+	ret = !batadv_is_my_client(bat_priv, hw_dst, vid);
 out:
-	if (dropped)
+	if (ret)
 		kfree_skb(skb);
-	/* if dropped == false -> deliver to the interface */
-	return dropped;
+	/* if ret == false -> packet has to be delivered to the interface */
+	return ret;
 }
 
 /**

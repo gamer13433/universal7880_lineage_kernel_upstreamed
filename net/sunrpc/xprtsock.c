@@ -586,10 +586,6 @@ static int xs_local_send_request(struct rpc_task *task)
 			      true, &sent);
 	dprintk("RPC:       %s(%u) = %d\n",
 			__func__, xdr->len - req->rq_bytes_sent, status);
-
-	if (status == -EAGAIN && sock_writeable(transport->inet))
-		status = -ENOBUFS;
-
 	if (likely(sent > 0) || status == 0) {
 		req->rq_bytes_sent += sent;
 		req->rq_xmit_bytes_sent += sent;
@@ -602,7 +598,6 @@ static int xs_local_send_request(struct rpc_task *task)
 
 	switch (status) {
 	case -ENOBUFS:
-		break;
 	case -EAGAIN:
 		status = xs_nospace(task);
 		break;
@@ -652,9 +647,6 @@ static int xs_udp_send_request(struct rpc_task *task)
 	/* firewall is blocking us, don't return -EAGAIN or we end up looping */
 	if (status == -EPERM)
 		goto process_status;
-
-	if (status == -EAGAIN && sock_writeable(transport->inet))
-		status = -ENOBUFS;
 
 	if (sent > 0 || status == 0) {
 		req->rq_xmit_bytes_sent += sent;
@@ -754,6 +746,9 @@ static int xs_tcp_send_request(struct rpc_task *task)
 		dprintk("RPC:       xs_tcp_send_request(%u) = %d\n",
 				xdr->len - req->rq_bytes_sent, status);
 
+		if (unlikely(sent == 0 && status < 0))
+			break;
+
 		/* If we've sent the entire packet, immediately
 		 * reset the count of bytes sent. */
 		req->rq_bytes_sent += sent;
@@ -763,21 +758,18 @@ static int xs_tcp_send_request(struct rpc_task *task)
 			return 0;
 		}
 
-		if (status < 0)
-			break;
-		if (sent == 0) {
-			status = -EAGAIN;
-			break;
-		}
+		if (sent != 0)
+			continue;
+		status = -EAGAIN;
+		break;
 	}
-	if (status == -EAGAIN && sk_stream_is_writeable(transport->inet))
-		status = -ENOBUFS;
 
 	switch (status) {
 	case -ENOTSOCK:
 		status = -ENOTCONN;
 		/* Should we call xs_close() here? */
 		break;
+	case -ENOBUFS:
 	case -EAGAIN:
 		status = xs_nospace(task);
 		break;
