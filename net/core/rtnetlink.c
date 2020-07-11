@@ -2689,7 +2689,6 @@ static int rtnl_bridge_getlink(struct sk_buff *skb, struct netlink_callback *cb)
 	u32 portid = NETLINK_CB(cb->skb).portid;
 	u32 seq = cb->nlh->nlmsg_seq;
 	u32 filter_mask = 0;
-	int err;
 
 	if (nlmsg_len(cb->nlh) > sizeof(struct ifinfomsg)) {
 		struct nlattr *extfilt;

@@ -979,7 +979,7 @@ static int br_ip4_multicast_igmp3_report(struct net_bridge *br,
 
 	ih = igmpv3_report_hdr(skb);
 	num = ntohs(ih->ngrec);
-	len = skb_transport_offset(skb) + sizeof(*ih);
+	len = sizeof(*ih);
 
 	for (i = 0; i < num; i++) {
 		len += sizeof(*grec);
@@ -1040,7 +1040,7 @@ static int br_ip6_multicast_mld2_report(struct net_bridge *br,
 
 	icmp6h = icmp6_hdr(skb);
 	num = ntohs(icmp6h->icmp6_dataun.un_data16[1]);
-	len = skb_transport_offset(skb) + sizeof(*icmp6h);
+	len = sizeof(*icmp6h);
 
 	for (i = 0; i < num; i++) {
 		__be16 *nsrcs, _nsrcs;

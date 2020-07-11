@@ -2867,8 +2867,10 @@ void proto_unregister(struct proto *prot)
 	list_del(&prot->node);
 	mutex_unlock(&proto_list_mutex);
 
-	kmem_cache_destroy(prot->slab);
-	prot->slab = NULL;
+	if (prot->slab != NULL) {
+		kmem_cache_destroy(prot->slab);
+		prot->slab = NULL;
+	}
 
 	if (prot->rsk_prot != NULL && prot->rsk_prot->slab != NULL) {
 		kmem_cache_destroy(prot->rsk_prot->slab);

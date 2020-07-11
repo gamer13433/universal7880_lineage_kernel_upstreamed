@@ -1237,12 +1237,6 @@ int smp_conn_security(struct hci_conn *hcon, __u8 sec_level)
 		if (smp_ltk_encrypt(conn, hcon->pending_sec_level))
 			return 0;
 
-	chan = conn->smp;
-	if (!chan) {
-		BT_ERR("SMP security requested but not available");
-		return 1;
-	}
-
 	l2cap_chan_lock(chan);
 
 	/* If SMP is already in progress ignore this request */

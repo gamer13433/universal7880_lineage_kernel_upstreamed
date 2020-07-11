@@ -223,8 +223,6 @@ struct packet_skb_cb {
 	} sa;
 };
 
-#define vio_le() virtio_legacy_is_little_endian()
-
 #define PACKET_SKB_CB(__skb)	((struct packet_skb_cb *)((__skb)->cb))
 
 #define GET_PBDQC_FROM_RB(x)	((struct tpacket_kbdq_core *)(&(x)->prb_bdqc))

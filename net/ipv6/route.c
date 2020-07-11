@@ -1025,8 +1025,7 @@ struct dst_entry *ip6_route_output(struct net *net, const struct sock *sk,
 
 	fl6->flowi6_iif = LOOPBACK_IFINDEX;
 
-	if ((sk && sk->sk_bound_dev_if) || rt6_need_strict(&fl6->daddr) ||
-	    fl6->flowi6_oif)
+	if ((sk && sk->sk_bound_dev_if) || rt6_need_strict(&fl6->daddr))
 		flags |= RT6_LOOKUP_F_IFACE;
 
 	if (!ipv6_addr_any(&fl6->saddr))
@@ -1129,7 +1128,8 @@ static void ip6_link_failure(struct sk_buff *skb)
 	if (rt) {
 		if (rt->rt6i_flags & RTF_CACHE) {
 			dst_hold(&rt->dst);
-			ip6_del_rt(rt);
+			if (ip6_del_rt(rt))
+				dst_free(&rt->dst);
 		} else if (rt->rt6i_node && (rt->rt6i_flags & RTF_DEFAULT)) {
 			rt->rt6i_node->fn_sernum = -1;
 		}
@@ -1580,11 +1580,9 @@ int ip6_route_add(struct fib6_config *cfg)
 			rt->dst.input = ip6_pkt_prohibit;
 			break;
 		case RTN_THROW:
-		case RTN_UNREACHABLE:
 		default:
 			rt->dst.error = (cfg->fc_type == RTN_THROW) ? -EAGAIN
-					: (cfg->fc_type == RTN_UNREACHABLE)
-					? -EHOSTUNREACH : -ENETUNREACH;
+					: -ENETUNREACH;
 			rt->dst.output = ip6_pkt_discard_out;
 			rt->dst.input = ip6_pkt_discard;
 			break;
@@ -1683,8 +1681,7 @@ static int __ip6_del_rt(struct rt6_info *rt, struct nl_info *info)
 	struct fib6_table *table;
 	struct net *net = dev_net(rt->dst.dev);
 
-	if (rt == net->ipv6.ip6_null_entry ||
-	    rt->dst.flags & DST_NOCACHE) {
+	if (rt == net->ipv6.ip6_null_entry) {
 		err = -ENOENT;
 		goto out;
 	}
@@ -2164,7 +2161,6 @@ struct rt6_info *addrconf_dst_alloc(struct inet6_dev *idev,
 	rt->rt6i_dst.addr = *addr;
 	rt->rt6i_dst.plen = 128;
 	rt->rt6i_table = fib6_get_table(net, RT6_TABLE_LOCAL);
-	rt->dst.flags |= DST_NOCACHE;
 
 	atomic_set(&rt->dst.__refcnt, 1);
 
@@ -2782,8 +2778,7 @@ errout:
 	return err;
 }
 
-void inet6_rt_notify(int event, struct rt6_info *rt, struct nl_info *info,
-		     unsigned int nlm_flags)
+void inet6_rt_notify(int event, struct rt6_info *rt, struct nl_info *info)
 {
 	struct sk_buff *skb;
 	struct net *net = info->nl_net;
@@ -2798,7 +2793,7 @@ void inet6_rt_notify(int event, struct rt6_info *rt, struct nl_info *info,
 		goto errout;
 
 	err = rt6_fill_node(net, skb, rt, NULL, NULL, 0,
-				event, info->portid, seq, 0, 0, nlm_flags);
+				event, info->portid, seq, 0, 0, 0);
 	if (err < 0) {
 		/* -EMSGSIZE implies BUG in rt6_nlmsg_size() */
 		WARN_ON(err == -EMSGSIZE);
