@@ -16,6 +16,7 @@
 #include <linux/sched.h>
 #include <linux/timer.h>
 #include <linux/writeback.h>
+#include <linux/memcontrol.h>
 #include <linux/atomic.h>
 #include <linux/sysctl.h>
 #include <linux/workqueue.h>

@@ -143,6 +143,7 @@ sirf	SiRF Technology, Inc.
 sitronix	Sitronix Technology Corporation
 smsc	Standard Microsystems Corporation
 snps	Synopsys, Inc.
+socionext	Socionext Inc.
 solidrun	SolidRun
 sony	Sony Corporation
 spansion	Spansion Inc.

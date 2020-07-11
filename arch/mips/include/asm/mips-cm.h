@@ -244,6 +244,10 @@ BUILD_CM_Cx_R_(tcid_8_priority,	0x80)
 #define CM_GCR_CPC_STATUS_EX_SHF		0
 #define CM_GCR_CPC_STATUS_EX_MSK		(_ULCAST_(0x1) << 0)
 
+/* GCR_SYS_CONFIG2 register fields */
+#define CM_GCR_SYS_CONFIG2_MAXVPW_SHF		0
+#define CM_GCR_SYS_CONFIG2_MAXVPW_MSK		(_ULCAST_(0xf) << 0)
+
 /* GCR_Cx_COHERENCE register fields */
 #define CM_GCR_Cx_COHERENCE_COHDOMAINEN_SHF	0
 #define CM_GCR_Cx_COHERENCE_COHDOMAINEN_MSK	(_ULCAST_(0xff) << 0)
@@ -317,6 +321,40 @@ static inline int mips_cm_l2sync(void)
 
 	writel(0, mips_cm_l2sync_base);
 	return 0;
+}
+
+/**
+ * mips_cm_max_vp_width() - return the width in bits of VP indices
+ *
+ * Return: the width, in bits, of VP indices in fields that combine core & VP
+ * indices.
+ */
+static inline unsigned int mips_cm_max_vp_width(void)
+{
+	extern int smp_num_siblings;
+
+	if (mips_cm_revision() >= CM_REV_CM3)
+		return read_gcr_sys_config2() & CM_GCR_SYS_CONFIG2_MAXVPW_MSK;
+
+	return smp_num_siblings;
+}
+
+/**
+ * mips_cm_vp_id() - calculate the hardware VP ID for a CPU
+ * @cpu: the CPU whose VP ID to calculate
+ *
+ * Hardware such as the GIC uses identifiers for VPs which may not match the
+ * CPU numbers used by Linux. This function calculates the hardware VP
+ * identifier corresponding to a given CPU.
+ *
+ * Return: the VP ID for the CPU.
+ */
+static inline unsigned int mips_cm_vp_id(unsigned int cpu)
+{
+	unsigned int core = cpu_data[cpu].core;
+	unsigned int vp = cpu_vpe_id(&cpu_data[cpu]);
+
+	return (core * mips_cm_max_vp_width()) + vp;
 }
 
 #endif /* __MIPS_ASM_MIPS_CM_H__ */

@@ -74,6 +74,7 @@ struct hda_tegra {
 	struct clk *hda2codec_2x_clk;
 	struct clk *hda2hdmi_clk;
 	void __iomem *regs;
+	struct work_struct probe_work;
 };
 
 #ifdef CONFIG_PM
@@ -427,6 +428,9 @@ static int hda_tegra_first_init(struct azx *chip, struct platform_device *pdev)
 /*
  * constructor
  */
+
+static void hda_tegra_probe_work(struct work_struct *work);
+
 static int hda_tegra_create(struct snd_card *card,
 			    unsigned int driver_caps,
 			    const struct hda_controller_ops *hda_ops,
@@ -497,6 +501,21 @@ static int hda_tegra_probe(struct platform_device *pdev)
 	card->private_data = chip;
 
 	dev_set_drvdata(&pdev->dev, card);
+	schedule_work(&hda->probe_work);
+
+	return 0;
+
+out_free:
+	snd_card_free(card);
+	return err;
+}
+
+static void hda_tegra_probe_work(struct work_struct *work)
+{
+	struct hda_tegra *hda = container_of(work, struct hda_tegra, probe_work);
+	struct azx *chip = &hda->chip;
+	struct platform_device *pdev = to_platform_device(hda->dev);
+	int err;
 
 	err = hda_tegra_first_init(chip, pdev);
 	if (err < 0)
@@ -529,11 +548,8 @@ static int hda_tegra_probe(struct platform_device *pdev)
 	power_down_all_codecs(chip);
 	azx_notifier_register(chip);
 
-	return 0;
-
-out_free:
-	snd_card_free(card);
-	return err;
+ out_free:
+	return; /* no error return from async probe */
 }
 
 static int hda_tegra_remove(struct platform_device *pdev)

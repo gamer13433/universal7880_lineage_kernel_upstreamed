@@ -244,12 +244,22 @@ static void vmbus_process_rescind_offer(struct work_struct *work)
 		spin_lock_irqsave(&vmbus_connection.channel_lock, flags);
 		list_del(&channel->listentry);
 		spin_unlock_irqrestore(&vmbus_connection.channel_lock, flags);
+
+		primary_channel = channel;
 	} else {
 		primary_channel = channel->primary_channel;
 		spin_lock_irqsave(&primary_channel->sc_lock, flags);
 		list_del(&channel->sc_list);
 		spin_unlock_irqrestore(&primary_channel->sc_lock, flags);
 	}
+
+	/*
+	 * We need to free the bit for init_vp_index() to work in the case
+	 * of sub-channel, when we reload drivers like hv_netvsc.
+	 */
+	cpumask_clear_cpu(channel->target_cpu,
+			  &primary_channel->alloced_cpus_in_node);
+
 	free_channel(channel);
 }
 

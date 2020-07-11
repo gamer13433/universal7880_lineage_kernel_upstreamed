@@ -571,8 +571,6 @@ static int dwc3_omap_probe(struct platform_device *pdev)
 		goto err1;
 	}
 
-	dwc3_omap_enable_irqs(omap);
-
 	ret = dwc3_omap_extcon_register(omap);
 	if (ret < 0)
 		goto err2;
@@ -582,6 +580,8 @@ static int dwc3_omap_probe(struct platform_device *pdev)
 		dev_err(&pdev->dev, "failed to create dwc3 core\n");
 		goto err3;
 	}
+
+	dwc3_omap_enable_irqs(omap);
 
 	return 0;
 

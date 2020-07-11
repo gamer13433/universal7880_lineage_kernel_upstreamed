@@ -1042,6 +1042,26 @@ out:
 	return found;
 }
 
+bool pnfs_wait_on_layoutreturn(struct inode *ino, struct rpc_task *task)
+{
+	struct nfs_inode *nfsi = NFS_I(ino);
+        struct pnfs_layout_hdr *lo;
+        bool sleep = false;
+
+	/* we might not have grabbed lo reference. so need to check under
+	 * i_lock */
+        spin_lock(&ino->i_lock);
+        lo = nfsi->layout;
+        if (lo && test_bit(NFS_LAYOUT_RETURN, &lo->plh_flags))
+                sleep = true;
+        spin_unlock(&ino->i_lock);
+
+        if (sleep)
+                rpc_sleep_on(&NFS_SERVER(ino)->roc_rpcwaitq, task, NULL);
+
+        return sleep;
+}
+
 /*
  * Compare two layout segments for sorting into layout cache.
  * We want to preferentially return RW over RO layouts, so ensure those

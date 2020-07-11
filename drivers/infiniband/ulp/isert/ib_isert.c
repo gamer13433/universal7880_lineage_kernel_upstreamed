@@ -328,6 +328,8 @@ isert_create_device_ib_res(struct isert_device *device)
 			goto out_cq;
 	}
 
+	isert_conn->rx_desc_head = 0;
+
 	return 0;
 
 out_cq:

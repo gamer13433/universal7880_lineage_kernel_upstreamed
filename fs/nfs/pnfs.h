@@ -489,6 +489,12 @@ pnfs_roc_drain(struct inode *ino, u32 *barrier, struct rpc_task *task)
 	return false;
 }
 
+static inline bool
+pnfs_wait_on_layoutreturn(struct inode *ino, struct rpc_task *task)
+{
+	return false;
+}
+
 static inline void set_pnfs_layoutdriver(struct nfs_server *s,
 					 const struct nfs_fh *mntfh, u32 id)
 {

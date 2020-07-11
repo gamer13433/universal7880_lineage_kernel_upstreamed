@@ -1051,7 +1051,6 @@ static void ali_ircc_fir_change_speed(struct ali_ircc_cb *priv, __u32 baud)
 static void ali_ircc_sir_change_speed(struct ali_ircc_cb *priv, __u32 speed)
 {
 	struct ali_ircc_cb *self = priv;
-	unsigned long flags;
 	int iobase; 
 	int fcr;    /* FIFO control reg */
 	int lcr;    /* Line control reg */
@@ -1081,8 +1080,6 @@ static void ali_ircc_sir_change_speed(struct ali_ircc_cb *priv, __u32 speed)
 		
 	/* Update accounting for new speed */
 	self->io.speed = speed;
-
-	spin_lock_irqsave(&self->lock, flags);
 
 	divisor = 115200/speed;
 	

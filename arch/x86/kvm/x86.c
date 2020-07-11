@@ -1655,6 +1655,8 @@ static int kvm_guest_time_update(struct kvm_vcpu *v)
 		vcpu->pvclock_set_guest_stopped_request = false;
 	}
 
+	pvclock_flags |= PVCLOCK_COUNTS_FROM_ZERO;
+
 	/* If the host uses TSC clocksource, then it is stable */
 	if (use_master_clock)
 		pvclock_flags |= PVCLOCK_TSC_STABLE_BIT;

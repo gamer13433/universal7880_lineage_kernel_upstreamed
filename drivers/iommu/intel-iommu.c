@@ -2937,6 +2937,8 @@ static struct iova *intel_alloc_iova(struct device *dev,
 
 	/* Restrict dma_mask to the width that the iommu can handle */
 	dma_mask = min_t(uint64_t, DOMAIN_MAX_ADDR(domain->gaw), dma_mask);
+	/* Ensure we reserve the whole size-aligned region */
+	nrpages = __roundup_pow_of_two(nrpages);
 
 	if (!dmar_forcedac && dma_mask > DMA_BIT_MASK(32)) {
 		/*
@@ -3462,7 +3464,7 @@ static inline int iommu_iova_cache_init(void)
 static int __init iommu_init_mempool(void)
 {
 	int ret;
-	ret = iommu_iova_cache_init();
+	ret = iova_cache_get();
 	if (ret)
 		return ret;
 

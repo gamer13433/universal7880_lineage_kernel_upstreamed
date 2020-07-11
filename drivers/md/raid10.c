@@ -3600,8 +3600,7 @@ static struct r10conf *setup_conf(struct mddev *mddev)
 		printk(KERN_ERR "md/raid10:%s: couldn't allocate memory.\n",
 		       mdname(mddev));
 	if (conf) {
-		if (conf->r10bio_pool)
-			mempool_destroy(conf->r10bio_pool);
+		mempool_destroy(conf->r10bio_pool);
 		kfree(conf->mirrors);
 		safe_put_page(conf->tmppage);
 		kfree(conf);
@@ -3801,8 +3800,7 @@ static int run(struct mddev *mddev)
 
 out_free_conf:
 	md_unregister_thread(&mddev->thread);
-	if (conf->r10bio_pool)
-		mempool_destroy(conf->r10bio_pool);
+	mempool_destroy(conf->r10bio_pool);
 	safe_put_page(conf->tmppage);
 	kfree(conf->mirrors);
 	kfree(conf);
@@ -3823,8 +3821,7 @@ static int stop(struct mddev *mddev)
 		/* the unplug fn references 'conf'*/
 		blk_sync_queue(mddev->queue);
 
-	if (conf->r10bio_pool)
-		mempool_destroy(conf->r10bio_pool);
+	mempool_destroy(conf->r10bio_pool);
 	safe_put_page(conf->tmppage);
 	kfree(conf->mirrors);
 	kfree(conf->mirrors_old);

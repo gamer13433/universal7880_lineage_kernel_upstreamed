@@ -97,6 +97,8 @@ static int drm_helper_probe_add_cmdline_mode(struct drm_connector *connector)
 	drm_mode_probed_add(connector, mode);
 	return 1;
 }
+EXPORT_SYMBOL(drm_kms_helper_poll_enable_locked);
+
 
 static int drm_helper_probe_single_connector_modes_merge_bits(struct drm_connector *connector,
 							      uint32_t maxX, uint32_t maxY, bool merge_type_bits)

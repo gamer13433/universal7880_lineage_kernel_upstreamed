@@ -133,6 +133,24 @@ static inline u32 netlink_group_mask(u32 group)
 	return group ? 1 << (group - 1) : 0;
 }
 
+static struct sk_buff *netlink_to_full_skb(const struct sk_buff *skb,
+					   gfp_t gfp_mask)
+{
+	unsigned int len = skb_end_offset(skb);
+	struct sk_buff *new;
+
+	new = alloc_skb(len, gfp_mask);
+	if (new == NULL)
+		return NULL;
+
+	NETLINK_CB(new).portid = NETLINK_CB(skb).portid;
+	NETLINK_CB(new).dst_group = NETLINK_CB(skb).dst_group;
+	NETLINK_CB(new).creds = NETLINK_CB(skb).creds;
+
+	memcpy(skb_put(new, len), skb->data, len);
+	return new;
+}
+
 int netlink_add_tap(struct netlink_tap *nt)
 {
 	if (unlikely(nt->dev->type != ARPHRD_NETLINK))
@@ -215,7 +233,11 @@ static int __netlink_deliver_tap_skb(struct sk_buff *skb,
 	int ret = -ENOMEM;
 
 	dev_hold(dev);
-	nskb = skb_clone(skb, GFP_ATOMIC);
+
+	if (netlink_skb_is_mmaped(skb) || is_vmalloc_addr(skb->head))
+		nskb = netlink_to_full_skb(skb, GFP_ATOMIC);
+	else
+		nskb = skb_clone(skb, GFP_ATOMIC);
 	if (nskb) {
 		nskb->dev = dev;
 		nskb->protocol = htons((u16) sk->sk_protocol);
@@ -287,11 +309,6 @@ static void netlink_rcv_wake(struct sock *sk)
 }
 
 #ifdef CONFIG_NETLINK_MMAP
-static bool netlink_skb_is_mmaped(const struct sk_buff *skb)
-{
-	return NETLINK_CB(skb).flags & NETLINK_SKB_MMAPED;
-}
-
 static bool netlink_rx_is_mmaped(struct sock *sk)
 {
 	return nlk_sk(sk)->rx_ring.pg_vec != NULL;
@@ -828,7 +845,6 @@ static void netlink_ring_set_copied(struct sock *sk, struct sk_buff *skb)
 }
 
 #else /* CONFIG_NETLINK_MMAP */
-#define netlink_skb_is_mmaped(skb)	false
 #define netlink_rx_is_mmaped(sk)	false
 #define netlink_tx_is_mmaped(sk)	false
 #define netlink_mmap			sock_no_mmap
@@ -1062,8 +1078,8 @@ static int netlink_insert(struct sock *sk, struct net *net, u32 portid)
 	if (__netlink_lookup(table, portid, net))
 		goto err;
 
-	err = -EBUSY;
-	if (nlk_sk(sk)->portid)
+	err = nlk_sk(sk)->portid == portid ? 0 : -EBUSY;
+	if (nlk_sk(sk)->bound)
 		goto err;
 
 	err = -ENOMEM;
@@ -1433,6 +1449,7 @@ static int netlink_bind(struct socket *sock, struct sockaddr *addr,
 	struct sockaddr_nl *nladdr = (struct sockaddr_nl *)addr;
 	int err;
 	long unsigned int groups = nladdr->nl_groups;
+	bool bound;
 
 	if (addr_len < sizeof(struct sockaddr_nl))
 		return -EINVAL;
@@ -1449,9 +1466,14 @@ static int netlink_bind(struct socket *sock, struct sockaddr *addr,
 			return err;
 	}
 
-	if (nlk->portid)
+	bound = nlk->bound;
+	if (bound) {
+		/* Ensure nlk->portid is up-to-date. */
+		smp_rmb();
+
 		if (nladdr->nl_pid != nlk->portid)
 			return -EINVAL;
+	}
 
 	if (nlk->netlink_bind && groups) {
 		int group;
@@ -1467,7 +1489,10 @@ static int netlink_bind(struct socket *sock, struct sockaddr *addr,
 		}
 	}
 
-	if (!nlk->portid) {
+	/* No need for barriers here as we return to user-space without
+	 * using any of the bound attributes.
+	 */
+	if (!bound) {
 		err = nladdr->nl_pid ?
 			netlink_insert(sk, net, nladdr->nl_pid) :
 			netlink_autobind(sock);
@@ -1515,7 +1540,10 @@ static int netlink_connect(struct socket *sock, struct sockaddr *addr,
 	    !netlink_allowed(sock, NL_CFG_F_NONROOT_SEND))
 		return -EPERM;
 
-	if (!nlk->portid)
+	/* No need for barriers here as we return to user-space without
+	 * using any of the bound attributes.
+	 */
+	if (!nlk->bound)
 		err = netlink_autobind(sock);
 
 	if (err == 0) {
@@ -2279,10 +2307,13 @@ static int netlink_sendmsg(struct kiocb *kiocb, struct socket *sock,
 		dst_group = nlk->dst_group;
 	}
 
-	if (!nlk->portid) {
+	if (!nlk->bound) {
 		err = netlink_autobind(sock);
 		if (err)
 			goto out;
+	} else {
+		/* Ensure nlk is hashed and visible. */
+		smp_rmb();
 	}
 
 	if (netlink_tx_is_mmaped(sk) &&

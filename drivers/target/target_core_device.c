@@ -96,6 +96,17 @@ transport_lookup_cmd_lun(struct se_cmd *se_cmd, u32 unpacked_lun)
 
 		percpu_ref_get(&se_lun->lun_ref);
 		se_cmd->lun_ref_active = true;
+
+		if ((se_cmd->data_direction == DMA_TO_DEVICE) &&
+		    (deve->lun_flags & TRANSPORT_LUNFLAGS_READ_ONLY)) {
+			pr_err("TARGET_CORE[%s]: Detected WRITE_PROTECTED LUN"
+				" Access for 0x%08llx\n",
+				se_cmd->se_tfo->get_fabric_name(),
+				unpacked_lun);
+			rcu_read_unlock();
+			ret = TCM_WRITE_PROTECTED;
+			goto ref_dev;
+		}
 	}
 	spin_unlock_irqrestore(&se_sess->se_node_acl->device_list_lock, flags);
 
@@ -112,12 +123,6 @@ transport_lookup_cmd_lun(struct se_cmd *se_cmd, u32 unpacked_lun)
 				unpacked_lun);
 			return TCM_NON_EXISTENT_LUN;
 		}
-		/*
-		 * Force WRITE PROTECT for virtual LUN 0
-		 */
-		if ((se_cmd->data_direction != DMA_FROM_DEVICE) &&
-		    (se_cmd->data_direction != DMA_NONE))
-			return TCM_WRITE_PROTECTED;
 
 		se_lun = &se_sess->se_tpg->tpg_virt_lun0;
 		se_cmd->se_lun = &se_sess->se_tpg->tpg_virt_lun0;
@@ -126,6 +131,15 @@ transport_lookup_cmd_lun(struct se_cmd *se_cmd, u32 unpacked_lun)
 
 		percpu_ref_get(&se_lun->lun_ref);
 		se_cmd->lun_ref_active = true;
+
+		/*
+		 * Force WRITE PROTECT for virtual LUN 0
+		 */
+		if ((se_cmd->data_direction != DMA_FROM_DEVICE) &&
+		    (se_cmd->data_direction != DMA_NONE)) {
+			ret = TCM_WRITE_PROTECTED;
+			goto ref_dev;
+		}
 	}
 
 	/* Directly associate cmd with se_dev */
@@ -138,7 +152,7 @@ transport_lookup_cmd_lun(struct se_cmd *se_cmd, u32 unpacked_lun)
 	else if (se_cmd->data_direction == DMA_FROM_DEVICE)
 		atomic_long_add(se_cmd->data_length, &dev->read_bytes);
 
-	return 0;
+	return ret;
 }
 EXPORT_SYMBOL(transport_lookup_cmd_lun);
 

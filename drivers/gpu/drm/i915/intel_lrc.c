@@ -472,18 +472,18 @@ void intel_execlists_handle_ctx_events(struct intel_engine_cs *ring)
 	status_pointer = I915_READ(RING_CONTEXT_STATUS_PTR(ring));
 
 	read_pointer = ring->next_context_status_buffer;
-	write_pointer = status_pointer & 0x07;
+	write_pointer = status_pointer & GEN8_CSB_PTR_MASK;
 	if (read_pointer > write_pointer)
-		write_pointer += 6;
+		write_pointer += GEN8_CSB_ENTRIES;
 
 	spin_lock(&ring->execlist_lock);
 
 	while (read_pointer < write_pointer) {
 		read_pointer++;
 		status = I915_READ(RING_CONTEXT_STATUS_BUF(ring) +
-				(read_pointer % 6) * 8);
+				(read_pointer % GEN8_CSB_ENTRIES) * 8);
 		status_id = I915_READ(RING_CONTEXT_STATUS_BUF(ring) +
-				(read_pointer % 6) * 8 + 4);
+				(read_pointer % GEN8_CSB_ENTRIES) * 8 + 4);
 
 		if (status & GEN8_CTX_STATUS_PREEMPTED) {
 			if (status & GEN8_CTX_STATUS_LITE_RESTORE) {
@@ -995,6 +995,7 @@ static int gen8_init_common_ring(struct intel_engine_cs *ring)
 {
 	struct drm_device *dev = ring->dev;
 	struct drm_i915_private *dev_priv = dev->dev_private;
+	u8 next_context_status_buffer_hw;
 
 	I915_WRITE_IMR(ring, ~(ring->irq_enable_mask | ring->irq_keep_mask));
 	I915_WRITE(RING_HWSTAM(ring->mmio_base), 0xffffffff);

@@ -33,6 +33,7 @@
 
 struct fw_head {
 	u32			mask;
+	bool			mask_set;
 	struct fw_filter __rcu	*ht[HTSIZE];
 	struct rcu_head		rcu;
 };

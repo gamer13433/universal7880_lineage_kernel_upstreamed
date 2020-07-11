@@ -247,6 +247,9 @@ static int xen_blkif_map(struct xen_blkif *blkif, unsigned long shared_page,
 
 static int xen_blkif_disconnect(struct xen_blkif *blkif)
 {
+	struct pending_req *req, *n;
+	int i = 0, j;
+
 	if (blkif->xenblkd) {
 		kthread_stop(blkif->xenblkd);
 		wake_up(&blkif->shutdown_wq);
@@ -273,13 +276,28 @@ static int xen_blkif_disconnect(struct xen_blkif *blkif)
 	/* Remove all persistent grants and the cache of ballooned pages. */
 	xen_blkbk_free_caches(blkif);
 
+	/* Check that there is no request in use */
+	list_for_each_entry_safe(req, n, &blkif->pending_free, free_list) {
+		list_del(&req->free_list);
+
+		for (j = 0; j < MAX_INDIRECT_SEGMENTS; j++)
+			kfree(req->segments[j]);
+
+		for (j = 0; j < MAX_INDIRECT_PAGES; j++)
+			kfree(req->indirect_pages[j]);
+
+		kfree(req);
+		i++;
+	}
+
+	WARN_ON(i != (XEN_BLKIF_REQS_PER_PAGE * blkif->nr_ring_pages));
+	blkif->nr_ring_pages = 0;
+
 	return 0;
 }
 
 static void xen_blkif_free(struct xen_blkif *blkif)
 {
-	struct pending_req *req, *n;
-	int i = 0, j;
 
 	xen_blkif_disconnect(blkif);
 	xen_vbd_free(&blkif->vbd);

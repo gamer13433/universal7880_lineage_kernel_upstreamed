@@ -46,6 +46,7 @@
 #include "smb2status.h"
 #include "smb2glob.h"
 #include "cifspdu.h"
+#include "cifs_spnego.h"
 
 /*
  *  The following table defines the expected "StructureSize" of SMB2 requests
@@ -534,7 +535,8 @@ SMB2_sess_setup(const unsigned int xid, struct cifs_ses *ses,
 	__le32 phase = NtLmNegotiate; /* NTLMSSP, if needed, is multistage */
 	struct TCP_Server_Info *server = ses->server;
 	u16 blob_length = 0;
-	char *security_blob;
+	struct key *spnego_key = NULL;
+	char *security_blob = NULL;
 	char *ntlmssp_blob = NULL;
 	bool use_spnego = false; /* else use raw ntlmssp */
 
@@ -562,7 +564,8 @@ SMB2_sess_setup(const unsigned int xid, struct cifs_ses *ses,
 	ses->ntlmssp->sesskey_per_smbsess = true;
 
 	/* FIXME: allow for other auth types besides NTLMSSP (e.g. krb5) */
-	ses->sectype = RawNTLMSSP;
+	if (ses->sectype != Kerberos && ses->sectype != RawNTLMSSP)
+		ses->sectype = RawNTLMSSP;
 
 ssetup_ntlmssp_authenticate:
 	if (phase == NtLmChallenge)
@@ -591,7 +594,48 @@ ssetup_ntlmssp_authenticate:
 	iov[0].iov_base = (char *)req;
 	/* 4 for rfc1002 length field and 1 for pad */
 	iov[0].iov_len = get_rfc1002_length(req) + 4 - 1;
-	if (phase == NtLmNegotiate) {
+
+	if (ses->sectype == Kerberos) {
+#ifdef CONFIG_CIFS_UPCALL
+		struct cifs_spnego_msg *msg;
+
+		spnego_key = cifs_get_spnego_key(ses);
+		if (IS_ERR(spnego_key)) {
+			rc = PTR_ERR(spnego_key);
+			spnego_key = NULL;
+			goto ssetup_exit;
+		}
+
+		msg = spnego_key->payload.data;
+		/*
+		 * check version field to make sure that cifs.upcall is
+		 * sending us a response in an expected form
+		 */
+		if (msg->version != CIFS_SPNEGO_UPCALL_VERSION) {
+			cifs_dbg(VFS,
+				  "bad cifs.upcall version. Expected %d got %d",
+				  CIFS_SPNEGO_UPCALL_VERSION, msg->version);
+			rc = -EKEYREJECTED;
+			goto ssetup_exit;
+		}
+		ses->auth_key.response = kmemdup(msg->data, msg->sesskey_len,
+						 GFP_KERNEL);
+		if (!ses->auth_key.response) {
+			cifs_dbg(VFS,
+				"Kerberos can't allocate (%u bytes) memory",
+				msg->sesskey_len);
+			rc = -ENOMEM;
+			goto ssetup_exit;
+		}
+		ses->auth_key.len = msg->sesskey_len;
+		blob_length = msg->secblob_len;
+		iov[1].iov_base = msg->data + msg->sesskey_len;
+		iov[1].iov_len = blob_length;
+#else
+		rc = -EOPNOTSUPP;
+		goto ssetup_exit;
+#endif /* CONFIG_CIFS_UPCALL */
+	} else if (phase == NtLmNegotiate) { /* if not krb5 must be ntlmssp */
 		ntlmssp_blob = kmalloc(sizeof(struct _NEGOTIATE_MESSAGE),
 				       GFP_KERNEL);
 		if (ntlmssp_blob == NULL) {
@@ -614,6 +658,8 @@ ssetup_ntlmssp_authenticate:
 			/* with raw NTLMSSP we don't encapsulate in SPNEGO */
 			security_blob = ntlmssp_blob;
 		}
+		iov[1].iov_base = security_blob;
+		iov[1].iov_len = blob_length;
 	} else if (phase == NtLmAuthenticate) {
 		req->hdr.SessionId = ses->Suid;
 		ntlmssp_blob = kzalloc(sizeof(struct _NEGOTIATE_MESSAGE) + 500,
@@ -641,6 +687,8 @@ ssetup_ntlmssp_authenticate:
 		} else {
 			security_blob = ntlmssp_blob;
 		}
+		iov[1].iov_base = security_blob;
+		iov[1].iov_len = blob_length;
 	} else {
 		cifs_dbg(VFS, "illegal ntlmssp phase\n");
 		rc = -EIO;
@@ -652,8 +700,6 @@ ssetup_ntlmssp_authenticate:
 				cpu_to_le16(sizeof(struct smb2_sess_setup_req) -
 					    1 /* pad */ - 4 /* rfc1001 len */);
 	req->SecurityBufferLength = cpu_to_le16(blob_length);
-	iov[1].iov_base = security_blob;
-	iov[1].iov_len = blob_length;
 
 	inc_rfc1001_len(req, blob_length - 1 /* pad */);
 
@@ -664,6 +710,7 @@ ssetup_ntlmssp_authenticate:
 
 	kfree(security_blob);
 	rsp = (struct smb2_sess_setup_rsp *)iov[0].iov_base;
+	ses->Suid = rsp->hdr.SessionId;
 	if (resp_buftype != CIFS_NO_BUFFER &&
 	    rsp->hdr.Status == STATUS_MORE_PROCESSING_REQUIRED) {
 		if (phase != NtLmNegotiate) {
@@ -681,7 +728,6 @@ ssetup_ntlmssp_authenticate:
 		/* NTLMSSP Negotiate sent now processing challenge (response) */
 		phase = NtLmChallenge; /* process ntlmssp challenge */
 		rc = 0; /* MORE_PROCESSING is not an error here but expected */
-		ses->Suid = rsp->hdr.SessionId;
 		rc = decode_ntlmssp_challenge(rsp->Buffer,
 				le16_to_cpu(rsp->SecurityBufferLength), ses);
 	}
@@ -737,6 +783,10 @@ keygen_exit:
 	if (!server->sign) {
 		kfree(ses->auth_key.response);
 		ses->auth_key.response = NULL;
+	}
+	if (spnego_key) {
+		key_invalidate(spnego_key);
+		key_put(spnego_key);
 	}
 	kfree(ses->ntlmssp);
 
@@ -818,6 +868,12 @@ SMB2_tcon(const unsigned int xid, struct cifs_ses *ses, const char *tree,
 	if (tcon && tcon->bad_network_name)
 		return -ENOENT;
 
+	if ((tcon->seal) &&
+	    ((ses->server->capabilities & SMB2_GLOBAL_CAP_ENCRYPTION) == 0)) {
+		cifs_dbg(VFS, "encryption requested but no server support");
+		return -EOPNOTSUPP;
+	}
+
 	unc_path = kmalloc(MAX_SHARENAME_LENGTH * 2, GFP_KERNEL);
 	if (unc_path == NULL)
 		return -ENOMEM;
@@ -897,6 +953,8 @@ SMB2_tcon(const unsigned int xid, struct cifs_ses *ses, const char *tree,
 	    ((tcon->share_flags & SHI1005_FLAGS_DFS) == 0))
 		cifs_dbg(VFS, "DFS capability contradicts DFS flag\n");
 	init_copy_chunk_defaults(tcon);
+	if (tcon->share_flags & SHI1005_FLAGS_ENCRYPT_DATA)
+		cifs_dbg(VFS, "Encrypted shares not supported");
 	if (tcon->ses->server->ops->validate_negotiate)
 		rc = tcon->ses->server->ops->validate_negotiate(xid, tcon);
 tcon_exit:

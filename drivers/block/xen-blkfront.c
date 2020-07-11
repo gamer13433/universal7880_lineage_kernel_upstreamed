@@ -1118,7 +1118,6 @@ static irqreturn_t blkif_interrupt(int irq, void *dev_id)
 	RING_IDX i, rp;
 	unsigned long flags;
 	struct blkfront_info *info = (struct blkfront_info *)dev_id;
-	int error;
 
 	spin_lock_irqsave(&info->io_lock, flags);
 

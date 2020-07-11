@@ -786,6 +786,7 @@ static int rotator_remove(struct platform_device *pdev)
 	return 0;
 }
 
+#ifdef CONFIG_PM
 static int rotator_clk_crtl(struct rot_context *rot, bool enable)
 {
 	if (enable) {

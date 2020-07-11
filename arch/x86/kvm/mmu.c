@@ -3545,7 +3545,7 @@ static void reset_rsvds_bits_mask(struct kvm_vcpu *vcpu,
 	 * Non-leaf PML4Es and PDPEs reserve bit 8 (which would be the G bit for
 	 * leaf entries) on AMD CPUs only.
 	 */
-	if (guest_cpuid_is_amd(vcpu))
+	if (amd)
 		nonleaf_bit8_rsvd = rsvd_bits(8, 8);
 
 	switch (context->root_level) {

@@ -3072,8 +3072,8 @@ static void udc_pci_remove(struct pci_dev *pdev)
 	writel(AMD_BIT(UDC_DEVCFG_SOFTRESET), &dev->regs->cfg);
 	if (dev->irq_registered)
 		free_irq(pdev->irq, dev);
-	if (dev->regs)
-		iounmap(dev->regs);
+	if (dev->virt_addr)
+		iounmap(dev->virt_addr);
 	if (dev->mem_region)
 		release_mem_region(pci_resource_start(pdev, 0),
 				pci_resource_len(pdev, 0));
@@ -3160,17 +3160,13 @@ static int udc_pci_probe(
 
 	/* init */
 	dev = kzalloc(sizeof(struct udc), GFP_KERNEL);
-	if (!dev) {
-		retval = -ENOMEM;
-		goto finished;
-	}
+	if (!dev)
+		return -ENOMEM;
 
 	/* pci setup */
 	if (pci_enable_device(pdev) < 0) {
-		kfree(dev);
-		dev = NULL;
 		retval = -ENODEV;
-		goto finished;
+		goto err_pcidev;
 	}
 	dev->active = 1;
 
@@ -3180,28 +3176,22 @@ static int udc_pci_probe(
 
 	if (!request_mem_region(resource, len, name)) {
 		dev_dbg(&pdev->dev, "pci device used already\n");
-		kfree(dev);
-		dev = NULL;
 		retval = -EBUSY;
-		goto finished;
+		goto err_memreg;
 	}
 	dev->mem_region = 1;
 
 	dev->virt_addr = ioremap_nocache(resource, len);
 	if (dev->virt_addr == NULL) {
 		dev_dbg(&pdev->dev, "start address cannot be mapped\n");
-		kfree(dev);
-		dev = NULL;
 		retval = -EFAULT;
-		goto finished;
+		goto err_ioremap;
 	}
 
 	if (!pdev->irq) {
 		dev_err(&pdev->dev, "irq not set\n");
-		kfree(dev);
-		dev = NULL;
 		retval = -ENODEV;
-		goto finished;
+		goto err_irq;
 	}
 
 	spin_lock_init(&dev->lock);
@@ -3217,10 +3207,8 @@ static int udc_pci_probe(
 
 	if (request_irq(pdev->irq, udc_irq, IRQF_SHARED, name, dev) != 0) {
 		dev_dbg(&pdev->dev, "request_irq(%d) fail\n", pdev->irq);
-		kfree(dev);
-		dev = NULL;
 		retval = -EBUSY;
-		goto finished;
+		goto err_irq;
 	}
 	dev->irq_registered = 1;
 
@@ -3248,8 +3236,17 @@ static int udc_pci_probe(
 		return 0;
 
 finished:
-	if (dev)
-		udc_pci_remove(pdev);
+	udc_pci_remove(pdev);
+	return retval;
+
+err_irq:
+	iounmap(dev->virt_addr);
+err_ioremap:
+	release_mem_region(resource, len);
+err_memreg:
+	pci_disable_device(pdev);
+err_pcidev:
+	kfree(dev);
 	return retval;
 }
 

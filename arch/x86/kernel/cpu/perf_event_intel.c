@@ -186,6 +186,11 @@ static struct extra_reg intel_snbep_extra_regs[] __read_mostly = {
 	INTEL_UEVENT_EXTRA_REG(0x01b7, MSR_OFFCORE_RSP_0, 0x3fffff8fffull, RSP_0),
 	INTEL_UEVENT_EXTRA_REG(0x01bb, MSR_OFFCORE_RSP_1, 0x3fffff8fffull, RSP_1),
 	INTEL_UEVENT_PEBS_LDLAT_EXTRA_REG(0x01cd),
+	/*
+	 * Note the low 8 bits eventsel code is not a continuous field, containing
+	 * some #GPing bits. These are masked out.
+	 */
+	INTEL_UEVENT_EXTRA_REG(0x01c6, MSR_PEBS_FRONTEND, 0x7fff17, FE),
 	EVENT_EXTRA_END
 };
 
@@ -2031,6 +2036,8 @@ PMU_FORMAT_ATTR(offcore_rsp, "config1:0-63");
 
 PMU_FORMAT_ATTR(ldlat, "config1:0-15");
 
+PMU_FORMAT_ATTR(frontend, "config1:0-23");
+
 static struct attribute *intel_arch3_formats_attr[] = {
 	&format_attr_event.attr,
 	&format_attr_umask.attr,
@@ -2044,6 +2051,11 @@ static struct attribute *intel_arch3_formats_attr[] = {
 
 	&format_attr_offcore_rsp.attr, /* XXX do NHM/WSM + SNB breakout */
 	&format_attr_ldlat.attr, /* PEBS load latency */
+	NULL,
+};
+
+static struct attribute *skl_format_attr[] = {
+	&format_attr_frontend.attr,
 	NULL,
 };
 

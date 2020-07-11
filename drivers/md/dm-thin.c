@@ -3592,6 +3592,10 @@ static int thin_iterate_devices(struct dm_target *ti,
 	sector_t blocks;
 	struct thin_c *tc = ti->private;
 	struct pool *pool = tc->pool;
+	struct queue_limits *pool_limits = dm_get_queue_limits(pool->pool_md);
+
+	if (!pool_limits->discard_granularity)
+		return; /* pool's discard support is disabled */
 
 	/*
 	 * We can't call dm_pool_get_data_dev_size() since that blocks.  So

@@ -558,6 +558,7 @@ static struct of_device_id match_table[] = {
 	{ .compatible = "fsl,etsec-ptp" },
 	{},
 };
+MODULE_DEVICE_TABLE(of, match_table);
 
 static struct platform_driver gianfar_ptp_driver = {
 	.driver = {

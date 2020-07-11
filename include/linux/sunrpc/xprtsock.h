@@ -17,6 +17,8 @@ void		cleanup_socket_xprt(void);
 #define RPC_DEF_MIN_RESVPORT	(665U)
 #define RPC_DEF_MAX_RESVPORT	(1023U)
 
+#define XPRT_SOCK_CONNECTING	1U
+
 #endif /* __KERNEL__ */
 
 #endif /* _LINUX_SUNRPC_XPRTSOCK_H */

@@ -201,6 +201,7 @@ module_param(npt, int, S_IRUGO);
 static int nested = true;
 module_param(nested, int, S_IRUGO);
 
+static void svm_set_cr0(struct kvm_vcpu *vcpu, unsigned long cr0);
 static void svm_flush_tlb(struct kvm_vcpu *vcpu);
 static void svm_complete_interrupts(struct vcpu_svm *svm);
 
@@ -862,64 +863,6 @@ static void svm_disable_lbrv(struct vcpu_svm *svm)
 	set_msr_interception(msrpm, MSR_IA32_LASTINTTOIP, 0, 0);
 }
 
-#define MTRR_TYPE_UC_MINUS	7
-#define MTRR2PROTVAL_INVALID 0xff
-
-static u8 mtrr2protval[8];
-
-static u8 fallback_mtrr_type(int mtrr)
-{
-	/*
-	 * WT and WP aren't always available in the host PAT.  Treat
-	 * them as UC and UC- respectively.  Everything else should be
-	 * there.
-	 */
-	switch (mtrr)
-	{
-	case MTRR_TYPE_WRTHROUGH:
-		return MTRR_TYPE_UNCACHABLE;
-	case MTRR_TYPE_WRPROT:
-		return MTRR_TYPE_UC_MINUS;
-	default:
-		BUG();
-	}
-}
-
-static void build_mtrr2protval(void)
-{
-	int i;
-	u64 pat;
-
-	for (i = 0; i < 8; i++)
-		mtrr2protval[i] = MTRR2PROTVAL_INVALID;
-
-	/* Ignore the invalid MTRR types.  */
-	mtrr2protval[2] = 0;
-	mtrr2protval[3] = 0;
-
-	/*
-	 * Use host PAT value to figure out the mapping from guest MTRR
-	 * values to nested page table PAT/PCD/PWT values.  We do not
-	 * want to change the host PAT value every time we enter the
-	 * guest.
-	 */
-	rdmsrl(MSR_IA32_CR_PAT, pat);
-	for (i = 0; i < 8; i++) {
-		u8 mtrr = pat >> (8 * i);
-
-		if (mtrr2protval[mtrr] == MTRR2PROTVAL_INVALID)
-			mtrr2protval[mtrr] = __cm_idx2pte(i);
-	}
-
-	for (i = 0; i < 8; i++) {
-		if (mtrr2protval[i] == MTRR2PROTVAL_INVALID) {
-			u8 fallback = fallback_mtrr_type(i);
-			mtrr2protval[i] = mtrr2protval[fallback];
-			BUG_ON(mtrr2protval[i] == MTRR2PROTVAL_INVALID);
-		}
-	}
-}
-
 static __init int svm_hardware_setup(void)
 {
 	int cpu;
@@ -986,7 +929,6 @@ static __init int svm_hardware_setup(void)
 	} else
 		kvm_disable_tdp();
 
-	build_mtrr2protval();
 	return 0;
 
 err:
@@ -3292,16 +3234,6 @@ static int svm_set_msr(struct kvm_vcpu *vcpu, struct msr_data *msr)
 	case MSR_VM_IGNNE:
 		vcpu_unimpl(vcpu, "unimplemented wrmsr: 0x%x data 0x%llx\n", ecx, data);
 		break;
-	case MSR_IA32_CR_PAT:
-		if (npt_enabled) {
-			if (!kvm_mtrr_valid(vcpu, MSR_IA32_CR_PAT, data))
-				return 1;
-			vcpu->arch.pat = data;
-			svm_set_guest_pat(svm, &svm->vmcb->save.g_pat);
-			mark_dirty(svm->vmcb, VMCB_NPT);
-			break;
-		}
-		/* fall through */
 	default:
 		return kvm_set_msr_common(vcpu, msr);
 	}
@@ -4129,6 +4061,11 @@ static void svm_check_processor_compat(void *rtn)
 static bool svm_cpu_has_accelerated_tpr(void)
 {
 	return false;
+}
+
+static u64 svm_get_mt_mask(struct kvm_vcpu *vcpu, gfn_t gfn, bool is_mmio)
+{
+	return 0;
 }
 
 static void svm_cpuid_update(struct kvm_vcpu *vcpu)

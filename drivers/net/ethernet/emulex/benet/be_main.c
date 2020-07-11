@@ -4519,6 +4519,11 @@ static void be_add_vxlan_port(struct net_device *netdev, sa_family_t sa_family,
 	if (lancer_chip(adapter) || BEx_chip(adapter) || be_is_mc(adapter))
 		return;
 
+	if (adapter->vxlan_port == port && adapter->vxlan_port_count) {
+		adapter->vxlan_port_aliases++;
+		return;
+	}
+
 	if (adapter->flags & BE_FLAGS_VXLAN_OFFLOADS) {
 		dev_warn(dev, "Cannot add UDP port %d for VxLAN offloads\n",
 			 be16_to_cpu(port));
@@ -4559,6 +4564,11 @@ static void be_del_vxlan_port(struct net_device *netdev, sa_family_t sa_family,
 
 	if (adapter->vxlan_port != port)
 		return;
+
+	if (adapter->vxlan_port_aliases) {
+		adapter->vxlan_port_aliases--;
+		return;
+	}
 
 	be_disable_vxlan_offloads(adapter);
 

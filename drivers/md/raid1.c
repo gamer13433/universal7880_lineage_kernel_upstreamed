@@ -917,8 +917,7 @@ static sector_t wait_barrier(struct r1conf *conf, struct bio *bio)
 	}
 
 	if (bio && bio_data_dir(bio) == WRITE) {
-		if (bio->bi_iter.bi_sector >=
-		    conf->mddev->curr_resync_completed) {
+		if (bio->bi_iter.bi_sector >= conf->next_resync) {
 			if (conf->start_next_window == MaxSector)
 				conf->start_next_window =
 					conf->next_resync +
@@ -1546,7 +1545,7 @@ static void close_sync(struct r1conf *conf)
 	conf->r1buf_pool = NULL;
 
 	spin_lock_irq(&conf->resync_lock);
-	conf->next_resync = 0;
+	conf->next_resync = MaxSector - 2 * NEXT_NORMALIO_DISTANCE;
 	conf->start_next_window = MaxSector;
 	conf->current_window_requests +=
 		conf->next_window_requests;
@@ -2874,8 +2873,7 @@ static struct r1conf *setup_conf(struct mddev *mddev)
 
  abort:
 	if (conf) {
-		if (conf->r1bio_pool)
-			mempool_destroy(conf->r1bio_pool);
+		mempool_destroy(conf->r1bio_pool);
 		kfree(conf->mirrors);
 		safe_put_page(conf->tmppage);
 		kfree(conf->poolinfo);

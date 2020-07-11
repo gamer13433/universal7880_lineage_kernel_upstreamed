@@ -307,7 +307,7 @@ thermal_zone_of_sensor_register(struct device *dev, int id,
 				void *data, int (*get_temp)(void *, long *),
 				int (*get_trend)(void *, long *))
 {
-	return NULL;
+	return ERR_PTR(-ENODEV);
 }
 
 static inline

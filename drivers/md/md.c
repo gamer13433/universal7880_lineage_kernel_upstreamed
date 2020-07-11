@@ -7702,6 +7702,7 @@ void md_check_recovery(struct mddev *mddev)
 		    !test_bit(MD_RECOVERY_DONE, &mddev->recovery)) {
 			/* resync/recovery still happening */
 			clear_bit(MD_RECOVERY_NEEDED, &mddev->recovery);
+			clear_bit(MD_CHANGE_PENDING, &mddev->flags);
 			goto unlock;
 		}
 		if (mddev->sync_thread) {

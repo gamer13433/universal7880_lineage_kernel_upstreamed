@@ -1098,6 +1098,21 @@ static int nfs4_wait_for_completion_rpc_task(struct rpc_task *task)
 	return ret;
 }
 
+static bool nfs4_mode_match_open_stateid(struct nfs4_state *state,
+		fmode_t fmode)
+{
+	switch(fmode & (FMODE_READ|FMODE_WRITE)) {
+	case FMODE_READ|FMODE_WRITE:
+		return state->n_rdwr != 0;
+	case FMODE_WRITE:
+		return state->n_wronly != 0;
+	case FMODE_READ:
+		return state->n_rdonly != 0;
+	}
+	WARN_ON_ONCE(1);
+	return false;
+}
+
 static int can_open_cached(struct nfs4_state *state, fmode_t mode, int open_mode)
 {
 	int ret = 0;
@@ -1513,14 +1528,14 @@ static int nfs4_open_recover_helper(struct nfs4_opendata *opendata, fmode_t fmod
 	newstate = nfs4_opendata_to_nfs4_state(opendata);
 	if (IS_ERR(newstate))
 		return PTR_ERR(newstate);
+	if (newstate != opendata->state)
+		ret = -ESTALE;
 	nfs4_close_state(newstate, fmode);
-	*res = newstate;
-	return 0;
+	return ret;
 }
 
 static int nfs4_open_recover(struct nfs4_opendata *opendata, struct nfs4_state *state)
 {
-	struct nfs4_state *newstate;
 	int ret;
 
 	/* Don't trigger recovery in nfs_test_and_clear_all_open_stateid */
@@ -1531,27 +1546,15 @@ static int nfs4_open_recover(struct nfs4_opendata *opendata, struct nfs4_state *
 	clear_bit(NFS_DELEGATED_STATE, &state->flags);
 	clear_bit(NFS_OPEN_STATE, &state->flags);
 	smp_rmb();
-	if (state->n_rdwr != 0) {
-		ret = nfs4_open_recover_helper(opendata, FMODE_READ|FMODE_WRITE, &newstate);
-		if (ret != 0)
-			return ret;
-		if (newstate != state)
-			return -ESTALE;
-	}
-	if (state->n_wronly != 0) {
-		ret = nfs4_open_recover_helper(opendata, FMODE_WRITE, &newstate);
-		if (ret != 0)
-			return ret;
-		if (newstate != state)
-			return -ESTALE;
-	}
-	if (state->n_rdonly != 0) {
-		ret = nfs4_open_recover_helper(opendata, FMODE_READ, &newstate);
-		if (ret != 0)
-			return ret;
-		if (newstate != state)
-			return -ESTALE;
-	}
+	ret = nfs4_open_recover_helper(opendata, FMODE_READ|FMODE_WRITE);
+	if (ret != 0)
+		return ret;
+	ret = nfs4_open_recover_helper(opendata, FMODE_WRITE);
+	if (ret != 0)
+		return ret;
+	ret = nfs4_open_recover_helper(opendata, FMODE_READ);
+	if (ret != 0)
+		return ret;
 	/*
 	 * We may have performed cached opens for all three recoveries.
 	 * Check if we need to update the current stateid.
@@ -1674,18 +1677,32 @@ static int nfs4_handle_delegation_recall_error(struct nfs_server *server, struct
 	return err;
 }
 
-int nfs4_open_delegation_recall(struct nfs_open_context *ctx, struct nfs4_state *state, const nfs4_stateid *stateid)
+int nfs4_open_delegation_recall(struct nfs_open_context *ctx,
+		struct nfs4_state *state, const nfs4_stateid *stateid,
+		fmode_t type)
 {
 	struct nfs_server *server = NFS_SERVER(state->inode);
 	struct nfs4_opendata *opendata;
-	int err;
+	int err = 0;
 
 	opendata = nfs4_open_recoverdata_alloc(ctx, state,
 			NFS4_OPEN_CLAIM_DELEG_CUR_FH);
 	if (IS_ERR(opendata))
 		return PTR_ERR(opendata);
 	nfs4_stateid_copy(&opendata->o_arg.u.delegation, stateid);
-	err = nfs4_open_recover(opendata, state);
+	clear_bit(NFS_DELEGATED_STATE, &state->flags);
+	switch (type & (FMODE_READ|FMODE_WRITE)) {
+	case FMODE_READ|FMODE_WRITE:
+	case FMODE_WRITE:
+		err = nfs4_open_recover_helper(opendata, FMODE_READ|FMODE_WRITE);
+		if (err)
+			break;
+		err = nfs4_open_recover_helper(opendata, FMODE_WRITE);
+		if (err)
+			break;
+	case FMODE_READ:
+		err = nfs4_open_recover_helper(opendata, FMODE_READ);
+	}
 	nfs4_opendata_put(opendata);
 	return nfs4_handle_delegation_recall_error(server, state, stateid, err);
 }
@@ -2549,6 +2566,15 @@ out:
 	return err;
 }
 
+static bool
+nfs4_wait_on_layoutreturn(struct inode *inode, struct rpc_task *task)
+{
+	if (inode == NULL || !nfs_have_layout(inode))
+		return false;
+
+	return pnfs_wait_on_layoutreturn(inode, task);
+}
+
 struct nfs4_closedata {
 	struct inode *inode;
 	struct nfs4_state *state;
@@ -2647,6 +2673,11 @@ static void nfs4_close_prepare(struct rpc_task *task, void *data)
 			calldata->arg.fmode |= FMODE_WRITE;
 	} else if (is_rdwr)
 		calldata->arg.fmode |= FMODE_READ|FMODE_WRITE;
+
+	if (nfs4_wait_on_layoutreturn(inode, task)) {
+		nfs_release_seqid(calldata->arg.seqid);
+		goto out_wait;
+	}
 
 	if (calldata->arg.fmode == 0)
 		call_close |= is_rdwr;

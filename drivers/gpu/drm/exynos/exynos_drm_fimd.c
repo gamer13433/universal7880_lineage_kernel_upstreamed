@@ -41,7 +41,6 @@
  * CPU Interface.
  */
 
-#define FIMD_DEFAULT_FRAMERATE 60
 #define MIN_FB_WIDTH_FOR_16WORD_BURST 128
 
 /* position control register for hardware window 0, 2 ~ 4.*/

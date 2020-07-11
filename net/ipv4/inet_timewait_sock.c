@@ -152,13 +152,15 @@ void __inet_twsk_hashdance(struct inet_timewait_sock *tw, struct sock *sk,
 	/*
 	 * Step 2: Hash TW into tcp ehash chain.
 	 * Notes :
-	 * - tw_refcnt is set to 3 because :
+	 * - tw_refcnt is set to 4 because :
 	 * - We have one reference from bhash chain.
 	 * - We have one reference from ehash chain.
+	 * - We have one reference from timer.
+	 * - One reference for ourself (our caller will release it).
 	 * We can use atomic_set() because prior spin_lock()/spin_unlock()
 	 * committed into memory all tw fields.
 	 */
-	atomic_set(&tw->tw_refcnt, 1 + 1 + 1);
+	atomic_set(&tw->tw_refcnt, 4);
 	inet_twsk_add_node_rcu(tw, &ehead->chain);
 
 	/* Step 3: Remove SK from hash chain */

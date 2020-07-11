@@ -545,6 +545,9 @@ static int cppi41_dma_channel_abort(struct dma_channel *channel)
 		csr &= ~(MUSB_RXCSR_H_REQPKT | MUSB_RXCSR_DMAENAB);
 		musb_writew(epio, MUSB_RXCSR, csr);
 
+		/* delay to drain to cppi dma pipeline for isoch */
+		udelay(250);
+
 		csr = musb_readw(epio, MUSB_RXCSR);
 		if (csr & MUSB_RXCSR_RXPKTRDY) {
 			csr |= MUSB_RXCSR_FLUSHFIFO;

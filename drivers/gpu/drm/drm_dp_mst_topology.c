@@ -53,8 +53,8 @@ static int drm_dp_send_dpcd_write(struct drm_dp_mst_topology_mgr *mgr,
 				  struct drm_dp_mst_port *port,
 				  int offset, int size, u8 *bytes);
 
-static int drm_dp_send_link_address(struct drm_dp_mst_topology_mgr *mgr,
-				    struct drm_dp_mst_branch *mstb);
+static void drm_dp_send_link_address(struct drm_dp_mst_topology_mgr *mgr,
+				     struct drm_dp_mst_branch *mstb);
 static int drm_dp_send_enum_path_resources(struct drm_dp_mst_topology_mgr *mgr,
 					   struct drm_dp_mst_branch *mstb,
 					   struct drm_dp_mst_port *port);
@@ -804,8 +804,6 @@ static void drm_dp_destroy_mst_branch_device(struct kref *kref)
 	struct drm_dp_mst_port *port, *tmp;
 	bool wake_tx = false;
 
-	cancel_work_sync(&mstb->mgr->work);
-
 	/*
 	 * destroy all ports - don't need lock
 	 * as there are no more references to the mst branch
@@ -1425,8 +1423,8 @@ static void drm_dp_queue_down_tx(struct drm_dp_mst_topology_mgr *mgr,
 	mutex_unlock(&mgr->qlock);
 }
 
-static int drm_dp_send_link_address(struct drm_dp_mst_topology_mgr *mgr,
-				    struct drm_dp_mst_branch *mstb)
+static void drm_dp_send_link_address(struct drm_dp_mst_topology_mgr *mgr,
+				     struct drm_dp_mst_branch *mstb)
 {
 	int len;
 	struct drm_dp_sideband_msg_tx *txmsg;
@@ -1434,11 +1432,12 @@ static int drm_dp_send_link_address(struct drm_dp_mst_topology_mgr *mgr,
 
 	txmsg = kzalloc(sizeof(*txmsg), GFP_KERNEL);
 	if (!txmsg)
-		return -ENOMEM;
+		return;
 
 	txmsg->dst = mstb;
 	len = build_link_address(txmsg);
 
+	mstb->link_address_sent = true;
 	drm_dp_queue_down_tx(mgr, txmsg);
 
 	ret = drm_dp_mst_wait_tx_reply(mstb, txmsg);
@@ -1466,11 +1465,12 @@ static int drm_dp_send_link_address(struct drm_dp_mst_topology_mgr *mgr,
 			}
 			(*mgr->cbs->hotplug)(mgr);
 		}
-	} else
+	} else {
+		mstb->link_address_sent = false;
 		DRM_DEBUG_KMS("link address failed %d\n", ret);
+	}
 
 	kfree(txmsg);
-	return 0;
 }
 
 static int drm_dp_send_enum_path_resources(struct drm_dp_mst_topology_mgr *mgr,
@@ -1929,6 +1929,8 @@ void drm_dp_mst_topology_mgr_suspend(struct drm_dp_mst_topology_mgr *mgr)
 	drm_dp_dpcd_writeb(mgr->aux, DP_MSTM_CTRL,
 			   DP_MST_EN | DP_UPSTREAM_IS_SRC);
 	mutex_unlock(&mgr->lock);
+	flush_work(&mgr->work);
+	flush_work(&mgr->destroy_connector_work);
 }
 EXPORT_SYMBOL(drm_dp_mst_topology_mgr_suspend);
 

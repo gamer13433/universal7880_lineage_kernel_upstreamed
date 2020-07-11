@@ -161,7 +161,7 @@ config IMX_THERMAL
 
 config SPEAR_THERMAL
 	bool "SPEAr thermal sensor driver"
-	depends on PLAT_SPEAR
+	depends on PLAT_SPEAR || COMPILE_TEST
 	depends on OF
 	help
 	  Enable this to plug the SPEAr thermal sensor driver into the Linux
@@ -177,7 +177,7 @@ config RCAR_THERMAL
 
 config KIRKWOOD_THERMAL
 	tristate "Temperature sensor on Marvell Kirkwood SoCs"
-	depends on MACH_KIRKWOOD
+	depends on MACH_KIRKWOOD || COMPILE_TEST
 	depends on OF
 	help
 	  Support for the Kirkwood thermal sensor driver into the Linux thermal
@@ -199,7 +199,7 @@ config EXYNOS_SWTRIP
 
 config DOVE_THERMAL
 	tristate "Temperature sensor on Marvell Dove SoCs"
-	depends on ARCH_DOVE || MACH_DOVE
+	depends on ARCH_DOVE || MACH_DOVE || COMPILE_TEST
 	depends on OF
 	help
 	  Support for the Dove thermal sensor driver in the Linux thermal
@@ -217,7 +217,7 @@ config DB8500_THERMAL
 
 config ARMADA_THERMAL
 	tristate "Armada 370/XP thermal management"
-	depends on ARCH_MVEBU
+	depends on ARCH_MVEBU || COMPILE_TEST
 	depends on OF
 	help
 	  Enable this option if you want to have support for thermal management
@@ -316,11 +316,12 @@ config CPU_THERMAL_IPA_DEBUG
 	  say Y here.
 
 menu "Texas Instruments thermal drivers"
+depends on ARCH_HAS_BANDGAP || COMPILE_TEST
 source "drivers/thermal/ti-soc-thermal/Kconfig"
 endmenu
 
 menu "Samsung thermal drivers"
-depends on ARCH_EXYNOS
+depends on ARCH_EXYNOS || COMPILE_TEST
 source "drivers/thermal/samsung/Kconfig"
 endmenu
 

@@ -195,6 +195,7 @@ static struct of_device_id unimac_mdio_ids[] = {
 	{ .compatible = "brcm,unimac-mdio", },
 	{ /* sentinel */ },
 };
+MODULE_DEVICE_TABLE(of, unimac_mdio_ids);
 
 static struct platform_driver unimac_mdio_driver = {
 	.driver = {

@@ -66,8 +66,11 @@ unsigned int extra_msr_offset32;
 unsigned int extra_msr_offset64;
 unsigned int extra_delta_offset32;
 unsigned int extra_delta_offset64;
+unsigned int aperf_mperf_multiplier = 1;
 int do_smi;
 double bclk;
+double base_hz;
+double tsc_tweak = 1.0;
 unsigned int show_pkg;
 unsigned int show_core;
 unsigned int show_cpu;
@@ -465,7 +468,7 @@ int format_counters(struct thread_data *t, struct core_data *c,
 	/* %c0 */
 	if (do_nhm_cstates) {
 		if (!skip_c0)
-			outp += sprintf(outp, "%8.2f", 100.0 * t->mperf/t->tsc);
+			outp += sprintf(outp, "%8.2f", 100.0 * t->mperf/t->tsc/tsc_tweak);
 		else
 			outp += sprintf(outp, "********");
 	}
@@ -473,7 +476,7 @@ int format_counters(struct thread_data *t, struct core_data *c,
 	/* BzyMHz */
 	if (has_aperf)
 		outp += sprintf(outp, "%8.0f",
-			1.0 * t->tsc / units * t->aperf / t->mperf / interval_float);
+			1.0 * t->tsc * tsc_tweak / units * t->aperf / t->mperf / interval_float);
 
 	/* TSC */
 	outp += sprintf(outp, "%8.0f", 1.0 * t->tsc/units/interval_float);
@@ -895,6 +898,8 @@ int get_counters(struct thread_data *t, struct core_data *c, struct pkg_data *p)
 			return -3;
 		if (get_msr(cpu, MSR_IA32_MPERF, &t->mperf))
 			return -4;
+		t->aperf = t->aperf * aperf_mperf_multiplier;
+		t->mperf = t->mperf * aperf_mperf_multiplier;
 	}
 
 	if (do_smi) {
@@ -1891,6 +1896,13 @@ int is_slm(unsigned int family, unsigned int model)
 	return 0;
 }
 
+unsigned int get_aperf_mperf_multiplier(unsigned int family, unsigned int model)
+{
+	if (is_knl(family, model))
+		return 1024;
+	return 1;
+}
+
 #define SLM_BCLK_FREQS 5
 double slm_freq_table[SLM_BCLK_FREQS] = { 83.3, 100.0, 133.3, 116.7, 80.0};
 
@@ -2074,6 +2086,9 @@ void check_cpuid()
 	do_nehalem_turbo_ratio_limit = has_nehalem_turbo_ratio_limit(family, model);
 	do_ivt_turbo_ratio_limit = has_ivt_turbo_ratio_limit(family, model);
 	rapl_probe(family, model);
+
+	if (has_skl_msrs(family, model))
+		calculate_tsc_tweak();
 
 	return;
 }
