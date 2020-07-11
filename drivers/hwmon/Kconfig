@@ -1462,6 +1462,7 @@ config SENSORS_TMP401
 config SENSORS_TMP421
 	tristate "Texas Instruments TMP421 and compatible"
 	depends on I2C
+	select REGMAP_I2C
 	help
 	  If you say yes here you get support for Texas Instruments TMP421,
 	  TMP422, TMP423, TMP441, and TMP442 temperature sensor chips.

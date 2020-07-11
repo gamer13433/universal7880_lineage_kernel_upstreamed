@@ -45,6 +45,12 @@ source "fs/ocfs2/Kconfig"
 source "fs/btrfs/Kconfig"
 source "fs/nilfs2/Kconfig"
 
+config FS_DAX_PMD
+	bool
+	default FS_DAX
+	depends on FS_DAX
+	depends on BROKEN
+
 endif # BLOCK
 
 # Posix ACL utility routines

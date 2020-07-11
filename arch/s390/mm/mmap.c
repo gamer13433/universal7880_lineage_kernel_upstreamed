@@ -30,6 +30,9 @@
 #include <linux/compat.h>
 #include <asm/pgalloc.h>
 
+unsigned long mmap_rnd_mask;
+static unsigned long mmap_align_mask;
+
 static unsigned long stack_maxrandom_size(void)
 {
 	if (!(current->flags & PF_RANDOMIZE))

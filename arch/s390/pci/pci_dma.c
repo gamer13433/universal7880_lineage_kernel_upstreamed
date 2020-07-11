@@ -33,7 +33,7 @@ static unsigned long *dma_alloc_cpu_table(void)
 		return NULL;
 
 	for (entry = table; entry < table + ZPCI_TABLE_ENTRIES; entry++)
-		*entry = ZPCI_TABLE_INVALID | ZPCI_TABLE_PROTECTED;
+		*entry = ZPCI_TABLE_INVALID;
 	return table;
 }
 
@@ -51,7 +51,7 @@ static unsigned long *dma_alloc_page_table(void)
 		return NULL;
 
 	for (entry = table; entry < table + ZPCI_PT_ENTRIES; entry++)
-		*entry = ZPCI_PTE_INVALID | ZPCI_TABLE_PROTECTED;
+		*entry = ZPCI_PTE_INVALID;
 	return table;
 }
 
@@ -95,7 +95,7 @@ static unsigned long *dma_get_page_table_origin(unsigned long *entry)
 	return pto;
 }
 
-static unsigned long *dma_walk_cpu_trans(unsigned long *rto, dma_addr_t dma_addr)
+unsigned long *dma_walk_cpu_trans(unsigned long *rto, dma_addr_t dma_addr)
 {
 	unsigned long *sto, *pto;
 	unsigned int rtx, sx, px;
@@ -175,6 +175,18 @@ static int dma_update_trans(struct zpci_dev *zdev, unsigned long pa,
 
 	rc = zpci_refresh_trans((u64) zdev->fh << 32, start_dma_addr,
 				nr_pages * PAGE_SIZE);
+undo_cpu_trans:
+	if (rc && ((flags & ZPCI_PTE_VALID_MASK) == ZPCI_PTE_VALID)) {
+		flags = ZPCI_PTE_INVALID;
+		while (i-- > 0) {
+			page_addr -= PAGE_SIZE;
+			dma_addr -= PAGE_SIZE;
+			entry = dma_walk_cpu_trans(zdev->dma_table, dma_addr);
+			if (!entry)
+				break;
+			dma_update_cpu_trans(entry, page_addr, flags);
+		}
+	}
 
 no_refresh:
 	spin_unlock_irqrestore(&zdev->dma_table_lock, irq_flags);
@@ -272,6 +284,16 @@ int dma_set_mask(struct device *dev, u64 mask)
 }
 EXPORT_SYMBOL_GPL(dma_set_mask);
 
+static inline void zpci_err_dma(unsigned long rc, unsigned long addr)
+{
+	struct {
+		unsigned long rc;
+		unsigned long addr;
+	} __packed data = {rc, addr};
+
+	zpci_err_hex(&data, sizeof(data));
+}
+
 static dma_addr_t s390_dma_map_pages(struct device *dev, struct page *page,
 				     unsigned long offset, size_t size,
 				     enum dma_data_direction direction,
@@ -318,14 +340,16 @@ static void s390_dma_unmap_pages(struct device *dev, dma_addr_t dma_addr,
 {
 	struct zpci_dev *zdev = get_zdev(to_pci_dev(dev));
 	unsigned long iommu_page_index;
-	int npages;
+	int npages, ret;
 
 	npages = iommu_num_pages(dma_addr, size, PAGE_SIZE);
 	dma_addr = dma_addr & PAGE_MASK;
-	if (dma_update_trans(zdev, 0, dma_addr, npages * PAGE_SIZE,
-			     ZPCI_TABLE_PROTECTED | ZPCI_PTE_INVALID)) {
+	ret = dma_update_trans(zdev, 0, dma_addr, npages * PAGE_SIZE,
+			       ZPCI_PTE_INVALID);
+	if (ret) {
 		zpci_err("unmap error:\n");
-		zpci_err_hex(&dma_addr, sizeof(dma_addr));
+		zpci_err_dma(ret, dma_addr);
+		return;
 	}
 
 	atomic64_add(npages, &zdev->fmb->unmapped_pages);

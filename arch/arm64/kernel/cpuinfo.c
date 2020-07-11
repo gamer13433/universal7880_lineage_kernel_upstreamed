@@ -28,6 +28,7 @@
 #include <linux/preempt.h>
 #include <linux/printk.h>
 #include <linux/smp.h>
+#include <linux/delay.h>
 
 /*
  * In case the boot CPU is hotpluggable, we record its initial state and

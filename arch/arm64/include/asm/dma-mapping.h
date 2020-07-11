@@ -18,6 +18,7 @@
 
 #ifdef __KERNEL__
 
+#include <linux/acpi.h>
 #include <linux/types.h>
 #include <linux/vmalloc.h>
 #include <linux/dma-debug.h>

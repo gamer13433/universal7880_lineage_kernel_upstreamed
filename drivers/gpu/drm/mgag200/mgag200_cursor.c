@@ -84,12 +84,6 @@ int mga_crtc_cursor_set(struct drm_crtc *crtc,
 		return ret;
 	}
 
-	if (!handle) {
-		mga_hide_cursor(mdev);
-		ret = 0;
-		goto out1;
-	}
-
 	/* Move cursor buffers into VRAM if they aren't already */
 	if (!pixels_1->pin_count) {
 		ret = mgag200_bo_pin(pixels_1, TTM_PL_FLAG_VRAM,

@@ -78,6 +78,31 @@ static int nft_counter_init(const struct nft_ctx *ctx,
 	return 0;
 }
 
+static int nft_counter_clone(struct nft_expr *dst, const struct nft_expr *src)
+{
+	struct nft_counter_percpu_priv *priv = nft_expr_priv(src);
+	struct nft_counter_percpu_priv *priv_clone = nft_expr_priv(dst);
+	struct nft_counter_percpu __percpu *cpu_stats;
+	struct nft_counter_percpu *this_cpu;
+	struct nft_counter total;
+
+	nft_counter_fetch(priv->counter, &total);
+
+	cpu_stats = __netdev_alloc_pcpu_stats(struct nft_counter_percpu,
+					      GFP_ATOMIC);
+	if (cpu_stats == NULL)
+		return ENOMEM;
+
+	preempt_disable();
+	this_cpu = this_cpu_ptr(cpu_stats);
+	this_cpu->counter.packets = total.packets;
+	this_cpu->counter.bytes = total.bytes;
+	preempt_enable();
+
+	priv_clone->counter = cpu_stats;
+	return 0;
+}
+
 static struct nft_expr_type nft_counter_type;
 static const struct nft_expr_ops nft_counter_ops = {
 	.type		= &nft_counter_type,
@@ -85,6 +110,7 @@ static const struct nft_expr_ops nft_counter_ops = {
 	.eval		= nft_counter_eval,
 	.init		= nft_counter_init,
 	.dump		= nft_counter_dump,
+	.clone		= nft_counter_clone,
 };
 
 static struct nft_expr_type nft_counter_type __read_mostly = {

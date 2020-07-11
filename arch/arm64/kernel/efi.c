@@ -238,6 +238,8 @@ static void __init free_boot_services(void)
 	keep_end = 0;
 	free_start = 0;
 
+	init_new_context(NULL, &efi_mm);
+
 	for_each_efi_memory_desc(&memmap, md) {
 		u64 paddr, npages, size;
 

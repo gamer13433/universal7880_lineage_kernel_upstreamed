@@ -468,7 +468,7 @@ static void
 mtype_expire(struct ip_set *set, struct htype *h, u8 nets_length, size_t dsize)
 {
 	struct htable *t;
-	struct hbucket *n;
+	struct hbucket *n, *tmp;
 	struct mtype_elem *data;
 	u32 i;
 	int j;
@@ -1144,12 +1144,14 @@ IPSET_TOKEN(HTYPE, _create)(struct net *net, struct ip_set *set,
 #endif
 		set->variant = &IPSET_TOKEN(HTYPE, 4_variant);
 		set->dsize = ip_set_elem_len(set, tb,
-				sizeof(struct IPSET_TOKEN(HTYPE, 4_elem)));
+			sizeof(struct IPSET_TOKEN(HTYPE, 4_elem)),
+			__alignof__(struct IPSET_TOKEN(HTYPE, 4_elem)));
 #ifndef IP_SET_PROTO_UNDEF
 	} else {
 		set->variant = &IPSET_TOKEN(HTYPE, 6_variant);
 		set->dsize = ip_set_elem_len(set, tb,
-				sizeof(struct IPSET_TOKEN(HTYPE, 6_elem)));
+			sizeof(struct IPSET_TOKEN(HTYPE, 6_elem)),
+			__alignof__(struct IPSET_TOKEN(HTYPE, 6_elem)));
 	}
 #endif
 	if (tb[IPSET_ATTR_TIMEOUT]) {

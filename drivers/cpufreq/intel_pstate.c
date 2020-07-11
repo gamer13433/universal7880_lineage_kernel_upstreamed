@@ -446,27 +446,42 @@ static void byt_set_pstate(struct cpudata *cpudata, int pstate)
 	wrmsrl(MSR_IA32_PERF_CTL, val);
 }
 
-#define BYT_BCLK_FREQS 5
-static int byt_freq_table[BYT_BCLK_FREQS] = { 833, 1000, 1333, 1167, 800};
-
-static int byt_get_scaling(void)
+static int silvermont_get_scaling(void)
 {
 	u64 value;
 	int i;
+	/* Defined in Table 35-6 from SDM (Sept 2015) */
+	static int silvermont_freq_table[] = {
+		83300, 100000, 133300, 116700, 80000};
 
 	rdmsrl(MSR_FSB_FREQ, value);
-	i = value & 0x3;
+	i = value & 0x7;
+	WARN_ON(i > 4);
 
-	BUG_ON(i > BYT_BCLK_FREQS);
-
-	return byt_freq_table[i] * 100;
+	return silvermont_freq_table[i];
 }
 
-static void byt_get_vid(struct cpudata *cpudata)
+static int airmont_get_scaling(void)
+{
+	u64 value;
+	int i;
+	/* Defined in Table 35-10 from SDM (Sept 2015) */
+	static int airmont_freq_table[] = {
+		83300, 100000, 133300, 116700, 80000,
+		93300, 90000, 88900, 87500};
+
+	rdmsrl(MSR_FSB_FREQ, value);
+	i = value & 0xF;
+	WARN_ON(i > 8);
+
+	return airmont_freq_table[i];
+}
+
+static void atom_get_vid(struct cpudata *cpudata)
 {
 	u64 value;
 
-	rdmsrl(BYT_VIDS, value);
+	rdmsrl(ATOM_VIDS, value);
 	cpudata->vid.min = int_tofp((value >> 8) & 0x7f);
 	cpudata->vid.max = int_tofp((value >> 16) & 0x7f);
 	cpudata->vid.ratio = div_fp(
@@ -474,7 +489,7 @@ static void byt_get_vid(struct cpudata *cpudata)
 		int_tofp(cpudata->pstate.max_pstate -
 			cpudata->pstate.min_pstate));
 
-	rdmsrl(BYT_TURBO_VIDS, value);
+	rdmsrl(ATOM_TURBO_VIDS, value);
 	cpudata->vid.turbo = value & 0x7f;
 }
 
@@ -541,7 +556,7 @@ static struct cpu_defaults core_params = {
 	},
 };
 
-static struct cpu_defaults byt_params = {
+static struct cpu_defaults silvermont_params = {
 	.pid_policy = {
 		.sample_rate_ms = 10,
 		.deadband = 0,
@@ -722,7 +737,7 @@ static void intel_pstate_timer_func(unsigned long __data)
 static const struct x86_cpu_id intel_pstate_cpu_ids[] = {
 	ICPU(0x2a, core_params),
 	ICPU(0x2d, core_params),
-	ICPU(0x37, byt_params),
+	ICPU(0x37, silvermont_params),
 	ICPU(0x3a, core_params),
 	ICPU(0x3c, core_params),
 	ICPU(0x3d, core_params),

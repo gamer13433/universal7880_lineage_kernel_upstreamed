@@ -28,7 +28,7 @@ MODULE_ALIAS("ip_set_list:set");
 /* Member elements  */
 struct set_elem {
 	ip_set_id_t id;
-};
+} __aligned(__alignof__(u64));
 
 struct set_adt_elem {
 	ip_set_id_t id;
@@ -644,7 +644,8 @@ list_set_create(struct net *net, struct ip_set *set, struct nlattr *tb[],
 		size = IP_SET_LIST_MIN_SIZE;
 
 	set->variant = &set_variant;
-	set->dsize = ip_set_elem_len(set, tb, sizeof(struct set_elem));
+	set->dsize = ip_set_elem_len(set, tb, sizeof(struct set_elem),
+				     __alignof__(struct set_elem));
 	if (!init_list_set(net, set, size))
 		return -ENOMEM;
 	if (tb[IPSET_ATTR_TIMEOUT]) {

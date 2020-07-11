@@ -441,7 +441,10 @@ static void start_clear_flags(struct smi_info *smi_info)
 	msg[1] = IPMI_CLEAR_MSG_FLAGS_CMD;
 	msg[2] = WDT_PRE_TIMEOUT_INT;
 
-	smi_info->handlers->start_transaction(smi_info->si_sm, msg, 3);
+	if (start_timer)
+		start_new_msg(smi_info, msg, 3);
+	else
+		smi_info->handlers->start_transaction(smi_info->si_sm, msg, 3);
 	smi_info->si_state = SI_CLEARING_FLAGS;
 }
 
@@ -486,7 +489,7 @@ static void handle_flags(struct smi_info *smi_info)
 		/* Watchdog pre-timeout */
 		smi_inc_stat(smi_info, watchdog_pretimeouts);
 
-		start_clear_flags(smi_info);
+		start_clear_flags(smi_info, true);
 		smi_info->msg_flags &= ~WDT_PRE_TIMEOUT_INT;
 		ipmi_smi_watchdog_pretimeout(smi_info->intf);
 	} else if (smi_info->msg_flags & RECEIVE_MSG_AVAIL) {
@@ -869,6 +872,13 @@ static enum si_sm_result smi_event_handler(struct smi_info *smi_info,
 		smi_info->si_state = SI_GETTING_EVENTS;
 		goto restart;
 	}
+
+	if (si_sm_result == SI_SM_IDLE && smi_info->timer_running) {
+		/* Ok it if fails, the timer will just go off. */
+		if (del_timer(&smi_info->si_timer))
+			smi_info->timer_running = false;
+	}
+
  out:
 	return si_sm_result;
 }
@@ -2353,6 +2363,7 @@ struct dmi_ipmi_data {
 	u8              offset;
 	u8              slave_addr;
 };
+MODULE_DEVICE_TABLE(of, of_ipmi_match);
 
 static int decode_dmi(const struct dmi_header *dm,
 				struct dmi_ipmi_data *dmi)

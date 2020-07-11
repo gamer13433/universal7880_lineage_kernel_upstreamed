@@ -90,6 +90,7 @@ static struct device *ap_root_device = NULL;
 static struct ap_config_info *ap_configuration;
 static DEFINE_SPINLOCK(ap_device_list_lock);
 static LIST_HEAD(ap_device_list);
+static bool initialised;
 
 /*
  * Workqueue & timer for bus rescan.
@@ -980,6 +981,9 @@ int ap_driver_register(struct ap_driver *ap_drv, struct module *owner,
 		       char *name)
 {
 	struct device_driver *drv = &ap_drv->driver;
+
+	if (!initialised)
+		return -ENODEV;
 
 	drv->bus = &ap_bus_type;
 	drv->probe = ap_device_probe;
@@ -2049,6 +2053,7 @@ void ap_module_exit(void)
 	int i;
 	struct device *dev;
 
+	initialised = false;
 	ap_reset_domain();
 	ap_poll_thread_stop();
 	del_timer_sync(&ap_config_timer);

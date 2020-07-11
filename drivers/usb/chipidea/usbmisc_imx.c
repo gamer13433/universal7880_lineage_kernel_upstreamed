@@ -352,9 +352,7 @@ static int usbmisc_imx_probe(struct platform_device *pdev)
 		return ret;
 	}
 
-	tmp_dev = (struct of_device_id *)
-		of_match_device(usbmisc_imx_dt_ids, &pdev->dev);
-	data->ops = (const struct usbmisc_ops *)tmp_dev->data;
+	data->ops = (const struct usbmisc_ops *)of_id->data;
 	platform_set_drvdata(pdev, data);
 
 	return 0;
