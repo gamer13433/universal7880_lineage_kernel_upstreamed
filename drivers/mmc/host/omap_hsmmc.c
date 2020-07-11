@@ -189,7 +189,6 @@ struct omap_hsmmc_host {
 	struct	regulator	*vcc;
 	struct	regulator	*vcc_aux;
 	struct	regulator	*pbias;
-	bool			pbias_enabled;
 	void	__iomem		*base;
 	resource_size_t		mapbase;
 	spinlock_t		irq_lock; /* Prevent races with irq handler */

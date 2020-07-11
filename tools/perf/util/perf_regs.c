@@ -2,6 +2,7 @@
 #include "perf_regs.h"
 #include "event.h"
 
+#ifdef HAVE_PERF_REGS_SUPPORT
 int perf_reg_value(u64 *valp, struct regs_dump *regs, int id)
 {
 	int i, idx = 0;
@@ -25,3 +26,4 @@ out:
 	*valp = regs->cache_regs[id];
 	return 0;
 }
+#endif

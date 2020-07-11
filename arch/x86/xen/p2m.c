@@ -204,6 +204,15 @@ RESERVE_BRK(p2m_mid, PAGE_SIZE * (MAX_DOMAIN_PAGES / (P2M_PER_PAGE * P2M_MID_PER
  */
 RESERVE_BRK(p2m_identity_remap, PAGE_SIZE * 2 * 3 * MAX_REMAP_RANGES);
 
+/*
+ * Hint at last populated PFN.
+ *
+ * Used to set HYPERVISOR_shared_info->arch.max_pfn so the toolstack
+ * can avoid scanning the whole P2M (which may be sized to account for
+ * hotplugged memory).
+ */
+static unsigned long xen_p2m_last_pfn;
+
 static inline unsigned p2m_top_index(unsigned long pfn)
 {
 	BUG_ON(pfn >= MAX_P2M_PFN);
@@ -738,6 +747,12 @@ bool __init early_set_phys_to_machine(unsigned long pfn, unsigned long mfn)
 
 		if (!__set_phys_to_machine(pfn, mfn))
 			return false;
+	}
+
+	/* Expanded the p2m? */
+	if (pfn > xen_p2m_last_pfn) {
+		xen_p2m_last_pfn = pfn;
+		HYPERVISOR_shared_info->arch.max_pfn = xen_p2m_last_pfn;
 	}
 
 	return true;

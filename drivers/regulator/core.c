@@ -4118,6 +4118,10 @@ static int __init regulator_init_complete(void)
 		if (!enabled)
 			goto unlock;
 
+		/* Did the lookup explicitly defer for us? */
+		if (ret == -EPROBE_DEFER)
+			return ret;
+
 		if (have_full_constraints()) {
 			/* We log since this may kill the system if it
 			 * goes wrong. */

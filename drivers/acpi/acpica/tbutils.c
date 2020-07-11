@@ -101,6 +101,29 @@ acpi_status acpi_tb_initialize_facs(void)
 u8 acpi_tb_tables_loaded(void)
 {
 
+	if (acpi_gbl_root_table_list.current_table_count >= 4) {
+		return (TRUE);
+	}
+
+	return (FALSE);
+}
+
+/*******************************************************************************
+ *
+ * FUNCTION:    acpi_tb_tables_loaded
+ *
+ * PARAMETERS:  None
+ *
+ * RETURN:      TRUE if required ACPI tables are loaded
+ *
+ * DESCRIPTION: Determine if the minimum required ACPI tables are present
+ *              (FADT, FACS, DSDT)
+ *
+ ******************************************************************************/
+
+u8 acpi_tb_tables_loaded(void)
+{
+
 	if (acpi_gbl_root_table_list.current_table_count >= 3) {
 		return (TRUE);
 	}

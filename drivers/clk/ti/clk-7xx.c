@@ -16,7 +16,6 @@
 #include <linux/clkdev.h>
 #include <linux/clk/ti.h>
 
-#define DRA7_DPLL_ABE_DEFFREQ				180633600
 #define DRA7_DPLL_GMAC_DEFFREQ				1000000000
 #define DRA7_DPLL_USB_DEFFREQ				960000000
 

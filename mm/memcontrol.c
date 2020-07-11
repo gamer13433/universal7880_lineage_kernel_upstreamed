@@ -4601,6 +4601,7 @@ static int __mem_cgroup_usage_register_event(struct mem_cgroup *memcg,
 	ret = res_counter_memparse_write_strategy(args, &threshold);
 	if (ret)
 		return ret;
+	threshold <<= PAGE_SHIFT;
 
 	mutex_lock(&memcg->thresholds_lock);
 

@@ -19,6 +19,7 @@
 #include <asm/cputype.h>
 #include <asm/cp15.h>
 #include <asm/mcpm.h>
+#include <asm/smp_plat.h>
 
 #include "regs-pmu.h"
 #include "common.h"

@@ -513,7 +513,7 @@ static unsigned long __init xen_get_max_pages(void)
 {
 	unsigned long max_pages = MAX_DOMAIN_PAGES;
 	domid_t domid = DOMID_SELF;
-	int ret;
+	long ret;
 
 	/*
 	 * For the initial domain we use the maximum reservation as

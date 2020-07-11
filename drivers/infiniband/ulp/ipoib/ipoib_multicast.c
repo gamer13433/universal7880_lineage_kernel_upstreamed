@@ -66,7 +66,7 @@ struct ipoib_mcast_iter {
 	unsigned int       send_only;
 };
 
-static void ipoib_mcast_free(struct ipoib_mcast *mcast)
+void ipoib_mcast_free(struct ipoib_mcast *mcast)
 {
 	struct net_device *dev = mcast->dev;
 	int tx_dropped = 0;
