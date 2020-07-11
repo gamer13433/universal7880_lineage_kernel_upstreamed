@@ -810,8 +810,10 @@ static int be_cmd_notify_wait(struct be_adapter *adapter,
 		return status;
 
 	dest_wrb = be_cmd_copy(adapter, wrb);
-	if (!dest_wrb)
-		return -EBUSY;
+	if (!dest_wrb) {
+		status = -EBUSY;
+		goto unlock;
+	}
 
 	if (use_mcc(adapter))
 		status = be_mcc_notify_wait(adapter);
@@ -821,6 +823,7 @@ static int be_cmd_notify_wait(struct be_adapter *adapter,
 	if (!status)
 		memcpy(wrb, dest_wrb, sizeof(*wrb));
 
+unlock:
 	be_cmd_unlock(adapter);
 	return status;
 }
@@ -3605,7 +3608,6 @@ int be_cmd_get_func_config(struct be_adapter *adapter, struct be_resources *res)
 			status = -EINVAL;
 			goto err;
 		}
-
 		adapter->pf_number = desc->pf_num;
 		be_copy_nic_desc(res, desc);
 	}
@@ -3617,7 +3619,10 @@ err:
 	return status;
 }
 
-/* Will use MBOX only if MCCQ has not been created */
+/* Will use MBOX only if MCCQ has not been created
+ * non-zero domain => a PF is querying this on behalf of a VF
+ * zero domain => a PF or a VF is querying this for itself
+ */
 int be_cmd_get_profile_config(struct be_adapter *adapter,
 			      struct be_resources *res, u8 domain)
 {
@@ -3644,10 +3649,15 @@ int be_cmd_get_profile_config(struct be_adapter *adapter,
 			       OPCODE_COMMON_GET_PROFILE_CONFIG,
 			       cmd.size, &wrb, &cmd);
 
-	req->hdr.domain = domain;
 	if (!lancer_chip(adapter))
 		req->hdr.version = 1;
 	req->type = ACTIVE_PROFILE_TYPE;
+	/* When a function is querying profile information relating to
+	 * itself hdr.pf_number must be set to it's pci_func_num + 1
+	 */
+	req->hdr.domain = domain;
+	if (domain == 0)
+		req->hdr.pf_num = adapter->pci_func_num + 1;
 
 	status = be_cmd_notify_wait(adapter, &wrb);
 	if (status)

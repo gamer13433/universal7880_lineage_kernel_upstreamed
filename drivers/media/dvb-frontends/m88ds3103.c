@@ -153,6 +153,27 @@ static int m88ds3103_rd_reg_mask(struct m88ds3103_priv *priv,
 	return 0;
 }
 
+/* write single register with mask */
+static int m88ds3103_update_bits(struct m88ds3103_dev *dev,
+				u8 reg, u8 mask, u8 val)
+{
+	int ret;
+	u8 tmp;
+
+	/* no need for read if whole reg is written */
+	if (mask != 0xff) {
+		ret = regmap_bulk_read(dev->regmap, reg, &tmp, 1);
+		if (ret)
+			return ret;
+
+		val &= mask;
+		tmp &= ~mask;
+		val |= tmp;
+	}
+
+	return regmap_bulk_write(dev->regmap, reg, &val, 1);
+}
+
 /* write reg val table using reg addr auto increment */
 static int m88ds3103_wr_reg_val_tab(struct m88ds3103_priv *priv,
 		const struct m88ds3103_reg_val *tab, int tab_len)

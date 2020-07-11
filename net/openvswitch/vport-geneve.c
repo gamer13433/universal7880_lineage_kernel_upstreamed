@@ -120,6 +120,18 @@ static void geneve_tnl_destroy(struct vport *vport)
 	ovs_vport_deferred_free(vport);
 }
 
+static int geneve_get_egress_tun_info(struct vport *vport, struct sk_buff *skb,
+				      struct dp_upcall_info *upcall)
+{
+	struct geneve_port *geneve_port = geneve_vport(vport);
+	struct net *net = ovs_dp_get_net(vport->dp);
+	__be16 dport = htons(geneve_port->port_no);
+	__be16 sport = udp_flow_src_port(net, skb, 1, USHRT_MAX, true);
+
+	return ovs_tunnel_get_egress_info(upcall, ovs_dp_get_net(vport->dp),
+					  skb, IPPROTO_UDP, sport, dport);
+}
+
 static struct vport *geneve_tnl_create(const struct vport_parms *parms)
 {
 	struct net *net = ovs_dp_get_net(parms->dp);

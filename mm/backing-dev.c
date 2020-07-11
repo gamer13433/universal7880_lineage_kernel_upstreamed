@@ -462,7 +462,7 @@ err:
 }
 EXPORT_SYMBOL(bdi_init);
 
-void bdi_destroy(struct backing_dev_info *bdi)
+void bdi_unregister(struct backing_dev_info *bdi)
 {
 	int i;
 
@@ -496,6 +496,16 @@ void bdi_destroy(struct backing_dev_info *bdi)
 		percpu_counter_destroy(&bdi->bdi_stat[i]);
 
 	fprop_local_destroy_percpu(&bdi->completions);
+}
+void bdi_exit(struct backing_dev_info *bdi)
+{
+	WARN_ON_ONCE(bdi->dev);
+}
+
+void bdi_destroy(struct backing_dev_info *bdi)
+{
+	bdi_unregister(bdi);
+	bdi_exit(bdi);
 }
 EXPORT_SYMBOL(bdi_destroy);
 

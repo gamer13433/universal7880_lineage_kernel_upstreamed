@@ -195,7 +195,7 @@ dsa_switch_setup(struct dsa_switch_tree *dst, int index,
 	if (ret < 0)
 		goto out;
 
-	ds->slave_mii_bus = mdiobus_alloc();
+	ds->slave_mii_bus = devm_mdiobus_alloc(parent);
 	if (ds->slave_mii_bus == NULL) {
 		ret = -ENOMEM;
 		goto out;
@@ -204,7 +204,7 @@ dsa_switch_setup(struct dsa_switch_tree *dst, int index,
 
 	ret = mdiobus_register(ds->slave_mii_bus);
 	if (ret < 0)
-		goto out_free;
+		goto out;
 
 
 	/*
@@ -618,7 +618,15 @@ static int dsa_probe(struct platform_device *pdev)
 		dst->ds[i] = ds;
 		if (ds->drv->poll_link != NULL)
 			dst->link_poll_needed = 1;
+
+		++configured;
 	}
+
+	/*
+	 * If no switch was found, exit cleanly
+	 */
+	if (!configured)
+		return -EPROBE_DEFER;
 
 	/*
 	 * If we use a tagging format that doesn't have an ethertype
@@ -658,7 +666,7 @@ static int dsa_remove(struct platform_device *pdev)
 	for (i = 0; i < dst->pd->nr_chips; i++) {
 		struct dsa_switch *ds = dst->ds[i];
 
-		if (ds != NULL)
+		if (ds)
 			dsa_switch_destroy(ds);
 	}
 

@@ -910,8 +910,12 @@ out:
 static int emac_remove(struct platform_device *pdev)
 {
 	struct net_device *ndev = platform_get_drvdata(pdev);
+	struct emac_board_info *db = netdev_priv(ndev);
 
 	unregister_netdev(ndev);
+	sunxi_sram_release(&pdev->dev);
+	clk_disable_unprepare(db->clk);
+	iounmap(db->membase);
 	free_netdev(ndev);
 
 	dev_dbg(&pdev->dev, "released and freed device\n");

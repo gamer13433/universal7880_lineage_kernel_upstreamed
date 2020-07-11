@@ -2679,8 +2679,8 @@ static const struct mmc_test_case mmc_test_cases[] = {
 	},
 
 	{
-		.name = "eMMC hardware reset",
-		.run = mmc_test_hw_reset,
+		.name = "Reset test",
+		.run = mmc_test_reset,
 	},
 };
 

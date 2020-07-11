@@ -92,6 +92,14 @@ static int rtl28xxu_ctrl_msg(struct dvb_usb_device *d, struct rtl28xxu_req *req)
 		goto err;
 	}
 
+	mutex_lock(&d->usb_mutex);
+
+	if (req->size > sizeof(dev->buf)) {
+		dev_err(&d->intf->dev, "too large message %u\n", req->size);
+		ret = -EINVAL;
+		goto err_mutex_unlock;
+	}
+
 	if (req->index & CMD_WR_FLAG) {
 		/* write */
 		memcpy(buf, req->data, req->size);

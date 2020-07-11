@@ -132,6 +132,43 @@ static const struct alps_model_info alps_model_data[] = {
 	{ { 0x73, 0x02, 0x64 },	0x8a, ALPS_PROTO_V4, 0x8f, 0x8f, 0 },
 };
 
+/*
+ * Some v2 models report the stick buttons in separate bits
+ */
+static const struct dmi_system_id alps_dmi_has_separate_stick_buttons[] = {
+#if defined(CONFIG_DMI) && defined(CONFIG_X86)
+	{
+		/* Extrapolated from other entries */
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
+			DMI_MATCH(DMI_PRODUCT_NAME, "Latitude D420"),
+		},
+	},
+	{
+		/* Reported-by: Hans de Bruin <jmdebruin@xmsnet.nl> */
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
+			DMI_MATCH(DMI_PRODUCT_NAME, "Latitude D430"),
+		},
+	},
+	{
+		/* Reported-by: Hans de Goede <hdegoede@redhat.com> */
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
+			DMI_MATCH(DMI_PRODUCT_NAME, "Latitude D620"),
+		},
+	},
+	{
+		/* Extrapolated from other entries */
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
+			DMI_MATCH(DMI_PRODUCT_NAME, "Latitude D630"),
+		},
+	},
+#endif
+	{ }
+};
+
 static void alps_set_abs_params_st(struct alps_data *priv,
 				   struct input_dev *dev1);
 static void alps_set_abs_params_mt(struct alps_data *priv,
@@ -2149,6 +2186,8 @@ static void alps_set_defaults(struct alps_data *priv)
 		priv->set_abs_params = alps_set_abs_params_st;
 		priv->x_max = 1023;
 		priv->y_max = 767;
+		if (dmi_check_system(alps_dmi_has_separate_stick_buttons))
+			priv->flags |= ALPS_STICK_BITS;
 		break;
 	case ALPS_PROTO_V3:
 		priv->hw_init = alps_hw_init_v3;

@@ -112,6 +112,8 @@ static enum hrtimer_restart kvm_timer_expire(struct hrtimer *hrt)
 void kvm_timer_flush_hwstate(struct kvm_vcpu *vcpu)
 {
 	struct arch_timer_cpu *timer = &vcpu->arch.timer_cpu;
+	bool phys_active;
+	int ret;
 
 	/*
 	 * We're about to run this vcpu again, so there is no need to

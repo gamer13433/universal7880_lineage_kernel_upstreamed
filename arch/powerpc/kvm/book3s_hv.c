@@ -35,7 +35,6 @@
 
 #include <asm/reg.h>
 #include <asm/cputable.h>
-#include <asm/cache.h>
 #include <asm/cacheflush.h>
 #include <asm/tlbflush.h>
 #include <asm/uaccess.h>
@@ -1363,13 +1362,6 @@ static struct kvmppc_vcore *kvmppc_vcore_create(struct kvm *kvm, int core)
 	vcore->first_vcpuid = core * threads_per_subcore;
 	vcore->kvm = kvm;
 
-	vcore->mpp_buffer_is_valid = false;
-
-	if (cpu_has_feature(CPU_FTR_ARCH_207S))
-		vcore->mpp_buffer = (void *)__get_free_pages(
-			GFP_KERNEL|__GFP_ZERO,
-			MPP_BUFFER_ORDER);
-
 	return vcore;
 }
 
@@ -1634,33 +1626,6 @@ static int on_primary_thread(void)
 		}
 	}
 	return 1;
-}
-
-static void kvmppc_start_saving_l2_cache(struct kvmppc_vcore *vc)
-{
-	phys_addr_t phy_addr, mpp_addr;
-
-	phy_addr = (phys_addr_t)virt_to_phys(vc->mpp_buffer);
-	mpp_addr = phy_addr & PPC_MPPE_ADDRESS_MASK;
-
-	mtspr(SPRN_MPPR, mpp_addr | PPC_MPPR_FETCH_ABORT);
-	logmpp(mpp_addr | PPC_LOGMPP_LOG_L2);
-
-	vc->mpp_buffer_is_valid = true;
-}
-
-static void kvmppc_start_restoring_l2_cache(const struct kvmppc_vcore *vc)
-{
-	phys_addr_t phy_addr, mpp_addr;
-
-	phy_addr = virt_to_phys(vc->mpp_buffer);
-	mpp_addr = phy_addr & PPC_MPPE_ADDRESS_MASK;
-
-	/* We must abort any in-progress save operations to ensure
-	 * the table is valid so that prefetch engine knows when to
-	 * stop prefetching. */
-	logmpp(mpp_addr | PPC_LOGMPP_LOG_ABORT);
-	mtspr(SPRN_MPPR, mpp_addr | PPC_MPPR_FETCH_WHOLE_TABLE);
 }
 
 /*
@@ -2491,14 +2456,8 @@ static void kvmppc_free_vcores(struct kvm *kvm)
 {
 	long int i;
 
-	for (i = 0; i < KVM_MAX_VCORES; ++i) {
-		if (kvm->arch.vcores[i] && kvm->arch.vcores[i]->mpp_buffer) {
-			struct kvmppc_vcore *vc = kvm->arch.vcores[i];
-			free_pages((unsigned long)vc->mpp_buffer,
-				   MPP_BUFFER_ORDER);
-		}
+	for (i = 0; i < KVM_MAX_VCORES; ++i)
 		kfree(kvm->arch.vcores[i]);
-	}
 	kvm->arch.online_vcores = 0;
 }
 

@@ -3658,6 +3658,11 @@ static int be_get_config(struct be_adapter *adapter)
 				 "Using profile 0x%x\n", profile_id);
 	}
 
+	/* Need to invoke this cmd first to get the PCI Function Number */
+	status = be_cmd_get_cntl_attributes(adapter);
+	if (status)
+		return status;
+
 	if (!BE2_chip(adapter) && be_physfn(adapter))
 		be_sriov_config(adapter);
 

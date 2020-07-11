@@ -745,6 +745,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
 		       ufs->config.workdir, OVL_WORKDIR_NAME);
 		goto out_put_lower_mnt;
 	}
+	kfree(stack);
 
 	/*
 	 * Make lower_mnt R/O.  That way fchmod/fchown on lower file

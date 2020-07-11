@@ -1219,6 +1219,9 @@ int ovs_nla_put_flow(const struct sw_flow_key *swkey,
 				ether_addr_copy(nd_key->nd_tll, output->ipv6.nd.tll);
 			}
 		}
+
+		if (nla_type(nla) == OVS_KEY_ATTR_CT_STATE)
+			*(u32 *)nla_data(nla) &= CT_SUPPORTED_MASK;
 	}
 
 unencap:

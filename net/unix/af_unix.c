@@ -2117,6 +2117,11 @@ static int unix_stream_recvmsg(struct kiocb *iocb, struct socket *sock,
 		goto out;
 	}
 
+	if (flags & MSG_PEEK)
+		skip = sk_peek_offset(sk, flags);
+	else
+		skip = 0;
+
 	do {
 		int chunk;
 		struct sk_buff *skb, *last;
@@ -2159,7 +2164,6 @@ again:
 			break;
 		}
 
-		skip = sk_peek_offset(sk, flags);
 		while (skip >= unix_skb_len(skb)) {
 			skip -= unix_skb_len(skb);
 			last = skb;

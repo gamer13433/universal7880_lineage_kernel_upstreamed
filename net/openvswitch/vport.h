@@ -27,6 +27,7 @@
 #include <linux/skbuff.h>
 #include <linux/spinlock.h>
 #include <linux/u64_stats_sync.h>
+#include <net/route.h>
 
 #include "datapath.h"
 
@@ -81,6 +82,16 @@ struct vport_portids {
 	u32 n_ids;
 	u32 ids[];
 };
+
+int ovs_tunnel_get_egress_info(struct dp_upcall_info *upcall,
+			       struct net *net,
+			       struct sk_buff *,
+			       u8 ipproto,
+			       __be16 tp_src,
+			       __be16 tp_dst);
+
+int ovs_vport_get_egress_tun_info(struct vport *vport, struct sk_buff *skb,
+				  struct dp_upcall_info *upcall);
 
 /**
  * struct vport - one port within a datapath
@@ -146,6 +157,8 @@ struct vport_parms {
  * @get_name: Get the device's name.
  * @send: Send a packet on the device.  Returns the length of the packet sent,
  * zero for dropped packets or negative for error.
+ * @get_egress_tun_info: Get the egress tunnel 5-tuple and other info for
+ * a packet.
  */
 struct vport_ops {
 	enum ovs_vport_type type;

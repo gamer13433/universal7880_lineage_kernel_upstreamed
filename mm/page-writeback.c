@@ -149,6 +149,9 @@ static struct timer_list writeout_period_timer =
 		TIMER_DEFERRED_INITIALIZER(writeout_period, 0, 0);
 static unsigned long writeout_period_time = 0;
 
+#define DTC_INIT_COMMON(__wb)	.wb = (__wb),				\
+				.wb_completions = &(__wb)->completions
+
 /*
  * Length of period for aging writeout fractions of bdis. This is an
  * arbitrarily chosen number. The longer the period, the slower fractions will

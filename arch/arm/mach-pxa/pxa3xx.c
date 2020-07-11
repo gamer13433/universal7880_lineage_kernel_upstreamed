@@ -43,6 +43,10 @@
 #define PECR_IS(n)	((1 << ((n) * 2)) << 29)
 
 extern void __init pxa_dt_irq_init(int (*fn)(struct irq_data *, unsigned int));
+#ifdef CONFIG_PM
+
+#define ISRAM_START	0x5c000000
+#define ISRAM_SIZE	SZ_256K
 
 static DEFINE_PXA3_CKEN(pxa3xx_ffuart, FFUART, 14857000, 1);
 static DEFINE_PXA3_CKEN(pxa3xx_btuart, BTUART, 14857000, 1);

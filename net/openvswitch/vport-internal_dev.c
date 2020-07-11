@@ -164,6 +164,11 @@ static struct vport *internal_dev_create(const struct vport_parms *parms)
 		err = PTR_ERR(vport);
 		goto error;
 	}
+	vport->dev->tstats = netdev_alloc_pcpu_stats(struct pcpu_sw_netstats);
+	if (!vport->dev->tstats) {
+		err = -ENOMEM;
+		goto error_free_netdev;
+	}
 
 	netdev_vport = netdev_vport_priv(vport);
 
@@ -186,7 +191,7 @@ static struct vport *internal_dev_create(const struct vport_parms *parms)
 	rtnl_lock();
 	err = register_netdevice(netdev_vport->dev);
 	if (err)
-		goto error_free_netdev;
+		goto error_unlock;
 
 	dev_set_promiscuity(netdev_vport->dev, 1);
 	rtnl_unlock();

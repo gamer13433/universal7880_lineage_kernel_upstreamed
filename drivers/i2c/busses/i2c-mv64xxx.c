@@ -200,6 +200,8 @@ static int mv64xxx_i2c_offload_msg(struct mv64xxx_i2c_data *drv_data)
 	unsigned long ctrl_reg;
 	struct i2c_msg *msg = drv_data->msgs;
 
+	return false;
+
 	if (!drv_data->offload_enabled)
 		return -EOPNOTSUPP;
 
