@@ -1018,17 +1018,7 @@ struct peak_usb_adapter pcan_usb_pro = {
 	.clock = {
 		.freq = PCAN_USBPRO_CRYSTAL_HZ,
 	},
-	.bittiming_const = {
-		.name = "pcan_usb_pro",
-		.tseg1_min = 1,
-		.tseg1_max = 16,
-		.tseg2_min = 1,
-		.tseg2_max = 8,
-		.sjw_max = 4,
-		.brp_min = 1,
-		.brp_max = 1024,
-		.brp_inc = 1,
-	},
+	.bittiming_const = &pcan_usb_pro_const,
 
 	/* size of device private data */
 	.sizeof_dev_private = sizeof(struct pcan_usb_pro_device),
