@@ -130,12 +130,12 @@ out_noerr:
 	goto out;
 }
 
-static struct sk_buff *skb_set_peeked(struct sk_buff *skb)
+static int skb_set_peeked(struct sk_buff *skb)
 {
 	struct sk_buff *nskb;
 
 	if (skb->peeked)
-		return skb;
+		return 0;
 
 	/* We have to unshare an skb before modifying it. */
 	if (!skb_shared(skb))
@@ -156,7 +156,7 @@ static struct sk_buff *skb_set_peeked(struct sk_buff *skb)
 done:
 	skb->peeked = 1;
 
-	return skb;
+	return 0;
 }
 
 /**

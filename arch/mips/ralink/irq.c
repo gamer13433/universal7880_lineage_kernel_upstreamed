@@ -89,6 +89,7 @@ static void ralink_intc_irq_handler(unsigned int irq, struct irq_desc *desc)
 		spurious_interrupt();
 	}
 }
+EXPORT_SYMBOL_GPL(get_c0_perfcount_int);
 
 asmlinkage void plat_irq_dispatch(void)
 {

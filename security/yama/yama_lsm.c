@@ -423,6 +423,7 @@ static __init int yama_init(void)
 #ifndef CONFIG_SECURITY_YAMA_STACKED
 	if (!security_module_enable(&yama_ops))
 		return 0;
+	yama_add_hooks();
 #endif
 
 	printk(KERN_INFO "Yama: becoming mindful.\n");

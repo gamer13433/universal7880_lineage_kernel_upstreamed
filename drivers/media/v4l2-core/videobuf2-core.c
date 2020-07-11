@@ -725,6 +725,7 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
 		break;
 	case VB2_BUF_STATE_PREPARING:
 	case VB2_BUF_STATE_DEQUEUED:
+	case VB2_BUF_STATE_REQUEUEING:
 		/* nothing */
 		break;
 	}
@@ -1191,7 +1192,8 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
 
 	if (WARN_ON(state != VB2_BUF_STATE_DONE &&
 		    state != VB2_BUF_STATE_ERROR &&
-		    state != VB2_BUF_STATE_QUEUED))
+		    state != VB2_BUF_STATE_QUEUED &&
+		    state != VB2_BUF_STATE_REQUEUEING))
 		state = VB2_BUF_STATE_ERROR;
 
 #ifdef CONFIG_VIDEO_ADV_DEBUG

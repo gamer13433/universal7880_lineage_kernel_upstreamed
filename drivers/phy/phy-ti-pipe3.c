@@ -53,6 +53,8 @@
 #define	PLL_LOCK		0x2
 #define	PLL_IDLE		0x1
 
+#define SATA_PLL_SOFT_RESET	BIT(18)
+
 /*
  * This is an Empirical value that works, need to confirm the actual
  * value required for the PIPE3PHY_PLL_CONFIGURATION2.PLL_IDLE status
@@ -429,8 +431,18 @@ static int ti_pipe3_runtime_suspend(struct device *dev)
 
 	if (!IS_ERR(phy->wkupclk))
 		clk_disable_unprepare(phy->wkupclk);
-	if (!IS_ERR(phy->refclk))
+	if (!IS_ERR(phy->refclk)) {
 		clk_disable_unprepare(phy->refclk);
+		/*
+		 * SATA refclk needs an additional disable as we left it
+		 * on in probe to avoid Errata i783
+		 */
+		if (phy->sata_refclk_enabled) {
+			clk_disable_unprepare(phy->refclk);
+			phy->sata_refclk_enabled = false;
+		}
+	}
+
 	if (!IS_ERR(phy->div_clk))
 		clk_disable_unprepare(phy->div_clk);
 

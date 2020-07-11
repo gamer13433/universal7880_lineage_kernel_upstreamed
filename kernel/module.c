@@ -604,7 +604,10 @@ const struct kernel_symbol *find_symbol(const char *name,
 }
 EXPORT_SYMBOL_GPL(find_symbol);
 
-/* Search for module by name: must hold module_mutex. */
+/*
+ * Search for module by name: must hold module_mutex (or preempt disabled
+ * for read-only access).
+ */
 static struct module *find_module_all(const char *name, size_t len,
 				      bool even_unformed)
 {

@@ -26,8 +26,6 @@ struct mdp5_plane {
 
 	uint32_t nformats;
 	uint32_t formats[32];
-
-	bool enabled;
 };
 #define to_mdp5_plane(x) container_of(x, struct mdp5_plane, base)
 
@@ -352,6 +350,20 @@ enum mdp5_pipe mdp5_plane_pipe(struct drm_plane *plane)
 {
 	struct mdp5_plane *mdp5_plane = to_mdp5_plane(plane);
 	return mdp5_plane->pipe;
+}
+
+/* called after vsync in thread context */
+void mdp5_plane_complete_commit(struct drm_plane *plane,
+	struct drm_plane_state *state)
+{
+	struct mdp5_kms *mdp5_kms = get_kms(plane);
+	struct mdp5_plane *mdp5_plane = to_mdp5_plane(plane);
+	enum mdp5_pipe pipe = mdp5_plane->pipe;
+
+	if (!plane_enabled(plane->state)) {
+		DBG("%s: free SMP", mdp5_plane->name);
+		mdp5_smp_release(mdp5_kms->smp, pipe);
+	}
 }
 
 /* initialize plane */

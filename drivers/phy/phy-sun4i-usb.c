@@ -218,6 +218,7 @@ static struct phy *sun4i_usb_phy_xlate(struct device *dev,
 
 	return data->phys[args->args[0]].phy;
 }
+EXPORT_SYMBOL_GPL(sun4i_usb_phy_set_squelch_detect);
 
 static int sun4i_usb_phy_probe(struct platform_device *pdev)
 {

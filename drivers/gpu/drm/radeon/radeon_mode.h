@@ -229,7 +229,6 @@ struct radeon_afmt {
 	int offset;
 	bool last_buffer_filled_status;
 	int id;
-	struct r600_audio_pin *pin;
 };
 
 struct radeon_mode_info {

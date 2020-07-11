@@ -599,6 +599,11 @@ struct macb_config {
 
 struct macb {
 	void __iomem		*regs;
+	bool			native_io;
+
+	/* hardware IO accessors */
+	u32	(*macb_reg_readl)(struct macb *bp, int offset);
+	void	(*macb_reg_writel)(struct macb *bp, int offset, u32 value);
 
 	unsigned int		rx_tail;
 	unsigned int		rx_prepared_head;
@@ -633,9 +638,9 @@ struct macb {
 
 	struct mii_bus		*mii_bus;
 	struct phy_device	*phy_dev;
-	unsigned int 		link;
-	unsigned int 		speed;
-	unsigned int 		duplex;
+	int 			link;
+	int 			speed;
+	int 			duplex;
 
 	u32			caps;
 	unsigned int		dma_burst_length;

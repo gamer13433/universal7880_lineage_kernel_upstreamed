@@ -1196,6 +1196,8 @@ static int exynos_tmu_probe(struct platform_device *pdev)
 		clk_prepare_enable(data->gate_clk);
 	}
 
+	pdata = data->pdata;
+
 	INIT_WORK(&data->irq_work, exynos_tmu_work);
 
 	if (pdata->type == SOC_ARCH_EXYNOS3250 ||

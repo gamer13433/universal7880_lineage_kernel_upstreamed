@@ -93,7 +93,12 @@ int mdp5_smp_request(struct mdp5_kms *mdp5_kms,
 		for (i = cur_nblks; i > nblks; i--) {
 			int blk = find_first_bit(ps->pending, cnt);
 			clear_bit(blk, ps->pending);
-			/* don't clear in global smp_state until _commit() */
+
+			/* clear in global smp_state if not in configured
+			 * otherwise until _commit()
+			 */
+			if (!test_bit(blk, ps->configured))
+				clear_bit(blk, smp->state);
 		}
 	}
 

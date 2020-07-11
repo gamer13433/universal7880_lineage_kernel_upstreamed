@@ -80,6 +80,7 @@ void read_persistent_clock(struct timespec *ts)
 	ts->tv_sec = 0;
 	ts->tv_nsec = 0;
 }
+EXPORT_SYMBOL_GPL(get_c0_perfcount_int);
 
 static void __init plat_perf_setup(void)
 {

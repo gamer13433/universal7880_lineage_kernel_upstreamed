@@ -611,7 +611,12 @@ int msm_wait_fence_interruptable(struct drm_device *dev, uint32_t fence,
 		else
 			remaining_jiffies = timeout_jiffies - start_jiffies;
 
-		ret = wait_event_interruptible_timeout(priv->fence_event,
+		if (interruptible)
+			ret = wait_event_interruptible_timeout(priv->fence_event,
+				fence_completed(dev, fence),
+				remaining_jiffies);
+		else
+			ret = wait_event_timeout(priv->fence_event,
 				fence_completed(dev, fence),
 				remaining_jiffies);
 

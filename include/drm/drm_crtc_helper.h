@@ -123,6 +123,8 @@ struct drm_connector_helper_funcs {
 	enum drm_mode_status (*mode_valid)(struct drm_connector *connector,
 					   struct drm_display_mode *mode);
 	struct drm_encoder *(*best_encoder)(struct drm_connector *connector);
+	struct drm_encoder *(*atomic_best_encoder)(struct drm_connector *connector,
+						   struct drm_connector_state *connector_state);
 };
 
 extern void drm_helper_disable_unused_functions(struct drm_device *dev);

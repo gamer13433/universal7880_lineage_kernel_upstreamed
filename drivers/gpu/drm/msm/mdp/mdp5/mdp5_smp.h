@@ -28,6 +28,7 @@ typedef DECLARE_BITMAP(mdp5_smp_state_t, MAX_SMP_BLOCKS);
 
 struct mdp5_client_smp_state {
 	mdp5_smp_state_t inuse;
+	mdp5_smp_state_t configured;
 	mdp5_smp_state_t pending;
 };
 

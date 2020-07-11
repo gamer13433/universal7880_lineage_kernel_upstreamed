@@ -874,7 +874,7 @@ static int azx_runtime_suspend(struct device *dev)
 
 	chip = card->private_data;
 	hda = container_of(chip, struct hda_intel, chip);
-	if (chip->disabled || hda->init_failed)
+	if (chip->disabled || hda->init_failed || !chip->running)
 		return 0;
 
 	if (!(chip->driver_caps & AZX_DCAPS_PM_RUNTIME))
@@ -907,7 +907,7 @@ static int azx_runtime_resume(struct device *dev)
 
 	chip = card->private_data;
 	hda = container_of(chip, struct hda_intel, chip);
-	if (chip->disabled || hda->init_failed)
+	if (chip->disabled || hda->init_failed || !chip->running)
 		return 0;
 
 	if (!(chip->driver_caps & AZX_DCAPS_PM_RUNTIME))

@@ -1509,6 +1509,7 @@ static void process_deferred_bios(struct cache *cache)
 		 * this bio might require one, we pause until there are some
 		 * prepared mappings to process.
 		 */
+		prealloc_used = true;
 		if (prealloc_data_structs(cache, &structs)) {
 			spin_lock_irqsave(&cache->lock, flags);
 			bio_list_merge(&cache->deferred_bios, &bios);

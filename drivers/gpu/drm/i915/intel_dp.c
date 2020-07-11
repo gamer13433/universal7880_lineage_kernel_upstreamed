@@ -3715,10 +3715,15 @@ intel_dp_get_dpcd(struct intel_dp *intel_dp)
 		}
 	}
 
-	/* Training Pattern 3 support, both source and sink */
+	/* Training Pattern 3 support, Intel platforms that support HBR2 alone
+	 * have support for TP3 hence that check is used along with dpcd check
+	 * to ensure TP3 can be enabled.
+	 * SKL < B0: due it's WaDisableHBR2 is the only exception where TP3 is
+	 * supported but still not enabled.
+	 */
 	if (intel_dp->dpcd[DP_DPCD_REV] >= 0x12 &&
 	    intel_dp->dpcd[DP_MAX_LANE_COUNT] & DP_TPS3_SUPPORTED &&
-	    (IS_HASWELL(dev_priv) || INTEL_INFO(dev_priv)->gen >= 8)) {
+	    intel_dp_source_supports_hbr2(dev)) {
 		intel_dp->use_tps3 = true;
 		DRM_DEBUG_KMS("Displayport TPS3 supported\n");
 	} else

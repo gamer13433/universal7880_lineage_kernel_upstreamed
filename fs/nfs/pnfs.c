@@ -352,6 +352,10 @@ pnfs_put_lseg(struct pnfs_layout_segment *lseg)
 	lo = lseg->pls_layout;
 	inode = lo->plh_inode;
 	if (atomic_dec_and_lock(&lseg->pls_refcount, &inode->i_lock)) {
+		if (test_bit(NFS_LSEG_VALID, &lseg->pls_flags)) {
+			spin_unlock(&inode->i_lock);
+			return;
+		}
 		pnfs_get_layout_hdr(lo);
 		pnfs_layout_remove_lseg(lo, lseg);
 		spin_unlock(&inode->i_lock);
@@ -392,6 +396,8 @@ pnfs_put_lseg_locked(struct pnfs_layout_segment *lseg)
 		test_bit(NFS_LSEG_VALID, &lseg->pls_flags));
 	if (atomic_dec_and_test(&lseg->pls_refcount)) {
 		struct pnfs_layout_hdr *lo = lseg->pls_layout;
+		if (test_bit(NFS_LSEG_VALID, &lseg->pls_flags))
+			return;
 		pnfs_get_layout_hdr(lo);
 		pnfs_layout_remove_lseg(lo, lseg);
 		pnfs_free_lseg_async(lseg);
@@ -862,6 +868,7 @@ _pnfs_return_layout(struct inode *ino)
 	struct nfs4_layoutreturn *lrp;
 	nfs4_stateid stateid;
 	int status = 0, empty;
+	bool send;
 
 	dprintk("NFS: %s for inode %lu\n", __func__, ino->i_ino);
 

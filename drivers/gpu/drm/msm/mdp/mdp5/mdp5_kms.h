@@ -219,6 +219,8 @@ int mdp5_plane_mode_set(struct drm_plane *plane,
 		uint32_t src_x, uint32_t src_y,
 		uint32_t src_w, uint32_t src_h);
 void mdp5_plane_complete_flip(struct drm_plane *plane);
+void mdp5_plane_complete_commit(struct drm_plane *plane,
+	struct drm_plane_state *state);
 enum mdp5_pipe mdp5_plane_pipe(struct drm_plane *plane);
 struct drm_plane *mdp5_plane_init(struct drm_device *dev,
 		enum mdp5_pipe pipe, bool private_plane);

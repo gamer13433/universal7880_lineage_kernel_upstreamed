@@ -129,6 +129,9 @@ ATOMIC_OP(and, &=, and)
 #undef ATOMIC_OPS
 #undef ATOMIC_OP_RETURN
 #undef ATOMIC_OP
+#undef SCOND_FAIL_RETRY_VAR_DEF
+#undef SCOND_FAIL_RETRY_ASM
+#undef SCOND_FAIL_RETRY_VARS
 
 /**
  * __atomic_add_unless - add unless the number is a given value

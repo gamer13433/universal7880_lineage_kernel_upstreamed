@@ -230,9 +230,9 @@ struct bcr_extn_xymem {
 
 struct bcr_perip {
 #ifdef CONFIG_CPU_BIG_ENDIAN
-	unsigned int start:8, pad2:8, sz:8, pad:8;
+	unsigned int start:8, pad2:8, sz:8, ver:8;
 #else
-	unsigned int pad:8, sz:8, pad2:8, start:8;
+	unsigned int ver:8, sz:8, pad2:8, start:8;
 #endif
 };
 

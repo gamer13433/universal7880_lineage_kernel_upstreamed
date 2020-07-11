@@ -186,6 +186,7 @@ unsigned int get_c0_compare_int(void)
 {
 	return CP0_LEGACY_COMPARE_IRQ;
 }
+EXPORT_SYMBOL_GPL(get_c0_perfcount_int);
 
 void __init plat_mem_setup(void)
 {

@@ -4275,6 +4275,9 @@ nfs4_laundromat(struct nfsd_net *nn)
 		list_del_init(&dp->dl_recall_lru);
 		revoke_delegation(dp);
 	}
+	if (status)
+		goto out;
+	status = nfs4_check_fh(fhp, s);
 
 	spin_lock(&nn->client_lock);
 	while (!list_empty(&nn->close_lru)) {
@@ -4673,7 +4676,7 @@ static __be32 nfs4_seqid_op_checks(struct nfsd4_compound_state *cstate, stateid_
 	status = check_stateid_generation(stateid, &stp->st_stid.sc_stateid, nfsd4_has_session(cstate));
 	if (status)
 		return status;
-	return nfs4_check_fh(current_fh, stp);
+	return nfs4_check_fh(current_fh, &stp->st_stid);
 }
 
 /* 

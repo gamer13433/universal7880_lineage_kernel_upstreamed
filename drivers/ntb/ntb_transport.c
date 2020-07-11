@@ -118,10 +118,11 @@ struct ntb_transport_qp {
 
 	void (*rx_handler)(struct ntb_transport_qp *qp, void *qp_data,
 			   void *data, int len);
+	struct list_head rx_post_q;
 	struct list_head rx_pend_q;
 	struct list_head rx_free_q;
-	spinlock_t ntb_rx_pend_q_lock;
-	spinlock_t ntb_rx_free_q_lock;
+	/* ntb_rx_q_lock: synchronize access to rx_XXXX_q */
+	spinlock_t ntb_rx_q_lock;
 	void *rx_buff;
 	unsigned int rx_index;
 	unsigned int rx_max_entry;
@@ -175,6 +176,8 @@ struct ntb_transport {
 	bool transport_link;
 	struct delayed_work link_work;
 	struct work_struct link_cleanup;
+
+	struct dentry *debugfs_node_dir;
 };
 
 enum {
@@ -399,13 +402,17 @@ static ssize_t debugfs_read(struct file *filp, char __user *ubuf, size_t count,
 	char *buf;
 	ssize_t ret, out_offset, out_count;
 
+	qp = filp->private_data;
+
+	if (!qp || !qp->link_is_up)
+		return 0;
+
 	out_count = 1000;
 
 	buf = kmalloc(out_count, GFP_KERNEL);
 	if (!buf)
 		return -ENOMEM;
 
-	qp = filp->private_data;
 	out_offset = 0;
 	out_offset += snprintf(buf + out_offset, out_count - out_offset,
 			       "NTB QP stats\n");
@@ -906,10 +913,10 @@ static int ntb_transport_init_queue(struct ntb_transport *nt,
 	INIT_DELAYED_WORK(&qp->link_work, ntb_qp_link_work);
 	INIT_WORK(&qp->link_cleanup, ntb_qp_link_cleanup_work);
 
-	spin_lock_init(&qp->ntb_rx_pend_q_lock);
-	spin_lock_init(&qp->ntb_rx_free_q_lock);
+	spin_lock_init(&qp->ntb_rx_q_lock);
 	spin_lock_init(&qp->ntb_tx_free_q_lock);
 
+	INIT_LIST_HEAD(&qp->rx_post_q);
 	INIT_LIST_HEAD(&qp->rx_pend_q);
 	INIT_LIST_HEAD(&qp->rx_free_q);
 	INIT_LIST_HEAD(&qp->tx_free_q);
@@ -1050,19 +1057,18 @@ static void ntb_memcpy_rx(struct ntb_queue_entry *entry, void *offset)
 	ntb_rx_copy_callback(entry);
 }
 
-static void ntb_async_rx(struct ntb_queue_entry *entry, void *offset,
-			 size_t len)
+static void ntb_async_rx(struct ntb_queue_entry *entry, void *offset)
 {
 	struct dma_async_tx_descriptor *txd;
 	struct ntb_transport_qp *qp = entry->qp;
 	struct dma_chan *chan = qp->dma_chan;
 	struct dma_device *device;
-	size_t pay_off, buff_off;
+	size_t pay_off, buff_off, len;
 	struct dmaengine_unmap_data *unmap;
 	dma_cookie_t cookie;
 	void *buf = entry->buf;
 
-	entry->len = len;
+	len = entry->len;
 
 	if (!chan)
 		goto err;
@@ -1228,7 +1234,7 @@ static int ntb_transport_rxc_db(void *data, int db_num)
 			break;
 	}
 
-	if (qp->dma_chan)
+	if (i && qp->dma_chan)
 		dma_async_issue_pending(qp->dma_chan);
 
 	return i;
@@ -1463,7 +1469,7 @@ ntb_transport_create_queue(void *data, struct pci_dev *pdev,
 			goto err1;
 
 		entry->qp = qp;
-		ntb_list_add(&qp->ntb_rx_free_q_lock, &entry->entry,
+		ntb_list_add(&qp->ntb_rx_q_lock, &entry->entry,
 			     &qp->rx_free_q);
 	}
 
@@ -1490,7 +1496,7 @@ err2:
 	while ((entry = ntb_list_rm(&qp->ntb_tx_free_q_lock, &qp->tx_free_q)))
 		kfree(entry);
 err1:
-	while ((entry = ntb_list_rm(&qp->ntb_rx_free_q_lock, &qp->rx_free_q)))
+	while ((entry = ntb_list_rm(&qp->ntb_rx_q_lock, &qp->rx_free_q)))
 		kfree(entry);
 	if (qp->dma_chan)
 		dmaengine_put();
@@ -1570,14 +1576,14 @@ void *ntb_transport_rx_remove(struct ntb_transport_qp *qp, unsigned int *len)
 	if (!qp || qp->client_ready == NTB_LINK_UP)
 		return NULL;
 
-	entry = ntb_list_rm(&qp->ntb_rx_pend_q_lock, &qp->rx_pend_q);
+	entry = ntb_list_rm(&qp->ntb_rx_q_lock, &qp->rx_pend_q);
 	if (!entry)
 		return NULL;
 
 	buf = entry->cb_data;
 	*len = entry->len;
 
-	ntb_list_add(&qp->ntb_rx_free_q_lock, &entry->entry, &qp->rx_free_q);
+	ntb_list_add(&qp->ntb_rx_q_lock, &entry->entry, &qp->rx_free_q);
 
 	return buf;
 }
@@ -1603,15 +1609,18 @@ int ntb_transport_rx_enqueue(struct ntb_transport_qp *qp, void *cb, void *data,
 	if (!qp)
 		return -EINVAL;
 
-	entry = ntb_list_rm(&qp->ntb_rx_free_q_lock, &qp->rx_free_q);
+	entry = ntb_list_rm(&qp->ntb_rx_q_lock, &qp->rx_free_q);
 	if (!entry)
 		return -ENOMEM;
 
 	entry->cb_data = cb;
 	entry->buf = data;
 	entry->len = len;
+	entry->flags = 0;
 
-	ntb_list_add(&qp->ntb_rx_pend_q_lock, &entry->entry, &qp->rx_pend_q);
+	ntb_list_add(&qp->ntb_rx_q_lock, &entry->entry, &qp->rx_pend_q);
+
+	tasklet_schedule(&qp->rxc_db_work);
 
 	return 0;
 }

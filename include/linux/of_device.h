@@ -56,7 +56,7 @@ static inline struct device_node *of_cpu_device_node_get(int cpu)
 #else /* CONFIG_OF */
 
 static inline int of_driver_match_device(struct device *dev,
-					 struct device_driver *drv)
+					 const struct device_driver *drv)
 {
 	return 0;
 }

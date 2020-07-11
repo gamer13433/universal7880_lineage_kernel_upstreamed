@@ -253,6 +253,16 @@ static void sem_rcu_free(struct rcu_head *head)
 }
 
 /*
+ * spin_unlock_wait() and !spin_is_locked() are not memory barriers, they
+ * are only control barriers.
+ * The code must pair with spin_unlock(&sem->lock) or
+ * spin_unlock(&sem_perm.lock), thus just the control barrier is insufficient.
+ *
+ * smp_rmb() is sufficient, as writes cannot pass the control barrier.
+ */
+#define ipc_smp_acquire__after_spin_is_unlocked()	smp_rmb()
+
+/*
  * Wait until all currently ongoing simple ops have completed.
  * Caller must own sem_perm.lock.
  * New simple ops cannot start, because simple ops first check
@@ -275,6 +285,7 @@ static void sem_wait_array(struct sem_array *sma)
 		sem = sma->sem_base + i;
 		spin_unlock_wait(&sem->lock);
 	}
+	ipc_smp_acquire__after_spin_is_unlocked();
 }
 
 /*
@@ -2067,17 +2078,28 @@ void exit_sem(struct task_struct *tsk)
 		rcu_read_lock();
 		un = list_entry_rcu(ulp->list_proc.next,
 				    struct sem_undo, list_proc);
-		if (&un->list_proc == &ulp->list_proc)
-			semid = -1;
-		 else
-			semid = un->semid;
-
-		if (semid == -1) {
+		if (&un->list_proc == &ulp->list_proc) {
+			/*
+			 * We must wait for freeary() before freeing this ulp,
+			 * in case we raced with last sem_undo. There is a small
+			 * possibility where we exit while freeary() didn't
+			 * finish unlocking sem_undo_list.
+			 */
+			spin_unlock_wait(&ulp->lock);
 			rcu_read_unlock();
 			break;
 		}
+		spin_lock(&ulp->lock);
+		semid = un->semid;
+		spin_unlock(&ulp->lock);
 
-		sma = sem_obtain_object_check(tsk->nsproxy->ipc_ns, un->semid);
+		/* exit_sem raced with IPC_RMID, nothing to do */
+		if (semid == -1) {
+			rcu_read_unlock();
+			continue;
+		}
+
+		sma = sem_obtain_object_check(tsk->nsproxy->ipc_ns, semid);
 		/* exit_sem raced with IPC_RMID, nothing to do */
 		if (IS_ERR(sma)) {
 			rcu_read_unlock();
@@ -2105,9 +2127,11 @@ void exit_sem(struct task_struct *tsk)
 		ipc_assert_locked_object(&sma->sem_perm);
 		list_del(&un->list_id);
 
-		spin_lock(&ulp->lock);
+		/* we are the last process using this ulp, acquiring ulp->lock
+		 * isn't required. Besides that, we are also protected against
+		 * IPC_RMID as we hold sma->sem_perm lock now
+		 */
 		list_del_rcu(&un->list_proc);
-		spin_unlock(&ulp->lock);
 
 		/* perform adjustments registered in un */
 		for (i = 0; i < sma->sem_nsems; i++) {

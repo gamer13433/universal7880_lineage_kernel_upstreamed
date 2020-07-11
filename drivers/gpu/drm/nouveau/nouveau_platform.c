@@ -90,6 +90,20 @@ static int nouveau_platform_power_down(struct nouveau_platform_gpu *gpu)
 	return 0;
 }
 
+#else
+
+static void nouveau_platform_probe_iommu(struct device *dev,
+					 struct nouveau_platform_gpu *gpu)
+{
+}
+
+static void nouveau_platform_remove_iommu(struct device *dev,
+					  struct nouveau_platform_gpu *gpu)
+{
+}
+
+#endif
+
 static int nouveau_platform_probe(struct platform_device *pdev)
 {
 	struct nouveau_platform_gpu *gpu;

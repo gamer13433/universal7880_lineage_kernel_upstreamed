@@ -32,7 +32,7 @@ static int nfs42_set_rw_stateid(nfs4_stateid *dst, struct file *file,
 	return ret;
 }
 
-loff_t nfs42_proc_llseek(struct file *filep, loff_t offset, int whence)
+static loff_t _nfs42_proc_llseek(struct file *filep, loff_t offset, int whence)
 {
 	struct inode *inode = file_inode(filep);
 	struct nfs42_seek_args args = {

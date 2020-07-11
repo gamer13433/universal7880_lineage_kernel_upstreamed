@@ -547,6 +547,22 @@ void unlock_tx_qs(struct gfar_private *priv)
 		spin_unlock(&priv->tx_queue[i]->txlock);
 }
 
+static void lock_tx_qs(struct gfar_private *priv)
+{
+	int i;
+
+	for (i = 0; i < priv->num_tx_queues; i++)
+		spin_lock(&priv->tx_queue[i]->txlock);
+}
+
+static void unlock_tx_qs(struct gfar_private *priv)
+{
+	int i;
+
+	for (i = 0; i < priv->num_tx_queues; i++)
+		spin_unlock(&priv->tx_queue[i]->txlock);
+}
+
 static int gfar_alloc_tx_queues(struct gfar_private *priv)
 {
 	int i;
@@ -2083,6 +2099,11 @@ int startup_gfar(struct net_device *ndev)
 	/* Start Rx/Tx DMA and enable the interrupts */
 	gfar_start(priv);
 
+	/* force link state update after mac reset */
+	priv->oldlink = 0;
+	priv->oldspeed = 0;
+	priv->oldduplex = -1;
+
 	phy_start(priv->phydev);
 
 	enable_napi(priv);
@@ -2111,6 +2132,8 @@ static int gfar_enet_open(struct net_device *dev)
 	err = startup_gfar(dev);
 	if (err)
 		return err;
+
+	device_set_wakeup_enable(&dev->dev, priv->wol_en);
 
 	device_set_wakeup_enable(&dev->dev, priv->wol_en);
 

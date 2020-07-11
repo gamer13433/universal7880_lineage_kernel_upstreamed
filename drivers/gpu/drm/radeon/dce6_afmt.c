@@ -271,7 +271,7 @@ void dce6_afmt_write_sad_regs(struct drm_encoder *encoder)
 
 		value |= SUPPORTED_FREQUENCIES_STEREO(stereo_freqs);
 
-		WREG32_ENDPOINT(offset, eld_reg_to_type[i][0], value);
+		WREG32_ENDPOINT(dig->pin->offset, eld_reg_to_type[i][0], value);
 	}
 
 	kfree(sads);

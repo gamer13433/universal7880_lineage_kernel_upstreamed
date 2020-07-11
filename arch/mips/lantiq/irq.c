@@ -292,7 +292,7 @@ static irqreturn_t ipi_resched_interrupt(int irq, void *dev_id)
 
 static irqreturn_t ipi_call_interrupt(int irq, void *dev_id)
 {
-	smp_call_function_interrupt();
+	generic_smp_call_function_interrupt();
 	return IRQ_HANDLED;
 }
 
@@ -465,6 +465,7 @@ unsigned int get_c0_compare_int(void)
 {
 	return MIPS_CPU_TIMER_IRQ;
 }
+EXPORT_SYMBOL_GPL(get_c0_perfcount_int);
 
 static struct of_device_id __initdata of_irq_ids[] = {
 	{ .compatible = "lantiq,icu", .data = icu_of_init },

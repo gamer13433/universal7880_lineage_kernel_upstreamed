@@ -263,6 +263,10 @@ static int be_mac_addr_set(struct net_device *netdev, void *p)
 	if (ether_addr_equal(addr->sa_data, netdev->dev_addr))
 		return 0;
 
+	/* if device is not running, copy MAC to netdev->dev_addr */
+	if (!netif_running(netdev))
+		goto done;
+
 	/* The PMAC_ADD cmd may fail if the VF doesn't have FILTMGMT
 	 * privilege or if PF did not provision the new MAC address.
 	 * On BE3, this cmd will always fail if the VF doesn't have the
@@ -297,9 +301,9 @@ static int be_mac_addr_set(struct net_device *netdev, void *p)
 		status = -EPERM;
 		goto err;
 	}
-
-	memcpy(netdev->dev_addr, addr->sa_data, netdev->addr_len);
-	dev_info(dev, "MAC address changed to %pM\n", mac);
+done:
+	ether_addr_copy(netdev->dev_addr, addr->sa_data);
+	dev_info(dev, "MAC address changed to %pM\n", addr->sa_data);
 	return 0;
 err:
 	dev_warn(dev, "MAC address change to %pM failed\n", addr->sa_data);
@@ -2068,10 +2072,24 @@ static void be_eq_clean(struct be_eq_obj *eqo)
 	be_eq_notify(eqo->adapter, eqo->q.id, false, true, num);
 }
 
+/* Free posted rx buffers that were not used */
+static void be_rxq_clean(struct be_rx_obj *rxo)
+{
+	struct be_queue_info *rxq = &rxo->q;
+	struct be_rx_page_info *page_info;
+
+	while (atomic_read(&rxq->used) > 0) {
+		page_info = get_rx_page_info(rxo);
+		put_page(page_info->page);
+		memset(page_info, 0, sizeof(*page_info));
+	}
+	BUG_ON(atomic_read(&rxq->used));
+	rxq->tail = 0;
+	rxq->head = 0;
+}
+
 static void be_rx_cq_clean(struct be_rx_obj *rxo)
 {
-	struct be_rx_page_info *page_info;
-	struct be_queue_info *rxq = &rxo->q;
 	struct be_queue_info *rx_cq = &rxo->cq;
 	struct be_rx_compl_info *rxcp;
 	struct be_adapter *adapter = rxo->adapter;
@@ -2106,16 +2124,6 @@ static void be_rx_cq_clean(struct be_rx_obj *rxo)
 
 	/* After cleanup, leave the CQ in unarmed state */
 	be_cq_notify(adapter, rx_cq->id, false, 0);
-
-	/* Then free posted rx buffers that were not used */
-	while (atomic_read(&rxq->used) > 0) {
-		page_info = get_rx_page_info(rxo);
-		put_page(page_info->page);
-		memset(page_info, 0, sizeof(*page_info));
-	}
-	BUG_ON(atomic_read(&rxq->used));
-	rxq->tail = 0;
-	rxq->head = 0;
 }
 
 static void be_tx_compl_clean(struct be_adapter *adapter)
@@ -2221,6 +2229,14 @@ static int be_evt_queues_create(struct be_adapter *adapter)
 		rc = be_cmd_eq_create(adapter, eqo);
 		if (rc)
 			return rc;
+
+		if (!zalloc_cpumask_var(&eqo->affinity_mask, GFP_KERNEL))
+			return -ENOMEM;
+		cpumask_set_cpu(cpumask_local_spread(i, numa_node),
+				eqo->affinity_mask);
+		netif_napi_add(adapter->netdev, &eqo->napi, be_poll,
+			       BE_NAPI_WEIGHT);
+		napi_hash_add(&eqo->napi);
 	}
 	return 0;
 }
@@ -2845,10 +2861,51 @@ static void be_rx_qs_destroy(struct be_adapter *adapter)
 	for_all_rx_queues(adapter, rxo, i) {
 		q = &rxo->q;
 		if (q->created) {
+			/* If RXQs are destroyed while in an "out of buffer"
+			 * state, there is a possibility of an HW stall on
+			 * Lancer. So, post 64 buffers to each queue to relieve
+			 * the "out of buffer" condition.
+			 * Make sure there's space in the RXQ before posting.
+			 */
+			if (lancer_chip(adapter)) {
+				be_rx_cq_clean(rxo);
+				if (atomic_read(&q->used) == 0)
+					be_post_rx_frags(rxo, GFP_KERNEL,
+							 MAX_RX_POST);
+			}
+
 			be_cmd_rxq_destroy(adapter, q);
 			be_rx_cq_clean(rxo);
+			be_rxq_clean(rxo);
 		}
 		be_queue_free(adapter, q);
+	}
+}
+
+static void be_disable_if_filters(struct be_adapter *adapter)
+{
+	be_cmd_pmac_del(adapter, adapter->if_handle,
+			adapter->pmac_id[0], 0);
+
+	be_clear_uc_list(adapter);
+
+	/* The IFACE flags are enabled in the open path and cleared
+	 * in the close path. When a VF gets detached from the host and
+	 * assigned to a VM the following happens:
+	 *	- VF's IFACE flags get cleared in the detach path
+	 *	- IFACE create is issued by the VF in the attach path
+	 * Due to a bug in the BE3/Skyhawk-R FW
+	 * (Lancer FW doesn't have the bug), the IFACE capability flags
+	 * specified along with the IFACE create cmd issued by a VF are not
+	 * honoured by FW.  As a consequence, if a *new* driver
+	 * (that enables/disables IFACE flags in open/close)
+	 * is loaded in the host and an *old* driver is * used by a VM/VF,
+	 * the IFACE gets created *without* the needed flags.
+	 * To avoid this, disable RX-filter flags only for Lancer.
+	 */
+	if (lancer_chip(adapter)) {
+		be_cmd_rx_filter(adapter, BE_IF_ALL_FILT_FLAGS, OFF);
+		adapter->if_flags &= ~BE_IF_ALL_FILT_FLAGS;
 	}
 }
 
@@ -2863,6 +2920,8 @@ static int be_close(struct net_device *netdev)
 	 */
 	if (!(adapter->flags & BE_FLAGS_SETUP_DONE))
 		return 0;
+
+	be_disable_if_filters(adapter);
 
 	be_roce_dev_close(adapter);
 
@@ -2968,6 +3027,31 @@ static int be_rx_qs_create(struct be_adapter *adapter)
 	return 0;
 }
 
+static int be_enable_if_filters(struct be_adapter *adapter)
+{
+	int status;
+
+	status = be_cmd_rx_filter(adapter, BE_IF_EN_FLAGS, ON);
+	if (status)
+		return status;
+
+	/* For BE3 VFs, the PF programs the initial MAC address */
+	if (!(BEx_chip(adapter) && be_virtfn(adapter))) {
+		status = be_cmd_pmac_add(adapter, adapter->netdev->dev_addr,
+					 adapter->if_handle,
+					 &adapter->pmac_id[0], 0);
+		if (status)
+			return status;
+	}
+
+	if (adapter->vlans_added)
+		be_vid_config(adapter);
+
+	be_set_rx_mode(adapter->netdev);
+
+	return 0;
+}
+
 static int be_open(struct net_device *netdev)
 {
 	struct be_adapter *adapter = netdev_priv(netdev);
@@ -2978,6 +3062,10 @@ static int be_open(struct net_device *netdev)
 	int status, i;
 
 	status = be_rx_qs_create(adapter);
+	if (status)
+		goto err;
+
+	status = be_enable_if_filters(adapter);
 	if (status)
 		goto err;
 
@@ -3203,8 +3291,8 @@ static int be_clear(struct be_adapter *adapter)
 #ifdef CONFIG_BE2NET_VXLAN
 	be_disable_vxlan_offloads(adapter);
 #endif
-	/* delete the primary mac along with the uc-mac list */
-	be_mac_clear(adapter);
+	kfree(adapter->pmac_id);
+	adapter->pmac_id = NULL;
 
 	be_cmd_if_destroy(adapter, adapter->if_handle,  0);
 
@@ -3600,15 +3688,8 @@ static int be_mac_setup(struct be_adapter *adapter)
 
 		memcpy(adapter->netdev->dev_addr, mac, ETH_ALEN);
 		memcpy(adapter->netdev->perm_addr, mac, ETH_ALEN);
-	} else {
-		/* Maybe the HW was reset; dev_addr must be re-programmed */
-		memcpy(mac, adapter->netdev->dev_addr, ETH_ALEN);
 	}
 
-	/* For BE3-R VFs, the PF programs the initial MAC address */
-	if (!(BEx_chip(adapter) && be_virtfn(adapter)))
-		be_cmd_pmac_add(adapter, mac, adapter->if_handle,
-				&adapter->pmac_id[0], 0);
 	return 0;
 }
 
@@ -4435,7 +4516,7 @@ static void be_add_vxlan_port(struct net_device *netdev, sa_family_t sa_family,
 	struct device *dev = &adapter->pdev->dev;
 	int status;
 
-	if (lancer_chip(adapter) || BEx_chip(adapter))
+	if (lancer_chip(adapter) || BEx_chip(adapter) || be_is_mc(adapter))
 		return;
 
 	if (adapter->flags & BE_FLAGS_VXLAN_OFFLOADS) {
@@ -4473,7 +4554,7 @@ static void be_del_vxlan_port(struct net_device *netdev, sa_family_t sa_family,
 {
 	struct be_adapter *adapter = netdev_priv(netdev);
 
-	if (lancer_chip(adapter) || BEx_chip(adapter))
+	if (lancer_chip(adapter) || BEx_chip(adapter) || be_is_mc(adapter))
 		return;
 
 	if (adapter->vxlan_port != port)
@@ -4783,6 +4864,7 @@ static int be_get_initial_config(struct be_adapter *adapter)
 static int lancer_recover_func(struct be_adapter *adapter)
 {
 	struct device *dev = &adapter->pdev->dev;
+	u32 en_flags;
 	int status;
 
 	status = lancer_test_and_set_rdy_state(adapter);

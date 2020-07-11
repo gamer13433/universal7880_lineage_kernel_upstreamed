@@ -264,11 +264,11 @@ config ARC_PAGE_SIZE_8K
 
 config ARC_PAGE_SIZE_16K
 	bool "16KB"
-	depends on ARC_MMU_V3
+	depends on ARC_MMU_V3 || ARC_MMU_V4
 
 config ARC_PAGE_SIZE_4K
 	bool "4KB"
-	depends on ARC_MMU_V3
+	depends on ARC_MMU_V3 || ARC_MMU_V4
 
 endchoice
 
@@ -318,6 +318,11 @@ config ARC_HAS_LLSC
 	bool "Insn: LLOCK/SCOND (efficient atomic ops)"
 	default y
 	depends on ARC_CPU_770 && !ARC_CANT_LLSC
+
+config ARC_STAR_9000923308
+	bool "Workaround for llock/scond livelock"
+	default y
+	depends on ISA_ARCV2 && SMP && ARC_HAS_LLSC
 
 config ARC_HAS_SWAPE
 	bool "Insn: SWAPE (endian-swap)"

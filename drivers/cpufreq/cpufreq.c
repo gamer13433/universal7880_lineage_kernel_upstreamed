@@ -1308,6 +1308,10 @@ static int __cpufreq_add_dev(struct device *dev, struct subsys_interface *sif)
 	/* related cpus should atleast have policy->cpus */
 	cpumask_or(policy->related_cpus, policy->related_cpus, policy->cpus);
 
+	/* Remember which CPUs have been present at the policy creation time. */
+	if (!recover_policy)
+		cpumask_and(policy->real_cpus, policy->cpus, cpu_present_mask);
+
 	/*
 	 * affected cpus must always be the one, which are online. We aren't
 	 * managing offline cpus here.
@@ -1456,8 +1460,7 @@ static int cpufreq_add_dev(struct device *dev, struct subsys_interface *sif)
 	return __cpufreq_add_dev(dev, sif);
 }
 
-static int __cpufreq_remove_dev_prepare(struct device *dev,
-					struct subsys_interface *sif)
+static int __cpufreq_remove_dev_prepare(struct device *dev)
 {
 	unsigned int cpu = dev->id, cpus;
 	int ret;
@@ -1483,10 +1486,8 @@ static int __cpufreq_remove_dev_prepare(struct device *dev,
 
 	if (has_target()) {
 		ret = __cpufreq_governor(policy, CPUFREQ_GOV_STOP);
-		if (ret) {
+		if (ret)
 			pr_err("%s: Failed to stop governor\n", __func__);
-			return ret;
-		}
 	}
 
 	if (!cpufreq_driver->setpolicy)
@@ -1524,8 +1525,7 @@ static int __cpufreq_remove_dev_prepare(struct device *dev,
 	return 0;
 }
 
-static int __cpufreq_remove_dev_finish(struct device *dev,
-				       struct subsys_interface *sif)
+static int __cpufreq_remove_dev_finish(struct device *dev)
 {
 	unsigned int cpu = dev->id, cpus;
 	int ret;
@@ -1606,10 +1606,10 @@ static int cpufreq_remove_dev(struct device *dev, struct subsys_interface *sif)
 	if (cpu_is_offline(cpu))
 		return 0;
 
-	ret = __cpufreq_remove_dev_prepare(dev, sif);
+	ret = __cpufreq_remove_dev_prepare(dev);
 
 	if (!ret)
-		ret = __cpufreq_remove_dev_finish(dev, sif);
+		ret = __cpufreq_remove_dev_finish(dev);
 
 	return ret;
 }
@@ -2448,11 +2448,11 @@ static int cpufreq_cpu_callback(struct notifier_block *nfb,
 			break;
 
 		case CPU_DOWN_PREPARE:
-			__cpufreq_remove_dev_prepare(dev, NULL);
+			__cpufreq_remove_dev_prepare(dev);
 			break;
 
 		case CPU_POST_DEAD:
-			__cpufreq_remove_dev_finish(dev, NULL);
+			__cpufreq_remove_dev_finish(dev);
 			break;
 
 		case CPU_DOWN_FAILED:

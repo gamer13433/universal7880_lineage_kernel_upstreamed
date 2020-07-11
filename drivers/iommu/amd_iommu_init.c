@@ -2045,6 +2045,14 @@ static int amd_iommu_init_dma(void)
 	return 0;
 }
 
+static int amd_iommu_init_dma(void)
+{
+	if (iommu_pass_through)
+		return amd_iommu_init_passthrough();
+	else
+		return amd_iommu_init_dma_ops();
+}
+
 /****************************************************************************
  *
  * AMD IOMMU Initialization State Machine

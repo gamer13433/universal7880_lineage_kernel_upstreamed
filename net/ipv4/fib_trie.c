@@ -1968,7 +1968,6 @@ struct fib_table *fib_trie_table(u32 id)
 		return NULL;
 
 	tb->tb_id = id;
-	tb->tb_default = -1;
 	tb->tb_num_default = 0;
 
 	t = (struct trie *) tb->tb_data;

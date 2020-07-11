@@ -865,6 +865,8 @@ static ssize_t show_protocols(struct device *device,
 	} else {
 		enabled = dev->enabled_wakeup_protocols;
 		allowed = dev->allowed_wakeup_protocols;
+		if (dev->encode_wakeup && !allowed)
+			allowed = ir_raw_get_encode_protocols();
 	}
 
 	mutex_unlock(&dev->lock);

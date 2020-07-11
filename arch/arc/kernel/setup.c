@@ -45,6 +45,7 @@ static void read_arc_build_cfg_regs(void)
 	struct bcr_perip uncached_space;
 	struct bcr_generic bcr;
 	struct cpuinfo_arc *cpu = &cpuinfo_arc700[smp_processor_id()];
+	unsigned long perip_space;
 	FIX_PTR(cpu);
 
 	READ_BCR(AUX_IDENTITY, cpu->core);
@@ -284,6 +285,10 @@ static void arc_chk_core_config(void)
 		pr_warn("CONFIG_ARC_FPU_SAVE_RESTORE needed for working apps\n");
 	else if (!cpu->extn.fpu_dp && fpu_enabled)
 		panic("FPU non-existent, disable CONFIG_ARC_FPU_SAVE_RESTORE\n");
+
+	if (is_isa_arcv2() && IS_ENABLED(CONFIG_SMP) && cpu->isa.atomic &&
+	    !IS_ENABLED(CONFIG_ARC_STAR_9000923308))
+		panic("llock/scond livelock workaround missing\n");
 }
 
 /*

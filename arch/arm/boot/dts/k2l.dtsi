@@ -29,7 +29,6 @@
 	};
 
 	soc {
-
 		/include/ "k2l-clocks.dtsi"
 
 		uart2: serial@02348400 {
@@ -94,8 +93,4 @@
        ti,davinci-spi-num-cs = <5>;
        /* Pin muxed. Enabled and configured by Bootloader */
        status = "disabled";
-};
-
-&mdio {
-	reg = <0x26200f00 0x100>;
 };

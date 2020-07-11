@@ -36,7 +36,7 @@
  *	registered cooling device.
  * @cpufreq_state: integer value representing the current state of cpufreq
  *	cooling	devices.
- * @cpufreq_val: integer value representing the absolute value of the clipped
+ * @clipped_freq: integer value representing the absolute value of the clipped
  *	frequency.
  * @allowed_cpus: all the cpus involved for this cpufreq_cooling_device.
  *
@@ -57,6 +57,9 @@ static DEFINE_MUTEX(cooling_cpufreq_lock);
 
 static unsigned int cpufreq_dev_count;
 
+static unsigned int cpufreq_dev_count;
+
+static DEFINE_MUTEX(cooling_list_lock);
 static LIST_HEAD(cpufreq_dev_list);
 
 /**
