@@ -408,7 +408,7 @@ static const struct irq_domain_ops s3c64xx_gpio_irqd_ops = {
 	.xlate	= irq_domain_xlate_twocell,
 };
 
-static void s3c64xx_eint_gpio_irq(unsigned int irq, struct irq_desc *desc)
+static void s3c64xx_eint_gpio_irq(struct irq_desc *desc)
 {
 	struct irq_chip *chip = irq_get_chip(irq);
 	struct s3c64xx_eint_gpio_data *data = irq_get_handler_data(irq);

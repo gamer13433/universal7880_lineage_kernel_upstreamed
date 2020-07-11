@@ -801,7 +801,7 @@ static void msm_gpio_irq_handler(unsigned int irq, struct irq_desc *desc)
 
 	/* No interrupts were flagged */
 	if (handled == 0)
-		handle_bad_irq(irq, desc);
+		handle_bad_irq(desc);
 
 	chained_irq_exit(chip, desc);
 }

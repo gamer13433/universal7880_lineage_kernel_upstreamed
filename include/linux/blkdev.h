@@ -283,6 +283,7 @@ struct blk_queue_tag {
 struct queue_limits {
 	unsigned long		bounce_pfn;
 	unsigned long		seg_boundary_mask;
+	unsigned long		virt_boundary_mask;
 
 	unsigned int		max_hw_sectors;
 	unsigned int		chunk_sectors;
@@ -1037,6 +1038,7 @@ extern int blk_queue_dma_drain(struct request_queue *q,
 			       void *buf, unsigned int size);
 extern void blk_queue_lld_busy(struct request_queue *q, lld_busy_fn *fn);
 extern void blk_queue_segment_boundary(struct request_queue *, unsigned long);
+extern void blk_queue_virt_boundary(struct request_queue *, unsigned long);
 extern void blk_queue_prep_rq(struct request_queue *, prep_rq_fn *pfn);
 extern void blk_queue_unprep_rq(struct request_queue *, unprep_rq_fn *ufn);
 extern void blk_queue_merge_bvec(struct request_queue *, merge_bvec_fn *);
@@ -1097,7 +1099,11 @@ struct blk_plug {
 	struct list_head list; /* requests */
 	struct list_head mq_list; /* blk-mq requests */
 	struct list_head cb_list; /* md requires an unplug callback */
-};
+};static inline unsigned long queue_virt_boundary(struct request_queue *q)
+{
+	return q->limits.virt_boundary_mask;
+}
+
 #define BLK_MAX_REQUEST_COUNT 16
 
 struct blk_plug_cb;

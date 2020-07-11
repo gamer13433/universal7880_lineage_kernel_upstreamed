@@ -523,8 +523,7 @@ ARM_BE8(rev	r6, r6  )
 
 	mrc	p15, 0, r2, c14, c3, 1	@ CNTV_CTL
 	str	r2, [vcpu, #VCPU_TIMER_CNTV_CTL]
-	bic	r2, #1			@ Clear ENABLE
-	mcr	p15, 0, r2, c14, c3, 1	@ CNTV_CTL
+
 	isb
 
 	mrrc	p15, 3, rr_lo_hi(r2, r3), c14	@ CNTV_CVAL

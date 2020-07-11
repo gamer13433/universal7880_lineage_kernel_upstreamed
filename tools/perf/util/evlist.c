@@ -122,6 +122,33 @@ void perf_evlist__delete(struct perf_evlist *evlist)
 	free(evlist);
 }
 
+static void __perf_evlist__propagate_maps(struct perf_evlist *evlist,
+					  struct perf_evsel *evsel)
+{
+	/*
+	 * We already have cpus for evsel (via PMU sysfs) so
+	 * keep it, if there's no target cpu list defined.
+	 */
+	if (!evsel->own_cpus || evlist->has_user_cpus) {
+		cpu_map__put(evsel->cpus);
+		evsel->cpus = cpu_map__get(evlist->cpus);
+	} else if (evsel->cpus != evsel->own_cpus) {
+		cpu_map__put(evsel->cpus);
+		evsel->cpus = cpu_map__get(evsel->own_cpus);
+	}
+
+	thread_map__put(evsel->threads);
+	evsel->threads = thread_map__get(evlist->threads);
+}
+
+static void perf_evlist__propagate_maps(struct perf_evlist *evlist)
+{
+	struct perf_evsel *evsel;
+
+	evlist__for_each(evlist, evsel)
+		__perf_evlist__propagate_maps(evlist, evsel);
+}
+
 void perf_evlist__add(struct perf_evlist *evlist, struct perf_evsel *entry)
 {
 	list_add_tail(&entry->node, &evlist->entries);
@@ -130,18 +157,19 @@ void perf_evlist__add(struct perf_evlist *evlist, struct perf_evsel *entry)
 
 	if (!evlist->nr_entries++)
 		perf_evlist__set_id_pos(evlist);
+
+	__perf_evlist__propagate_maps(evlist, entry);
 }
 
 void perf_evlist__splice_list_tail(struct perf_evlist *evlist,
-				   struct list_head *list,
-				   int nr_entries)
+				   struct list_head *list)
 {
-	bool set_id_pos = !evlist->nr_entries;
+	struct perf_evsel *evsel, *temp;
 
-	list_splice_tail(list, &evlist->entries);
-	evlist->nr_entries += nr_entries;
-	if (set_id_pos)
-		perf_evlist__set_id_pos(evlist);
+	__evlist__for_each_safe(list, temp, evsel) {
+		list_del_init(&evsel->node);
+		perf_evlist__add(evlist, evsel);
+	}
 }
 
 void __perf_evlist__set_leader(struct list_head *list)
@@ -207,7 +235,7 @@ static int perf_evlist__add_attrs(struct perf_evlist *evlist,
 		list_add_tail(&evsel->node, &head);
 	}
 
-	perf_evlist__splice_list_tail(evlist, &head, nr_attrs);
+	perf_evlist__splice_list_tail(evlist, &head);
 
 	return 0;
 
@@ -1178,6 +1206,8 @@ void perf_evlist__close(struct perf_evlist *evlist)
 
 static int perf_evlist__create_syswide_maps(struct perf_evlist *evlist)
 {
+	struct cpu_map	  *cpus;
+	struct thread_map *threads;
 	int err = -ENOMEM;
 
 	/*

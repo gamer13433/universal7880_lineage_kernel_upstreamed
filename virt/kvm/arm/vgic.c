@@ -1442,6 +1442,31 @@ epilog:
 		 */
 		clear_bit(vcpu_id, dist->irq_pending_on_cpu);
 	}
+
+	for (lr = 0; lr < vgic->nr_lr; lr++) {
+		struct vgic_lr vlr;
+
+		if (!test_bit(lr, vgic_cpu->lr_used))
+			continue;
+
+		vlr = vgic_get_lr(vcpu, lr);
+
+		/*
+		 * If we have a mapping, and the virtual interrupt is
+		 * presented to the guest (as pending or active), then we must
+		 * set the state to active in the physical world. See
+		 * Documentation/virtual/kvm/arm/vgic-mapped-irqs.txt.
+		 */
+		if (vlr.state & LR_HW) {
+			struct irq_phys_map *map;
+			map = vgic_irq_map_search(vcpu, vlr.irq);
+
+			ret = irq_set_irqchip_state(map->irq,
+						    IRQCHIP_STATE_ACTIVE,
+						    true);
+			WARN_ON(ret);
+		}
+	}
 }
 
 static bool vgic_process_maintenance(struct kvm_vcpu *vcpu)

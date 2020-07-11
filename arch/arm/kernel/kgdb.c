@@ -264,17 +264,15 @@ int kgdb_arch_set_breakpoint(struct kgdb_bkpt *bpt)
 	if (err)
 		return err;
 
-	/* Machine is already stopped, so we can use __patch_text() directly */
-	__patch_text((void *)bpt->bpt_addr,
-		     *(unsigned int *)arch_kgdb_ops.gdb_bpt_instr);
+	patch_text((void *)bpt->bpt_addr,
+		   *(unsigned int *)arch_kgdb_ops.gdb_bpt_instr);
 
 	return err;
 }
 
 int kgdb_arch_remove_breakpoint(struct kgdb_bkpt *bpt)
 {
-	/* Machine is already stopped, so we can use __patch_text() directly */
-	__patch_text((void *)bpt->bpt_addr, *(unsigned int *)bpt->saved_instr);
+	patch_text((void *)bpt->bpt_addr, *(unsigned int *)bpt->saved_instr);
 
 	return 0;
 }

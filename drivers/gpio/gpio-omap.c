@@ -718,7 +718,7 @@ static void omap_gpio_free(struct gpio_chip *chip, unsigned offset)
  * line's interrupt handler has been run, we may miss some nested
  * interrupts.
  */
-static void omap_gpio_irq_handler(unsigned int irq, struct irq_desc *desc)
+static void omap_gpio_irq_handler(struct irq_desc *desc)
 {
 	void __iomem *isr_reg = NULL;
 	u32 isr;
@@ -1075,7 +1075,6 @@ static int omap_gpio_chip_init(struct gpio_bank *bank, struct irq_chip *irqc)
 	} else {
 		bank->chip.label = "gpio";
 		bank->chip.base = gpio;
-		gpio += bank->width;
 	}
 	bank->chip.ngpio = bank->width;
 
@@ -1084,6 +1083,9 @@ static int omap_gpio_chip_init(struct gpio_bank *bank, struct irq_chip *irqc)
 		dev_err(bank->dev, "Could not register gpio chip %d\n", ret);
 		return ret;
 	}
+
+	if (!bank->is_mpuio)
+		gpio += bank->width;
 
 #ifdef CONFIG_ARCH_OMAP1
 	/*
@@ -1216,8 +1218,11 @@ static int omap_gpio_probe(struct platform_device *pdev)
 	omap_gpio_mod_init(bank);
 
 	ret = omap_gpio_chip_init(bank, irqc);
-	if (ret)
+	if (ret) {
+		pm_runtime_put_sync(bank->dev);
+		pm_runtime_disable(bank->dev);
 		return ret;
+	}
 
 	omap_gpio_show_rev(bank);
 

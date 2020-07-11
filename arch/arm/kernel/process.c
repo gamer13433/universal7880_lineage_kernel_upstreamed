@@ -309,6 +309,7 @@ static void show_data(unsigned long addr, int nbytes, const char *name)
 	int	nlines;
 	u32	*p;
 
+#ifdef CONFIG_CPU_USE_DOMAINS
 	/*
 	 * don't attempt to dump non-kernel addresses or
 	 * values that are probably just small negative numbers

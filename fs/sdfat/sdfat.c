@@ -213,19 +213,12 @@ static inline void inode_unlock(struct inode *inode)
 }
 #endif
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 3, 0)
-static void sdfat_writepage_end_io(struct bio *bio)
-{
-	__sdfat_writepage_end_io(bio, bio->bi_error);
-}
-#else /* LINUX_VERSION_CODE < KERNEL_VERSION(4, 3, 0) */
 static void sdfat_writepage_end_io(struct bio *bio, int err)
 {
 	if (test_bit(BIO_UPTODATE, &bio->bi_flags))
 		err = 0;
 	__sdfat_writepage_end_io(bio, err);
 }
-#endif
 
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 16, 0)

@@ -476,6 +476,7 @@ static struct platform_driver ktd2692_driver = {
 	.probe = ktd2692_probe,
 	.remove = ktd2692_remove,
 };
+MODULE_DEVICE_TABLE(of, ktd2692_match);
 
 static int __init ktd2692_init(void)
 {

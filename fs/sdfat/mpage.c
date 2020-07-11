@@ -91,19 +91,12 @@ static inline void __sdfat_submit_bio_write2(int flags, struct bio *bio)
 }
 #endif
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 3, 0)
-static void  mpage_write_end_io(struct bio *bio)
-{
-	__mpage_write_end_io(bio, bio->bi_error);
-}
-#else /* LINUX_VERSION_CODE < KERNEL_VERSION(4,3,0) */
 static void mpage_write_end_io(struct bio *bio, int err)
 {
 	if (test_bit(BIO_UPTODATE, &bio->bi_flags))
 		err = 0;
 	__mpage_write_end_io(bio, err);
 }
-#endif
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 14, 0)
 static inline sector_t __sdfat_bio_sector(struct bio *bio)

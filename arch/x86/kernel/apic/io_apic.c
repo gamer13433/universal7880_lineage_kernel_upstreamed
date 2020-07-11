@@ -3642,6 +3642,7 @@ void __init setup_ioapic_dest(void)
 	int pin, ioapic, irq, irq_entry;
 	const struct cpumask *mask;
 	struct irq_data *idata;
+	struct irq_chip *chip;
 
 	if (skip_ioapic_setup == 1)
 		return;
