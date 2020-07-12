@@ -65,6 +65,7 @@ obj-$(CONFIG_USE_MUIC)      += muic/
 obj-$(CONFIG_USE_CCIC)      += ccic/
 
 obj-$(CONFIG_PARPORT)		+= parport/
+obj-$(CONFIG_NVM)		+= lightnvm/
 obj-y				+= base/ block/ misc/ mfd/ nfc/
 obj-$(CONFIG_DMA_SHARED_BUFFER) += dma-buf/
 obj-$(CONFIG_NUBUS)		+= nubus/

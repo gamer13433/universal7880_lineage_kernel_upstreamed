@@ -8,6 +8,7 @@
 #include <linux/slab.h>
 #include <linux/blk-mq.h>
 #include <linux/hrtimer.h>
+#include <linux/lightnvm.h>
 
 struct nullb_cmd {
 	struct list_head list;
@@ -17,6 +18,7 @@ struct nullb_cmd {
 	struct bio *bio;
 	unsigned int tag;
 	struct nullb_queue *nq;
+	struct hrtimer timer;
 };
 
 struct nullb_queue {
@@ -39,23 +41,14 @@ struct nullb {
 
 	struct nullb_queue *queues;
 	unsigned int nr_queues;
+	char disk_name[DISK_NAME_LEN];
 };
 
 static LIST_HEAD(nullb_list);
 static struct mutex lock;
 static int null_major;
 static int nullb_indexes;
-
-struct completion_queue {
-	struct llist_head list;
-	struct hrtimer timer;
-};
-
-/*
- * These are per-cpu for now, they will need to be configured by the
- * complete_queues parameter and appropriately mapped.
- */
-static DEFINE_PER_CPU(struct completion_queue, completion_queues);
+static struct kmem_cache *ppa_cache;
 
 enum {
 	NULL_IRQ_NONE		= 0,
@@ -93,12 +86,16 @@ static int nr_devices = 2;
 module_param(nr_devices, int, S_IRUGO);
 MODULE_PARM_DESC(nr_devices, "Number of devices to register");
 
+static bool use_lightnvm;
+module_param(use_lightnvm, bool, S_IRUGO);
+MODULE_PARM_DESC(use_lightnvm, "Register as a LightNVM device");
+
 static int irqmode = NULL_IRQ_SOFTIRQ;
 module_param(irqmode, int, S_IRUGO);
 MODULE_PARM_DESC(irqmode, "IRQ completion handler. 0-none, 1-softirq, 2-timer");
 
-static int completion_nsec = 10000;
-module_param(completion_nsec, int, S_IRUGO);
+static unsigned long completion_nsec = 10000;
+module_param(completion_nsec, ulong, S_IRUGO);
 MODULE_PARM_DESC(completion_nsec, "Time in ns to complete a request in hardware. Default: 10,000ns");
 
 static int hw_queue_depth = 64;
@@ -135,6 +132,8 @@ static void free_cmd(struct nullb_cmd *cmd)
 	put_tag(cmd->nq, cmd->tag);
 }
 
+static enum hrtimer_restart null_cmd_timer_expired(struct hrtimer *timer);
+
 static struct nullb_cmd *__alloc_cmd(struct nullb_queue *nq)
 {
 	struct nullb_cmd *cmd;
@@ -145,6 +144,11 @@ static struct nullb_cmd *__alloc_cmd(struct nullb_queue *nq)
 		cmd = &nq->cmds[tag];
 		cmd->tag = tag;
 		cmd->nq = nq;
+		if (irqmode == NULL_IRQ_TIMER) {
+			hrtimer_init(&cmd->timer, CLOCK_MONOTONIC,
+				     HRTIMER_MODE_REL);
+			cmd->timer.function = null_cmd_timer_expired;
+		}
 		return cmd;
 	}
 
@@ -175,6 +179,8 @@ static struct nullb_cmd *alloc_cmd(struct nullb_queue *nq, int can_wait)
 
 static void end_cmd(struct nullb_cmd *cmd)
 {
+	struct request_queue *q = NULL;
+
 	switch (queue_mode)  {
 	case NULL_Q_MQ:
 		blk_mq_end_request(cmd->rq, 0);
@@ -523,11 +529,6 @@ static int null_add_dev(void)
 	queue_flag_set_unlocked(QUEUE_FLAG_NONROT, nullb->q);
 	queue_flag_clear_unlocked(QUEUE_FLAG_ADD_RANDOM, nullb->q);
 
-	disk = nullb->disk = alloc_disk_node(1, home_node);
-	if (!disk) {
-		rv = -ENOMEM;
-		goto out_cleanup_blk_queue;
-	}
 
 	mutex_lock(&lock);
 	list_add_tail(&nullb->list, &nullb_list);
@@ -537,6 +538,21 @@ static int null_add_dev(void)
 	blk_queue_logical_block_size(nullb->q, bs);
 	blk_queue_physical_block_size(nullb->q, bs);
 
+	sprintf(nullb->disk_name, "nullb%d", nullb->index);
+
+	if (use_lightnvm) {
+		rv = nvm_register(nullb->q, nullb->disk_name,
+							&null_lnvm_dev_ops);
+		if (rv)
+			goto out_cleanup_blk_queue;
+		goto done;
+	}
+
+	disk = nullb->disk = alloc_disk_node(1, home_node);
+	if (!disk) {
+		rv = -ENOMEM;
+		goto out_cleanup_lightnvm;
+	}
 	size = gb * 1024 * 1024 * 1024ULL;
 	sector_div(size, bs);
 	set_capacity(disk, size);
@@ -547,10 +563,15 @@ static int null_add_dev(void)
 	disk->fops		= &null_fops;
 	disk->private_data	= nullb;
 	disk->queue		= nullb->q;
-	sprintf(disk->disk_name, "nullb%d", nullb->index);
+	strncpy(disk->disk_name, nullb->disk_name, DISK_NAME_LEN);
+
 	add_disk(disk);
+done:
 	return 0;
 
+out_cleanup_lightnvm:
+	if (use_lightnvm)
+		nvm_unregister(nullb->disk_name);
 out_cleanup_blk_queue:
 	blk_cleanup_queue(nullb->q);
 out_cleanup_tags:
@@ -574,6 +595,18 @@ static int __init null_init(void)
 		bs = PAGE_SIZE;
 	}
 
+	if (use_lightnvm && bs != 4096) {
+		pr_warn("null_blk: LightNVM only supports 4k block size\n");
+		pr_warn("null_blk: defaults block size to 4k\n");
+		bs = 4096;
+	}
+
+	if (use_lightnvm && queue_mode != NULL_Q_MQ) {
+		pr_warn("null_blk: LightNVM only supported for blk-mq\n");
+		pr_warn("null_blk: defaults queue mode to blk-mq\n");
+		queue_mode = NULL_Q_MQ;
+	}
+
 	if (queue_mode == NULL_Q_MQ && use_per_node_hctx) {
 		if (submit_queues < nr_online_nodes) {
 			pr_warn("null_blk: submit_queues param is set to %u.",
@@ -587,32 +620,31 @@ static int __init null_init(void)
 
 	mutex_init(&lock);
 
-	/* Initialize a separate list for each CPU for issuing softirqs */
-	for_each_possible_cpu(i) {
-		struct completion_queue *cq = &per_cpu(completion_queues, i);
-
-		init_llist_head(&cq->list);
-
-		if (irqmode != NULL_IRQ_TIMER)
-			continue;
-
-		hrtimer_init(&cq->timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
-		cq->timer.function = null_cmd_timer_expired;
-	}
-
 	null_major = register_blkdev(0, "nullb");
 	if (null_major < 0)
 		return null_major;
 
+	if (use_lightnvm) {
+		ppa_cache = kmem_cache_create("ppa_cache", 64 * sizeof(u64),
+								0, 0, NULL);
+		if (!ppa_cache) {
+			pr_err("null_blk: unable to create ppa cache\n");
+			return -ENOMEM;
+		}
+	}
+
 	for (i = 0; i < nr_devices; i++) {
 		if (null_add_dev()) {
 			unregister_blkdev(null_major, "nullb");
-			return -EINVAL;
+			goto err_ppa;
 		}
 	}
 
 	pr_info("null: module loaded\n");
 	return 0;
+err_ppa:
+	kmem_cache_destroy(ppa_cache);
+	return -EINVAL;
 }
 
 static void __exit null_exit(void)
@@ -627,6 +659,8 @@ static void __exit null_exit(void)
 		null_del_dev(nullb);
 	}
 	mutex_unlock(&lock);
+
+	kmem_cache_destroy(ppa_cache);
 }
 
 module_init(null_init);

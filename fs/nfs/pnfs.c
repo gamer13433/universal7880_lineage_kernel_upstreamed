@@ -1429,6 +1429,7 @@ pnfs_layout_process(struct nfs4_layoutget *lgp)
 		/* existing state ID, make sure the sequence number matches. */
 		if (pnfs_layout_stateid_blocked(lo, &res->stateid)) {
 			dprintk("%s forget reply due to sequence\n", __func__);
+			status = -EAGAIN;
 			goto out_forget_reply;
 		}
 		pnfs_set_layout_stateid(lo, &res->stateid, false);

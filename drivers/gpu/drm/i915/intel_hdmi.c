@@ -1047,6 +1047,8 @@ intel_hdmi_detect(struct drm_connector *connector, bool force)
 	} else
 		status = connector_status_disconnected;
 
+	intel_display_power_put(dev_priv, POWER_DOMAIN_GMBUS);
+
 	return status;
 }
 

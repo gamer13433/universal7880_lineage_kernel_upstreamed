@@ -312,6 +312,14 @@ void __init efi_init(void)
 			 PAGE_ALIGN(params.mmap_size + (params.mmap & ~PAGE_MASK)));
 	memmap.phys_map = (void *)params.mmap;
 	memmap.map = early_memremap(params.mmap, params.mmap_size);
+	if (memmap.map == NULL) {
+		/*
+		* If we are booting via UEFI, the UEFI memory map is the only
+		* description of memory we have, so there is little point in
+		* proceeding if we cannot access it.
+		*/
+		panic("Unable to map EFI memory map.\n");
+	}
 	memmap.map_end = memmap.map + params.mmap_size;
 	memmap.desc_size = params.desc_size;
 	memmap.desc_version = params.desc_ver;

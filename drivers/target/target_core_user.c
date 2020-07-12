@@ -572,7 +572,7 @@ static int tcmu_check_expired_cmd(int id, void *p, void *data)
 	if (test_bit(TCMU_CMD_BIT_EXPIRED, &cmd->flags))
 		return 0;
 
-	if (!time_after(cmd->deadline, jiffies))
+	if (!time_after(jiffies, cmd->deadline))
 		return 0;
 
 	set_bit(TCMU_CMD_BIT_EXPIRED, &cmd->flags);
@@ -1088,8 +1088,6 @@ tcmu_parse_cdb(struct se_cmd *cmd)
 
 static struct se_subsystem_api tcmu_template = {
 	.name			= "user",
-	.inquiry_prod		= "USER",
-	.inquiry_rev		= TCMU_VERSION,
 	.owner			= THIS_MODULE,
 	.transport_flags	= TRANSPORT_FLAG_PASSTHROUGH,
 	.attach_hba		= tcmu_attach_hba,

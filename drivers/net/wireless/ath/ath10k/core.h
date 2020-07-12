@@ -433,6 +433,7 @@ struct ath10k {
 
 	struct ath10k_hw_params {
 		u32 id;
+		u16 dev_id;
 		const char *name;
 		u32 patch_load_addr;
 

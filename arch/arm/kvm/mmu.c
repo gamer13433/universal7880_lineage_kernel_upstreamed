@@ -323,6 +323,11 @@ static void stage2_flush_memslot(struct kvm *kvm,
 	} while (pgd++, addr = next, addr != end);
 }
 
+static bool kvm_is_device_pfn(unsigned long pfn)
+{
+	return !pfn_valid(pfn);
+}
+
 /**
  * stage2_flush_vm - Invalidate cache for pages mapped in stage 2
  * @kvm: The struct kvm pointer

@@ -123,7 +123,7 @@ static void omap_wdt_set_timer(struct omap_wdt_dev *wdev,
 
 static int omap_wdt_start(struct watchdog_device *wdog)
 {
-	struct omap_wdt_dev *wdev = watchdog_get_drvdata(wdog);
+	struct omap_wdt_dev *wdev = to_omap_wdt_dev(wdog);
 	void __iomem *base = wdev->base;
 
 	mutex_lock(&wdev->lock);

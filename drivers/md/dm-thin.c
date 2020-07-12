@@ -1856,6 +1856,7 @@ static void set_pool_mode(struct pool *pool, enum pool_mode new_mode)
 	case PM_WRITE:
 		if (old_mode != new_mode)
 			notify_of_pool_mode_change(pool, "write");
+		pool->pf.error_if_no_space = pt->requested_pf.error_if_no_space;
 		dm_pool_metadata_read_write(pool->pmd);
 		pool->process_bio = process_bio;
 		pool->process_discard = process_discard;
@@ -3592,10 +3593,9 @@ static int thin_iterate_devices(struct dm_target *ti,
 	sector_t blocks;
 	struct thin_c *tc = ti->private;
 	struct pool *pool = tc->pool;
-	struct queue_limits *pool_limits = dm_get_queue_limits(pool->pool_md);
 
-	if (!pool_limits->discard_granularity)
-		return; /* pool's discard support is disabled */
+	if (!pool->pf.discard_enabled)
+		return;
 
 	/*
 	 * We can't call dm_pool_get_data_dev_size() since that blocks.  So

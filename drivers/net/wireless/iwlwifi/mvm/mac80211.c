@@ -2215,6 +2215,7 @@ static int iwl_mvm_mac_set_key(struct ieee80211_hw *hw,
 {
 	struct iwl_mvm *mvm = IWL_MAC80211_GET_MVM(hw);
 	int ret;
+	u8 key_offset;
 
 	if (iwlwifi_mod_params.sw_crypto) {
 		IWL_DEBUG_MAC80211(mvm, "leave - hwcrypto disabled\n");

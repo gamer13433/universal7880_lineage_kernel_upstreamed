@@ -52,6 +52,14 @@ static void bpf_map_free_deferred(struct work_struct *work)
 	map->ops->map_free(map);
 }
 
+static void bpf_map_put_uref(struct bpf_map *map)
+{
+	if (atomic_dec_and_test(&map->usercnt)) {
+		if (map->map_type == BPF_MAP_TYPE_PROG_ARRAY)
+			bpf_fd_array_map_clear(map);
+	}
+}
+
 /* decrement map refcnt and schedule it for freeing via workqueue
  * (unrelying map implementation ops->map_free() might sleep)
  */
@@ -100,6 +108,7 @@ static int map_create(union bpf_attr *attr)
 		return PTR_ERR(map);
 
 	atomic_set(&map->refcnt, 1);
+	atomic_set(&map->usercnt, 1);
 
 	err = anon_inode_getfd("bpf-map", &bpf_map_fops, map, O_RDWR | O_CLOEXEC);
 
@@ -219,7 +228,7 @@ static int map_update_elem(union bpf_attr *attr)
 		goto free_key;
 
 	err = -ENOMEM;
-	value = kmalloc(map->value_size, GFP_USER);
+	value = kmalloc(map->value_size, GFP_USER | __GFP_NOWARN);
 	if (!value)
 		goto free_key;
 

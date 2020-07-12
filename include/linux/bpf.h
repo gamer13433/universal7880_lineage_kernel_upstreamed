@@ -34,6 +34,7 @@ struct bpf_map {
 	u32 max_entries;
 	struct bpf_map_ops *ops;
 	struct work_struct work;
+	atomic_t usercnt;
 };
 
 struct bpf_map_type_list {

@@ -1163,7 +1163,7 @@ static int knav_queue_setup_link_ram(struct knav_device *kdev)
 
 		block++;
 		if (!block->size)
-			return 0;
+			continue;
 
 		dev_dbg(kdev->dev, "linkram1: phys:%x, virt:%p, size:%x\n",
 			block->phys, block->virt, block->size);

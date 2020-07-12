@@ -718,6 +718,12 @@ int rsnd_src_probe(struct platform_device *pdev,
 	rsnd_of_parse_src(pdev, of_data, priv);
 
 	/*
+	 * SRC In doesn't work if DVC was enabled
+	 */
+	if (dvc && !rsnd_io_is_play(io))
+		return 0;
+
+	/*
 	 * init SRC
 	 */
 	nr	= info->src_info_nr;

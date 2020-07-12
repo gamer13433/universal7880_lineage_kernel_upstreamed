@@ -40,5 +40,10 @@ void arch_trigger_all_cpu_backtrace(void);
 
 #endif
 
+static inline int nr_legacy_irqs(void)
+{
+	return NR_IRQS_LEGACY;
+}
+
 #endif
 

@@ -74,7 +74,7 @@ irqreturn_t radeon_driver_irq_handler_kms(int irq, void *arg)
 static void radeon_hotplug_work_func(struct work_struct *work)
 {
 	struct radeon_device *rdev = container_of(work, struct radeon_device,
-						  hotplug_work);
+						  hotplug_work.work);
 	struct drm_device *dev = rdev->ddev;
 	struct drm_mode_config *mode_config = &dev->mode_config;
 	struct drm_connector *connector;
@@ -282,7 +282,7 @@ int radeon_irq_kms_init(struct radeon_device *rdev)
 	r = drm_irq_install(rdev->ddev, rdev->ddev->pdev->irq);
 	if (r) {
 		rdev->irq.installed = false;
-		flush_work(&rdev->hotplug_work);
+		flush_delayed_work(&rdev->hotplug_work);
 		return r;
 	}
 
@@ -305,7 +305,7 @@ void radeon_irq_kms_fini(struct radeon_device *rdev)
 		rdev->irq.installed = false;
 		if (rdev->msi_enabled)
 			pci_disable_msi(rdev->pdev);
-		flush_work(&rdev->hotplug_work);
+		flush_delayed_work(&rdev->hotplug_work);
 	}
 }
 
