@@ -8152,6 +8152,8 @@ static void prepare_vmcs02(struct kvm_vcpu *vcpu, struct vmcs12 *vmcs12)
 	if (nested_cpu_has_preemption_timer(vmcs12))
 		vmx_start_preemption_timer(vcpu);
 
+	trace_kvm_exit(exit_reason, vcpu, KVM_ISA_VMX);
+
 	/*
 	 * Whether page-faults are trapped is determined by a combination of
 	 * 3 settings: PFEC_MASK, PFEC_MATCH and EXCEPTION_BITMAP.PF.

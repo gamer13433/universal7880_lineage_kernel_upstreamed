@@ -125,10 +125,7 @@ static const struct iwl_ht_params iwl7000_ht_params = {
 	.ht40_bands = BIT(IEEE80211_BAND_2GHZ) | BIT(IEEE80211_BAND_5GHZ),
 };
 
-#define IWL_DEVICE_7000						\
-	.ucode_api_max = IWL7260_UCODE_API_MAX,			\
-	.ucode_api_ok = IWL7260_UCODE_API_OK,			\
-	.ucode_api_min = IWL7260_UCODE_API_MIN,			\
+#define IWL_DEVICE_7000_COMMON					\
 	.device_family = IWL_DEVICE_FAMILY_7000,		\
 	.max_inst_size = IWL60_RTC_INST_SIZE,			\
 	.max_data_size = IWL60_RTC_DATA_SIZE,			\
@@ -137,6 +134,24 @@ static const struct iwl_ht_params iwl7000_ht_params = {
 	.nvm_hw_section_num = NVM_HW_SECTION_NUM_FAMILY_7000,	\
 	.non_shared_ant = ANT_A
 
+
+#define IWL_DEVICE_7000						\
+	IWL_DEVICE_7000_COMMON,					\
+	.ucode_api_max = IWL7260_UCODE_API_MAX,			\
+	.ucode_api_ok = IWL7260_UCODE_API_OK,			\
+	.ucode_api_min = IWL7260_UCODE_API_MIN
+
+#define IWL_DEVICE_7005						\
+	IWL_DEVICE_7000_COMMON,					\
+	.ucode_api_max = IWL7265_UCODE_API_MAX,			\
+	.ucode_api_ok = IWL7265_UCODE_API_OK,			\
+	.ucode_api_min = IWL7265_UCODE_API_MIN
+
+#define IWL_DEVICE_7005D					\
+	IWL_DEVICE_7000_COMMON,					\
+	.ucode_api_max = IWL7265D_UCODE_API_MAX,		\
+	.ucode_api_ok = IWL7265D_UCODE_API_OK,			\
+	.ucode_api_min = IWL7265D_UCODE_API_MIN
 
 const struct iwl_cfg iwl7260_2ac_cfg = {
 	.name = "Intel(R) Dual Band Wireless AC 7260",
@@ -243,7 +258,7 @@ const struct iwl_cfg iwl3165_2ac_cfg = {
 const struct iwl_cfg iwl7265_2ac_cfg = {
 	.name = "Intel(R) Dual Band Wireless AC 7265",
 	.fw_name_pre = IWL7265_FW_PRE,
-	IWL_DEVICE_7000,
+	IWL_DEVICE_7005,
 	.ht_params = &iwl7265_ht_params,
 	.nvm_ver = IWL7265_NVM_VERSION,
 	.nvm_calib_ver = IWL7265_TX_POWER_VERSION,
@@ -253,7 +268,7 @@ const struct iwl_cfg iwl7265_2ac_cfg = {
 const struct iwl_cfg iwl7265_2n_cfg = {
 	.name = "Intel(R) Dual Band Wireless N 7265",
 	.fw_name_pre = IWL7265_FW_PRE,
-	IWL_DEVICE_7000,
+	IWL_DEVICE_7005,
 	.ht_params = &iwl7265_ht_params,
 	.nvm_ver = IWL7265_NVM_VERSION,
 	.nvm_calib_ver = IWL7265_TX_POWER_VERSION,
@@ -263,7 +278,7 @@ const struct iwl_cfg iwl7265_2n_cfg = {
 const struct iwl_cfg iwl7265_n_cfg = {
 	.name = "Intel(R) Wireless N 7265",
 	.fw_name_pre = IWL7265_FW_PRE,
-	IWL_DEVICE_7000,
+	IWL_DEVICE_7005,
 	.ht_params = &iwl7265_ht_params,
 	.nvm_ver = IWL7265_NVM_VERSION,
 	.nvm_calib_ver = IWL7265_TX_POWER_VERSION,

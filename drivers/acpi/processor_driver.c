@@ -218,7 +218,8 @@ static int __acpi_processor_start(struct acpi_device *device)
 	if (ACPI_SUCCESS(status))
 		return 0;
 
-	sysfs_remove_link(&pr->cdev->device.kobj, "device");
+	return 0;
+
  err_remove_sysfs_thermal:
 	sysfs_remove_link(&device->dev.kobj, "thermal_cooling");
  err_thermal_unregister:

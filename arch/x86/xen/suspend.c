@@ -1,6 +1,7 @@
 #include <linux/types.h>
 #include <linux/clockchips.h>
 
+#include <xen/xen.h>
 #include <xen/interface/xen.h>
 #include <xen/grant_table.h>
 #include <xen/events.h>

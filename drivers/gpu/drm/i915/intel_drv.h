@@ -414,7 +414,6 @@ struct intel_crtc {
 	 * handled in the hw itself (with the TILEOFF register). */
 	unsigned long dspaddr_offset;
 
-	struct drm_i915_gem_object *cursor_bo;
 	uint32_t cursor_addr;
 	int16_t cursor_width, cursor_height;
 	uint32_t cursor_cntl;

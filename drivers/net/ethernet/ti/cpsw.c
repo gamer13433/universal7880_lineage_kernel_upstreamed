@@ -2362,7 +2362,7 @@ static int cpsw_probe(struct platform_device *pdev)
 	ndev->irq = platform_get_irq(pdev, 0);
 	if (ndev->irq < 0) {
 		dev_err(priv->dev, "error getting irq resource\n");
-		ret = -ENOENT;
+		ret = ndev->irq;
 		goto clean_ale_ret;
 	}
 

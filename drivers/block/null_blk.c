@@ -181,6 +181,9 @@ static void end_cmd(struct nullb_cmd *cmd)
 {
 	struct request_queue *q = NULL;
 
+	if (cmd->rq)
+		q = cmd->rq->q;
+
 	switch (queue_mode)  {
 	case NULL_Q_MQ:
 		blk_mq_end_request(cmd->rq, 0);

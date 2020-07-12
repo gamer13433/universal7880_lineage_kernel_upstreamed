@@ -913,6 +913,7 @@ static int schedule_erase(struct ubi_device *ubi, struct ubi_wl_entry *e,
 	return 0;
 }
 
+static int __erase_worker(struct ubi_device *ubi, struct ubi_work *wl_wrk);
 /**
  * do_sync_erase - run the erase worker synchronously.
  * @ubi: UBI device description object
@@ -925,20 +926,16 @@ static int schedule_erase(struct ubi_device *ubi, struct ubi_wl_entry *e,
 static int do_sync_erase(struct ubi_device *ubi, struct ubi_wl_entry *e,
 			 int vol_id, int lnum, int torture)
 {
-	struct ubi_work *wl_wrk;
+	struct ubi_work wl_wrk;
 
 	dbg_wl("sync erase of PEB %i", e->pnum);
 
-	wl_wrk = kmalloc(sizeof(struct ubi_work), GFP_NOFS);
-	if (!wl_wrk)
-		return -ENOMEM;
+	wl_wrk.e = e;
+	wl_wrk.vol_id = vol_id;
+	wl_wrk.lnum = lnum;
+	wl_wrk.torture = torture;
 
-	wl_wrk->e = e;
-	wl_wrk->vol_id = vol_id;
-	wl_wrk->lnum = lnum;
-	wl_wrk->torture = torture;
-
-	return erase_worker(ubi, wl_wrk, 0);
+	return __erase_worker(ubi, &wl_wrk);
 }
 
 #ifdef CONFIG_MTD_UBI_FASTMAP
@@ -1401,7 +1398,7 @@ int ubi_ensure_anchor_pebs(struct ubi_device *ubi)
 #endif
 
 /**
- * erase_worker - physical eraseblock erase worker function.
+ * __erase_worker - physical eraseblock erase worker function.
  * @ubi: UBI device description object
  * @wl_wrk: the work object
  * @shutdown: non-zero if the worker has to free memory and exit
@@ -1412,8 +1409,7 @@ int ubi_ensure_anchor_pebs(struct ubi_device *ubi)
  * needed. Returns zero in case of success and a negative error code in case of
  * failure.
  */
-static int erase_worker(struct ubi_device *ubi, struct ubi_work *wl_wrk,
-			int shutdown)
+static int __erase_worker(struct ubi_device *ubi, struct ubi_work *wl_wrk)
 {
 	struct ubi_wl_entry *e = wl_wrk->e;
 	int pnum = e->pnum;
@@ -1464,6 +1460,7 @@ static int erase_worker(struct ubi_device *ubi, struct ubi_work *wl_wrk,
 		/* Re-schedule the LEB for erasure */
 		err1 = schedule_erase(ubi, e, vol_id, lnum, 0);
 		if (err1) {
+			wl_entry_destroy(ubi, e);
 			err = err1;
 			goto out_ro;
 		}
@@ -1536,6 +1533,25 @@ out_ro:
 	}
 	ubi_ro_mode(ubi);
 	return err;
+}
+
+static int erase_worker(struct ubi_device *ubi, struct ubi_work *wl_wrk,
+			  int shutdown)
+{
+	int ret;
+
+	if (shutdown) {
+		struct ubi_wl_entry *e = wl_wrk->e;
+
+		dbg_wl("cancel erasure of PEB %d EC %d", e->pnum, e->ec);
+		kfree(wl_wrk);
+		wl_entry_destroy(ubi, e);
+		return 0;
+	}
+
+	ret = __erase_worker(ubi, wl_wrk);
+	kfree(wl_wrk);
+	return ret;
 }
 
 /**

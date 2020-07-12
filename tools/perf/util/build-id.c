@@ -87,7 +87,7 @@ int build_id__sprintf(const u8 *build_id, int len, char *bf)
 		bid += 2;
 	}
 
-	return raw - build_id;
+	return (bid - bf) + 1;
 }
 
 char *dso__build_id_filename(const struct dso *dso, char *bf, size_t size)
