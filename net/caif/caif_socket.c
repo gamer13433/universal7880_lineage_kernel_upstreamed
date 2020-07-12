@@ -323,7 +323,7 @@ static long caif_stream_data_wait(struct sock *sk, long timeo)
 			!timeo)
 			break;
 
-		sk_set_bit(SOCKWQ_ASYNC_WAITDATA, sk);
+		set_bit(SOCK_ASYNC_WAITDATA, &sk->sk_socket->flags);
 		release_sock(sk);
 		timeo = schedule_timeout(timeo);
 		lock_sock(sk);
