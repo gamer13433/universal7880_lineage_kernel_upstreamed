@@ -757,7 +757,12 @@ error:
 		rht_for_each_entry_safe(obj, next, tbl->buckets[i], ht, node)
 			kfree(obj);
 
-	return err;
+	if (err == 0)
+		return NULL;
+	else if (err == -EAGAIN)
+		return tbl;
+	else
+		return ERR_PTR(err);
 }
 
 static int __init test_rht_init(void)

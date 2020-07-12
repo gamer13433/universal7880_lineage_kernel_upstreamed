@@ -1382,7 +1382,7 @@ static int __vhost_add_used_n(struct vhost_virtqueue *vq,
 	u16 old, new;
 	int start;
 
-	start = vq->last_used_idx % vq->num;
+	start = vq->last_used_idx & (vq->num - 1);
 	used = vq->used->ring + start;
 	if (count == 1) {
 		if (__put_user(heads[0].id, &used->id)) {
@@ -1424,7 +1424,7 @@ int vhost_add_used_n(struct vhost_virtqueue *vq, struct vring_used_elem *heads,
 {
 	int start, n, r;
 
-	start = vq->last_used_idx % vq->num;
+	start = vq->last_used_idx & (vq->num - 1);
 	n = vq->num - start;
 	if (n < count) {
 		r = __vhost_add_used_n(vq, heads, n);

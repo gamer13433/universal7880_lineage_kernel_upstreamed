@@ -224,6 +224,7 @@ static int xgene_enet_setup_tx_desc(struct xgene_enet_desc_ring *tx_ring,
 				    struct sk_buff *skb)
 {
 	struct device *dev = ndev_to_dev(tx_ring->ndev);
+	struct xgene_enet_pdata *pdata = netdev_priv(tx_ring->ndev);
 	struct xgene_enet_raw_desc *raw_desc;
 	dma_addr_t dma_addr;
 	u16 tail = tx_ring->tail;
@@ -696,9 +697,7 @@ static int xgene_enet_create_desc_rings(struct net_device *ndev)
 	pdata->tx_ring->cp_ring = cp_ring;
 	pdata->tx_ring->dst_ring_num = xgene_enet_dst_ring_num(cp_ring);
 
-	pdata->tx_qcnt_hi = pdata->tx_ring->slots / 2;
-	pdata->cp_qcnt_hi = pdata->rx_ring->slots / 2;
-	pdata->cp_qcnt_low = pdata->cp_qcnt_hi / 2;
+	pdata->tx_qcnt_hi = pdata->tx_ring->slots - 128;
 
 	return 0;
 

@@ -213,7 +213,6 @@ static int ti_clk_divider_set_rate(struct clk_hw *hw, unsigned long rate,
 {
 	struct clk_divider *divider;
 	unsigned int div, value;
-	unsigned long flags = 0;
 	u32 val;
 
 	if (!hw || !rate)
@@ -227,9 +226,6 @@ static int ti_clk_divider_set_rate(struct clk_hw *hw, unsigned long rate,
 	if (value > div_mask(divider))
 		value = div_mask(divider);
 
-	if (divider->lock)
-		spin_lock_irqsave(divider->lock, flags);
-
 	if (divider->flags & CLK_DIVIDER_HIWORD_MASK) {
 		val = div_mask(divider) << (divider->shift + 16);
 	} else {
@@ -238,9 +234,6 @@ static int ti_clk_divider_set_rate(struct clk_hw *hw, unsigned long rate,
 	}
 	val |= value << divider->shift;
 	ti_clk_ll_ops->clk_writel(val, divider->reg);
-
-	if (divider->lock)
-		spin_unlock_irqrestore(divider->lock, flags);
 
 	return 0;
 }
@@ -255,8 +248,7 @@ static struct clk *_register_divider(struct device *dev, const char *name,
 				     const char *parent_name,
 				     unsigned long flags, void __iomem *reg,
 				     u8 shift, u8 width, u8 clk_divider_flags,
-				     const struct clk_div_table *table,
-				     spinlock_t *lock)
+				     const struct clk_div_table *table)
 {
 	struct clk_divider *div;
 	struct clk *clk;
@@ -287,7 +279,6 @@ static struct clk *_register_divider(struct device *dev, const char *name,
 	div->shift = shift;
 	div->width = width;
 	div->flags = clk_divider_flags;
-	div->lock = lock;
 	div->hw.init = &init;
 	div->table = table;
 

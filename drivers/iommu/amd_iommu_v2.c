@@ -521,6 +521,22 @@ static void finish_pri_tag(struct device_state *dev_state,
 	spin_unlock_irqrestore(&pasid_state->lock, flags);
 }
 
+static bool access_error(struct vm_area_struct *vma, struct fault *fault)
+{
+	unsigned long requested = 0;
+
+	if (fault->flags & PPR_FAULT_EXEC)
+		requested |= VM_EXEC;
+
+	if (fault->flags & PPR_FAULT_READ)
+		requested |= VM_READ;
+
+	if (fault->flags & PPR_FAULT_WRITE)
+		requested |= VM_WRITE;
+
+	return (requested & ~vma->vm_flags) != 0;
+}
+
 static void do_fault(struct work_struct *work)
 {
 	struct fault *fault = container_of(work, struct fault, work);

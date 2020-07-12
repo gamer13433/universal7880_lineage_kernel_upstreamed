@@ -553,6 +553,31 @@ static inline unsigned long sh_eth_read(struct net_device *ndev,
 	return ioread32(mdp->addr + mdp->reg_offset[enum_index]);
 }
 
+#define SH_ETH_OFFSET_INVALID	((u16) ~0)
+
+static inline void sh_eth_write(struct net_device *ndev, u32 data,
+				int enum_index)
+{
+	struct sh_eth_private *mdp = netdev_priv(ndev);
+	u16 offset = mdp->reg_offset[enum_index];
+
+	if (WARN_ON(offset == SH_ETH_OFFSET_INVALID))
+		return;
+
+	iowrite32(data, mdp->addr + offset);
+}
+
+static inline u32 sh_eth_read(struct net_device *ndev, int enum_index)
+{
+	struct sh_eth_private *mdp = netdev_priv(ndev);
+	u16 offset = mdp->reg_offset[enum_index];
+
+	if (WARN_ON(offset == SH_ETH_OFFSET_INVALID))
+		return ~0U;
+
+	return ioread32(mdp->addr + offset);
+}
+
 static inline void *sh_eth_tsu_get_offset(struct sh_eth_private *mdp,
 					  int enum_index)
 {

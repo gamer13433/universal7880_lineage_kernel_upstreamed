@@ -3271,7 +3271,7 @@ static int tcp_send_syn_data(struct sock *sk, struct sk_buff *syn)
 {
 	struct tcp_sock *tp = tcp_sk(sk);
 	struct tcp_fastopen_request *fo = tp->fastopen_req;
-	int syn_loss = 0, space, err = 0;
+	int syn_loss = 0, space, err = 0, copied;
 	unsigned long last_syn_loss = 0;
 	struct sk_buff *syn_data;
 

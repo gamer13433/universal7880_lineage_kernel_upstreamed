@@ -460,6 +460,8 @@ static int ohci_at91_of_init(struct platform_device *pdev)
 	if (!pdata)
 		return -ENOMEM;
 
+	pdev->dev.platform_data = pdata;
+
 	if (!of_property_read_u32(np, "num-ports", &ports))
 		pdata->ports = ports;
 

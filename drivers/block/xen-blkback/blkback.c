@@ -872,6 +872,8 @@ static int xen_blkbk_parse_indirect(struct blkif_request *req,
 		goto unmap;
 
 	for (n = 0, i = 0; n < nseg; n++) {
+		uint8_t first_sect, last_sect;
+
 		if ((n % SEGS_PER_INDIRECT_FRAME) == 0) {
 			/* Map indirect segments */
 			if (segments)

@@ -564,10 +564,6 @@ i40e_status i40e_init_adminq(struct i40e_hw *hw)
 		goto init_adminq_exit;
 	}
 
-	/* initialize locks */
-	mutex_init(&hw->aq.asq_mutex);
-	mutex_init(&hw->aq.arq_mutex);
-
 	/* Set up register offsets */
 	i40e_adminq_init_regs(hw);
 

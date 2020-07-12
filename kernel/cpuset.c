@@ -1410,15 +1410,16 @@ static int fmeter_getrate(struct fmeter *fmp)
 static struct cpuset *cpuset_attach_old_cs;
 
 /* Called by cgroups to determine if a cpuset is usable; cpuset_mutex held */
-static int cpuset_can_attach(struct cgroup_subsys_state *css,
-			     struct cgroup_taskset *tset)
+static int cpuset_can_attach(struct cgroup_taskset *tset)
 {
-	struct cpuset *cs = css_cs(css);
+	struct cgroup_subsys_state *css;
+	struct cpuset *cs;
 	struct task_struct *task;
 	int ret;
 
 	/* used later by cpuset_attach() */
-	cpuset_attach_old_cs = task_cs(cgroup_taskset_first(tset));
+	cpuset_attach_old_cs = task_cs(cgroup_taskset_first(tset, &css));
+	cs = css_cs(css);
 
 	mutex_lock(&cpuset_mutex);
 
@@ -1457,9 +1458,14 @@ out_unlock:
 	return ret;
 }
 
-static void cpuset_cancel_attach(struct cgroup_subsys_state *css,
-				 struct cgroup_taskset *tset)
+static void cpuset_cancel_attach(struct cgroup_taskset *tset)
 {
+	struct cgroup_subsys_state *css;
+	struct cpuset *cs;
+
+	cgroup_taskset_first(tset, &css);
+	cs = css_cs(css);
+
 	mutex_lock(&cpuset_mutex);
 	css_cs(css)->attach_in_progress--;
 	mutex_unlock(&cpuset_mutex);
@@ -1493,7 +1499,7 @@ static void cpuset_attach(struct cgroup_subsys_state *css,
 
 	guarantee_online_mems(cs, &cpuset_attach_nodemask_to);
 
-	cgroup_taskset_for_each(task, tset) {
+	cgroup_taskset_for_each(task, css, tset) {
 		/*
 		 * can_attach beforehand should guarantee that this doesn't
 		 * fail.  TODO: have a better way to handle failure here

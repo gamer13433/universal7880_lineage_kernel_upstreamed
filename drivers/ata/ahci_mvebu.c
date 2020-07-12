@@ -98,6 +98,10 @@ disable_resources:
 	ahci_platform_disable_resources(hpriv);
 	return rc;
 }
+#else
+#define ahci_mvebu_suspend NULL
+#define ahci_mvebu_resume NULL
+#endif
 
 static const struct of_device_id ahci_mvebu_of_match[] = {
 	{ .compatible = "marvell,armada-380-ahci", },

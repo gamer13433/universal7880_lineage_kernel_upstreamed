@@ -190,7 +190,7 @@ static int phy_berlin_sata_probe(struct platform_device *pdev)
 	struct phy_provider *phy_provider;
 	struct phy_berlin_priv *priv;
 	struct resource *res;
-	int i = 0;
+	int ret, i = 0;
 	u32 phy_id;
 
 	priv = devm_kzalloc(dev, sizeof(*priv), GFP_KERNEL);

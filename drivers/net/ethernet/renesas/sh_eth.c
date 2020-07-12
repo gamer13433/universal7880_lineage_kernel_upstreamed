@@ -395,6 +395,28 @@ static const u16 sh_eth_offset_fast_sh3_sh2[SH_ETH_MAX_REGISTER_OFFSET] = {
 	[TSU_ADRL31]	= 0x01fc,
 };
 
+static void sh_eth_write(struct net_device *ndev, u32 data, int enum_index)
+{
+	struct sh_eth_private *mdp = netdev_priv(ndev);
+	u16 offset = mdp->reg_offset[enum_index];
+
+	if (WARN_ON(offset == SH_ETH_OFFSET_INVALID))
+		return;
+
+	iowrite32(data, mdp->addr + offset);
+}
+
+static u32 sh_eth_read(struct net_device *ndev, int enum_index)
+{
+	struct sh_eth_private *mdp = netdev_priv(ndev);
+	u16 offset = mdp->reg_offset[enum_index];
+
+	if (WARN_ON(offset == SH_ETH_OFFSET_INVALID))
+		return ~0U;
+
+	return ioread32(mdp->addr + offset);
+}
+
 static bool sh_eth_is_gether(struct sh_eth_private *mdp)
 {
 	return mdp->reg_offset == sh_eth_offset_gigabit;
@@ -1364,7 +1386,8 @@ static int sh_eth_txfree(struct net_device *ndev)
 		rmb();
 		/* Free the original skb. */
 		if (mdp->tx_skbuff[entry]) {
-			dma_unmap_single(&ndev->dev, txdesc->addr,
+			dma_unmap_single(&ndev->dev,
+					 edmac_to_cpu(mdp, txdesc->addr),
 					 txdesc->buffer_length, DMA_TO_DEVICE);
 			dev_kfree_skb_irq(mdp->tx_skbuff[entry]);
 			mdp->tx_skbuff[entry] = NULL;
@@ -1420,6 +1443,7 @@ static int sh_eth_rx(struct net_device *ndev, u32 intr_status, int *quota)
 		if (mdp->cd->shift_rd0)
 			desc_status >>= 16;
 
+		skb = mdp->rx_skbuff[entry];
 		if (desc_status & (RD_RFS1 | RD_RFS2 | RD_RFS3 | RD_RFS4 |
 				   RD_RFS5 | RD_RFS6 | RD_RFS10)) {
 			ndev->stats.rx_errors++;
@@ -2071,8 +2095,8 @@ static void sh_eth_tx_timeout(struct net_device *ndev)
 	/* Free all the skbuffs in the Rx queue. */
 	for (i = 0; i < mdp->num_rx_ring; i++) {
 		rxdesc = &mdp->rx_ring[i];
-		rxdesc->status = 0;
-		rxdesc->addr = 0xBADF00D0;
+		rxdesc->status = cpu_to_edmac(mdp, 0);
+		rxdesc->addr = cpu_to_edmac(mdp, 0xBADF00D0);
 		dev_kfree_skb(mdp->rx_skbuff[i]);
 		mdp->rx_skbuff[i] = NULL;
 	}
@@ -2090,6 +2114,7 @@ static int sh_eth_start_xmit(struct sk_buff *skb, struct net_device *ndev)
 {
 	struct sh_eth_private *mdp = netdev_priv(ndev);
 	struct sh_eth_txdesc *txdesc;
+	dma_addr_t dma_addr;
 	u32 entry;
 	unsigned long flags;
 

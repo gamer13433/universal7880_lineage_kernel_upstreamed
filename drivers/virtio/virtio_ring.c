@@ -81,6 +81,12 @@ struct vring_virtqueue
 	/* Last used index we've seen. */
 	u16 last_used_idx;
 
+	/* Last written value to avail->flags */
+	u16 avail_flags_shadow;
+
+	/* Last written value to avail->idx in guest byte order */
+	u16 avail_idx_shadow;
+
 	/* How to notify other side. FIXME: commonalize hcalls! */
 	bool (*notify)(struct virtqueue *vq);
 
@@ -109,7 +115,7 @@ static struct vring_desc *alloc_indirect(unsigned int total_sg, gfp_t gfp)
 	 * otherwise virt_to_phys will give us bogus addresses in the
 	 * virtqueue.
 	 */
-	gfp &= ~(__GFP_HIGHMEM | __GFP_HIGH);
+	gfp &= ~__GFP_HIGHMEM;
 
 	desc = kmalloc(total_sg * sizeof(struct vring_desc), gfp);
 	if (!desc)
@@ -735,6 +741,8 @@ struct virtqueue *vring_new_virtqueue(unsigned int index,
 	vq->weak_barriers = weak_barriers;
 	vq->broken = false;
 	vq->last_used_idx = 0;
+	vq->avail_flags_shadow = 0;
+	vq->avail_idx_shadow = 0;
 	vq->num_added = 0;
 	list_add_tail(&vq->vq.list, &vdev->vqs);
 #ifdef DEBUG

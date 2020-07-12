@@ -656,7 +656,7 @@ static ssize_t ffs_ep0_read(struct file *file, char __user *buf,
 
 		/* unlocks spinlock */
 		ret = __ffs_ep0_queue_wait(ffs, data, len);
-		if (likely(ret > 0) && unlikely(__copy_to_user(buf, data, len)))
+		if (likely(ret > 0) && unlikely(copy_to_user(buf, data, len)))
 			ret = -EFAULT;
 		goto done_mutex;
 
@@ -2533,7 +2533,7 @@ static char *ffs_prepare_buffer(const char __user *buf, size_t len)
 	if (unlikely(!data))
 		return ERR_PTR(-ENOMEM);
 
-	if (unlikely(__copy_from_user(data, buf, len))) {
+	if (unlikely(copy_from_user(data, buf, len))) {
 		kfree(data);
 		return ERR_PTR(-EFAULT);
 	}

@@ -23,6 +23,15 @@
 #include <media/v4l2-event.h>
 #include <media/videobuf2-vmalloc.h>
 
+/*
+ * Used Avago MGA-81563 RF amplifier could be destroyed pretty easily with too
+ * strong signal or transmitting to bad antenna.
+ * Set RF gain control to 'grabbed' state by default for sure.
+ */
+static bool hackrf_enable_rf_gain_ctrl;
+module_param_named(enable_rf_gain_ctrl, hackrf_enable_rf_gain_ctrl, bool, 0644);
+MODULE_PARM_DESC(enable_rf_gain_ctrl, "enable RX/TX RF amplifier control (warn: could damage amplifier)");
+
 /* HackRF USB API commands (from HackRF Library) */
 enum {
 	CMD_SET_TRANSCEIVER_MODE           = 0x01,

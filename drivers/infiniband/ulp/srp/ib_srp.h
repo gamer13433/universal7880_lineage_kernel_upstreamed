@@ -268,7 +268,10 @@ struct srp_map_state {
 	dma_addr_t		base_dma_addr;
 	u32			dma_len;
 	u32			total_len;
-	unsigned int		npages;
+	union {
+		unsigned int	npages;
+		int		sg_nents;
+	};
 	unsigned int		nmdesc;
 	unsigned int		ndesc;
 	struct scatterlist     *unmapped_sg;

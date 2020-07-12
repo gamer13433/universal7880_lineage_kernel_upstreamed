@@ -132,7 +132,7 @@ static inline int is_double_byte_mode(struct fsl_dspi *dspi)
 {
 	unsigned int val;
 
-	regmap_read(dspi->regmap, SPI_CTAR(dspi->cs), &val);
+	regmap_read(dspi->regmap, SPI_CTAR(0), &val);
 
 	return ((val & SPI_FRAME_BITS_MASK) == SPI_FRAME_BITS(8)) ? 0 : 1;
 }
@@ -182,7 +182,7 @@ static int dspi_transfer_write(struct fsl_dspi *dspi)
 	 */
 	if (tx_word && (dspi->len == 1)) {
 		dspi->dataflags |= TRAN_STATE_WORD_ODD_NUM;
-		regmap_update_bits(dspi->regmap, SPI_CTAR(dspi->cs),
+		regmap_update_bits(dspi->regmap, SPI_CTAR(0),
 				SPI_FRAME_BITS_MASK, SPI_FRAME_BITS(8));
 		tx_word = 0;
 	}

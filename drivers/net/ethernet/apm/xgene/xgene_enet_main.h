@@ -102,11 +102,11 @@ struct xgene_enet_pdata {
 	struct platform_device *pdev;
 	struct xgene_enet_desc_ring *tx_ring;
 	struct xgene_enet_desc_ring *rx_ring;
+	u16 tx_level;
+	u16 txc_level;
 	char *dev_name;
 	u32 rx_buff_cnt;
 	u32 tx_qcnt_hi;
-	u32 cp_qcnt_hi;
-	u32 cp_qcnt_low;
 	u32 rx_irq;
 	void __iomem *eth_csr_addr;
 	void __iomem *eth_ring_if_addr;

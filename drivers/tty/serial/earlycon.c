@@ -87,6 +87,7 @@ static int __init parse_options(struct earlycon_device *device,
 		return -EINVAL;
 	}
 
+	spin_lock_init(&port->lock);
 	port->uartclk = BASE_BAUD * 16;
 
 	options = strchr(options, ',');
@@ -154,6 +155,7 @@ int __init of_setup_earlycon(unsigned long addr,
 	int err;
 	struct uart_port *port = &early_console_dev.port;
 
+	spin_lock_init(&port->lock);
 	port->iotype = UPIO_MEM;
 	port->mapbase = addr;
 	port->uartclk = BASE_BAUD * 16;

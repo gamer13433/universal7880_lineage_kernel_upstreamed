@@ -884,6 +884,7 @@ static void __init e680_init(void)
 
 	pxa_set_keypad_info(&e680_keypad_platform_data);
 
+	pwm_add_table(ezx_pwm_lookup, ARRAY_SIZE(ezx_pwm_lookup));
 	platform_add_devices(ARRAY_AND_SIZE(ezx_devices));
 	platform_add_devices(ARRAY_AND_SIZE(e680_devices));
 }
@@ -951,6 +952,7 @@ static void __init a1200_init(void)
 
 	pxa_set_keypad_info(&a1200_keypad_platform_data);
 
+	pwm_add_table(ezx_pwm_lookup, ARRAY_SIZE(ezx_pwm_lookup));
 	platform_add_devices(ARRAY_AND_SIZE(ezx_devices));
 	platform_add_devices(ARRAY_AND_SIZE(a1200_devices));
 }
@@ -1143,6 +1145,7 @@ static void __init a910_init(void)
 		platform_device_register(&a910_camera);
 	}
 
+	pwm_add_table(ezx_pwm_lookup, ARRAY_SIZE(ezx_pwm_lookup));
 	platform_add_devices(ARRAY_AND_SIZE(ezx_devices));
 	platform_add_devices(ARRAY_AND_SIZE(a910_devices));
 }
@@ -1210,6 +1213,7 @@ static void __init e6_init(void)
 
 	pxa_set_keypad_info(&e6_keypad_platform_data);
 
+	pwm_add_table(ezx_pwm_lookup, ARRAY_SIZE(ezx_pwm_lookup));
 	platform_add_devices(ARRAY_AND_SIZE(ezx_devices));
 	platform_add_devices(ARRAY_AND_SIZE(e6_devices));
 }
@@ -1251,6 +1255,7 @@ static void __init e2_init(void)
 
 	pxa_set_keypad_info(&e2_keypad_platform_data);
 
+	pwm_add_table(ezx_pwm_lookup, ARRAY_SIZE(ezx_pwm_lookup));
 	platform_add_devices(ARRAY_AND_SIZE(ezx_devices));
 	platform_add_devices(ARRAY_AND_SIZE(e2_devices));
 }
