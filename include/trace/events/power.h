@@ -27,7 +27,7 @@ DECLARE_EVENT_CLASS(cpu,
 		__entry->cpu_id = cpu_id;
 	),
 
-	TP_printk("state=%d cpu_id=%lu", (int)__entry->state,
+	TP_printk("state=%lu cpu_id=%lu", (unsigned long)__entry->state,
 		  (unsigned long)__entry->cpu_id)
 );
 
@@ -126,7 +126,7 @@ TRACE_EVENT(cpu_frequency_limits,
 
 	TP_fast_assign(
 		__entry->min_freq = min_freq;
-		__entry->max_freq = min_freq;
+		__entry->max_freq = max_freq;
 		__entry->cpu_id = cpu_id;
 	),
 
@@ -136,7 +136,15 @@ TRACE_EVENT(cpu_frequency_limits,
 		  (unsigned long)__entry->cpu_id)
 );
 
+DEFINE_EVENT(cpu, cpu_capacity,
+
+	TP_PROTO(unsigned int capacity, unsigned int cpu_id),
+
+	TP_ARGS(capacity, cpu_id)
+);
+
 TRACE_EVENT(device_pm_callback_start,
+
 	TP_PROTO(struct device *dev, const char *pm_ops, int event),
 
 	TP_ARGS(dev, pm_ops, event),
@@ -510,27 +518,6 @@ DEFINE_EVENT(dev_pm_qos_request, dev_pm_qos_remove_request,
 
 	TP_ARGS(name, type, new_value)
 );
-
-/* for kernel/notifier.c */
-TRACE_EVENT(notifier_pm_suspend,
-
-	TP_PROTO(struct notifier_block *nb, unsigned long val),
-
-	TP_ARGS(nb, val),
-
-	TP_STRUCT__entry(
-		__field(	void *,		function	)
-		__field(	unsigned long,	val		)
-	),
-
-	TP_fast_assign(
-		__entry->function	= nb->notifier_call;
-		__entry->val		= val;
-	),
-
-	TP_printk("nb->function=%pf val=%lu", __entry->function, __entry->val)
-);
-
 #endif /* _TRACE_POWER_H */
 
 /* This part must be outside protection */
