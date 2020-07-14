@@ -399,7 +399,7 @@ static int is_cpd_available(unsigned int cpu)
 {
 	struct cpumask mask;
 
-	if (pm_info->cpd_blocked || exynos_hotplug_in_progress())
+	if (pm_info->cpd_blocked)
 		return false;
 
 	/*
@@ -464,7 +464,7 @@ static int is_sicd_available(unsigned int cpu)
 {
 	int index;
 
-	if (!pm_info->sicd_enabled || exynos_hotplug_in_progress())
+	if (!pm_info->sicd_enabled)
 		return false;
 
 	if (is_jig_attached())
