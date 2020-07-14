@@ -1418,7 +1418,7 @@ static int security_context_to_sid_core(const char *scontext, u32 scontext_len,
 		return -EINVAL;
 
 	/* Copy the string to allow changes and ensure a NUL terminator */
-	scontext2 = kmalloc(scontext_len + 1, gfp_flags);
+	scontext2 = kmemdup_nul(scontext, scontext_len, gfp_flags);
 	if (!scontext2)
 		return -ENOMEM;
 
