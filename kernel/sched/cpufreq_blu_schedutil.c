@@ -17,6 +17,7 @@
 #include <linux/cpufreq.h>
 #include <linux/kthread.h>
 #include <linux/slab.h>
+#include <linux/irq_work.h>
 
 #include "sched.h"
 #include "tune.h"
