@@ -9,6 +9,7 @@
 */
 
 #include <linux/lcd.h>
+#include <linux/display_state.h>
 #include "../dsim.h"
 
 #include "dsim_panel.h"
@@ -18,6 +19,12 @@ struct mipi_dsim_lcd_driver *mipi_lcd_driver = &s6e3fa3_mipi_lcd_driver;
 #elif defined(CONFIG_PANEL_S6E3FA3_A5Y17)
 struct mipi_dsim_lcd_driver *mipi_lcd_driver = &s6e3fa3_mipi_lcd_driver;
 #endif
+
+bool display_on = true;
+bool is_display_on()
+{
+	return display_on;
+}
 
 int dsim_panel_ops_init(struct dsim_device *dsim)
 {
