@@ -399,4 +399,3 @@ void __init init_cpu_topology(void)
 
 	init_sched_energy_costs();
 }
-

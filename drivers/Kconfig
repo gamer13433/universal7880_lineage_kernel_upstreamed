@@ -211,5 +211,4 @@ source "drivers/fingerprint/Kconfig"
 source "drivers/sensorhub/stm32/Kconfig"
 
 source "drivers/sensorhub/brcm/Kconfig"
-
 endmenu

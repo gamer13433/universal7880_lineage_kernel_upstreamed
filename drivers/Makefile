@@ -184,4 +184,3 @@ obj-$(CONFIG_SENSORS_SSP)       += sensorhub/
 obj-$(CONFIG_GPS_BCMxxxxx)	+= gps/
 #Fingerprint
 obj-$(CONFIG_SENSORS_FINGERPRINT)       += fingerprint/
-

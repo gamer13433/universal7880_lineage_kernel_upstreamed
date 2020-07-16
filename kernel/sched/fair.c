@@ -7997,14 +7997,24 @@ static inline void update_sg_lb_stats(struct lb_env *env,
 		}
 	}
 
-	/* Adjust by relative CPU capacity of the group */
-	sgs->group_capacity = group->sgc->capacity;
-	sgs->avg_load = (sgs->group_load*SCHED_CAPACITY_SCALE) / sgs->group_capacity;
+	/* Isolated CPU has no weight */
+	if (!group->group_weight) {
+		sgs->group_capacity = 0;
+		sgs->avg_load = 0;
+		sgs->group_no_capacity = 1;
+		sgs->group_type = group_other;
+		sgs->group_weight = group->group_weight;
+	} else {
+		/* Adjust by relative CPU capacity of the group */
+		sgs->group_capacity = group->sgc->capacity;
+		sgs->avg_load = (sgs->group_load*SCHED_CAPACITY_SCALE) /
+							sgs->group_capacity;
 
-	if (sgs->sum_nr_running)
-		sgs->load_per_task = sgs->sum_weighted_load / sgs->sum_nr_running;
+		sgs->group_weight = group->group_weight;
 
-	sgs->group_weight = group->group_weight;
+		sgs->group_no_capacity = group_is_overloaded(env, sgs);
+		sgs->group_type = group_classify(group, sgs);
+	}
 
 	sgs->group_no_capacity = group_is_overloaded(env, sgs);
 	sgs->group_type = group_classify(env, group, sgs);
