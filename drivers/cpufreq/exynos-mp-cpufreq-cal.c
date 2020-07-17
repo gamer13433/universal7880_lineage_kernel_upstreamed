@@ -21,6 +21,7 @@
 #include <linux/cpufreq.h>
 #include <linux/of.h>
 #include <linux/regulator/consumer.h>
+#include <linux/ems.h>
 
 #include <soc/samsung/cpufreq.h>
 #include <soc/samsung/exynos-pmu.h>
@@ -253,7 +254,18 @@ static void exynos_mp_cpufreq_print_info(cluster_type cluster)
 
 static int exynos_mp_cpufreq_cal_init(cluster_type cluster)
 {
-	int ret;
+	int ret, max_f, min_f, table_size;
+	unsigned int i, j;
+
+    static unsigned long lc_cpus = 15;
+	static unsigned long bc_cpus = 240;
+
+	static struct cpumask* lc_mask = to_cpumask(&lc_cpus);
+	static struct cpumask* bc_mask = to_cpumask(&bc_cpus);
+	table_size = exynos_info[cluster]->min_support_idx - exynos_info[cluster]->max_support_idx;
+
+	unsigned long f_table[table_size];
+	unsigned int v_table[table_size];
 
 	/* parsing cal rate, voltage table */
 	ret = exynos_mp_cpufreq_init_cal_table(cluster);
@@ -267,6 +279,23 @@ static int exynos_mp_cpufreq_cal_init(cluster_type cluster)
 	/* set ops for cal */
 	exynos_mp_cpufreq_set_cal_ops(cluster);
 
+    max_f = exynos_info[cluster]->freq_table[exynos_info[cluster]->max_support_idx].frequency;
+	min_f = exynos_info[cluster]->freq_table[exynos_info[cluster]->min_support_idx].frequency;
+
+	for (i = 0, j = exynos_info[cluster]->min_support_idx;
+	     i <= table_size;
+	     i++, j--) {
+		f_table[i] = exynos_info[cluster]->freq_table[j].frequency;
+		v_table[i] = exynos_info[cluster]->volt_table[j];
+		pr_info("%s: Frequency = %lu Volt = %u\n", __func__, f_table[i], v_table[i]);
+	}
+
+	if (cluster == CL_ZERO)
+		init_sched_energy_table(lc_mask, table_size, f_table,
+					v_table, max_f, min_f);
+	else
+		init_sched_energy_table(bc_mask, table_size, f_table,
+					v_table, max_f, min_f);
 	return 0;
 
 err_init_cal:

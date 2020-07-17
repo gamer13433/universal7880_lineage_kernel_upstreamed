@@ -89,24 +89,6 @@
 	cpus {
 		#address-cells = <2>;
 		#size-cells = <0>;
-
-        auto_cpu_mapping {
-			enabled;
-		};
-
-		hmp {
-			up_threshold = <524>;
-			down_threshold = <214>;
-			semiboost_up_threshold = <254>;
-			semiboost_down_threshold = <163>;
-			bootboost-duration-us = <40000000>;
-			down_compensation_timeout = <30>;               /* ms */
-			down_compensation_high_freq = <1500000>;        /* min qos lock for little cpu */
-			down_compensation_mid_freq = <1000000>;          /* min qos lock for little cpu */
-			down_compensation_low_freq = <800000>;          /* min qos lock for little cpu */
-			little-id = <1>;
-		};
-
 		cpu-map {
 			cluster0 {
 				core0 {
@@ -122,17 +104,18 @@
 					cpu = <&cpu3>;
 				};
 			};
+
 			cluster1 {
-				core4 {
+				core0 {
 					cpu = <&cpu4>;
 				};
-				core5 {
+				core1 {
 					cpu = <&cpu5>;
 				};
-				core6 {
+				core2 {
 					cpu = <&cpu6>;
 				};
-				core7 {
+				core3 {
 					cpu = <&cpu7>;
 				};
 			};
@@ -145,6 +128,7 @@
 			clock-frequency = <1794000000>;
 			enable-method = "psci";
 			cpu-idle-states = <&CPU_SLEEP_BOOT>;
+            sched-energy-data = <&A53_ENERGY>;
 		};
 		cpu1:cpu@1 {
 			device_type = "cpu";
@@ -153,6 +137,7 @@
 			clock-frequency = <1794000000>;
 			enable-method = "psci";
 			cpu-idle-states = <&CPU_SLEEP_BOOT>;
+            sched-energy-data = <&A53_ENERGY>;
 		};
 		cpu2:cpu@2 {
 			device_type = "cpu";
@@ -161,6 +146,7 @@
 			clock-frequency = <1794000000>;
 			enable-method = "psci";
 			cpu-idle-states = <&CPU_SLEEP_BOOT>;
+            sched-energy-data = <&A53_ENERGY>;
 		};
 		cpu3:cpu@3 {
 			device_type = "cpu";
@@ -169,6 +155,7 @@
 			clock-frequency = <1794000000>;
 			enable-method = "psci";
 			cpu-idle-states = <&CPU_SLEEP_BOOT>;
+            sched-energy-data = <&A53_ENERGY>;
 		};
 
 		cpu4:cpu@100 {
@@ -178,6 +165,7 @@
 			clock-frequency = <1794000000>;
 			enable-method = "psci";
 			cpu-idle-states = <&CPU_SLEEP_NONBOOT>;
+		    sched-energy-data = <&A53_ENERGY>;
 		};
 		cpu5:cpu@101 {
 			device_type = "cpu";
@@ -186,6 +174,7 @@
 			clock-frequency = <1794000000>;
 			enable-method = "psci";
 			cpu-idle-states = <&CPU_SLEEP_NONBOOT>;
+		    sched-energy-data = <&A53_ENERGY>;
 		};
 		cpu6:cpu@102 {
 			device_type = "cpu";
@@ -194,6 +183,7 @@
 			clock-frequency = <1794000000>;
 			enable-method = "psci";
 			cpu-idle-states = <&CPU_SLEEP_NONBOOT>;
+		    sched-energy-data = <&A53_ENERGY>;
 		};
 		cpu7:cpu@103 {
 			device_type = "cpu";
@@ -202,6 +192,8 @@
 			clock-frequency = <1794000000>;
 			enable-method = "psci";
 			cpu-idle-states = <&CPU_SLEEP_NONBOOT>;
+		    sched-energy-data = <&A53_ENERGY>;
+
 		};
 		idle-states {
 			entry-method = "arm,psci";
@@ -227,6 +219,13 @@
 			};
 		};
 	};
+
+   energy-data {
+			A53_ENERGY: a53-energy {
+				capacity-mips = <230>;
+				power-coefficient = <120>;
+   };
+};
 
 	psci {
                 compatible = "arm,psci";
@@ -693,8 +692,8 @@
 		cl0_idx_num = <17>;
 		cl0_max_support_idx = <1>;
 		cl0_min_support_idx = <16>;
-		cl0_boot_max_qos = <1872000>;
-		cl0_boot_min_qos = <1872000>;
+		cl0_boot_max_qos = <2002000>;
+		cl0_boot_min_qos = <2002000>;
 		cl0_boot_lock_time = <40000000>;
 		cl0_en_ema = <1>;
 		cl0_regulator = "BUCK1";
@@ -703,8 +702,8 @@
 		cl1_idx_num = <17>;
 		cl1_max_support_idx = <1>;
 		cl1_min_support_idx = <16>;
-		cl1_boot_max_qos = <1872000>;
-		cl1_boot_min_qos = <1872000>;
+		cl1_boot_max_qos = <2002000>;
+		cl1_boot_min_qos = <2002000>;
 		cl1_boot_lock_time = <40000000>;
 		cl1_en_ema = <1>;
 		cl1_regulator = "BUCK1";
